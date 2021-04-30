@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: httpbin-pod
+  labels:
+    app: httpbin
+spec:
+  serviceAccountName: old-sa
+  initContainers:
+  - name: init-networking
+    image: aramase/proxy-init:v0.0.1
+    imagePullPolicy: Always
+    securityContext:
+      capabilities:
+        add:
+        - NET_ADMIN
+      privileged: true
+  containers:
+  - name: nginx
+    image: nginx:alpine
+    ports:
+    - containerPort: 80
+  - name: proxy
+    image: aramase/pod-identity-proxy:v0.0.1
+    imagePullPolicy: Always
+    ports:
+    - containerPort: 8000
