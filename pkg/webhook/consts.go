@@ -1,8 +1,9 @@
 package webhook
 
+// Annotations and labels defined in service account
 const (
-	// usePodIdentityAnnotation represents the service account is to be used for pod identity
-	usePodIdentityAnnotation = "azure.pod.identity/use"
+	// usePodIdentityLabel represents the service account is to be used for pod identity
+	usePodIdentityLabel = "azure.pod.identity/use"
 	// clientIDAnnotation represents the clientID to be used with pod
 	clientIDAnnotation = "azure.pod.identity/client-id"
 	// tenantIDAnnotation represent the tenantID to be used with pod
@@ -19,4 +20,11 @@ const (
 	defaultServiceAccountTokenExpiration = int64(86400)
 	// minServiceAccountTokenExpiration is the minimum service account token expiration in seconds
 	minServiceAccountTokenExpiration = int64(3600)
+)
+
+// Environment variables injected in the pod
+const (
+	azureClientIDEnvVar = "AZURE_CLIENT_ID"
+	azureTenantIDEnvVar = "AZURE_TENANT_ID"
+	tokenFilePathEnvVar = "TOKEN_FILE_PATH"
 )

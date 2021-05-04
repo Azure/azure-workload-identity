@@ -26,9 +26,9 @@ func ParseConfig(configFile string) (*Config, error) {
 			return nil, fmt.Errorf("unable to unmarshal JSON, error: %+v", err)
 		}
 	} else {
-		c.Cloud = os.Getenv("CLOUD")
-		c.TenantID = os.Getenv("TENANT_ID")
-		c.SubscriptionID = os.Getenv("SUBSCRIPTION_ID")
+		c.Cloud = os.Getenv("AZURE_ENVIRONMENT")
+		c.TenantID = os.Getenv("AZURE_TENANT_ID")
+		c.SubscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	}
 	// validate parsed config
 	if err := validateConfig(c); err != nil {

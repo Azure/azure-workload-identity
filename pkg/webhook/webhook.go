@@ -18,7 +18,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
-// +kubebuilder:webhook:path=/mutate-v1-pod,mutating=true,failurePolicy=fail,groups="",resources=pods,verbs=create;update,versions=v1,name=mpod.aad-pod-identity.io,sideEffects=None
+// +kubebuilder:webhook:path=/mutate-v1-pod,mutating=true,failurePolicy=ignore,groups="",resources=pods,verbs=create;update,versions=v1,name=mpod.aad-pod-identity.io,sideEffects=None
 // +kubebuilder:rbac:groups="",resources=serviceaccounts,verbs=get;list;watch;create;update;patch
 
 // podMutator mutates pod objects to add project service account token volume
@@ -92,45 +92,10 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) admissio
 	}
 
 	// add the projected service account token volume to the pod if not exists
-	volumeExists := false
-	for _, volume := range pod.Spec.Volumes {
-		if volume.Projected == nil {
-			continue
-		}
-		for _, pvs := range volume.Projected.Sources {
-			if pvs.ServiceAccountToken == nil {
-				continue
-			}
-			if pvs.ServiceAccountToken.Path == "azure-identity-token" {
-				volumeExists = true
-				break
-			}
-		}
-	}
-
-	// get aad endpoint
-	aadEndpoint, err := getAADEndpoint(m.config)
+	err = addProjectedServiceAccountTokenVolume(pod, m.config, serviceAccountTokenExpiration)
 	if err != nil {
-		logger.Error(err, "failed to get AAD endpoint")
+		logger.Error(err, "failed to add projected service account volume")
 		return admission.Errored(http.StatusBadRequest, err)
-	}
-	if !volumeExists {
-		pod.Spec.Volumes = append(pod.Spec.Volumes, corev1.Volume{
-			Name: "azure-identity-token",
-			VolumeSource: corev1.VolumeSource{
-				Projected: &corev1.ProjectedVolumeSource{
-					Sources: []corev1.VolumeProjection{
-						{
-							ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
-								Path:              "azure-identity-token",
-								ExpirationSeconds: &serviceAccountTokenExpiration,
-								Audience:          aadEndpoint,
-							},
-						},
-					},
-				},
-			},
-		})
 	}
 
 	marshaledPod, err := json.Marshal(pod)
@@ -153,10 +118,10 @@ func (m *podMutator) InjectDecoder(d *admission.Decoder) error {
 // isServiceAccountAnnotated checks if the service account has been annotated
 // to use with pod identity
 func isServiceAccountAnnotated(sa *corev1.ServiceAccount) bool {
-	if len(sa.Annotations) == 0 {
+	if len(sa.Labels) == 0 {
 		return false
 	}
-	_, ok := sa.Annotations[usePodIdentityAnnotation]
+	_, ok := sa.Labels[usePodIdentityLabel]
 	return ok
 }
 
@@ -210,10 +175,8 @@ func getClientID(sa *corev1.ServiceAccount) string {
 
 // getTenantID returns the tenantID to be configured
 func getTenantID(sa *corev1.ServiceAccount, c *config.Config) string {
-	var tenantID string
-	tenantID, ok := sa.Annotations[tenantIDAnnotation]
 	// use tenantID if provided in the annotation
-	if ok {
+	if tenantID, ok := sa.Annotations[tenantIDAnnotation]; ok {
 		return tenantID
 	}
 	// use the cluster tenantID as default value
@@ -227,16 +190,16 @@ func addEnvironmentVariables(container corev1.Container, clientID, tenantID stri
 		m[env.Name] = env.Value
 	}
 	// add the clientID env var
-	if _, ok := m["AZURE_CLIENT_ID"]; !ok {
-		container.Env = append(container.Env, corev1.EnvVar{Name: "AZURE_CLIENT_ID", Value: clientID})
+	if _, ok := m[azureClientIDEnvVar]; !ok {
+		container.Env = append(container.Env, corev1.EnvVar{Name: azureClientIDEnvVar, Value: clientID})
 	}
 	// add the tenantID env var
-	if _, ok := m["AZURE_TENANT_ID"]; !ok {
-		container.Env = append(container.Env, corev1.EnvVar{Name: "AZURE_TENANT_ID", Value: tenantID})
+	if _, ok := m[azureTenantIDEnvVar]; !ok {
+		container.Env = append(container.Env, corev1.EnvVar{Name: azureTenantIDEnvVar, Value: tenantID})
 	}
 	// add the token file path env var
-	if _, ok := m["TOKEN_FILE_PATH"]; !ok {
-		container.Env = append(container.Env, corev1.EnvVar{Name: "TOKEN_FILE_PATH", Value: "/var/run/secrets/tokens/azure-identity-token"})
+	if _, ok := m[tokenFilePathEnvVar]; !ok {
+		container.Env = append(container.Env, corev1.EnvVar{Name: tokenFilePathEnvVar, Value: "/var/run/secrets/tokens/azure-identity-token"})
 	}
 
 	return container
@@ -249,8 +212,61 @@ func addProjectServiceAccountTokenVolumeMount(container corev1.Container) corev1
 			return container
 		}
 	}
-	container.VolumeMounts = append(container.VolumeMounts, corev1.VolumeMount{Name: "azure-identity-token", MountPath: "/var/run/secrets/tokens"})
+	container.VolumeMounts = append(container.VolumeMounts,
+		corev1.VolumeMount{
+			Name:      "azure-identity-token",
+			MountPath: "/var/run/secrets/tokens",
+			ReadOnly:  true,
+		})
+
 	return container
+}
+
+func addProjectedServiceAccountTokenVolume(pod *corev1.Pod, config *config.Config, serviceAccountTokenExpiration int64) error {
+	// add the projected service account token volume to the pod if not exists
+	for _, volume := range pod.Spec.Volumes {
+		if volume.Projected == nil {
+			continue
+		}
+		for _, pvs := range volume.Projected.Sources {
+			if pvs.ServiceAccountToken == nil {
+				continue
+			}
+			if pvs.ServiceAccountToken.Path == "azure-identity-token" {
+				return nil
+			}
+		}
+	}
+
+	// get aad endpoint to configure as audience
+	aadEndpoint, err := getAADEndpoint(config)
+	if err != nil {
+		return fmt.Errorf("failed to get AAD endpoint: %v", err)
+	}
+	aadEndpoint = strings.TrimRight(aadEndpoint, "/")
+
+	// add the projected service account token volume
+	// the path for this volume will always be set to "azure-identity-token"
+	pod.Spec.Volumes = append(
+		pod.Spec.Volumes,
+		corev1.Volume{
+			Name: "azure-identity-token",
+			VolumeSource: corev1.VolumeSource{
+				Projected: &corev1.ProjectedVolumeSource{
+					Sources: []corev1.VolumeProjection{
+						{
+							ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
+								Path:              "azure-identity-token",
+								ExpirationSeconds: &serviceAccountTokenExpiration,
+								Audience:          fmt.Sprintf("%s/federatedidentity", aadEndpoint),
+							},
+						},
+					},
+				},
+			},
+		})
+
+	return nil
 }
 
 // TODO use https://login.microsoftonline.com/federatedidentity as audience

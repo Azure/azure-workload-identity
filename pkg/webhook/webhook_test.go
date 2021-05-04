@@ -1,13 +1,22 @@
 package webhook
 
 import (
+	"context"
 	"reflect"
 	"testing"
 
 	"github.com/Azure/aad-pod-managed-identity/pkg/config"
 
+	admissionv1 "k8s.io/api/admission/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	atypes "sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+)
+
+var (
+	serviceAccountTokenExpiry = minServiceAccountTokenExpiration
 )
 
 func TestIsServiceAccountAnnotated(t *testing.T) {
@@ -30,9 +39,9 @@ func TestIsServiceAccountAnnotated(t *testing.T) {
 			name: "service account is annotated with azure.pod.identity/use=true",
 			sa: &corev1.ServiceAccount{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:        "sa",
-					Namespace:   "default",
-					Annotations: map[string]string{usePodIdentityAnnotation: "true"},
+					Name:      "sa",
+					Namespace: "default",
+					Labels:    map[string]string{usePodIdentityLabel: "true"},
 				},
 			},
 			expected: true,
@@ -317,5 +326,409 @@ func TestGetSkipContainers(t *testing.T) {
 				t.Fatalf("expected: %v, got: %v", test.expectedSkipContainers, skipContainers)
 			}
 		})
+	}
+}
+
+func TestAddProjectedServiceAccountTokenVolume(t *testing.T) {
+	tests := []struct {
+		name           string
+		pod            *corev1.Pod
+		expectedVolume []corev1.Volume
+	}{
+		{
+			name: "no volumes in the pod",
+			pod: &corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "pod",
+					Namespace: "default",
+				},
+			},
+			expectedVolume: []corev1.Volume{
+				{
+					Name: "azure-identity-token",
+					VolumeSource: corev1.VolumeSource{
+						Projected: &corev1.ProjectedVolumeSource{
+							Sources: []corev1.VolumeProjection{
+								{
+									ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
+										Path:              "azure-identity-token",
+										ExpirationSeconds: &serviceAccountTokenExpiry,
+										Audience:          "https://login.microsoftonline.com/federatedidentity",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "azure-identity-token projected volume already exists",
+			pod: &corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "pod",
+					Namespace: "default",
+				},
+				Spec: corev1.PodSpec{
+					Volumes: []corev1.Volume{
+						{
+							Name: "azure-identity-token",
+							VolumeSource: corev1.VolumeSource{
+								Projected: &corev1.ProjectedVolumeSource{
+									Sources: []corev1.VolumeProjection{
+										{
+											ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
+												Path:              "azure-identity-token",
+												ExpirationSeconds: &serviceAccountTokenExpiry,
+												Audience:          "https://login.microsoftonline.com/federatedidentity",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expectedVolume: []corev1.Volume{
+				{
+					Name: "azure-identity-token",
+					VolumeSource: corev1.VolumeSource{
+						Projected: &corev1.ProjectedVolumeSource{
+							Sources: []corev1.VolumeProjection{
+								{
+									ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
+										Path:              "azure-identity-token",
+										ExpirationSeconds: &serviceAccountTokenExpiry,
+										Audience:          "https://login.microsoftonline.com/federatedidentity",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "existing projected service account token volume not affected",
+			pod: &corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "pod",
+					Namespace: "default",
+				},
+				Spec: corev1.PodSpec{
+					Volumes: []corev1.Volume{
+						{
+							Name: "azure-identity-token",
+							VolumeSource: corev1.VolumeSource{
+								Projected: &corev1.ProjectedVolumeSource{
+									Sources: []corev1.VolumeProjection{
+										{
+											ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
+												Path:              "my-projected-volume",
+												ExpirationSeconds: &serviceAccountTokenExpiry,
+												Audience:          "aud",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expectedVolume: []corev1.Volume{
+				{
+					Name: "azure-identity-token",
+					VolumeSource: corev1.VolumeSource{
+						Projected: &corev1.ProjectedVolumeSource{
+							Sources: []corev1.VolumeProjection{
+								{
+									ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
+										Path:              "my-projected-volume",
+										ExpirationSeconds: &serviceAccountTokenExpiry,
+										Audience:          "aud",
+									},
+								},
+							},
+						},
+					},
+				},
+				{
+					Name: "azure-identity-token",
+					VolumeSource: corev1.VolumeSource{
+						Projected: &corev1.ProjectedVolumeSource{
+							Sources: []corev1.VolumeProjection{
+								{
+									ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
+										Path:              "azure-identity-token",
+										ExpirationSeconds: &serviceAccountTokenExpiry,
+										Audience:          "https://login.microsoftonline.com/federatedidentity",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			err := addProjectedServiceAccountTokenVolume(test.pod, &config.Config{}, serviceAccountTokenExpiry)
+			if err != nil {
+				t.Fatalf("expected err to be nil, got: %v", err)
+			}
+			if !reflect.DeepEqual(test.pod.Spec.Volumes, test.expectedVolume) {
+				t.Fatalf("expected: %v, got: %v", test.pod.Spec.Volumes, test.expectedVolume)
+			}
+		})
+	}
+}
+
+func TestAddEnvironmentVariables(t *testing.T) {
+	tests := []struct {
+		name              string
+		container         corev1.Container
+		expectedContainer corev1.Container
+	}{
+		{
+			name: "environment variables added to container",
+			container: corev1.Container{
+				Name:  "cont1",
+				Image: "image",
+			},
+			expectedContainer: corev1.Container{
+				Name:  "cont1",
+				Image: "image",
+				Env: []corev1.EnvVar{
+					{
+						Name:  azureClientIDEnvVar,
+						Value: "clientID",
+					},
+					{
+						Name:  "AZURE_TENANT_ID",
+						Value: "tenantID",
+					},
+					{
+						Name:  "TOKEN_FILE_PATH",
+						Value: "/var/run/secrets/tokens/azure-identity-token",
+					},
+				},
+			},
+		},
+		{
+			name: "existing environment variables not replaced",
+			container: corev1.Container{
+				Name:  "cont1",
+				Image: "image",
+				Env: []corev1.EnvVar{
+					{
+						Name:  azureClientIDEnvVar,
+						Value: "myClientID",
+					},
+					{
+						Name:  "AZURE_TENANT_ID",
+						Value: "myTenantID",
+					},
+					{
+						Name:  "TOKEN_FILE_PATH",
+						Value: "/var/run/secrets/tokens/azure-identity-token",
+					},
+				},
+			},
+			expectedContainer: corev1.Container{
+				Name:  "cont1",
+				Image: "image",
+				Env: []corev1.EnvVar{
+					{
+						Name:  azureClientIDEnvVar,
+						Value: "myClientID",
+					},
+					{
+						Name:  "AZURE_TENANT_ID",
+						Value: "myTenantID",
+					},
+					{
+						Name:  "TOKEN_FILE_PATH",
+						Value: "/var/run/secrets/tokens/azure-identity-token",
+					},
+				},
+			},
+		},
+		{
+			name: "environment variables added to existing list",
+			container: corev1.Container{
+				Name:  "cont1",
+				Image: "image",
+				Env: []corev1.EnvVar{
+					{
+						Name:  "MY_ENV_VAR",
+						Value: "test",
+					},
+				},
+			},
+			expectedContainer: corev1.Container{
+				Name:  "cont1",
+				Image: "image",
+				Env: []corev1.EnvVar{
+					{
+						Name:  "MY_ENV_VAR",
+						Value: "test",
+					},
+					{
+						Name:  "AZURE_CLIENT_ID",
+						Value: "clientID",
+					},
+					{
+						Name:  "AZURE_TENANT_ID",
+						Value: "tenantID",
+					},
+					{
+						Name:  "TOKEN_FILE_PATH",
+						Value: "/var/run/secrets/tokens/azure-identity-token",
+					},
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			actualContainer := addEnvironmentVariables(test.container, "clientID", "tenantID")
+			if !reflect.DeepEqual(actualContainer, test.expectedContainer) {
+				t.Fatalf("expected: %v, got: %v", test.expectedContainer, actualContainer)
+			}
+		})
+	}
+}
+
+func TestAddProjectServiceAccountTokenVolumeMount(t *testing.T) {
+	tests := []struct {
+		name              string
+		container         corev1.Container
+		expectedContainer corev1.Container
+	}{
+		{
+			name: "volume mount added to container",
+			container: corev1.Container{
+				Name:  "cont1",
+				Image: "image",
+			},
+			expectedContainer: corev1.Container{
+				Name:  "cont1",
+				Image: "image",
+				VolumeMounts: []corev1.VolumeMount{
+					{
+						Name:      "azure-identity-token",
+						MountPath: "/var/run/secrets/tokens",
+						ReadOnly:  true,
+					},
+				},
+			},
+		},
+		{
+			name: "volume mount with name already exists, so skipped",
+			container: corev1.Container{
+				Name:  "cont1",
+				Image: "image",
+				VolumeMounts: []corev1.VolumeMount{
+					{
+						Name:      "azure-identity-token",
+						MountPath: "mountPath",
+					},
+				},
+			},
+			expectedContainer: corev1.Container{
+				Name:  "cont1",
+				Image: "image",
+				VolumeMounts: []corev1.VolumeMount{
+					{
+						Name:      "azure-identity-token",
+						MountPath: "mountPath",
+					},
+				},
+			},
+		},
+		{
+			name: "volume mount added to existing volume mounts for container",
+			container: corev1.Container{
+				Name:  "cont1",
+				Image: "image",
+				VolumeMounts: []corev1.VolumeMount{
+					{
+						Name:      "my-volume-mount",
+						MountPath: "/var/run/pods",
+					},
+				},
+			},
+			expectedContainer: corev1.Container{
+				Name:  "cont1",
+				Image: "image",
+				VolumeMounts: []corev1.VolumeMount{
+					{
+						Name:      "my-volume-mount",
+						MountPath: "/var/run/pods",
+					},
+					{
+						Name:      "azure-identity-token",
+						MountPath: "/var/run/secrets/tokens",
+						ReadOnly:  true,
+					},
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			actualContainer := addProjectServiceAccountTokenVolumeMount(test.container)
+			if !reflect.DeepEqual(actualContainer, test.expectedContainer) {
+				t.Fatalf("expected: %v, got: %v", test.expectedContainer, actualContainer)
+			}
+		})
+	}
+}
+
+func TestHandle(t *testing.T) {
+	serviceAccount := &corev1.ServiceAccount{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "sa",
+			Namespace: "ns1",
+			Labels:    map[string]string{usePodIdentityLabel: "true"},
+			Annotations: map[string]string{
+				clientIDAnnotation:                  "clientID",
+				serviceAccountTokenExpiryAnnotation: "4800",
+			},
+		},
+	}
+
+	decoder, _ := atypes.NewDecoder(runtime.NewScheme())
+
+	m := &podMutator{
+		client:  fake.NewFakeClient(serviceAccount),
+		config:  &config.Config{TenantID: "tenantID"},
+		decoder: decoder,
+	}
+
+	raw := []byte(`{"apiVersion":"v1","kind":"Pod","metadata":{"name":"pod","namespace":"ns1"},"spec":{"containers":[{"image":"image","name":"cont1"}],"serviceAccountName":"sa"}}`)
+
+	req := atypes.Request{
+		AdmissionRequest: admissionv1.AdmissionRequest{
+			Kind: metav1.GroupVersionKind{
+				Group:   "",
+				Version: "v1",
+				Kind:    "Pod",
+			},
+			Object:    runtime.RawExtension{Raw: raw},
+			Namespace: "ns1",
+			Operation: admissionv1.Create,
+		},
+	}
+
+	resp := m.Handle(context.Background(), req)
+	if !resp.Allowed {
+		t.Fatalf("expected to be allowed")
 	}
 }
