@@ -1,0 +1,3 @@
+domain: mpod.aad-pod-identity.io
+repo: github.com/Azure/aad-pod-managed-identity
+version: "2"
