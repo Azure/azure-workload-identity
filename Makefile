@@ -6,6 +6,34 @@ INIT_IMAGE_NAME := proxy-init
 PROXY_IMAGE_TAG := $(REGISTRY)/$(PROXY_IMAGE_NAME):$(IMAGE_VERSION)
 INIT_IMAGE_TAG := $(REGISTRY)/$(INIT_IMAGE_NAME):$(IMAGE_VERSION)
 
+
+# Directories
+ROOT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+BIN_DIR := $(abspath $(ROOT_DIR)/bin)
+TOOLS_DIR := hack/tools
+TOOLS_BIN_DIR := $(abspath $(TOOLS_DIR)/bin)
+
+# Binaries
+E2E_TEST_BIN := e2e.test
+E2E_TEST := $(BIN_DIR)/$(E2E_TEST_BIN)
+
+GINKGO_VER := v1.16.2
+GINKGO_BIN := ginkgo
+GINKGO := $(TOOLS_BIN_DIR)/$(GINKGO_BIN)-$(GINKGO_VER)
+
+# Scripts:
+GO_INSTALL = ./hack/go_install.sh
+
+# Ginkgo configurations
+GINKGO_FOCUS ?=
+GINKGO_SKIP ?=
+GINKGO_NODES ?= 3
+GINKGO_NO_COLOR ?= false
+GINKGO_ARGS ?=
+
+# E2E configurations
+E2E_ARGS ?=
+
 build-proxy:
 	CGO_ENABLED=0 GOOS=linux go build -a -o _output/proxy ./cmd/proxy
 
@@ -98,3 +126,28 @@ endif
 # Install cert manager in the cluster
 install-cert-manager:
 	kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.2.0/cert-manager.yaml
+
+$(E2E_TEST):
+	go test -c ./test/e2e -o $(E2E_TEST)
+
+$(GINKGO):
+	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/onsi/ginkgo/ginkgo $(GINKGO_BIN) $(GINKGO_VER)
+
+.PHONY: test-e2e-run
+test-e2e-run: $(E2E_TEST) $(GINKGO)
+	$(GINKGO) -v -trace \
+		-focus="$(GINKGO_FOCUS)" \
+		-skip="$(GINKGO_SKIP)" \
+		-nodes=$(GINKGO_NODES) \
+		-noColor=$(GINKGO_NO_COLOR) \
+		$(E2E_TEST) -- $(E2E_ARGS)
+
+# TODO(chewong): include cluster creation and component installation
+.PHONY: test-e2e
+test-e2e:
+	@echo "no op"
+	$(MAKE) test-e2e-run
+
+.PHONY: clean
+clean:
+	@rm -rf bin/
