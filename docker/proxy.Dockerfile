@@ -1,5 +1,5 @@
 FROM alpine:latest
-COPY ./_output/proxy /bin/
+COPY bin/proxy /bin/
 RUN chmod a+x /bin/proxy
 
 ENTRYPOINT [ "proxy" ]

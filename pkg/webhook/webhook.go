@@ -18,7 +18,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
-// +kubebuilder:webhook:path=/mutate-v1-pod,mutating=true,failurePolicy=ignore,groups="",resources=pods,verbs=create;update,versions=v1,name=mpod.aad-pod-identity.io,sideEffects=None
+// +kubebuilder:webhook:path=/mutate-v1-pod,mutating=true,failurePolicy=ignore,groups="",resources=pods,verbs=create;update,versions=v1,name=mpod.aad-pod-identity.io,sideEffects=None,admissionReviewVersions=v1;v1beta1,matchPolicy=Equivalent
 // +kubebuilder:rbac:groups="",resources=serviceaccounts,verbs=get;list;watch;create;update;patch
 
 // podMutator mutates pod objects to add project service account token volume
@@ -121,13 +121,13 @@ func isServiceAccountAnnotated(sa *corev1.ServiceAccount) bool {
 	if len(sa.Labels) == 0 {
 		return false
 	}
-	_, ok := sa.Labels[usePodIdentityLabel]
+	_, ok := sa.Labels[UsePodIdentityLabel]
 	return ok
 }
 
 // getSkipContainers gets the list of containers to skip based on the annotation
 func getSkipContainers(pod *corev1.Pod) map[string]struct{} {
-	skipContainers := pod.Annotations[skipContainersAnnotation]
+	skipContainers := pod.Annotations[SkipContainersAnnotation]
 	if len(skipContainers) == 0 {
 		return nil
 	}
@@ -145,15 +145,15 @@ func getSkipContainers(pod *corev1.Pod) map[string]struct{} {
 // 	2. annotation in the service account
 //	default expiration if no annotation specified
 func getServiceAccountTokenExpiration(pod *corev1.Pod, sa *corev1.ServiceAccount) (int64, error) {
-	serviceAccountTokenExpiration := defaultServiceAccountTokenExpiration
+	serviceAccountTokenExpiration := DefaultServiceAccountTokenExpiration
 	var err error
 	// check if expiry defined in the pod with annotation
-	if pod.Annotations != nil && pod.Annotations[serviceAccountTokenExpiryAnnotation] != "" {
-		if serviceAccountTokenExpiration, err = strconv.ParseInt(pod.Annotations[serviceAccountTokenExpiryAnnotation], 10, 64); err != nil {
+	if pod.Annotations != nil && pod.Annotations[ServiceAccountTokenExpiryAnnotation] != "" {
+		if serviceAccountTokenExpiration, err = strconv.ParseInt(pod.Annotations[ServiceAccountTokenExpiryAnnotation], 10, 64); err != nil {
 			return 0, err
 		}
-	} else if sa.Annotations != nil && sa.Annotations[serviceAccountTokenExpiryAnnotation] != "" {
-		if serviceAccountTokenExpiration, err = strconv.ParseInt(sa.Annotations[serviceAccountTokenExpiryAnnotation], 10, 64); err != nil {
+	} else if sa.Annotations != nil && sa.Annotations[ServiceAccountTokenExpiryAnnotation] != "" {
+		if serviceAccountTokenExpiration, err = strconv.ParseInt(sa.Annotations[ServiceAccountTokenExpiryAnnotation], 10, 64); err != nil {
 			return 0, err
 		}
 	}
@@ -165,18 +165,18 @@ func getServiceAccountTokenExpiration(pod *corev1.Pod, sa *corev1.ServiceAccount
 }
 
 func validServiceAccountTokenExpiry(tokenExpiry int64) bool {
-	return tokenExpiry <= defaultServiceAccountTokenExpiration && tokenExpiry >= minServiceAccountTokenExpiration
+	return tokenExpiry <= DefaultServiceAccountTokenExpiration && tokenExpiry >= MinServiceAccountTokenExpiration
 }
 
 // getClientID returns the clientID to be configured
 func getClientID(sa *corev1.ServiceAccount) string {
-	return sa.Annotations[clientIDAnnotation]
+	return sa.Annotations[ClientIDAnnotation]
 }
 
 // getTenantID returns the tenantID to be configured
 func getTenantID(sa *corev1.ServiceAccount, c *config.Config) string {
 	// use tenantID if provided in the annotation
-	if tenantID, ok := sa.Annotations[tenantIDAnnotation]; ok {
+	if tenantID, ok := sa.Annotations[TenantIDAnnotation]; ok {
 		return tenantID
 	}
 	// use the cluster tenantID as default value
@@ -190,16 +190,16 @@ func addEnvironmentVariables(container corev1.Container, clientID, tenantID stri
 		m[env.Name] = env.Value
 	}
 	// add the clientID env var
-	if _, ok := m[azureClientIDEnvVar]; !ok {
-		container.Env = append(container.Env, corev1.EnvVar{Name: azureClientIDEnvVar, Value: clientID})
+	if _, ok := m[AzureClientIDEnvVar]; !ok {
+		container.Env = append(container.Env, corev1.EnvVar{Name: AzureClientIDEnvVar, Value: clientID})
 	}
 	// add the tenantID env var
-	if _, ok := m[azureTenantIDEnvVar]; !ok {
-		container.Env = append(container.Env, corev1.EnvVar{Name: azureTenantIDEnvVar, Value: tenantID})
+	if _, ok := m[AzureTenantIDEnvVar]; !ok {
+		container.Env = append(container.Env, corev1.EnvVar{Name: AzureTenantIDEnvVar, Value: tenantID})
 	}
 	// add the token file path env var
-	if _, ok := m[tokenFilePathEnvVar]; !ok {
-		container.Env = append(container.Env, corev1.EnvVar{Name: tokenFilePathEnvVar, Value: "/var/run/secrets/tokens/azure-identity-token"})
+	if _, ok := m[TokenFilePathEnvVar]; !ok {
+		container.Env = append(container.Env, corev1.EnvVar{Name: TokenFilePathEnvVar, Value: "/var/run/secrets/tokens/azure-identity-token"})
 	}
 
 	return container

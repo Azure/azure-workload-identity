@@ -10,12 +10,12 @@ webhooks:
   - v1
   - v1beta1
   clientConfig:
-    caBundle: Cg==
     service:
       name: webhook-service
       namespace: system
       path: /mutate-v1-pod
   failurePolicy: Ignore
+  matchPolicy: Equivalent
   name: mpod.aad-pod-identity.io
   rules:
   - apiGroups:
