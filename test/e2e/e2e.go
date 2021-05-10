@@ -1,3 +1,5 @@
+// +build e2e
+
 package e2e
 
 import (
@@ -49,15 +51,15 @@ var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
 
 	// Ensure all pods are running and ready before starting tests
 	podStartupTimeout := framework.TestContext.SystemPodsStartupTimeout
-	if err := e2epod.WaitForPodsRunningReady(c, metav1.NamespaceSystem, int32(framework.TestContext.MinStartupPods), int32(framework.TestContext.AllowedNotReadyNodes), podStartupTimeout, map[string]string{}); err != nil {
-		framework.DumpAllNamespaceInfo(c, metav1.NamespaceSystem)
-		e2ekubectl.LogFailedContainers(c, metav1.NamespaceSystem, framework.Logf)
-		framework.Failf("error waiting for all pods to be running and ready: %v", err)
+	for _, namespace := range []string{metav1.NamespaceSystem, "aad-pi-webhook-system", "cert-manager"} {
+		if err := e2epod.WaitForPodsRunningReady(c, namespace, int32(framework.TestContext.MinStartupPods), int32(framework.TestContext.AllowedNotReadyNodes), podStartupTimeout, map[string]string{}); err != nil {
+			framework.DumpAllNamespaceInfo(c, namespace)
+			e2ekubectl.LogFailedContainers(c, namespace, framework.Logf)
+			framework.Failf("error waiting for all pods to be running and ready: %v", err)
+		}
 	}
 
-	dc := c.DiscoveryClient
-
-	serverVersion, err := dc.ServerVersion()
+	serverVersion, err := c.DiscoveryClient.ServerVersion()
 	if err != nil {
 		framework.Logf("unexpected server error retrieving version: %v", err)
 	}

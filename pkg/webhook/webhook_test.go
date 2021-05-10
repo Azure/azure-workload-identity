@@ -5,18 +5,18 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/Azure/aad-pod-managed-identity/pkg/config"
-
 	admissionv1 "k8s.io/api/admission/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	atypes "sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+
+	"github.com/Azure/aad-pod-managed-identity/pkg/config"
 )
 
 var (
-	serviceAccountTokenExpiry = minServiceAccountTokenExpiration
+	serviceAccountTokenExpiry = MinServiceAccountTokenExpiration
 )
 
 func TestIsServiceAccountAnnotated(t *testing.T) {
@@ -41,7 +41,7 @@ func TestIsServiceAccountAnnotated(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "sa",
 					Namespace: "default",
-					Labels:    map[string]string{usePodIdentityLabel: "true"},
+					Labels:    map[string]string{UsePodIdentityLabel: "true"},
 				},
 			},
 			expected: true,
@@ -72,7 +72,7 @@ func TestGetServiceAccountTokenExpiration(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:        "pod",
 					Namespace:   "default",
-					Annotations: map[string]string{serviceAccountTokenExpiryAnnotation: "3600s"},
+					Annotations: map[string]string{ServiceAccountTokenExpiryAnnotation: "3600s"},
 				},
 			},
 			sa: &corev1.ServiceAccount{
@@ -91,7 +91,7 @@ func TestGetServiceAccountTokenExpiration(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:        "sa",
 					Namespace:   "default",
-					Annotations: map[string]string{serviceAccountTokenExpiryAnnotation: "3600s"},
+					Annotations: map[string]string{ServiceAccountTokenExpiryAnnotation: "3600s"},
 				},
 			},
 			expectedExpiration: 0,
@@ -103,7 +103,7 @@ func TestGetServiceAccountTokenExpiration(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:        "pod",
 					Namespace:   "default",
-					Annotations: map[string]string{serviceAccountTokenExpiryAnnotation: "3599"},
+					Annotations: map[string]string{ServiceAccountTokenExpiryAnnotation: "3599"},
 				},
 			},
 			sa: &corev1.ServiceAccount{
@@ -121,7 +121,7 @@ func TestGetServiceAccountTokenExpiration(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:        "pod",
 					Namespace:   "default",
-					Annotations: map[string]string{serviceAccountTokenExpiryAnnotation: "86401"},
+					Annotations: map[string]string{ServiceAccountTokenExpiryAnnotation: "86401"},
 				},
 			},
 			sa: &corev1.ServiceAccount{
@@ -145,7 +145,7 @@ func TestGetServiceAccountTokenExpiration(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:        "sa",
 					Namespace:   "default",
-					Annotations: map[string]string{serviceAccountTokenExpiryAnnotation: "4800"},
+					Annotations: map[string]string{ServiceAccountTokenExpiryAnnotation: "4800"},
 				},
 			},
 			expectedExpiration: 4800,
@@ -157,14 +157,14 @@ func TestGetServiceAccountTokenExpiration(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:        "pod",
 					Namespace:   "default",
-					Annotations: map[string]string{serviceAccountTokenExpiryAnnotation: "4000"},
+					Annotations: map[string]string{ServiceAccountTokenExpiryAnnotation: "4000"},
 				},
 			},
 			sa: &corev1.ServiceAccount{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:        "sa",
 					Namespace:   "default",
-					Annotations: map[string]string{serviceAccountTokenExpiryAnnotation: "4800"},
+					Annotations: map[string]string{ServiceAccountTokenExpiryAnnotation: "4800"},
 				},
 			},
 			expectedExpiration: 4000,
@@ -207,7 +207,7 @@ func TestGetClientID(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:        "sa",
 					Namespace:   "default",
-					Annotations: map[string]string{clientIDAnnotation: "client-id"},
+					Annotations: map[string]string{ClientIDAnnotation: "client-id"},
 				},
 			},
 			expectedClientID: "client-id",
@@ -237,7 +237,7 @@ func TestGetTenantID(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:        "sa",
 					Namespace:   "default",
-					Annotations: map[string]string{tenantIDAnnotation: "tenant-id"},
+					Annotations: map[string]string{TenantIDAnnotation: "tenant-id"},
 				},
 			},
 			config:           &config.Config{},
@@ -290,7 +290,7 @@ func TestGetSkipContainers(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:        "pod",
 					Namespace:   "default",
-					Annotations: map[string]string{skipContainersAnnotation: "container1"},
+					Annotations: map[string]string{SkipContainersAnnotation: "container1"},
 				},
 			},
 			expectedSkipContainers: map[string]struct{}{"container1": {}},
@@ -301,7 +301,7 @@ func TestGetSkipContainers(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:        "pod",
 					Namespace:   "default",
-					Annotations: map[string]string{skipContainersAnnotation: "container1;container2"},
+					Annotations: map[string]string{SkipContainersAnnotation: "container1;container2"},
 				},
 			},
 			expectedSkipContainers: map[string]struct{}{"container1": {}, "container2": {}},
@@ -312,7 +312,7 @@ func TestGetSkipContainers(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:        "pod",
 					Namespace:   "default",
-					Annotations: map[string]string{skipContainersAnnotation: "container1; container2"},
+					Annotations: map[string]string{SkipContainersAnnotation: "container1; container2"},
 				},
 			},
 			expectedSkipContainers: map[string]struct{}{"container1": {}, "container2": {}},
@@ -504,7 +504,7 @@ func TestAddEnvironmentVariables(t *testing.T) {
 				Image: "image",
 				Env: []corev1.EnvVar{
 					{
-						Name:  azureClientIDEnvVar,
+						Name:  AzureClientIDEnvVar,
 						Value: "clientID",
 					},
 					{
@@ -525,7 +525,7 @@ func TestAddEnvironmentVariables(t *testing.T) {
 				Image: "image",
 				Env: []corev1.EnvVar{
 					{
-						Name:  azureClientIDEnvVar,
+						Name:  AzureClientIDEnvVar,
 						Value: "myClientID",
 					},
 					{
@@ -543,7 +543,7 @@ func TestAddEnvironmentVariables(t *testing.T) {
 				Image: "image",
 				Env: []corev1.EnvVar{
 					{
-						Name:  azureClientIDEnvVar,
+						Name:  AzureClientIDEnvVar,
 						Value: "myClientID",
 					},
 					{
@@ -696,10 +696,10 @@ func TestHandle(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "sa",
 			Namespace: "ns1",
-			Labels:    map[string]string{usePodIdentityLabel: "true"},
+			Labels:    map[string]string{UsePodIdentityLabel: "true"},
 			Annotations: map[string]string{
-				clientIDAnnotation:                  "clientID",
-				serviceAccountTokenExpiryAnnotation: "4800",
+				ClientIDAnnotation:                  "clientID",
+				ServiceAccountTokenExpiryAnnotation: "4800",
 			},
 		},
 	}

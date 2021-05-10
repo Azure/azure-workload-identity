@@ -37,6 +37,8 @@ spec:
           requests:
             cpu: 100m
             memory: 20Mi
+        securityContext:
+          runAsUser: 0
         volumeMounts:
           - name: azure-config
             mountPath: /etc/kubernetes/azure.json

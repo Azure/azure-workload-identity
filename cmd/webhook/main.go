@@ -3,14 +3,14 @@ package main
 import (
 	"os"
 
-	wh "github.com/Azure/aad-pod-managed-identity/pkg/webhook"
-
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
+
+	wh "github.com/Azure/aad-pod-managed-identity/pkg/webhook"
 )
 
 func init() {

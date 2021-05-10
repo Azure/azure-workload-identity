@@ -19,5 +19,5 @@
 .idea/
 
 # binary output
-_output/
+bin/
 hack/tools/bin/
