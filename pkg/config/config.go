@@ -20,10 +20,10 @@ func ParseConfig(configFile string) (*Config, error) {
 	if configFile != "" {
 		bytes, err := os.ReadFile(configFile)
 		if err != nil {
-			return nil, fmt.Errorf("unable to read config file %s, error: %+v", configFile, err)
+			return nil, fmt.Errorf("unable to read config file %s, error: %w", configFile, err)
 		}
 		if err = yaml.Unmarshal(bytes, &c); err != nil {
-			return nil, fmt.Errorf("unable to unmarshal JSON, error: %+v", err)
+			return nil, fmt.Errorf("unable to unmarshal JSON, error: %w", err)
 		}
 	} else {
 		c.Cloud = os.Getenv("AZURE_ENVIRONMENT")

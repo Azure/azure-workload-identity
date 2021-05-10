@@ -11,7 +11,7 @@ const (
 	// ServiceAccountTokenExpiryAnnotation represents the expirationSeconds for projected service account token
 	// [OPTIONAL] field. User might want to configure this to prevent any downtime caused by errors during service account token refresh.
 	// Kubernetes service account token expiry will not be correlated with AAD tokens. AAD tokens expiry will be 24h.
-	ServiceAccountTokenExpiryAnnotation = "azure.pod.identity/service-account-token-expiration"
+	ServiceAccountTokenExpiryAnnotation = "azure.pod.identity/service-account-token-expiration" // #nosec
 	// SkipContainersAnnotation represents list of containers to skip added projected service account token volume
 	// By default, the projected service account token volume will be added to all containers if the service account is annotated with clientID
 	SkipContainersAnnotation = "azure.pod.identity/skip-containers"
@@ -26,5 +26,5 @@ const (
 const (
 	AzureClientIDEnvVar = "AZURE_CLIENT_ID"
 	AzureTenantIDEnvVar = "AZURE_TENANT_ID"
-	TokenFilePathEnvVar = "TOKEN_FILE_PATH"
+	TokenFilePathEnvVar = "TOKEN_FILE_PATH" // #nosec
 )

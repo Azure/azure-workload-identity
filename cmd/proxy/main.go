@@ -15,15 +15,16 @@ import (
 
 const (
 	proxyPort        = 8000
-	servicePort      = 80
-	tokenExchangeURL = "https://svctokenexchange.azurewebsites.net/api/token/exchange"
+	tokenExchangeURL = "https://svctokenexchange.azurewebsites.net/api/token/exchange" // #nosec
 )
 
 type proxy struct{}
 
 func main() {
 	// TODO add handler to separate default metadata and token request
-	http.ListenAndServe(fmt.Sprintf("localhost:%d", proxyPort), &proxy{})
+	if err := http.ListenAndServe(fmt.Sprintf("localhost:%d", proxyPort), &proxy{}); err != nil {
+		klog.Fatalf("failed to listen and serve, error: %+v", err)
+	}
 }
 
 func (p *proxy) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -82,7 +83,7 @@ func doTokenRequest(clientID, resource string) (*http.Response, error) {
 	}
 	token, err := os.ReadFile(tokenFile)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get token: %v", err)
+		return nil, fmt.Errorf("failed to get token: %w", err)
 	}
 
 	httpClient := http.Client{}
@@ -93,10 +94,13 @@ func doTokenRequest(clientID, resource string) (*http.Response, error) {
 		"scopes":       resource,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal req body: %v", err)
+		return nil, fmt.Errorf("failed to marshal req body: %w", err)
 	}
 
 	req, err := http.NewRequest(http.MethodPost, tokenExchangeURL, bytes.NewBuffer(reqBody))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create http request: %w", err)
+	}
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := httpClient.Do(req)

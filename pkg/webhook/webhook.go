@@ -29,7 +29,7 @@ type podMutator struct {
 }
 
 // NewPodMutator returns a pod mutation handler
-func NewPodMutator(client client.Client) (*podMutator, error) {
+func NewPodMutator(client client.Client) (admission.Handler, error) {
 	c, err := config.ParseConfig("/etc/kubernetes/azure.json")
 	if err != nil {
 		return nil, err
@@ -241,7 +241,7 @@ func addProjectedServiceAccountTokenVolume(pod *corev1.Pod, config *config.Confi
 	// get aad endpoint to configure as audience
 	aadEndpoint, err := getAADEndpoint(config)
 	if err != nil {
-		return fmt.Errorf("failed to get AAD endpoint: %v", err)
+		return fmt.Errorf("failed to get AAD endpoint: %w", err)
 	}
 	aadEndpoint = strings.TrimRight(aadEndpoint, "/")
 

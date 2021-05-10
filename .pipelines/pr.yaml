@@ -8,6 +8,13 @@ pr:
 pool: Upstream Pool
 
 jobs:
+  - job: lint
+    timeoutInMinutes: 5
+    workspace:
+      clean: all
+    steps:
+      - script: make lint
+        displayName: Run lint
   - job: unit_test
     timeoutInMinutes: 5
     workspace:
@@ -17,6 +24,9 @@ jobs:
         displayName: Unit test
   - job: aks_linux
     timeoutInMinutes: 20
+    dependsOn:
+    - unit_test
+    - lint
     workspace:
       clean: all
     steps:

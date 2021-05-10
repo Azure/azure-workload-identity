@@ -707,7 +707,7 @@ func TestHandle(t *testing.T) {
 	decoder, _ := atypes.NewDecoder(runtime.NewScheme())
 
 	m := &podMutator{
-		client:  fake.NewFakeClient(serviceAccount),
+		client:  fake.NewClientBuilder().WithObjects(serviceAccount).Build(),
 		config:  &config.Config{TenantID: "tenantID"},
 		decoder: decoder,
 	}
