@@ -1,0 +1,28 @@
+run:
+  deadline: 5m
+
+linters:
+  disable-all: true
+  enable:
+    - deadcode
+    - errorlint
+    - goconst
+    - gocyclo
+    - gofmt
+    - goimports
+    - golint
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - interfacer
+    - misspell
+    - nakedret
+    - prealloc
+    - staticcheck
+    - structcheck
+    - unconvert
+    - unused
+    - varcheck
+  # Run with --fast=false for more extensive checks
+  fast: true
