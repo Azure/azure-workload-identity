@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/aad-pod-managed-identity/pkg/config"
 
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -159,7 +160,7 @@ func getServiceAccountTokenExpiration(pod *corev1.Pod, sa *corev1.ServiceAccount
 	}
 	// validate expiration time
 	if !validServiceAccountTokenExpiry(serviceAccountTokenExpiration) {
-		return 0, fmt.Errorf("token expiration %d not valid. Expected value to be between 3600 and 86400", serviceAccountTokenExpiration)
+		return 0, errors.Errorf("token expiration %d not valid. Expected value to be between 3600 and 86400", serviceAccountTokenExpiration)
 	}
 	return serviceAccountTokenExpiration, nil
 }
@@ -241,7 +242,7 @@ func addProjectedServiceAccountTokenVolume(pod *corev1.Pod, config *config.Confi
 	// get aad endpoint to configure as audience
 	aadEndpoint, err := getAADEndpoint(config)
 	if err != nil {
-		return fmt.Errorf("failed to get AAD endpoint: %w", err)
+		return errors.Wrap(err, "failed to get AAD endpoint")
 	}
 	aadEndpoint = strings.TrimRight(aadEndpoint, "/")
 
