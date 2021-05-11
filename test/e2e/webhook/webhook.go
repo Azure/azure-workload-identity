@@ -110,7 +110,7 @@ func validateMutatedPod(pod *corev1.Pod) {
 		}
 	}
 
-	framework.Logf("ensuring that the service account token volume is projected as azure-identity-token", pod.Name)
+	framework.Logf("ensuring that the service account token volume is projected to %s as azure-identity-token", pod.Name)
 	expirationSeconds := webhook.DefaultServiceAccountTokenExpiration
 	defaultMode := int32(420)
 	found := false

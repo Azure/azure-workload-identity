@@ -24,6 +24,10 @@ GINKGO_VER := v1.16.2
 GINKGO_BIN := ginkgo
 GINKGO := $(TOOLS_BIN_DIR)/$(GINKGO_BIN)-$(GINKGO_VER)
 
+KIND_VER := v0.10.0
+KIND_BIN := kind
+KIND := $(TOOLS_BIN_DIR)/$(KIND_BIN)-$(KIND_VER)
+
 KUBECTL_VER := v1.20.2
 KUBECTL_BIN := kubectl
 KUBECTL := $(TOOLS_BIN_DIR)/$(KUBECTL_BIN)-$(KUBECTL_VER)
@@ -36,10 +40,12 @@ GOLANGCI_LINT_VER := v1.38.0
 GOLANGCI_LINT_BIN := golangci-lint
 GOLANGCI_LINT := $(TOOLS_BIN_DIR)/$(GOLANGCI_LINT_BIN)-$(GOLANGCI_LINT_VER)
 
+SHELLCHECK_VER := v0.7.2
+SHELLCHECK_BIN := shellcheck
+SHELLCHECK := $(TOOLS_BIN_DIR)/$(SHELLCHECK_BIN)-$(SHELLCHECK_VER)
+
 # Scripts
 GO_INSTALL := ./hack/go-install.sh
-
-KIND_CLUSTER_NAME ?= aad-pod-managed-identity
 
 .PHONY: build-proxy
 build-proxy:
@@ -112,6 +118,9 @@ $(CONTROLLER_GEN):
 $(GINKGO):
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/onsi/ginkgo/ginkgo $(GINKGO_BIN) $(GINKGO_VER)
 
+$(KIND):
+	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) sigs.k8s.io/kind $(KIND_BIN) $(KIND_VER)
+
 $(KUSTOMIZE):
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) sigs.k8s.io/kustomize/kustomize/$(shell echo $(KUSTOMIZE_VER) | cut -d'.' -f1) $(KUSTOMIZE_BIN) $(KUSTOMIZE_VER)
 
@@ -124,6 +133,18 @@ $(KUBECTL):
 
 $(GOLANGCI_LINT):
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/golangci/golangci-lint/cmd/golangci-lint $(GOLANGCI_LINT_BIN) $(GOLANGCI_LINT_VER)
+
+OS := $(shell uname | tr '[:upper:]' '[:lower:]')
+ARCH := $(shell uname -m)
+$(SHELLCHECK):
+	mkdir -p $(TOOLS_BIN_DIR)
+	rm -rf "$(SHELLCHECK)*"
+	curl -sfOL "https://github.com/koalaman/shellcheck/releases/download/$(SHELLCHECK_VER)/shellcheck-$(SHELLCHECK_VER).$(OS).$(ARCH).tar.xz"
+	tar xf shellcheck-$(SHELLCHECK_VER).$(OS).$(ARCH).tar.xz
+	cp "shellcheck-$(SHELLCHECK_VER)/$(SHELLCHECK_BIN)" "$(SHELLCHECK)"
+	ln -sf "$(SHELLCHECK)" "$(TOOLS_BIN_DIR)/$(SHELLCHECK_BIN)"
+	chmod +x "$(TOOLS_BIN_DIR)/$(SHELLCHECK_BIN)" "$(SHELLCHECK)"
+	rm -rf shellcheck*
 
 CERT_MANAGER_VERSION ?= v1.2.0
 
@@ -185,14 +206,15 @@ test-e2e: $(KUBECTL)
 ## Kind
 ## --------------------------------------
 
+KIND_CLUSTER_NAME ?= aad-pod-managed-identity
+
 .PHONY: kind-create
-kind-create: $(KUBECTL)
-	kind create cluster --name $(KIND_CLUSTER_NAME) --image kindest/node:v1.20.2
-	$(KUBECTL) wait node "$(KIND_CLUSTER_NAME)-control-plane" --for=condition=Ready --timeout=90s
+kind-create: $(KIND) $(KUBECTL)
+	./scripts/create-kind-cluster.sh
 
 .PHONY: kind-delete
-kind-delete:
-	kind delete cluster --name=$(KIND_CLUSTER_NAME) || true
+kind-delete: $(KIND)
+	$(KIND) delete cluster --name=$(KIND_CLUSTER_NAME) || true
 
 ## --------------------------------------
 ## Cleanup
@@ -210,5 +232,10 @@ clean:
 lint: $(GOLANGCI_LINT)
 	$(GOLANGCI_LINT) run -v
 
+.PHONY: lint-full
 lint-full: $(GOLANGCI_LINT) ## Run slower linters to detect possible issues
 	$(GOLANGCI_LINT) run -v --fast=false
+
+.PHONY: shellcheck
+shellcheck: $(SHELLCHECK)
+	$(SHELLCHECK) */*.sh

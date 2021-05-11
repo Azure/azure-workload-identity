@@ -21,3 +21,6 @@
 # binary output
 bin/
 hack/tools/bin/
+
+# test configurations
+azure.json
