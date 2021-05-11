@@ -98,8 +98,8 @@ func validateMutatedPod(pod *corev1.Pod) {
 			if volumeMount.Name == "azure-identity-token" {
 				found = true
 				gomega.Expect(volumeMount).To(gomega.Equal(corev1.VolumeMount{
-					Name:      "azure-identity-token",
-					MountPath: "/var/run/secrets/tokens",
+					Name:      webhook.TokenFilePathName,
+					MountPath: webhook.TokenFileMountPath,
 					ReadOnly:  true,
 				}))
 				break
@@ -115,16 +115,16 @@ func validateMutatedPod(pod *corev1.Pod) {
 	defaultMode := int32(420)
 	found := false
 	for _, volume := range pod.Spec.Volumes {
-		if volume.Name == "azure-identity-token" {
+		if volume.Name == webhook.TokenFilePathName {
 			found = true
 			gomega.Expect(volume).To(gomega.Equal(corev1.Volume{
-				Name: "azure-identity-token",
+				Name: webhook.TokenFilePathName,
 				VolumeSource: corev1.VolumeSource{
 					Projected: &corev1.ProjectedVolumeSource{
 						Sources: []corev1.VolumeProjection{
 							{
 								ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
-									Path:              "azure-identity-token",
+									Path:              webhook.TokenFilePathName,
 									ExpirationSeconds: &expirationSeconds,
 									Audience:          fmt.Sprintf("%s/federatedidentity", strings.TrimRight(azure.PublicCloud.ActiveDirectoryEndpoint, "/")),
 								},

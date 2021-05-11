@@ -2,6 +2,7 @@ package webhook
 
 import (
 	"context"
+	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -345,13 +346,13 @@ func TestAddProjectedServiceAccountTokenVolume(t *testing.T) {
 			},
 			expectedVolume: []corev1.Volume{
 				{
-					Name: "azure-identity-token",
+					Name: TokenFilePathName,
 					VolumeSource: corev1.VolumeSource{
 						Projected: &corev1.ProjectedVolumeSource{
 							Sources: []corev1.VolumeProjection{
 								{
 									ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
-										Path:              "azure-identity-token",
+										Path:              TokenFilePathName,
 										ExpirationSeconds: &serviceAccountTokenExpiry,
 										Audience:          "https://login.microsoftonline.com/federatedidentity",
 									},
@@ -372,13 +373,13 @@ func TestAddProjectedServiceAccountTokenVolume(t *testing.T) {
 				Spec: corev1.PodSpec{
 					Volumes: []corev1.Volume{
 						{
-							Name: "azure-identity-token",
+							Name: TokenFilePathName,
 							VolumeSource: corev1.VolumeSource{
 								Projected: &corev1.ProjectedVolumeSource{
 									Sources: []corev1.VolumeProjection{
 										{
 											ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
-												Path:              "azure-identity-token",
+												Path:              TokenFilePathName,
 												ExpirationSeconds: &serviceAccountTokenExpiry,
 												Audience:          "https://login.microsoftonline.com/federatedidentity",
 											},
@@ -392,13 +393,13 @@ func TestAddProjectedServiceAccountTokenVolume(t *testing.T) {
 			},
 			expectedVolume: []corev1.Volume{
 				{
-					Name: "azure-identity-token",
+					Name: TokenFilePathName,
 					VolumeSource: corev1.VolumeSource{
 						Projected: &corev1.ProjectedVolumeSource{
 							Sources: []corev1.VolumeProjection{
 								{
 									ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
-										Path:              "azure-identity-token",
+										Path:              TokenFilePathName,
 										ExpirationSeconds: &serviceAccountTokenExpiry,
 										Audience:          "https://login.microsoftonline.com/federatedidentity",
 									},
@@ -419,7 +420,7 @@ func TestAddProjectedServiceAccountTokenVolume(t *testing.T) {
 				Spec: corev1.PodSpec{
 					Volumes: []corev1.Volume{
 						{
-							Name: "azure-identity-token",
+							Name: TokenFilePathName,
 							VolumeSource: corev1.VolumeSource{
 								Projected: &corev1.ProjectedVolumeSource{
 									Sources: []corev1.VolumeProjection{
@@ -439,7 +440,7 @@ func TestAddProjectedServiceAccountTokenVolume(t *testing.T) {
 			},
 			expectedVolume: []corev1.Volume{
 				{
-					Name: "azure-identity-token",
+					Name: TokenFilePathName,
 					VolumeSource: corev1.VolumeSource{
 						Projected: &corev1.ProjectedVolumeSource{
 							Sources: []corev1.VolumeProjection{
@@ -455,13 +456,13 @@ func TestAddProjectedServiceAccountTokenVolume(t *testing.T) {
 					},
 				},
 				{
-					Name: "azure-identity-token",
+					Name: TokenFilePathName,
 					VolumeSource: corev1.VolumeSource{
 						Projected: &corev1.ProjectedVolumeSource{
 							Sources: []corev1.VolumeProjection{
 								{
 									ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
-										Path:              "azure-identity-token",
+										Path:              TokenFilePathName,
 										ExpirationSeconds: &serviceAccountTokenExpiry,
 										Audience:          "https://login.microsoftonline.com/federatedidentity",
 									},
@@ -513,7 +514,7 @@ func TestAddEnvironmentVariables(t *testing.T) {
 					},
 					{
 						Name:  "TOKEN_FILE_PATH",
-						Value: "/var/run/secrets/tokens/azure-identity-token",
+						Value: filepath.Join(TokenFileMountPath, TokenFilePathName),
 					},
 				},
 			},
@@ -534,7 +535,7 @@ func TestAddEnvironmentVariables(t *testing.T) {
 					},
 					{
 						Name:  "TOKEN_FILE_PATH",
-						Value: "/var/run/secrets/tokens/azure-identity-token",
+						Value: filepath.Join(TokenFileMountPath, TokenFilePathName),
 					},
 				},
 			},
@@ -552,7 +553,7 @@ func TestAddEnvironmentVariables(t *testing.T) {
 					},
 					{
 						Name:  "TOKEN_FILE_PATH",
-						Value: "/var/run/secrets/tokens/azure-identity-token",
+						Value: filepath.Join(TokenFileMountPath, TokenFilePathName),
 					},
 				},
 			},
@@ -587,7 +588,7 @@ func TestAddEnvironmentVariables(t *testing.T) {
 					},
 					{
 						Name:  "TOKEN_FILE_PATH",
-						Value: "/var/run/secrets/tokens/azure-identity-token",
+						Value: filepath.Join(TokenFileMountPath, TokenFilePathName),
 					},
 				},
 			},
@@ -621,7 +622,7 @@ func TestAddProjectServiceAccountTokenVolumeMount(t *testing.T) {
 				Image: "image",
 				VolumeMounts: []corev1.VolumeMount{
 					{
-						Name:      "azure-identity-token",
+						Name:      TokenFilePathName,
 						MountPath: "/var/run/secrets/tokens",
 						ReadOnly:  true,
 					},
@@ -635,7 +636,7 @@ func TestAddProjectServiceAccountTokenVolumeMount(t *testing.T) {
 				Image: "image",
 				VolumeMounts: []corev1.VolumeMount{
 					{
-						Name:      "azure-identity-token",
+						Name:      TokenFilePathName,
 						MountPath: "mountPath",
 					},
 				},
@@ -645,7 +646,7 @@ func TestAddProjectServiceAccountTokenVolumeMount(t *testing.T) {
 				Image: "image",
 				VolumeMounts: []corev1.VolumeMount{
 					{
-						Name:      "azure-identity-token",
+						Name:      TokenFilePathName,
 						MountPath: "mountPath",
 					},
 				},
@@ -672,7 +673,7 @@ func TestAddProjectServiceAccountTokenVolumeMount(t *testing.T) {
 						MountPath: "/var/run/pods",
 					},
 					{
-						Name:      "azure-identity-token",
+						Name:      TokenFilePathName,
 						MountPath: "/var/run/secrets/tokens",
 						ReadOnly:  true,
 					},
@@ -683,7 +684,7 @@ func TestAddProjectServiceAccountTokenVolumeMount(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			actualContainer := addProjectServiceAccountTokenVolumeMount(test.container)
+			actualContainer := addProjectedTokenVolumeMount(test.container)
 			if !reflect.DeepEqual(actualContainer, test.expectedContainer) {
 				t.Fatalf("expected: %v, got: %v", test.expectedContainer, actualContainer)
 			}
@@ -730,5 +731,199 @@ func TestHandle(t *testing.T) {
 	resp := m.Handle(context.Background(), req)
 	if !resp.Allowed {
 		t.Fatalf("expected to be allowed")
+	}
+}
+
+func TestAddProjectedSecretVolume(t *testing.T) {
+	tests := []struct {
+		name           string
+		pod            *corev1.Pod
+		expectedVolume []corev1.Volume
+	}{
+		{
+			name: "no volumes in the pod",
+			pod: &corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "pod",
+					Namespace: "default",
+				},
+			},
+			expectedVolume: []corev1.Volume{
+				{
+					Name: TokenFilePathName,
+					VolumeSource: corev1.VolumeSource{
+						Projected: &corev1.ProjectedVolumeSource{
+							Sources: []corev1.VolumeProjection{
+								{
+									Secret: &corev1.SecretProjection{
+										LocalObjectReference: corev1.LocalObjectReference{
+											Name: "localtoken-sa",
+										},
+										Items: []corev1.KeyToPath{
+											{
+												Key:  "token",
+												Path: TokenFilePathName,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "azure-identity-token projected volume already exists",
+			pod: &corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "pod",
+					Namespace: "default",
+				},
+				Spec: corev1.PodSpec{
+					Volumes: []corev1.Volume{
+						{
+							Name: TokenFilePathName,
+							VolumeSource: corev1.VolumeSource{
+								Projected: &corev1.ProjectedVolumeSource{
+									Sources: []corev1.VolumeProjection{
+										{
+											Secret: &corev1.SecretProjection{
+												LocalObjectReference: corev1.LocalObjectReference{
+													Name: "localtoken-sa",
+												},
+												Items: []corev1.KeyToPath{
+													{
+														Key:  "token",
+														Path: TokenFilePathName,
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expectedVolume: []corev1.Volume{
+				{
+					Name: TokenFilePathName,
+					VolumeSource: corev1.VolumeSource{
+						Projected: &corev1.ProjectedVolumeSource{
+							Sources: []corev1.VolumeProjection{
+								{
+									Secret: &corev1.SecretProjection{
+										LocalObjectReference: corev1.LocalObjectReference{
+											Name: "localtoken-sa",
+										},
+										Items: []corev1.KeyToPath{
+											{
+												Key:  "token",
+												Path: TokenFilePathName,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "existing projected secret volume not affected",
+			pod: &corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "pod",
+					Namespace: "default",
+				},
+				Spec: corev1.PodSpec{
+					Volumes: []corev1.Volume{
+						{
+							Name: TokenFilePathName,
+							VolumeSource: corev1.VolumeSource{
+								Projected: &corev1.ProjectedVolumeSource{
+									Sources: []corev1.VolumeProjection{
+										{
+											Secret: &corev1.SecretProjection{
+												LocalObjectReference: corev1.LocalObjectReference{
+													Name: "my-secret",
+												},
+												Items: []corev1.KeyToPath{
+													{
+														Key:  "username",
+														Path: "username",
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expectedVolume: []corev1.Volume{
+				{
+					Name: TokenFilePathName,
+					VolumeSource: corev1.VolumeSource{
+						Projected: &corev1.ProjectedVolumeSource{
+							Sources: []corev1.VolumeProjection{
+								{
+									Secret: &corev1.SecretProjection{
+										LocalObjectReference: corev1.LocalObjectReference{
+											Name: "my-secret",
+										},
+										Items: []corev1.KeyToPath{
+											{
+												Key:  "username",
+												Path: "username",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				{
+					Name: TokenFilePathName,
+					VolumeSource: corev1.VolumeSource{
+						Projected: &corev1.ProjectedVolumeSource{
+							Sources: []corev1.VolumeProjection{
+								{
+									Secret: &corev1.SecretProjection{
+										LocalObjectReference: corev1.LocalObjectReference{
+											Name: "localtoken-sa",
+										},
+										Items: []corev1.KeyToPath{
+											{
+												Key:  "token",
+												Path: TokenFilePathName,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			err := addProjectedSecretVolume(test.pod, &config.Config{}, "localtoken-sa")
+			if err != nil {
+				t.Fatalf("expected err to be nil, got: %v", err)
+			}
+			if !reflect.DeepEqual(test.pod.Spec.Volumes, test.expectedVolume) {
+				t.Fatalf("expected: %v, got: %v", test.pod.Spec.Volumes, test.expectedVolume)
+			}
+		})
 	}
 }
