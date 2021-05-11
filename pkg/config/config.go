@@ -1,9 +1,9 @@
 package config
 
 import (
-	"fmt"
 	"os"
 
+	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
 
@@ -20,10 +20,10 @@ func ParseConfig(configFile string) (*Config, error) {
 	if configFile != "" {
 		bytes, err := os.ReadFile(configFile)
 		if err != nil {
-			return nil, fmt.Errorf("unable to read config file %s, error: %w", configFile, err)
+			return nil, errors.Wrapf(err, "failed to read config file %s", configFile)
 		}
 		if err = yaml.Unmarshal(bytes, &c); err != nil {
-			return nil, fmt.Errorf("unable to unmarshal JSON, error: %w", err)
+			return nil, errors.Wrap(err, "failed to unmarshal JSON")
 		}
 	} else {
 		c.Cloud = os.Getenv("AZURE_ENVIRONMENT")
@@ -40,7 +40,7 @@ func ParseConfig(configFile string) (*Config, error) {
 // validateConfig validates the configuration
 func validateConfig(c *Config) error {
 	if c.TenantID == "" {
-		return fmt.Errorf("tenant ID is required")
+		return errors.New("tenant ID is required")
 	}
 	return nil
 }

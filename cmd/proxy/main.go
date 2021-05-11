@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/pkg/errors"
 	"k8s.io/klog/v2"
 )
 
@@ -41,7 +42,7 @@ func (p *proxy) sendRequest(req *http.Request) (*http.Response, error) {
 	klog.InfoS("received request", "method", req.Method, "uri", req.RequestURI)
 	clientID, resource := parseTokenRequest(req)
 	if clientID == "" {
-		return &http.Response{Status: strconv.Itoa(http.StatusBadRequest)}, fmt.Errorf("client id is not set")
+		return &http.Response{Status: strconv.Itoa(http.StatusBadRequest)}, errors.New("client id is not set")
 	}
 	if resource == "" {
 		resource = "https://management.azure.com/"
@@ -76,14 +77,14 @@ func doTokenRequest(clientID, resource string) (*http.Response, error) {
 	// get the service account jwt token
 	tokenFile := os.Getenv("TOKEN_FILE_PATH")
 	if tokenFile == "" {
-		return nil, fmt.Errorf("TOKEN_FILE_PATH not set")
+		return nil, errors.New("TOKEN_FILE_PATH not set")
 	}
 	if _, err := os.Stat(tokenFile); err != nil {
-		return nil, fmt.Errorf("token file not found")
+		return nil, errors.New("token file not found")
 	}
 	token, err := os.ReadFile(tokenFile)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get token: %w", err)
+		return nil, errors.Wrap(err, "failed to get token")
 	}
 
 	httpClient := http.Client{}
@@ -94,12 +95,12 @@ func doTokenRequest(clientID, resource string) (*http.Response, error) {
 		"scopes":       resource,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal req body: %w", err)
+		return nil, errors.Wrap(err, "failed to marshal req body")
 	}
 
 	req, err := http.NewRequest(http.MethodPost, tokenExchangeURL, bytes.NewBuffer(reqBody))
 	if err != nil {
-		return nil, fmt.Errorf("failed to create http request: %w", err)
+		return nil, errors.Wrap(err, "failed to create http request")
 	}
 	req.Header.Set("Content-Type", "application/json")
 
