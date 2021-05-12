@@ -27,4 +27,6 @@ const (
 	AzureClientIDEnvVar = "AZURE_CLIENT_ID"
 	AzureTenantIDEnvVar = "AZURE_TENANT_ID"
 	TokenFilePathEnvVar = "TOKEN_FILE_PATH" // #nosec
+	TokenFilePathName   = "azure-identity-token"
+	TokenFileMountPath  = "/var/run/secrets/tokens" // #nosec
 )

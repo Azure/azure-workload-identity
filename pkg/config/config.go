@@ -1,35 +1,23 @@
 package config
 
 import (
-	"os"
-
+	"github.com/kelseyhightower/envconfig"
 	"github.com/pkg/errors"
-	"gopkg.in/yaml.v2"
 )
 
-// Config holds configuration from azure.json
+// Config holds configuration from the env variables
 type Config struct {
-	Cloud          string `json:"cloud" yaml:"cloud"`
-	TenantID       string `json:"tenantId" yaml:"tenantId"`
-	SubscriptionID string `json:"subscriptionId" yaml:"subscriptionId"`
+	Cloud    string `envconfig:"AZURE_ENVIRONMENT"`
+	TenantID string `envconfig:"AZURE_TENANT_ID"`
 }
 
-// ParseConfig parses the configuration from azure.json or env variables
-func ParseConfig(configFile string) (*Config, error) {
+// ParseConfig parses the configuration from env variables
+func ParseConfig() (*Config, error) {
 	c := new(Config)
-	if configFile != "" {
-		bytes, err := os.ReadFile(configFile)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to read config file %s", configFile)
-		}
-		if err = yaml.Unmarshal(bytes, &c); err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal JSON")
-		}
-	} else {
-		c.Cloud = os.Getenv("AZURE_ENVIRONMENT")
-		c.TenantID = os.Getenv("AZURE_TENANT_ID")
-		c.SubscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
+	if err := envconfig.Process("config", c); err != nil {
+		return c, err
 	}
+
 	// validate parsed config
 	if err := validateConfig(c); err != nil {
 		return nil, err

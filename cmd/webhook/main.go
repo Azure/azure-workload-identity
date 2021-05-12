@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"os"
 
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
@@ -18,6 +19,13 @@ func init() {
 }
 
 func main() {
+	var arcCluster bool
+
+	// TODO (aramase) once webhook is added as an arc extension, use extension
+	// util to check if running in arc cluster.
+	flag.BoolVar(&arcCluster, "arc-cluster", false, "Running on arc cluster")
+	flag.Parse()
+
 	entryLog := log.Log.WithName("entrypoint")
 
 	// Setup a manager
@@ -33,7 +41,7 @@ func main() {
 	hookServer := mgr.GetWebhookServer()
 
 	entryLog.Info("registering webhook to the webhook server")
-	podMutator, err := wh.NewPodMutator(mgr.GetClient())
+	podMutator, err := wh.NewPodMutator(mgr.GetClient(), arcCluster)
 	if err != nil {
 		entryLog.Error(err, "unable to set up pod mutator")
 		os.Exit(1)
