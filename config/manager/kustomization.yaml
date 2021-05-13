@@ -6,3 +6,8 @@ images:
 - name: controller
   newName: controller
   newTag: latest
+configMapGenerator:
+- literals:
+  - AZURE_TENANT_ID="${AZURE_TENANT_ID}"
+  - AZURE_ENVIRONMENT="${AZURE_ENVIRONMENT:-AzurePublicCloud}"
+  name: aad-pi-config

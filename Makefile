@@ -44,6 +44,10 @@ SHELLCHECK_VER := v0.7.2
 SHELLCHECK_BIN := shellcheck
 SHELLCHECK := $(TOOLS_BIN_DIR)/$(SHELLCHECK_BIN)-$(SHELLCHECK_VER)
 
+ENVSUBST_VER := v1.2.0
+ENVSUBST_BIN := envsubst
+ENVSUBST := $(TOOLS_BIN_DIR)/$(ENVSUBST_BIN)
+
 # Scripts
 GO_INSTALL := ./hack/go-install.sh
 
@@ -89,10 +93,10 @@ run: generate fmt vet manifests
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 .PHONY: deploy
-deploy: $(KUBECTL) $(KUSTOMIZE)
+deploy: $(KUBECTL) $(KUSTOMIZE) $(ENVSUBST)
 	$(MAKE) manifests install-cert-manager
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
-	$(KUSTOMIZE) build config/default | $(KUBECTL) apply -f -
+	$(KUSTOMIZE) build config/default | $(ENVSUBST) | $(KUBECTL) apply -f -
 
 ## --------------------------------------
 ## Code Generation
@@ -145,6 +149,9 @@ $(SHELLCHECK):
 	ln -sf "$(SHELLCHECK)" "$(TOOLS_BIN_DIR)/$(SHELLCHECK_BIN)"
 	chmod +x "$(TOOLS_BIN_DIR)/$(SHELLCHECK_BIN)" "$(SHELLCHECK)"
 	rm -rf shellcheck*
+
+$(ENVSUBST):
+	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/a8m/envsubst/cmd/envsubst $(ENVSUBST_BIN) $(ENVSUBST_VER)
 
 CERT_MANAGER_VERSION ?= v1.2.0
 
