@@ -22,5 +22,4 @@ nodes:
 EOF
 
 ${KUBECTL} wait node "${KIND_CLUSTER_NAME}-control-plane" --for=condition=Ready --timeout=90s
-OUTPUT_TYPE="type=docker" make container-manager
-${KIND} load docker-image controller:latest --name "${KIND_CLUSTER_NAME}"
+OUTPUT_TYPE="type=docker" make docker-build-manager

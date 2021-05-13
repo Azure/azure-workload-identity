@@ -1,0 +1,42 @@
+parameters:
+  - name: publish
+    type: boolean
+    default: true
+  - name: registry
+    type: string
+    default: docker.pkg.github.com/azure/aad-pod-managed-identity
+  - name: image_version
+    type: string
+    default: latest
+  - name: output_type
+    type: string
+    default: type=docker
+
+steps:
+  - script: |
+      echo "##vso[task.setvariable variable=REGISTRY]${{ parameters.registry }}"
+      echo "##vso[task.setvariable variable=IMAGE_VERSION]${{ parameters.image_version }}"
+      echo "##vso[task.setvariable variable=OUTPUT_TYPE]${{ parameters.output_type }}"
+    displayName: export environment variables
+  - script: make docker-build
+    displayName: make docker-build
+  - script: |
+      wget https://github.com/aquasecurity/trivy/releases/download/v0.18.0/trivy_0.18.0_Linux-64bit.tar.gz
+      tar zxvf trivy_0.18.0_Linux-64bit.tar.gz
+      # show all vulnerabilities in the logs
+      for IMAGE_NAME in "pod-identity-proxy" "proxy-init" "manager"; do
+        ./trivy "${REGISTRY}/${IMAGE_NAME}:${IMAGE_VERSION}"
+        ./trivy --exit-code 1 --ignore-unfixed --severity MEDIUM,HIGH,CRITICAL --vuln-type os "${REGISTRY}/${IMAGE_NAME}:${IMAGE_VERSION}" || exit 1
+      done
+    displayName: Scan images
+  - script: |
+      if [[ "${REGISTRY}" =~ docker.pkg.github.com.* ]]; then
+        echo "${DOCKER_PASSWORD}" | docker login docker.pkg.github.com -u azure --password-stdin
+      fi
+    env:
+      DOCKER_PASSWORD: $(DOCKER_PASSWORD)
+    condition: and(succeeded(), eq(${{ parameters.publish }}, true))
+    displayName: docker login
+  - script: make docker-push
+    condition: and(succeeded(), eq(${{ parameters.publish }}, true))
+    displayName: make docker-push

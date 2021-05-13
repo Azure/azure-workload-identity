@@ -1,10 +1,12 @@
-REGISTRY ?= aramase
-IMAGE_VERSION ?= v0.0.1
+REGISTRY ?= docker.pkg.github.com/azure/aad-pod-managed-identity
 PROXY_IMAGE_NAME := pod-identity-proxy
 INIT_IMAGE_NAME := proxy-init
+MANAGER_IMAGE_NAME := manager
+IMAGE_VERSION ?= v0.0.1
 
-PROXY_IMAGE_TAG := $(REGISTRY)/$(PROXY_IMAGE_NAME):$(IMAGE_VERSION)
-INIT_IMAGE_TAG := $(REGISTRY)/$(INIT_IMAGE_NAME):$(IMAGE_VERSION)
+PROXY_IMAGE := $(REGISTRY)/$(PROXY_IMAGE_NAME):$(IMAGE_VERSION)
+INIT_IMAGE := $(REGISTRY)/$(INIT_IMAGE_NAME):$(IMAGE_VERSION)
+MANAGER_IMAGE := $(REGISTRY)/$(MANAGER_IMAGE_NAME):$(IMAGE_VERSION)
 
 # Directories
 ROOT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
@@ -51,30 +53,42 @@ ENVSUBST := $(TOOLS_BIN_DIR)/$(ENVSUBST_BIN)
 # Scripts
 GO_INSTALL := ./hack/go-install.sh
 
-.PHONY: build-proxy
-build-proxy:
-	CGO_ENABLED=0 GOOS=linux go build -a -o bin/proxy ./cmd/proxy
-
 ## --------------------------------------
-## Containers
+## Images
 ## --------------------------------------
 
 OUTPUT_TYPE ?= type=registry
 
-.PHONY: container-proxy
-container-proxy:
-	docker buildx build --no-cache -t $(PROXY_IMAGE_TAG) -f docker/proxy.Dockerfile --platform="linux/amd64" --output=$(OUTPUT_TYPE) .
+.PHONY: docker-build
+docker-build: docker-build-init docker-build-manager docker-build-proxy
 
-.PHONY: container-init
-container-init:
-	docker buildx build --no-cache -t $(INIT_IMAGE_TAG) -f docker/init.Dockerfile --platform="linux/amd64" --output=$(OUTPUT_TYPE) .
+.PHONY: docker-build-init
+docker-build-init:
+	docker buildx build --no-cache -t $(INIT_IMAGE) -f docker/init.Dockerfile --platform="linux/amd64" --output=$(OUTPUT_TYPE) .
 
-.PHONY: container-manager
-container-manager:
-	docker buildx build --no-cache -t $(IMG) -f docker/webhook.Dockerfile --platform="linux/amd64" --output=$(OUTPUT_TYPE) .
+.PHONY: docker-build-manager
+docker-build-manager:
+	docker buildx build --no-cache -t $(MANAGER_IMAGE) -f docker/webhook.Dockerfile --platform="linux/amd64" --output=$(OUTPUT_TYPE) .
 
-# Image URL to use all building/pushing image targets
-IMG ?= controller:latest
+.PHONY: docker-build-proxy
+docker-build-proxy:
+	docker buildx build --no-cache -t $(PROXY_IMAGE) -f docker/proxy.Dockerfile --platform="linux/amd64" --output=$(OUTPUT_TYPE) .
+
+.PHONY: docker-push
+docker-push: docker-push-init docker-push-manager docker-push-proxy
+
+.PHONY: docker-push-init
+docker-push-init:
+	docker push $(INIT_IMAGE)
+
+.PHONY: docker-push-manager
+docker-push-manager:
+	docker push $(MANAGER_IMAGE)
+
+.PHONY: docker-push-proxy
+docker-push-proxy:
+	docker push $(PROXY_IMAGE)
+
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
@@ -95,7 +109,7 @@ run: generate fmt vet manifests
 .PHONY: deploy
 deploy: $(KUBECTL) $(KUSTOMIZE) $(ENVSUBST)
 	$(MAKE) manifests install-cert-manager
-	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
+	cd config/manager && $(KUSTOMIZE) edit set image manager=$(MANAGER_IMAGE)
 	$(KUSTOMIZE) build config/default | $(ENVSUBST) | $(KUBECTL) apply -f -
 
 ## --------------------------------------
@@ -218,6 +232,7 @@ KIND_CLUSTER_NAME ?= aad-pod-managed-identity
 .PHONY: kind-create
 kind-create: $(KIND) $(KUBECTL)
 	./scripts/create-kind-cluster.sh
+	$(KIND) load docker-image $(MANAGER_IMAGE) --name $(KIND_CLUSTER_NAME)
 
 .PHONY: kind-delete
 kind-delete: $(KIND)
