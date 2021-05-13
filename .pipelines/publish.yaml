@@ -1,0 +1,12 @@
+trigger:
+  - main
+
+pool: Upstream Pool
+
+jobs:
+  - job: publish
+    timeoutInMinutes: 10
+    workspace:
+      clean: all
+    steps:
+      - template: templates/publish-images.yaml

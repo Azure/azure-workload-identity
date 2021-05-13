@@ -8,6 +8,14 @@ pr:
 pool: Upstream Pool
 
 jobs:
+  - job: scan_images
+    timeoutInMinutes: 10
+    workspace:
+      clean: all
+    steps:
+      - template: templates/publish-images.yaml
+        parameters:
+          publish: false
   - job: lint
     timeoutInMinutes: 5
     workspace:
@@ -32,25 +40,25 @@ jobs:
   - job:
     timeoutInMinutes: 20
     dependsOn:
-    - unit_test
     - lint
+    - scan_images
     - shellcheck
+    - unit_test
     workspace:
       clean: all
+    variables:
+      # we can enable actual tenant id for functional e2e
+      AZURE_TENANT_ID: "fake tenant id"
     strategy:
       matrix:
         aks_linux:
           REGISTRY: upstreamk8sci.azurecr.io/aad-pod-managed-identity
-          # we can enable actual tenant id for functional e2e
-          AZURE_TENANT_ID: "fake tenant id"
         kind_v1_19_7:
           KIND_NODE_VERSION: v1.19.7
           LOCAL_ONLY: "true"
-          AZURE_TENANT_ID: "fake tenant id"
         kind_v1_20_2:
           KIND_NODE_VERSION: v1.20.2
           LOCAL_ONLY: "true"
-          AZURE_TENANT_ID: "fake tenant id"
     steps:
       - script: make test-e2e
         displayName: Webhook E2E test suite

@@ -9,6 +9,9 @@ cd "${REPO_ROOT}" || exit 1
 
 readonly KUBECTL="${REPO_ROOT}/hack/tools/bin/kubectl"
 
+IMAGE_VERSION="$(git rev-parse --short HEAD)"
+export IMAGE_VERSION
+
 get_random_region() {
     local REGIONS=("eastus" "eastus2" "westus2" "westeurope" "uksouth" "northeurope" "francecentral")
     echo "${REGIONS[${RANDOM} % ${#REGIONS[@]}]}"
@@ -61,9 +64,7 @@ create_cluster_and_deploy() {
     fi
 
     echo "Building controller and deploying webhook to the cluster"
-    IMG="${REGISTRY}/controller:$(git rev-parse --short HEAD)"
-    export IMG
-    make container-manager
+    make docker-build-manager
   fi
 }
 
