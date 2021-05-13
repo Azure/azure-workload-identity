@@ -65,11 +65,6 @@ create_cluster_and_deploy() {
     export IMG
     make container-manager
   fi
-
-  # create the webhook namespace
-  ${KUBECTL} create namespace aad-pi-webhook-system
-  # create the configmap that'll be used for the webhook
-  ${KUBECTL} create configmap aad-pi-config --from-literal=AZURE_TENANT_ID="${AZURE_TENANT_ID}" --from-literal=AZURE_ENVIRONMENT="${AZURE_ENVIRONMENT:-AzurePublicCloud}" --namespace=aad-pi-webhook-system
 }
 
 cleanup() {
