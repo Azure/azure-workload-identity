@@ -106,6 +106,10 @@ run: generate fmt vet manifests
 	go run .cmd/webhook/main.go
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
+ARC_CLUSTER ?= false
+AZURE_ENVIRONMENT ?=
+AZURE_TENANT_ID ?=
+
 .PHONY: deploy
 deploy: $(KUBECTL) $(KUSTOMIZE) $(ENVSUBST)
 	$(MAKE) manifests install-cert-manager
@@ -204,7 +208,7 @@ GINKGO_FOCUS ?=
 GINKGO_SKIP ?=
 GINKGO_NODES ?= 1
 GINKGO_NO_COLOR ?= false
-GINKGO_ARGS ?=
+GINKGO_ARGS ?= -focus="$(GINKGO_FOCUS)" -skip="$(GINKGO_SKIP)" -nodes=$(GINKGO_NODES) -noColor=$(GINKGO_NO_COLOR)
 
 # E2E configurations
 E2E_ARGS ?=
@@ -212,12 +216,8 @@ KUBECONFIG ?= $(HOME)/.kube/config
 
 .PHONY: test-e2e-run
 test-e2e-run: $(E2E_TEST) $(GINKGO)
-	$(GINKGO) -v -trace \
-		-focus="$(GINKGO_FOCUS)" \
-		-skip="$(GINKGO_SKIP)" \
-		-nodes=$(GINKGO_NODES) \
-		-noColor=$(GINKGO_NO_COLOR) \
-		$(E2E_TEST) -- -kubeconfig=$(KUBECONFIG) $(E2E_ARGS)
+	$(GINKGO) -v -trace $(GINKGO_ARGS) \
+		$(E2E_TEST) -- -kubeconfig=$(KUBECONFIG) -e2e.arc-cluster=$(ARC_CLUSTER) $(E2E_ARGS)
 
 .PHONY: test-e2e
 test-e2e: $(KUBECTL)

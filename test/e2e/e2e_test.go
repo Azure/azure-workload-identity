@@ -11,6 +11,14 @@ import (
 	"k8s.io/kubernetes/test/e2e/framework/config"
 )
 
+var (
+	arcCluster bool
+)
+
+func init() {
+	flag.BoolVar(&arcCluster, "e2e.arc-cluster", false, "Running on arc cluster")
+}
+
 // handleFlags sets up all flags and parses the command line.
 func handleFlags() {
 	config.CopyFlags(config.Flags, flag.CommandLine)

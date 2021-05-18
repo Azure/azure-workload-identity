@@ -25,6 +25,8 @@ spec:
       containers:
       - command:
         - /manager
+        args:
+        - -arc-cluster=${ARC_CLUSTER:-false}
         image: manager:latest
         imagePullPolicy: IfNotPresent
         name: manager

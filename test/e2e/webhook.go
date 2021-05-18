@@ -1,6 +1,6 @@
 // +build e2e
 
-package webhook
+package e2e
 
 import (
 	"context"
@@ -23,7 +23,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 	ginkgo.It("should mutate a pod with a labeled service account", func() {
 		serviceAccount := createServiceAccount(f, map[string]string{webhook.UsePodIdentityLabel: "true"}, nil)
 		pod := createPodWithServiceAccount(f, serviceAccount)
-		validateMutatedPod(pod)
+		validateMutatedPod(f, pod)
 	})
 })
 
@@ -74,7 +74,7 @@ func createPodWithServiceAccount(f *framework.Framework, serviceAccount string) 
 	return createdPod
 }
 
-func validateMutatedPod(pod *corev1.Pod) {
+func validateMutatedPod(f *framework.Framework, pod *corev1.Pod) {
 	for _, container := range pod.Spec.Containers {
 		m := make(map[string]struct{})
 		for _, env := range container.Env {
@@ -110,8 +110,7 @@ func validateMutatedPod(pod *corev1.Pod) {
 		}
 	}
 
-	framework.Logf("ensuring that the service account token volume is projected to %s as azure-identity-token", pod.Name)
-	expirationSeconds := webhook.DefaultServiceAccountTokenExpiration
+	framework.Logf("ensuring that the token volume is projected to %s as azure-identity-token", pod.Name)
 	defaultMode := int32(420)
 	found := false
 	for _, volume := range pod.Spec.Volumes {
@@ -121,15 +120,7 @@ func validateMutatedPod(pod *corev1.Pod) {
 				Name: webhook.TokenFilePathName,
 				VolumeSource: corev1.VolumeSource{
 					Projected: &corev1.ProjectedVolumeSource{
-						Sources: []corev1.VolumeProjection{
-							{
-								ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
-									Path:              webhook.TokenFilePathName,
-									ExpirationSeconds: &expirationSeconds,
-									Audience:          fmt.Sprintf("%s/federatedidentity", strings.TrimRight(azure.PublicCloud.ActiveDirectoryEndpoint, "/")),
-								},
-							},
-						},
+						Sources:     getVolumeProjectionSources(f, pod.Spec.ServiceAccountName),
 						DefaultMode: &defaultMode,
 					},
 				},
@@ -138,6 +129,47 @@ func validateMutatedPod(pod *corev1.Pod) {
 		}
 	}
 	if !found {
-		framework.Failf("pod %s does not have azure-identity-token as a projected service account token volume")
+		framework.Failf("pod %s does not have azure-identity-token as a projected token volume", pod.Name)
+	}
+}
+
+func getVolumeProjectionSources(f *framework.Framework, serviceAccountName string) []corev1.VolumeProjection {
+	expirationSeconds := webhook.DefaultServiceAccountTokenExpiration
+	if arcCluster {
+		// TODO(chewong): remove this secret creation process once we stopped using fake arc cluster
+		secretName := fmt.Sprintf("localtoken-%s", serviceAccountName)
+		secret := &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      secretName,
+				Namespace: f.Namespace.Name,
+			},
+			Type: corev1.SecretTypeOpaque,
+			Data: map[string][]byte{
+				"token": []byte("fake token"),
+			},
+		}
+		_, err := f.ClientSet.CoreV1().Secrets(f.Namespace.Name).Create(context.TODO(), secret, metav1.CreateOptions{})
+		framework.ExpectNoError(err, "failed to create secret %s", secretName)
+
+		return []corev1.VolumeProjection{{
+			Secret: &corev1.SecretProjection{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: secretName,
+				},
+				Items: []corev1.KeyToPath{
+					{
+						Key:  "token",
+						Path: webhook.TokenFilePathName,
+					},
+				},
+			},
+		}}
+	}
+	return []corev1.VolumeProjection{{
+		ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
+			Path:              webhook.TokenFilePathName,
+			ExpirationSeconds: &expirationSeconds,
+			Audience:          fmt.Sprintf("%s/federatedidentity", strings.TrimRight(azure.PublicCloud.ActiveDirectoryEndpoint, "/")),
+		}},
 	}
 }
