@@ -477,7 +477,7 @@ func TestAddProjectedServiceAccountTokenVolume(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := addProjectedServiceAccountTokenVolume(test.pod, &config.Config{}, serviceAccountTokenExpiry)
+			err := addProjectedServiceAccountTokenVolume(test.pod, serviceAccountTokenExpiry, "https://login.microsoftonline.com/federatedidentity")
 			if err != nil {
 				t.Fatalf("expected err to be nil, got: %v", err)
 			}

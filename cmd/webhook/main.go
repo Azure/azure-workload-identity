@@ -14,16 +14,21 @@ import (
 	wh "github.com/Azure/aad-pod-managed-identity/pkg/webhook"
 )
 
+var (
+	arcCluster bool
+	audience   string
+)
+
 func init() {
 	log.SetLogger(zap.New())
 }
 
 func main() {
-	var arcCluster bool
 
 	// TODO (aramase) once webhook is added as an arc extension, use extension
 	// util to check if running in arc cluster.
 	flag.BoolVar(&arcCluster, "arc-cluster", false, "Running on arc cluster")
+	flag.StringVar(&audience, "audience", "", "Audience for service account token")
 	flag.Parse()
 
 	entryLog := log.Log.WithName("entrypoint")
@@ -41,7 +46,7 @@ func main() {
 	hookServer := mgr.GetWebhookServer()
 
 	entryLog.Info("registering webhook to the webhook server")
-	podMutator, err := wh.NewPodMutator(mgr.GetClient(), arcCluster)
+	podMutator, err := wh.NewPodMutator(mgr.GetClient(), arcCluster, audience)
 	if err != nil {
 		entryLog.Error(err, "unable to set up pod mutator")
 		os.Exit(1)
