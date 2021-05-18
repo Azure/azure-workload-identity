@@ -40,6 +40,7 @@ create_cluster_and_deploy() {
     if [[ "$(should_create_aks_cluster)" == "true" ]]; then
       echo "Creating an AKS cluster '${CLUSTER_NAME}'"
       az group create --name "${CLUSTER_NAME}" --location "$(get_random_region)" > /dev/null
+      # TODO(chewong): ability to create an arc-enabled cluster
       az aks create \
         --resource-group "${CLUSTER_NAME}" \
         --name "${CLUSTER_NAME}" \

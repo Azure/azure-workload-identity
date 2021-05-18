@@ -17,8 +17,6 @@ import (
 	"k8s.io/kubernetes/test/e2e/framework"
 	e2ekubectl "k8s.io/kubernetes/test/e2e/framework/kubectl"
 	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
-
-	_ "github.com/Azure/aad-pod-managed-identity/test/e2e/webhook"
 )
 
 var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {

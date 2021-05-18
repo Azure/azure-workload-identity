@@ -53,6 +53,9 @@ jobs:
       matrix:
         aks_linux:
           REGISTRY: upstreamk8sci.azurecr.io/aad-pod-managed-identity
+        arc:
+          REGISTRY: upstreamk8sci.azurecr.io/aad-pod-managed-identity
+          ARC_CLUSTER: "true"
         kind_v1_19_7:
           KIND_NODE_VERSION: v1.19.7
           LOCAL_ONLY: "true"
