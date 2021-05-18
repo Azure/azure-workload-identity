@@ -29,19 +29,30 @@ type podMutator struct {
 	config       *config.Config
 	isARCCluster bool
 	decoder      *admission.Decoder
+	audience     string
 }
 
 // NewPodMutator returns a pod mutation handler
-func NewPodMutator(client client.Client, arcCluster bool) (admission.Handler, error) {
+func NewPodMutator(client client.Client, arcCluster bool, audience string) (admission.Handler, error) {
 	c, err := config.ParseConfig()
 	if err != nil {
 		return nil, err
+	}
+	if audience == "" {
+		// get aad endpoint to configure as audience
+		aadEndpoint, err := getAADEndpoint(c)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to get AAD endpoint")
+		}
+		aadEndpoint = strings.TrimRight(aadEndpoint, "/")
+		audience = fmt.Sprintf("%s/federatedidentity", aadEndpoint)
 	}
 
 	return &podMutator{
 		client:       client,
 		config:       c,
 		isARCCluster: arcCluster,
+		audience:     audience,
 	}, nil
 }
 
@@ -98,7 +109,7 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) admissio
 
 	if !m.isARCCluster {
 		// add the projected service account token volume to the pod if not exists
-		if err = addProjectedServiceAccountTokenVolume(pod, m.config, serviceAccountTokenExpiration); err != nil {
+		if err = addProjectedServiceAccountTokenVolume(pod, serviceAccountTokenExpiration, m.audience); err != nil {
 			logger.Error(err, "failed to add projected service account volume")
 			return admission.Errored(http.StatusBadRequest, err)
 		}
@@ -238,7 +249,7 @@ func addProjectedTokenVolumeMount(container corev1.Container) corev1.Container {
 	return container
 }
 
-func addProjectedServiceAccountTokenVolume(pod *corev1.Pod, config *config.Config, serviceAccountTokenExpiration int64) error {
+func addProjectedServiceAccountTokenVolume(pod *corev1.Pod, serviceAccountTokenExpiration int64, audience string) error {
 	// add the projected service account token volume to the pod if not exists
 	for _, volume := range pod.Spec.Volumes {
 		if volume.Projected == nil {
@@ -254,13 +265,6 @@ func addProjectedServiceAccountTokenVolume(pod *corev1.Pod, config *config.Confi
 		}
 	}
 
-	// get aad endpoint to configure as audience
-	aadEndpoint, err := getAADEndpoint(config)
-	if err != nil {
-		return errors.Wrap(err, "failed to get AAD endpoint")
-	}
-	aadEndpoint = strings.TrimRight(aadEndpoint, "/")
-
 	// add the projected service account token volume
 	// the path for this volume will always be set to "azure-identity-token"
 	pod.Spec.Volumes = append(
@@ -274,7 +278,7 @@ func addProjectedServiceAccountTokenVolume(pod *corev1.Pod, config *config.Confi
 							ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
 								Path:              TokenFilePathName,
 								ExpirationSeconds: &serviceAccountTokenExpiration,
-								Audience:          fmt.Sprintf("%s/federatedidentity", aadEndpoint),
+								Audience:          audience,
 							},
 						},
 					},
