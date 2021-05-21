@@ -1,12 +1,12 @@
 REGISTRY ?= docker.pkg.github.com/azure/aad-pod-managed-identity
 PROXY_IMAGE_NAME := pod-identity-proxy
 INIT_IMAGE_NAME := proxy-init
-MANAGER_IMAGE_NAME := manager
+WEBHOOK_IMAGE_NAME := webhook
 IMAGE_VERSION ?= v0.0.1
 
 PROXY_IMAGE := $(REGISTRY)/$(PROXY_IMAGE_NAME):$(IMAGE_VERSION)
 INIT_IMAGE := $(REGISTRY)/$(INIT_IMAGE_NAME):$(IMAGE_VERSION)
-MANAGER_IMAGE := $(REGISTRY)/$(MANAGER_IMAGE_NAME):$(IMAGE_VERSION)
+WEBHOOK_IMAGE := $(REGISTRY)/$(WEBHOOK_IMAGE_NAME):$(IMAGE_VERSION)
 
 # Directories
 ROOT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
@@ -60,34 +60,34 @@ GO_INSTALL := ./hack/go-install.sh
 OUTPUT_TYPE ?= type=registry
 
 .PHONY: docker-build
-docker-build: docker-build-init docker-build-manager docker-build-proxy
+docker-build: docker-build-init docker-build-proxy docker-build-webhook
 
 .PHONY: docker-build-init
 docker-build-init:
 	docker buildx build --no-cache -t $(INIT_IMAGE) -f docker/init.Dockerfile --platform="linux/amd64" --output=$(OUTPUT_TYPE) .
 
-.PHONY: docker-build-manager
-docker-build-manager:
-	docker buildx build --no-cache -t $(MANAGER_IMAGE) -f docker/webhook.Dockerfile --platform="linux/amd64" --output=$(OUTPUT_TYPE) .
-
 .PHONY: docker-build-proxy
 docker-build-proxy:
 	docker buildx build --no-cache -t $(PROXY_IMAGE) -f docker/proxy.Dockerfile --platform="linux/amd64" --output=$(OUTPUT_TYPE) .
 
+.PHONY: docker-build-webhook
+docker-build-webhook:
+	docker buildx build --no-cache -t $(WEBHOOK_IMAGE) -f docker/webhook.Dockerfile --platform="linux/amd64" --output=$(OUTPUT_TYPE) .
+
 .PHONY: docker-push
-docker-push: docker-push-init docker-push-manager docker-push-proxy
+docker-push: docker-push-init docker-push-proxy docker-push-webhook
 
 .PHONY: docker-push-init
 docker-push-init:
 	docker push $(INIT_IMAGE)
 
-.PHONY: docker-push-manager
-docker-push-manager:
-	docker push $(MANAGER_IMAGE)
-
 .PHONY: docker-push-proxy
 docker-push-proxy:
 	docker push $(PROXY_IMAGE)
+
+.PHONY: docker-push-webhook
+docker-push-webhook:
+	docker push $(WEBHOOK_IMAGE)
 
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
@@ -113,7 +113,7 @@ AZURE_TENANT_ID ?=
 .PHONY: deploy
 deploy: $(KUBECTL) $(KUSTOMIZE) $(ENVSUBST)
 	$(MAKE) manifests install-cert-manager
-	cd config/manager && $(KUSTOMIZE) edit set image manager=$(MANAGER_IMAGE)
+	cd config/manager && $(KUSTOMIZE) edit set image manager=$(WEBHOOK_IMAGE)
 	$(KUSTOMIZE) build config/default | $(ENVSUBST) | $(KUBECTL) apply -f -
 	$(KUBECTL) wait --for=condition=Available --timeout=5m -n aad-pi-webhook-system deployment/aad-pi-webhook-controller-manager
 
@@ -233,7 +233,7 @@ KIND_CLUSTER_NAME ?= aad-pod-managed-identity
 .PHONY: kind-create
 kind-create: $(KIND) $(KUBECTL)
 	./scripts/create-kind-cluster.sh
-	$(KIND) load docker-image $(MANAGER_IMAGE) --name $(KIND_CLUSTER_NAME)
+	$(KIND) load docker-image $(WEBHOOK_IMAGE) --name $(KIND_CLUSTER_NAME)
 
 .PHONY: kind-delete
 kind-delete: $(KIND)

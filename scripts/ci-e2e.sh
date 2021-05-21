@@ -81,8 +81,8 @@ create_cluster() {
       ROLE_ASSIGNMENT_ID="$(az role assignment create --assignee-object-id "${ASSIGNEE_OBJECT_ID}" --role AcrPull --scope "$(az acr show --name "${REGISTRY}" --query id -otsv)" --query id -otsv)"
     fi
 
-    echo "Building and pushing webhook controller manager image"
-    make docker-build-manager
+    echo "Building controller and deploying webhook to the cluster"
+    make docker-build-webhook
   fi
 }
 
