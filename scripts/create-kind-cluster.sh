@@ -30,4 +30,4 @@ nodes:
 EOF
 
 ${KUBECTL} wait node "${KIND_CLUSTER_NAME}-control-plane" --for=condition=Ready --timeout=90s
-OUTPUT_TYPE="type=docker" make docker-build-manager
+OUTPUT_TYPE="type=docker" make docker-build-webhook

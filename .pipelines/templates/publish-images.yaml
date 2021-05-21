@@ -24,7 +24,7 @@ steps:
       wget https://github.com/aquasecurity/trivy/releases/download/v0.18.0/trivy_0.18.0_Linux-64bit.tar.gz
       tar zxvf trivy_0.18.0_Linux-64bit.tar.gz
       # show all vulnerabilities in the logs
-      for IMAGE_NAME in "pod-identity-proxy" "proxy-init" "manager"; do
+      for IMAGE_NAME in "pod-identity-proxy" "proxy-init" "webhook"; do
         ./trivy "${REGISTRY}/${IMAGE_NAME}:${IMAGE_VERSION}"
         ./trivy --exit-code 1 --ignore-unfixed --severity MEDIUM,HIGH,CRITICAL --vuln-type os "${REGISTRY}/${IMAGE_NAME}:${IMAGE_VERSION}" || exit 1
       done
