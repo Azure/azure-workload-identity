@@ -27,7 +27,7 @@ should_create_aks_cluster() {
   echo "true" && return
 }
 
-create_cluster_and_deploy() {
+create_cluster() {
   if [[ "${LOCAL_ONLY:-}" == "true" ]]; then
     # create a kind cluster, then build and load the webhook manager image to the cluster
     make kind-create
@@ -49,11 +49,28 @@ create_cluster_and_deploy() {
         --network-plugin azure \
         --node-count 1 \
         --generate-ssh-keys > /dev/null
+      if [[ "${WINDOWS_CLUSTER:-}" == "true" ]]; then
+        az aks nodepool add \
+          --resource-group "${CLUSTER_NAME}" \
+          --cluster-name "${CLUSTER_NAME}" \
+          --os-type Windows \
+          --name npwin \
+          --node-count 1 > /dev/null
+      fi
     fi
 
     # assume BYO cluster if KUBECONFIG is defined
     if [[ -z "${KUBECONFIG:-}" ]]; then
       az aks get-credentials --resource-group "${CLUSTER_NAME}" --name "${CLUSTER_NAME}"
+    fi
+
+    # assume one windows node for now
+    WINDOWS_NODE_NAME="$(${KUBECTL} get node --selector=kubernetes.io/os=windows -ojson | jq -r '.items[0].metadata.name')"
+    if [[ "${WINDOWS_NODE_NAME}" == "null" ]]; then
+      unset WINDOWS_NODE_NAME
+    else
+      # taint the windows node to prevent cert-manager pods from scheduling to it
+      ${KUBECTL} taint nodes "${WINDOWS_NODE_NAME}" kubernetes.io/os=windows:NoSchedule
     fi
 
     if [[ "${REGISTRY}" =~ \.azurecr\.io ]]; then
@@ -64,7 +81,7 @@ create_cluster_and_deploy() {
       ROLE_ASSIGNMENT_ID="$(az role assignment create --assignee-object-id "${ASSIGNEE_OBJECT_ID}" --role AcrPull --scope "$(az acr show --name "${REGISTRY}" --query id -otsv)" --query id -otsv)"
     fi
 
-    echo "Building controller and deploying webhook to the cluster"
+    echo "Building and pushing webhook controller manager image"
     make docker-build-manager
   fi
 }
@@ -84,6 +101,16 @@ cleanup() {
 }
 trap cleanup EXIT
 
-create_cluster_and_deploy
+create_cluster
 ${KUBECTL} get nodes -owide
-make clean deploy test-e2e-run
+
+make clean deploy
+
+if [[ -n "${WINDOWS_NODE_NAME:-}" ]]; then
+  # remove the taint from the windows node we introduced above
+  ${KUBECTL} taint nodes "${WINDOWS_NODE_NAME}" kubernetes.io/os=windows:NoSchedule-
+  E2E_ARGS="--node-os-distro=windows ${E2E_ARGS:-}"
+  export E2E_ARGS
+fi
+
+make test-e2e-run

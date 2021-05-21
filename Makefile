@@ -115,6 +115,7 @@ deploy: $(KUBECTL) $(KUSTOMIZE) $(ENVSUBST)
 	$(MAKE) manifests install-cert-manager
 	cd config/manager && $(KUSTOMIZE) edit set image manager=$(MANAGER_IMAGE)
 	$(KUSTOMIZE) build config/default | $(ENVSUBST) | $(KUBECTL) apply -f -
+	$(KUBECTL) wait --for=condition=Available --timeout=5m -n aad-pi-webhook-system deployment/aad-pi-webhook-controller-manager
 
 ## --------------------------------------
 ## Code Generation

@@ -38,7 +38,7 @@ jobs:
       - script: make shellcheck
         displayName: shellcheck
   - job:
-    timeoutInMinutes: 20
+    timeoutInMinutes: 40
     dependsOn:
     - lint
     - scan_images
@@ -51,6 +51,9 @@ jobs:
       AZURE_TENANT_ID: "fake tenant id"
     strategy:
       matrix:
+        aks_windows:
+          REGISTRY: upstreamk8sci.azurecr.io/aad-pod-managed-identity
+          WINDOWS_CLUSTER: "true"
         aks_linux:
           REGISTRY: upstreamk8sci.azurecr.io/aad-pod-managed-identity
         arc:
