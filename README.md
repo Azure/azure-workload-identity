@@ -1,14 +1,15 @@
-# Project
+# AAD Pod Managed Identity
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+AAD Pod Managed Identity enables Kubernetes applications to access cloud resources securely with Azure Active Directory based on annotated service accounts.
 
-As the maintainer of this project, please make a few updates:
+## Overview
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+This repo contains the following:
+
+1. Mutating Webhook
+   1. The webhook is for mutating pods that reference an annotated service account. The webhook will inject the environment variables and the projected service account token volume.
+2. Proxy init and sidecar container
+   1. The init and sidecar container will be used for applications that are still using the older versions of the library.
 
 ## Contributing
 
@@ -26,8 +27,8 @@ contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additio
 
 ## Trademarks
 
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 
-trademarks or logos is subject to and must follow 
+This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft
+trademarks or logos is subject to and must follow
 [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
 Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
 Any use of third-party trademarks or logos are subject to those third-party's policies.
