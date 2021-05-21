@@ -5,6 +5,7 @@ package e2e
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -13,6 +14,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/kubernetes/test/e2e/framework"
+	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
 
 	"github.com/Azure/aad-pod-managed-identity/pkg/webhook"
 )
@@ -52,14 +54,9 @@ func createPodWithServiceAccount(f *framework.Framework, serviceAccount string) 
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{
 				{
-					Name:    "busybox",
-					Image:   "busybox",
-					Command: []string{"sleep"},
-					Args:    []string{"3600"},
-				},
-				{
-					Name:    "nginx",
-					Image:   "nginx",
+					Name: "busybox",
+					// this image supports both Linux and Windows
+					Image:   "k8s.gcr.io/e2e-test-images/busybox:1.29-1",
 					Command: []string{"sleep"},
 					Args:    []string{"3600"},
 				},
@@ -68,10 +65,40 @@ func createPodWithServiceAccount(f *framework.Framework, serviceAccount string) 
 			ServiceAccountName: serviceAccount,
 		},
 	}
-	createdPod, err := f.ClientSet.CoreV1().Pods(f.Namespace.Name).Create(context.TODO(), pod, metav1.CreateOptions{})
-	framework.ExpectNoError(err, "failed to create pod %s", createdPod.Name)
-	framework.Logf("created pod %s", createdPod.Name)
-	return createdPod
+
+	if framework.NodeOSDistroIs("windows") {
+		e2epod.SetNodeSelection(&pod.Spec, e2epod.NodeSelection{
+			Selector: map[string]string{
+				"kubernetes.io/os": "windows",
+			},
+		})
+	}
+
+	if arcCluster {
+		// TODO(chewong): remove this secret creation process once we stopped using fake arc cluster
+		secretName := fmt.Sprintf("localtoken-%s", serviceAccount)
+		secret := &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      secretName,
+				Namespace: f.Namespace.Name,
+			},
+			Type: corev1.SecretTypeOpaque,
+			Data: map[string][]byte{
+				"token": []byte("fake token"),
+			},
+		}
+		_, err := f.ClientSet.CoreV1().Secrets(f.Namespace.Name).Create(context.TODO(), secret, metav1.CreateOptions{})
+		framework.ExpectNoError(err, "failed to create secret %s", secretName)
+	}
+
+	pod, err := f.ClientSet.CoreV1().Pods(f.Namespace.Name).Create(context.TODO(), pod, metav1.CreateOptions{})
+	framework.ExpectNoError(err, "failed to create pod %s", pod.Name)
+
+	err = e2epod.WaitForPodNameRunningInNamespace(f.ClientSet, pod.Name, pod.Namespace)
+	framework.ExpectNoError(err, "failed to start pod %s", pod.Name)
+
+	framework.Logf("created pod %s", pod.Name)
+	return pod
 }
 
 func validateMutatedPod(f *framework.Framework, pod *corev1.Pod) {
@@ -131,30 +158,17 @@ func validateMutatedPod(f *framework.Framework, pod *corev1.Pod) {
 	if !found {
 		framework.Failf("pod %s does not have azure-identity-token as a projected token volume", pod.Name)
 	}
+
+	_ = f.ExecCommandInContainer(pod.Name, "busybox", "cat", filepath.Join(webhook.TokenFileMountPath, webhook.TokenFilePathName))
 }
 
 func getVolumeProjectionSources(f *framework.Framework, serviceAccountName string) []corev1.VolumeProjection {
 	expirationSeconds := webhook.DefaultServiceAccountTokenExpiration
 	if arcCluster {
-		// TODO(chewong): remove this secret creation process once we stopped using fake arc cluster
-		secretName := fmt.Sprintf("localtoken-%s", serviceAccountName)
-		secret := &corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      secretName,
-				Namespace: f.Namespace.Name,
-			},
-			Type: corev1.SecretTypeOpaque,
-			Data: map[string][]byte{
-				"token": []byte("fake token"),
-			},
-		}
-		_, err := f.ClientSet.CoreV1().Secrets(f.Namespace.Name).Create(context.TODO(), secret, metav1.CreateOptions{})
-		framework.ExpectNoError(err, "failed to create secret %s", secretName)
-
 		return []corev1.VolumeProjection{{
 			Secret: &corev1.SecretProjection{
 				LocalObjectReference: corev1.LocalObjectReference{
-					Name: secretName,
+					Name: fmt.Sprintf("localtoken-%s", serviceAccountName),
 				},
 				Items: []corev1.KeyToPath{
 					{

@@ -19,6 +19,14 @@ kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
 - role: control-plane
+  kubeadmConfigPatches:
+  - |
+    kind: ClusterConfiguration
+    apiServer:
+      extraArgs:
+        service-account-issuer: https://kubernetes.default.svc.cluster.local
+        service-account-key-file: /etc/kubernetes/pki/sa.pub
+        service-account-signing-key-file: /etc/kubernetes/pki/sa.key
 EOF
 
 ${KUBECTL} wait node "${KIND_CLUSTER_NAME}-control-plane" --for=condition=Ready --timeout=90s

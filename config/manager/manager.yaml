@@ -40,3 +40,5 @@ spec:
         envFrom:
           - configMapRef:
               name: aad-pi-config
+      nodeSelector:
+        kubernetes.io/os: linux

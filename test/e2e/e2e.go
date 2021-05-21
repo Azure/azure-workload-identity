@@ -19,6 +19,10 @@ import (
 	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
 )
 
+var (
+	arcCluster bool
+)
+
 var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
 	c, err := framework.LoadClientset()
 	if err != nil {
