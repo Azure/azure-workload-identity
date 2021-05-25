@@ -97,7 +97,7 @@ cleanup() {
   if [[ -n "${ROLE_ASSIGNMENT_ID:-}" ]]; then
     az role assignment delete --ids "${ROLE_ASSIGNMENT_ID}"
   fi
-  az group delete --resource-group "${CLUSTER_NAME}" --name "${CLUSTER_NAME}" --yes --no-wait || true
+  az group delete --name "${CLUSTER_NAME}" --yes --no-wait || true
 }
 trap cleanup EXIT
 

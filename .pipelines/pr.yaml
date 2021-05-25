@@ -72,5 +72,11 @@ jobs:
           KIND_NODE_VERSION: v1.21.1
           LOCAL_ONLY: "true"
     steps:
+      - script: echo "##vso[task.setvariable variable=CLUSTER_NAME]pod-managed-identity-e2e-$(openssl rand -hex 2)"
+        displayName: Set CLUSTER_NAME
+        condition: ne(variables.LOCAL_ONLY, 'true')
       - script: make test-e2e
         displayName: Webhook E2E test suite
+      - script: az group delete --name "${CLUSTER_NAME}" --yes --no-wait || true
+        displayName: Cleanup
+        condition: ne(variables.LOCAL_ONLY, 'true')
