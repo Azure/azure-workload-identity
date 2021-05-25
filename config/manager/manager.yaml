@@ -39,6 +39,6 @@ spec:
             memory: 20Mi
         envFrom:
           - configMapRef:
-              name: aad-pi-config
+              name: aad-pi-webhook-config
       nodeSelector:
         kubernetes.io/os: linux
