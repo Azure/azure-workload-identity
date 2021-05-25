@@ -123,8 +123,15 @@ deploy: $(KUBECTL) $(KUSTOMIZE) $(ENVSUBST)
 
 # Generate manifests e.g. CRD, RBAC etc.
 .PHONY: manifests
-manifests: $(CONTROLLER_GEN)
+manifests: $(CONTROLLER_GEN) $(KUSTOMIZE)
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..."
+
+	@rm -rf manifest_staging
+	@mkdir -p manifest_staging/deploy
+	$(KUSTOMIZE) build config/default -o manifest_staging/deploy/aad-pi-webhook.yaml
+	@sed -i "s/AZURE_ENVIRONMENT: .*/AZURE_ENVIRONMENT: <replace with Azure Environment Name>/" manifest_staging/deploy/aad-pi-webhook.yaml
+	@sed -i "s/AZURE_TENANT_ID: .*/AZURE_TENANT_ID: <replace with Azure Tenant ID>/" manifest_staging/deploy/aad-pi-webhook.yaml
+	@sed -i "s/-arc-cluster=.*/-arc-cluster=false/" manifest_staging/deploy/aad-pi-webhook.yaml
 
 # Generate code
 .PHONY: generate
@@ -262,3 +269,11 @@ lint-full: $(GOLANGCI_LINT) ## Run slower linters to detect possible issues
 .PHONY: shellcheck
 shellcheck: $(SHELLCHECK)
 	$(SHELLCHECK) */*.sh
+
+## --------------------------------------
+## Release
+## --------------------------------------
+.PHONY: promote-staging-manifest
+promote-staging-manifest:
+	@rm -rf deploy
+	@cp -r manifest_staging/deploy .

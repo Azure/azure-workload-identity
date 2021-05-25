@@ -15,7 +15,7 @@ func main() {
 	// AAD Pod Identity webhook will inject the following env vars
 	// 	AZURE_CLIENT_ID with the clientID set in the service account annotation
 	// 	AZURE_TENANT_ID with the tenantID set in the service account annotation. If not defined, then
-	// 		the tenantID provided via aad-pi-config for the webhook will be used.
+	// 		the tenantID provided via aad-pi-webhook-config for the webhook will be used.
 	// 	TOKEN_FILE_PATH is the service account token path
 
 	tokenFilePath := os.Getenv("TOKEN_FILE_PATH")
