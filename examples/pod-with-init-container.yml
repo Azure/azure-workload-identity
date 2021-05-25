@@ -21,7 +21,7 @@ spec:
     ports:
     - containerPort: 80
   - name: proxy
-    image: docker.pkg.github.com/azure/aad-pod-managed-identity/pod-identity-proxy:latest
+    image: docker.pkg.github.com/azure/aad-pod-managed-identity/proxy:latest
     imagePullPolicy: Always
     ports:
     - containerPort: 8000

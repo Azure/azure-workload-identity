@@ -1,8 +1,8 @@
 REGISTRY ?= docker.pkg.github.com/azure/aad-pod-managed-identity
-PROXY_IMAGE_NAME := pod-identity-proxy
+PROXY_IMAGE_NAME := proxy
 INIT_IMAGE_NAME := proxy-init
 WEBHOOK_IMAGE_NAME := webhook
-IMAGE_VERSION ?= v0.0.1
+IMAGE_VERSION ?= v0.1.0
 
 PROXY_IMAGE := $(REGISTRY)/$(PROXY_IMAGE_NAME):$(IMAGE_VERSION)
 INIT_IMAGE := $(REGISTRY)/$(INIT_IMAGE_NAME):$(IMAGE_VERSION)
