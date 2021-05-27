@@ -51,9 +51,13 @@ jobs:
       AZURE_TENANT_ID: "fake tenant id"
     strategy:
       matrix:
-        aks_windows:
+        aks_windows_dockershim:
           REGISTRY: upstreamk8sci.azurecr.io/aad-pod-managed-identity
           WINDOWS_CLUSTER: "true"
+        aks_windows_containerd:
+          REGISTRY: upstreamk8sci.azurecr.io/aad-pod-managed-identity
+          WINDOWS_CLUSTER: "true"
+          WINDOWS_CONTAINERD: "true"
         aks_linux:
           REGISTRY: upstreamk8sci.azurecr.io/aad-pod-managed-identity
         arc:
