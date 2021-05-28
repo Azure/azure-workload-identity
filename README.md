@@ -11,6 +11,62 @@ This repo contains the following:
 2. Proxy init and sidecar container
    1. The init and sidecar container will be used for applications that are still using the older versions of the library.
 
+## Installation
+
+### Install Webhook
+
+1. Install [cert-manager]((https://github.com/jetstack/cert-manager))
+
+   cert-manager is used for provisioning the certificates for the webhook server. Cert manager also has a component called CA injector, which is responsible for injecting the CA bundle into the MutatingWebhookConfiguration.
+
+   ```bash
+   kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.2.0/cert-manager.yaml
+   ```
+
+1. Deploy the webhook
+
+   Replace the tenant ID and environment name in [here](https://github.com/Azure/aad-pod-managed-identity/blob/master/deploy/aad-pi-webhook.yaml#L41-L42) before executing
+
+   ```bash
+   kubectl apply -f deploy/aad-pi-webhook.yaml
+   ```
+
+1. Validate the webhook has been installed and is running
+
+   ```bash
+   kubectl get all -n aad-pi-webhook-system
+   NAME                                                     READY   STATUS    RESTARTS   AGE
+   pod/aad-pi-webhook-controller-manager-5fc5559ddd-rgj46   1/1     Running   0          8d
+
+   NAME                                                        TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE
+   service/aad-pi-webhook-controller-manager-metrics-service   ClusterIP   10.0.123.94   <none>        8443/TCP   8d
+   service/aad-pi-webhook-webhook-service                      ClusterIP   10.0.2.106    <none>        443/TCP    8d
+
+   NAME                                                READY   UP-TO-DATE   AVAILABLE   AGE
+   deployment.apps/aad-pi-webhook-controller-manager   1/1     1            1           8d
+
+   NAME                                                           DESIRED   CURRENT   READY   AGE
+   replicaset.apps/aad-pi-webhook-controller-manager-5fc5559ddd   1         1         1       8d
+   ```
+
+## Uninstall
+
+### Uninstall Webhook
+
+1. Delete webhook
+
+   ```bash
+   kubectl delete -f deploy/aad-pi-webhook.yaml
+   ```
+
+1. Delete cert-manager
+
+   If you installed cert-manager for use with the aad-pod-managed-identity webhook, then delete the cert-manager components
+
+   ```bash
+   kubectl delete -f https://github.com/jetstack/cert-manager/releases/download/v1.2.0/cert-manager.yaml
+   ```
+
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
