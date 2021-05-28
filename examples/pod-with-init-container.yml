@@ -8,7 +8,7 @@ spec:
   serviceAccountName: old-sa
   initContainers:
   - name: init-networking
-    image: docker.pkg.github.com/azure/aad-pod-managed-identity/proxy-init:latest
+    image: mcr.microsoft.com/oss/azure/aad-pod-managed-identity/proxy-init:v0.1.0
     imagePullPolicy: Always
     securityContext:
       capabilities:
@@ -21,7 +21,7 @@ spec:
     ports:
     - containerPort: 80
   - name: proxy
-    image: docker.pkg.github.com/azure/aad-pod-managed-identity/proxy:latest
+    image: mcr.microsoft.com/oss/azure/aad-pod-managed-identity/proxy:v0.1.0
     imagePullPolicy: Always
     ports:
     - containerPort: 8000

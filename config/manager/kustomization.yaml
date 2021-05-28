@@ -4,8 +4,8 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 images:
 - name: manager
-  newName: docker.pkg.github.com/azure/aad-pod-managed-identity/webhook
-  newTag: latest
+  newName: mcr.microsoft.com/oss/azure/aad-pod-managed-identity/webhook
+  newTag: v0.1.0
 configMapGenerator:
 - literals:
   - AZURE_TENANT_ID="${AZURE_TENANT_ID}"
