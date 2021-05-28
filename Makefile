@@ -1,4 +1,4 @@
-REGISTRY ?= docker.pkg.github.com/azure/aad-pod-managed-identity
+REGISTRY ?= mcr.microsoft.com/oss/azure/aad-pod-managed-identity
 PROXY_IMAGE_NAME := proxy
 INIT_IMAGE_NAME := proxy-init
 WEBHOOK_IMAGE_NAME := webhook
