@@ -21,12 +21,13 @@ steps:
   - script: make docker-build
     displayName: make docker-build
   - script: |
-      wget https://github.com/aquasecurity/trivy/releases/download/v0.18.0/trivy_0.18.0_Linux-64bit.tar.gz
-      tar zxvf trivy_0.18.0_Linux-64bit.tar.gz
+      wget https://github.com/aquasecurity/trivy/releases/download/v0.18.3/trivy_0.18.3_Linux-64bit.tar.gz
+      tar zxvf trivy_0.18.3_Linux-64bit.tar.gz
       # show all vulnerabilities in the logs
+      ./trivy image --reset
       for IMAGE_NAME in "proxy" "proxy-init" "webhook"; do
         ./trivy "${REGISTRY}/${IMAGE_NAME}:${IMAGE_VERSION}"
-        ./trivy --exit-code 1 --ignore-unfixed --severity MEDIUM,HIGH,CRITICAL --vuln-type os "${REGISTRY}/${IMAGE_NAME}:${IMAGE_VERSION}" || exit 1
+        ./trivy --exit-code 1 --ignore-unfixed --severity MEDIUM,HIGH,CRITICAL "${REGISTRY}/${IMAGE_NAME}:${IMAGE_VERSION}" || exit 1
       done
     displayName: Scan images
   - script: |
