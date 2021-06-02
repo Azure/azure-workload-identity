@@ -35,7 +35,7 @@ create_cluster() {
       unset WINDOWS_NODE_NAME
     else
       # taint the windows node to prevent cert-manager pods from scheduling to it
-      ${KUBECTL} taint nodes "${WINDOWS_NODE_NAME}" kubernetes.io/os=windows:NoSchedule
+      ${KUBECTL} taint nodes "${WINDOWS_NODE_NAME}" kubernetes.io/os=windows:NoSchedule --overwrite
     fi
 
     if [[ "${REGISTRY}" =~ \.azurecr\.io ]]; then
