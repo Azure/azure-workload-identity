@@ -21,3 +21,4 @@
 # binary output
 bin/
 hack/tools/bin/
+obj/
