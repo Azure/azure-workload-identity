@@ -93,6 +93,7 @@ spec:
         value: ${KEYVAULT_SECRET_NAME}
   nodeSelector:
     kubernetes.io/os: linux
+EOF
 ```
 
 To verify that pod is able to get a token and access secret in keyvault:
