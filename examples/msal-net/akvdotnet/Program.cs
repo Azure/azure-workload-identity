@@ -50,14 +50,14 @@ namespace akvdotnet
             // 	AZURE_TENANT_ID with the tenantID set in the service account annotation. If not defined, then
             // 		the tenantID provided via aad-pi-webhook-config for the webhook will be used.
             // 	TOKEN_FILE_PATH is the service account token path
-            var client_id = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
-            var token_path = Environment.GetEnvironmentVariable("TOKEN_FILE_PATH");
-            var tenant_id = Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
+            var clientID = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
+            var tokenPath = Environment.GetEnvironmentVariable("TOKEN_FILE_PATH");
+            var tenantID = Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
 
             string[] _scopes = new string[] { resource + "/.default" };
 
             // read the service account token from the filesystem
-            string signedClientAssertion = ReadJWTFromFS(token_path);
+            string signedClientAssertion = ReadJWTFromFS(tokenPath);
 
             // TODO (aramase) remove query params after available in prod
             Dictionary<string, string> otherParams = new Dictionary<string, string>();
@@ -66,10 +66,10 @@ namespace akvdotnet
 
             AuthenticationResult authResult = null;
             IConfidentialClientApplication confidentialClient;
-            confidentialClient = ConfidentialClientApplicationBuilder.Create(client_id)
+            confidentialClient = ConfidentialClientApplicationBuilder.Create(clientID)
                 .WithAuthority(authority)
                 .WithClientAssertion(signedClientAssertion)
-                .WithTenantId(tenant_id).Build();
+                .WithTenantId(tenantID).Build();
 
             try
             {
@@ -91,9 +91,9 @@ namespace akvdotnet
             return authResult.AccessToken;
         }
 
-        public string ReadJWTFromFS(string token_path)
+        public string ReadJWTFromFS(string tokenPath)
         {
-            string text = System.IO.File.ReadAllText(token_path);
+            string text = System.IO.File.ReadAllText(tokenPath);
             return text;
         }
     }
