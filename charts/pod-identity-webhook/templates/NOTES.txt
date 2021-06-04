@@ -1,0 +1,1 @@
+The aad-pod-managed-identity webhook has been installed successfully in your Kubernetes cluster!

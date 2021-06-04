@@ -1,0 +1,59 @@
+# Default values for pod-identity-webhook.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+labels: 
+   control-plane: controller-manager
+
+replicaCount: 1
+
+# -- arg
+arcCluster: false
+# -- container port
+ports:
+  - containerPort: 9443
+    name: webhook-server
+    protocol: TCP
+
+volumeMounts: 
+  mountPath: "/tmp/k8s-webhook-server/serving-certs"
+
+volumes:
+   secret:
+      defaultMode: 420
+
+image:
+  repository: mcr.microsoft.com/oss/azure/aad-pod-managed-identity/webhook
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: v0.1.0
+
+imagePullSecrets: []
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 443
+  targetPort: 9443
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 30Mi
+  requests:
+    cpu: 100m
+    memory: 20Mi
+
+nodeSelector:
+  kubernetes.io/os: linux
+
+tolerations: []
+affinity: {}
+
+# MutatingWebhookConfiguration
+mutatingWebhook:
+  annotations:
+    cert-manager.io/inject-ca-from: aad-pi-webhook-system/aad-pi-webhook-serving-cert
