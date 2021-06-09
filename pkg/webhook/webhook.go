@@ -65,16 +65,14 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) admissio
 		return admission.Errored(http.StatusBadRequest, err)
 	}
 
-	namespace := pod.GetNamespace()
-	// use default namespace if not explicitly defined
-	if namespace == "" {
-		namespace = corev1.NamespaceDefault
-	}
+	// for daemonset/deployment pods the namespace field is not set in objectMeta
+	// explicitly set the namespace to request namespace
+	pod.Namespace = req.Namespace
 
-	logger := log.Log.WithName("handler").WithValues("pod", pod.GetName(), "namespace", namespace, "serviceAccount", pod.Spec.ServiceAccountName)
+	logger := log.Log.WithName("handler").WithValues("pod", pod.Name, "namespace", pod.Namespace, "serviceAccount", pod.Spec.ServiceAccountName)
 	// get service account associated with the pod
 	serviceAccount := &corev1.ServiceAccount{}
-	err = m.client.Get(ctx, types.NamespacedName{Name: pod.Spec.ServiceAccountName, Namespace: namespace}, serviceAccount)
+	err = m.client.Get(ctx, types.NamespacedName{Name: pod.Spec.ServiceAccountName, Namespace: pod.Namespace}, serviceAccount)
 	if err != nil {
 		logger.Error(err, "failed to get service account")
 		return admission.Errored(http.StatusBadRequest, err)
