@@ -11,9 +11,11 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/kubernetes/test/e2e/framework"
+	e2edeploy "k8s.io/kubernetes/test/e2e/framework/deployment"
 	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
 
 	"github.com/Azure/aad-pod-managed-identity/pkg/webhook"
@@ -25,6 +27,12 @@ var _ = ginkgo.Describe("Webhook", func() {
 	ginkgo.It("should mutate a pod with a labeled service account", func() {
 		serviceAccount := createServiceAccount(f, map[string]string{webhook.UsePodIdentityLabel: "true"}, nil)
 		pod := createPodWithServiceAccount(f, serviceAccount)
+		validateMutatedPod(f, pod)
+	})
+
+	ginkgo.It("should mutate a deployment pod with a labeled service account", func() {
+		serviceAccount := createServiceAccount(f, map[string]string{webhook.UsePodIdentityLabel: "true"}, nil)
+		pod := createPodUsingDeploymentWithServiceAccount(f, serviceAccount)
 		validateMutatedPod(f, pod)
 	})
 })
@@ -75,20 +83,7 @@ func createPodWithServiceAccount(f *framework.Framework, serviceAccount string) 
 	}
 
 	if arcCluster {
-		// TODO(chewong): remove this secret creation process once we stopped using fake arc cluster
-		secretName := fmt.Sprintf("localtoken-%s", serviceAccount)
-		secret := &corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      secretName,
-				Namespace: f.Namespace.Name,
-			},
-			Type: corev1.SecretTypeOpaque,
-			Data: map[string][]byte{
-				"token": []byte("fake token"),
-			},
-		}
-		_, err := f.ClientSet.CoreV1().Secrets(f.Namespace.Name).Create(context.TODO(), secret, metav1.CreateOptions{})
-		framework.ExpectNoError(err, "failed to create secret %s", secretName)
+		createSecretForArcCluster(f, serviceAccount)
 	}
 
 	pod, err := f.ClientSet.CoreV1().Pods(f.Namespace.Name).Create(context.TODO(), pod, metav1.CreateOptions{})
@@ -98,6 +93,67 @@ func createPodWithServiceAccount(f *framework.Framework, serviceAccount string) 
 	framework.ExpectNoError(err, "failed to start pod %s", pod.Name)
 
 	framework.Logf("created pod %s", pod.Name)
+	return pod
+}
+
+func createPodUsingDeploymentWithServiceAccount(f *framework.Framework, serviceAccount string) *corev1.Pod {
+	replicas := int32(1)
+	zero := int64(0)
+	podLabels := map[string]string{"app": "busybox"}
+
+	d := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			GenerateName: f.Namespace.Name + "-",
+			Namespace:    f.Namespace.Name,
+			Labels:       podLabels,
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: &replicas,
+			Selector: &metav1.LabelSelector{MatchLabels: podLabels},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: podLabels,
+				},
+				Spec: corev1.PodSpec{
+					TerminationGracePeriodSeconds: &zero,
+					Containers: []corev1.Container{
+						{
+							Name: "busybox",
+							// this image supports both Linux and Windows
+							Image:   "k8s.gcr.io/e2e-test-images/busybox:1.29-1",
+							Command: []string{"sleep"},
+							Args:    []string{"3600"},
+						},
+					},
+					ServiceAccountName: serviceAccount,
+				},
+			},
+		},
+	}
+
+	if framework.NodeOSDistroIs("windows") {
+		e2epod.SetNodeSelection(&d.Spec.Template.Spec, e2epod.NodeSelection{
+			Selector: map[string]string{
+				"kubernetes.io/os": "windows",
+			},
+		})
+	}
+
+	if arcCluster {
+		createSecretForArcCluster(f, serviceAccount)
+	}
+
+	d, err := f.ClientSet.AppsV1().Deployments(f.Namespace.Name).Create(context.TODO(), d, metav1.CreateOptions{})
+	framework.ExpectNoError(err, "failed to create deployment %s", d.Name)
+
+	err = e2edeploy.WaitForDeploymentComplete(f.ClientSet, d)
+	framework.ExpectNoError(err, "failed to complete deployment %s", d.Name)
+
+	podList, err := e2edeploy.GetPodsForDeployment(f.ClientSet, d)
+	framework.ExpectNoError(err, "failed to get pods for deployment %s", d.Name)
+	pod := &podList.Items[0]
+
+	framework.Logf("created pod %s with deployment %s", pod.Name, d.Name)
 	return pod
 }
 
@@ -186,4 +242,21 @@ func getVolumeProjectionSources(f *framework.Framework, serviceAccountName strin
 			Audience:          fmt.Sprintf("%s/federatedidentity", strings.TrimRight(azure.PublicCloud.ActiveDirectoryEndpoint, "/")),
 		}},
 	}
+}
+
+func createSecretForArcCluster(f *framework.Framework, serviceAccount string) {
+	// TODO(chewong): remove this secret creation process once we stopped using fake arc cluster
+	secretName := fmt.Sprintf("localtoken-%s", serviceAccount)
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      secretName,
+			Namespace: f.Namespace.Name,
+		},
+		Type: corev1.SecretTypeOpaque,
+		Data: map[string][]byte{
+			"token": []byte("fake token"),
+		},
+	}
+	_, err := f.ClientSet.CoreV1().Secrets(f.Namespace.Name).Create(context.TODO(), secret, metav1.CreateOptions{})
+	framework.ExpectNoError(err, "failed to create secret %s", secretName)
 }
