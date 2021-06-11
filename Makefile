@@ -214,7 +214,7 @@ $(E2E_TEST):
 # Ginkgo configurations
 GINKGO_FOCUS ?=
 GINKGO_SKIP ?=
-GINKGO_NODES ?= 1
+GINKGO_NODES ?= 5
 GINKGO_NO_COLOR ?= false
 GINKGO_ARGS ?= -focus="$(GINKGO_FOCUS)" -skip="$(GINKGO_SKIP)" -nodes=$(GINKGO_NODES) -noColor=$(GINKGO_NO_COLOR)
 

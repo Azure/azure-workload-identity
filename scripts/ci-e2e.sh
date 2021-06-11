@@ -42,8 +42,9 @@ create_cluster() {
       az acr login --name "${REGISTRY}"
       echo "Granting AcrPull permission to the cluster's managed identity"
       NODE_RESOURCE_GROUP="$(az aks show --resource-group "${CLUSTER_NAME}" --name "${CLUSTER_NAME}" --query nodeResourceGroup -otsv)"
-      ASSIGNEE_OBJECT_ID="$(az identity show --resource-group "${NODE_RESOURCE_GROUP}" -n "${CLUSTER_NAME}-agentpool" --query principalId -otsv)"
-      ROLE_ASSIGNMENT_ID="$(az role assignment create --assignee-object-id "${ASSIGNEE_OBJECT_ID}" --role AcrPull --scope "$(az acr show --name "${REGISTRY}" --query id -otsv)" --query id -otsv)"
+      ASSIGNEE_OBJECT_ID="$(az identity show --resource-group "${NODE_RESOURCE_GROUP}" --name "${CLUSTER_NAME}-agentpool" --query principalId -otsv)"
+      REGISTRY_SCOPE="$(az acr show --name "${REGISTRY}" --query id -otsv)"
+      az role assignment create --assignee-object-id "${ASSIGNEE_OBJECT_ID}" --role AcrPull --scope "${REGISTRY_SCOPE}" > /dev/null
     fi
 
     echo "Building controller and deploying webhook to the cluster"
@@ -59,8 +60,8 @@ cleanup() {
     make kind-delete
     return
   fi
-  if [[ -n "${ROLE_ASSIGNMENT_ID:-}" ]]; then
-    az role assignment delete --ids "${ROLE_ASSIGNMENT_ID}"
+  if [[ -n "${ASSIGNEE_OBJECT_ID:-}" ]] && [[ -n "${REGISTRY_SCOPE:-}" ]]; then
+      az role assignment delete --assignee "${ASSIGNEE_OBJECT_ID}" --scope "${REGISTRY_SCOPE}" || true
   fi
   az group delete --name "${CLUSTER_NAME}" --yes --no-wait || true
 }
