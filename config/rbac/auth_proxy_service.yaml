@@ -1,8 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  labels:
-    control-plane: controller-manager
+  labels: {}
   name: controller-manager-metrics-service
   namespace: system
 spec:
@@ -10,5 +9,4 @@ spec:
   - name: https
     port: 8443
     targetPort: https
-  selector:
-    control-plane: controller-manager
+  selector: {}
