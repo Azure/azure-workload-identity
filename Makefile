@@ -180,14 +180,12 @@ $(ENVSUBST):
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/a8m/envsubst/cmd/envsubst $(ENVSUBST_BIN) $(ENVSUBST_VER)
 
 CERT_MANAGER_VERSION ?= v1.2.0
+export CERT_MANAGER_VERSION
 
 # Install cert manager in the cluster
 .PHONY: install-cert-manager
 install-cert-manager: $(KUBECTL)
-	$(KUBECTL) apply -f https://github.com/jetstack/cert-manager/releases/download/$(CERT_MANAGER_VERSION)/cert-manager.yaml
-	$(KUBECTL) wait --for=condition=Available --timeout=5m -n cert-manager deployment/cert-manager
-	$(KUBECTL) wait --for=condition=Available --timeout=5m -n cert-manager deployment/cert-manager-cainjector
-	$(KUBECTL) wait --for=condition=Available --timeout=5m -n cert-manager deployment/cert-manager-webhook
+	./hack/install-cert-manager.sh
 
 ## --------------------------------------
 ## Testing
