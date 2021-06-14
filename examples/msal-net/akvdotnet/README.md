@@ -83,7 +83,7 @@ metadata:
 spec:
   serviceAccountName: pod-identity-sa
   containers:
-    - image: aramase/dotnet:v0.3
+    - image: aramase/dotnet:v0.4
       imagePullPolicy: IfNotPresent
       name: oidc
       env:
