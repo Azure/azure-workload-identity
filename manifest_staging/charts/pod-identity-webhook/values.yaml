@@ -1,0 +1,30 @@
+# Default values for pod-identity-webhook.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+labels: 
+  mpod.aad-pod-identity.io/system: "true"
+replicaCount: 1
+image:
+  repository: mcr.microsoft.com/oss/azure/aad-pod-managed-identity/webhook
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  release: v0.2.0
+nodeSelector:
+  kubernetes.io/os: linux
+arcCluster: false
+resources:
+  limits:
+    cpu: 100m
+    memory: 30Mi
+  requests:
+    cpu: 100m
+    memory: 20Mi
+tolerations: []
+affinity: {}
+service:
+  type: ClusterIP
+  port: 443
+  targetPort: 9443
+azureEnvironment: AzurePublicCloud
+azureTenantID:

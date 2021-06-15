@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1alpha2
+kind: Issuer
+metadata:
+  labels:
+    app: '{{ template "pod-identity-webhook.name" . }}'
+    chart: '{{ template "pod-identity-webhook.name" . }}'
+    mpod.aad-pod-identity.io/system: "true"
+    release: '{{ .Release.Name }}'
+  name: aad-pi-webhook-selfsigned-issuer
+  namespace: '{{ .Release.Namespace }}'
+spec:
+  selfSigned: {}

@@ -126,12 +126,16 @@ deploy: $(KUBECTL) $(KUSTOMIZE) $(ENVSUBST)
 manifests: $(CONTROLLER_GEN) $(KUSTOMIZE)
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..."
 
-	@rm -rf manifest_staging
-	@mkdir -p manifest_staging/deploy
+	rm -rf manifest_staging
+	mkdir -p manifest_staging/deploy
+	mkdir -p manifest_staging/charts/pod-identity-webhook
+
 	$(KUSTOMIZE) build config/default -o manifest_staging/deploy/aad-pi-webhook.yaml
-	@sed -i "s/AZURE_TENANT_ID: .*/AZURE_TENANT_ID: <replace with Azure Tenant ID>/" manifest_staging/deploy/aad-pi-webhook.yaml
-	@sed -i "s/AZURE_ENVIRONMENT: .*/AZURE_ENVIRONMENT: <replace with Azure Environment Name>/" manifest_staging/deploy/aad-pi-webhook.yaml
-	@sed -i "s/-arc-cluster=.*/-arc-cluster=false/" manifest_staging/deploy/aad-pi-webhook.yaml
+	$(KUSTOMIZE) build third_party/open-policy-agent/gatekeeper/helmify | go run third_party/open-policy-agent/gatekeeper/helmify/*.go
+
+	@sed -i -e "s/AZURE_TENANT_ID: .*/AZURE_TENANT_ID: <replace with Azure Tenant ID>/" manifest_staging/deploy/aad-pi-webhook.yaml
+	@sed -i -e "s/AZURE_ENVIRONMENT: .*/AZURE_ENVIRONMENT: <replace with Azure Environment Name>/" manifest_staging/deploy/aad-pi-webhook.yaml
+	@sed -i -e "s/-arc-cluster=.*/-arc-cluster=false/" manifest_staging/deploy/aad-pi-webhook.yaml
 
 # Generate code
 .PHONY: generate
@@ -274,7 +278,20 @@ shellcheck: $(SHELLCHECK)
 ## --------------------------------------
 ## Release
 ## --------------------------------------
+
+release-manifest:
+	@sed -i -e 's/^VERSION := .*/VERSION := ${NEW_VERSION}/' ./Makefile
+	$(KUSTOMIZE) edit config/default set image $(REGISTRY)/$(WEBHOOK_IMAGE_NAME):$(NEW_VERSION)
+	@sed -i -e "s/appVersion: .*/appVersion: ${NEW_VERSION}/" ./third_party/open-policy-agent/gatekeeper/helmify/static/Chart.yaml
+	@sed -i -e "s/version: .*/version: $$(echo ${NEW_VERSION} | cut -c2-)/" ./third_party/open-policy-agent/gatekeeper/helmify/static/Chart.yaml
+	@sed -i -e "s/release: .*/release: ${NEW_VERSION}/" ./third_party/open-policy-agent/gatekeeper/helmify/static/values.yaml
+	@sed -i -e 's/Current release version: `.*`/Current release version: `'"${NEW_VERSION}"'`/' ./third_party/open-policy-agent/gatekeeper/helmify/static/README.md
+	export
+	$(MAKE) manifests
+
 .PHONY: promote-staging-manifest
 promote-staging-manifest:
 	@rm -rf deploy
 	@cp -r manifest_staging/deploy .
+	@rm -rf charts
+	@cp -r manifest_staging/charts .
