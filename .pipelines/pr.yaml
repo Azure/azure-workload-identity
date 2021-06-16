@@ -5,7 +5,7 @@ pr:
     include:
       - main
 
-pool: Upstream Pool
+pool: staging-pool
 
 jobs:
   - job: scan_images
