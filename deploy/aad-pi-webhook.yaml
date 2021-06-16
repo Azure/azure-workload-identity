@@ -1,7 +1,8 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  labels: {}
+  labels:
+    control-plane: controller-manager
   name: aad-pi-webhook-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -53,21 +54,25 @@ spec:
   ports:
   - port: 443
     targetPort: 9443
-  selector: {}
+  selector:
+    control-plane: controller-manager
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  labels: {}
+  labels:
+    control-plane: controller-manager
   name: aad-pi-webhook-controller-manager
   namespace: aad-pi-webhook-system
 spec:
   replicas: 1
   selector:
-    matchLabels: {}
+    matchLabels:
+      control-plane: controller-manager
   template:
     metadata:
-      labels: {}
+      labels:
+        control-plane: controller-manager
     spec:
       containers:
       - args:
