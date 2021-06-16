@@ -20,7 +20,7 @@ create_cluster() {
     download_service_account_keys
     # create a kind cluster, then build and load the webhook manager image to the kind cluster
     make kind-create
-    [[ "${SKIP_IMAGE_BUILD:-}" == "true" ]] || OUTPUT_TYPE="type=docker" make docker-build-webhook docker-build-e2e-msal-go
+    [[ "${SKIP_IMAGE_BUILD:-}" == "true" ]] || OUTPUT_TYPE="type=docker" make docker-build-webhook docker-build-e2e-msal-go docker-build-proxy docker-build-init
     make kind-load-image
   else
     : "${REGISTRY:?Environment variable empty or not defined.}"
@@ -106,10 +106,10 @@ test_helm_chart() {
     --namespace aad-pi-webhook-system \
     --wait
   poll_webhook_readiness
-  # TODO (aramase) remove token exchange from GINKGO_SKIP after v0.4.0 release is published
+  # TODO (aramase) remove token exchange and proxy from GINKGO_SKIP after v0.4.0 release is published
   # Skipping TokenExchange test for the current release as we're using the latest msal-go image
   # which is updated to use AZURE_FEDERATED_TOKEN_FILE for token path.
-  GINKGO_SKIP=TokenExchange make test-e2e-run
+  GINKGO_SKIP=TokenExchange\|Proxy make test-e2e-run
 
   ${HELM} upgrade --install pod-identity-webhook "${REPO_ROOT}/manifest_staging/charts/pod-identity-webhook" \
     --set image.repository="${REGISTRY:-mcr.microsoft.com/oss/azure/aad-pod-managed-identity/webhook}" \
