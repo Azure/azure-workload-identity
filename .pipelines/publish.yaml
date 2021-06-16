@@ -3,7 +3,7 @@ trigger:
 
 pr: none
 
-pool: Upstream Pool
+pool: staging-pool
 
 jobs:
   - job: publish
