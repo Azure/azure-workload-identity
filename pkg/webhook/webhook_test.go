@@ -354,7 +354,7 @@ func TestAddProjectedServiceAccountTokenVolume(t *testing.T) {
 									ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
 										Path:              TokenFilePathName,
 										ExpirationSeconds: &serviceAccountTokenExpiry,
-										Audience:          "https://login.microsoftonline.com/federatedidentity",
+										Audience:          DefaultAudience,
 									},
 								},
 							},
@@ -381,7 +381,7 @@ func TestAddProjectedServiceAccountTokenVolume(t *testing.T) {
 											ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
 												Path:              TokenFilePathName,
 												ExpirationSeconds: &serviceAccountTokenExpiry,
-												Audience:          "https://login.microsoftonline.com/federatedidentity",
+												Audience:          DefaultAudience,
 											},
 										},
 									},
@@ -401,7 +401,7 @@ func TestAddProjectedServiceAccountTokenVolume(t *testing.T) {
 									ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
 										Path:              TokenFilePathName,
 										ExpirationSeconds: &serviceAccountTokenExpiry,
-										Audience:          "https://login.microsoftonline.com/federatedidentity",
+										Audience:          DefaultAudience,
 									},
 								},
 							},
@@ -464,7 +464,7 @@ func TestAddProjectedServiceAccountTokenVolume(t *testing.T) {
 									ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
 										Path:              TokenFilePathName,
 										ExpirationSeconds: &serviceAccountTokenExpiry,
-										Audience:          "https://login.microsoftonline.com/federatedidentity",
+										Audience:          DefaultAudience,
 									},
 								},
 							},
@@ -477,7 +477,7 @@ func TestAddProjectedServiceAccountTokenVolume(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := addProjectedServiceAccountTokenVolume(test.pod, serviceAccountTokenExpiry, "https://login.microsoftonline.com/federatedidentity")
+			err := addProjectedServiceAccountTokenVolume(test.pod, serviceAccountTokenExpiry, DefaultAudience)
 			if err != nil {
 				t.Fatalf("expected err to be nil, got: %v", err)
 			}

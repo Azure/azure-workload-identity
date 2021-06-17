@@ -11,7 +11,6 @@ import (
 
 	"github.com/Azure/aad-pod-managed-identity/pkg/config"
 
-	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -39,13 +38,7 @@ func NewPodMutator(client client.Client, arcCluster bool, audience string) (admi
 		return nil, err
 	}
 	if audience == "" {
-		// get aad endpoint to configure as audience
-		aadEndpoint, err := getAADEndpoint(c)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to get AAD endpoint")
-		}
-		aadEndpoint = strings.TrimRight(aadEndpoint, "/")
-		audience = fmt.Sprintf("%s/federatedidentity", aadEndpoint)
+		audience = DefaultAudience
 	}
 
 	return &podMutator{
@@ -336,16 +329,4 @@ func addProjectedSecretVolume(pod *corev1.Pod, config *config.Config, secretName
 		})
 
 	return nil
-}
-
-// TODO use https://login.microsoftonline.com/federatedidentity as audience
-func getAADEndpoint(c *config.Config) (string, error) {
-	var env azure.Environment
-	var err error
-	if c.Cloud == "" {
-		env = azure.PublicCloud
-	} else {
-		env, err = azure.EnvironmentFromName(c.Cloud)
-	}
-	return env.ActiveDirectoryEndpoint, err
 }

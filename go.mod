@@ -3,7 +3,6 @@ module github.com/Azure/aad-pod-managed-identity
 go 1.16
 
 require (
-	github.com/Azure/go-autorest/autorest v0.11.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/onsi/ginkgo v1.16.2
 	github.com/onsi/gomega v1.11.0
