@@ -16,6 +16,8 @@ create_cluster() {
   if [[ "${LOCAL_ONLY:-}" == "true" ]]; then
     # create a kind cluster, then build and load the webhook manager image to the cluster
     make kind-create
+    OUTPUT_TYPE="type=docker" make docker-build-webhook
+    make kind-load-image
   else
     : "${REGISTRY:?Environment variable empty or not defined.}"
 
