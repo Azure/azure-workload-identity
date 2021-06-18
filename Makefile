@@ -236,6 +236,9 @@ KIND_CLUSTER_NAME ?= aad-pod-managed-identity
 .PHONY: kind-create
 kind-create: $(KIND) $(KUBECTL)
 	./scripts/create-kind-cluster.sh
+
+.PHONY: kind-load-image
+kind-load-image:
 	$(KIND) load docker-image $(WEBHOOK_IMAGE) --name $(KIND_CLUSTER_NAME)
 
 .PHONY: kind-delete

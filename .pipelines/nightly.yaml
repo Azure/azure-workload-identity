@@ -21,6 +21,28 @@ jobs:
       - template: templates/publish-images.yaml
         parameters:
           publish: false
+  - job: verify_deployment_yaml
+    timeoutInMinutes: 20
+    dependsOn: scan_images
+    workspace:
+      clean: all
+    variables:
+      # we can enable actual tenant id for functional e2e
+      AZURE_TENANT_ID: "fake tenant id"
+    steps:
+      - script: make kind-create
+        displayName: Create a kind cluster
+      - script: make install-cert-manager
+        displayName: Installing cert-manager
+      - script: |
+          KUBECTL=$(pwd)/hack/tools/bin/kubectl
+          ${KUBECTL} apply -f manifest_staging/deploy/aad-pi-webhook.yaml
+          ${KUBECTL} wait --for=condition=Available --timeout=5m -n aad-pi-webhook-system deployment/aad-pi-webhook-controller-manager
+          ${KUBECTL} delete -f manifest_staging/deploy/aad-pi-webhook.yaml --wait --timeout=5m
+        displayName: Verify deployment YAML in manifest_staging/
+      - script: make kind-delete
+        displayName: Cleanup
+        condition: always()
   - job:
     timeoutInMinutes: 20
     dependsOn: scan_images
