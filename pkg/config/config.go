@@ -7,7 +7,6 @@ import (
 
 // Config holds configuration from the env variables
 type Config struct {
-	Cloud    string `envconfig:"AZURE_ENVIRONMENT"`
 	TenantID string `envconfig:"AZURE_TENANT_ID"`
 }
 

@@ -6,9 +6,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
-	"strings"
 
-	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
@@ -239,7 +237,7 @@ func getVolumeProjectionSources(f *framework.Framework, serviceAccountName strin
 		ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
 			Path:              webhook.TokenFilePathName,
 			ExpirationSeconds: &expirationSeconds,
-			Audience:          fmt.Sprintf("%s/federatedidentity", strings.TrimRight(azure.PublicCloud.ActiveDirectoryEndpoint, "/")),
+			Audience:          webhook.DefaultAudience,
 		}},
 	}
 }

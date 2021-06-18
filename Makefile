@@ -107,7 +107,6 @@ run: generate fmt vet manifests
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 ARC_CLUSTER ?= false
-AZURE_ENVIRONMENT ?=
 AZURE_TENANT_ID ?=
 
 .PHONY: deploy
@@ -129,7 +128,6 @@ manifests: $(CONTROLLER_GEN) $(KUSTOMIZE)
 	@rm -rf manifest_staging
 	@mkdir -p manifest_staging/deploy
 	$(KUSTOMIZE) build config/default -o manifest_staging/deploy/aad-pi-webhook.yaml
-	@sed -i "s/AZURE_ENVIRONMENT: .*/AZURE_ENVIRONMENT: <replace with Azure Environment Name>/" manifest_staging/deploy/aad-pi-webhook.yaml
 	@sed -i "s/AZURE_TENANT_ID: .*/AZURE_TENANT_ID: <replace with Azure Tenant ID>/" manifest_staging/deploy/aad-pi-webhook.yaml
 	@sed -i "s/-arc-cluster=.*/-arc-cluster=false/" manifest_staging/deploy/aad-pi-webhook.yaml
 

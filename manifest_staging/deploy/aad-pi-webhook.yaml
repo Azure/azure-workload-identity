@@ -42,7 +42,6 @@ subjects:
 ---
 apiVersion: v1
 data:
-  AZURE_ENVIRONMENT: <replace with Azure Environment Name>
   AZURE_TENANT_ID: <replace with Azure Tenant ID>
 kind: ConfigMap
 metadata:
