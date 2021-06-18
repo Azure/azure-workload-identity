@@ -9,7 +9,6 @@ images:
 configMapGenerator:
 - literals:
   - AZURE_TENANT_ID="${AZURE_TENANT_ID}"
-  - AZURE_ENVIRONMENT="${AZURE_ENVIRONMENT:-AzurePublicCloud}"
   name: config
 generatorOptions:
   disableNameSuffixHash: true
