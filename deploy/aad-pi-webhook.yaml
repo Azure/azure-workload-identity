@@ -2,13 +2,15 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    control-plane: controller-manager
+    mpod.aad-pod-identity.io/system: "true"
   name: aad-pi-webhook-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   creationTimestamp: null
+  labels:
+    mpod.aad-pod-identity.io/system: "true"
   name: aad-pi-webhook-manager-role
 rules:
 - apiGroups:
@@ -26,6 +28,8 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
+  labels:
+    mpod.aad-pod-identity.io/system: "true"
   name: aad-pi-webhook-manager-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -38,16 +42,19 @@ subjects:
 ---
 apiVersion: v1
 data:
-  AZURE_ENVIRONMENT: <replace with Azure Environment Name>
   AZURE_TENANT_ID: <replace with Azure Tenant ID>
 kind: ConfigMap
 metadata:
+  labels:
+    mpod.aad-pod-identity.io/system: "true"
   name: aad-pi-webhook-config
   namespace: aad-pi-webhook-system
 ---
 apiVersion: v1
 kind: Service
 metadata:
+  labels:
+    mpod.aad-pod-identity.io/system: "true"
   name: aad-pi-webhook-webhook-service
   namespace: aad-pi-webhook-system
 spec:
@@ -55,24 +62,24 @@ spec:
   - port: 443
     targetPort: 9443
   selector:
-    control-plane: controller-manager
+    mpod.aad-pod-identity.io/system: "true"
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    control-plane: controller-manager
+    mpod.aad-pod-identity.io/system: "true"
   name: aad-pi-webhook-controller-manager
   namespace: aad-pi-webhook-system
 spec:
   replicas: 1
   selector:
     matchLabels:
-      control-plane: controller-manager
+      mpod.aad-pod-identity.io/system: "true"
   template:
     metadata:
       labels:
-        control-plane: controller-manager
+        mpod.aad-pod-identity.io/system: "true"
     spec:
       containers:
       - args:
@@ -82,7 +89,7 @@ spec:
         envFrom:
         - configMapRef:
             name: aad-pi-webhook-config
-        image: mcr.microsoft.com/oss/azure/aad-pod-managed-identity/webhook:v0.1.0
+        image: mcr.microsoft.com/oss/azure/aad-pod-managed-identity/webhook:v0.2.0
         imagePullPolicy: IfNotPresent
         name: manager
         ports:
@@ -111,6 +118,8 @@ spec:
 apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
 metadata:
+  labels:
+    mpod.aad-pod-identity.io/system: "true"
   name: aad-pi-webhook-serving-cert
   namespace: aad-pi-webhook-system
 spec:
@@ -125,6 +134,8 @@ spec:
 apiVersion: cert-manager.io/v1alpha2
 kind: Issuer
 metadata:
+  labels:
+    mpod.aad-pod-identity.io/system: "true"
   name: aad-pi-webhook-selfsigned-issuer
   namespace: aad-pi-webhook-system
 spec:
@@ -135,6 +146,8 @@ kind: MutatingWebhookConfiguration
 metadata:
   annotations:
     cert-manager.io/inject-ca-from: aad-pi-webhook-system/aad-pi-webhook-serving-cert
+  labels:
+    mpod.aad-pod-identity.io/system: "true"
   name: aad-pi-webhook-mutating-webhook-configuration
 webhooks:
 - admissionReviewVersions:

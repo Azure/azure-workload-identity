@@ -2,7 +2,7 @@ REGISTRY ?= mcr.microsoft.com/oss/azure/aad-pod-managed-identity
 PROXY_IMAGE_NAME := proxy
 INIT_IMAGE_NAME := proxy-init
 WEBHOOK_IMAGE_NAME := webhook
-IMAGE_VERSION ?= v0.1.0
+IMAGE_VERSION ?= v0.2.0
 
 PROXY_IMAGE := $(REGISTRY)/$(PROXY_IMAGE_NAME):$(IMAGE_VERSION)
 INIT_IMAGE := $(REGISTRY)/$(INIT_IMAGE_NAME):$(IMAGE_VERSION)
