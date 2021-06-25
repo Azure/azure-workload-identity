@@ -5,13 +5,17 @@ package e2e
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
+	"strings"
+	"time"
 
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/test/e2e/framework"
 	e2edeploy "k8s.io/kubernetes/test/e2e/framework/deployment"
 	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
@@ -23,50 +27,73 @@ var _ = ginkgo.Describe("Webhook", func() {
 	f := framework.NewDefaultFramework("webhook")
 
 	ginkgo.It("should mutate a pod with a labeled service account", func() {
-		serviceAccount := createServiceAccount(f, map[string]string{webhook.UsePodIdentityLabel: "true"}, nil)
-		pod := createPodWithServiceAccount(f, serviceAccount)
+		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{webhook.UsePodIdentityLabel: "true"}, nil)
+		pod := createPodWithServiceAccount(f.ClientSet, f.Namespace.Name, serviceAccount, "k8s.gcr.io/e2e-test-images/busybox:1.29-1", []string{"sleep"}, []string{"3600"}, nil)
 		validateMutatedPod(f, pod)
 	})
 
 	ginkgo.It("should mutate a deployment pod with a labeled service account", func() {
-		serviceAccount := createServiceAccount(f, map[string]string{webhook.UsePodIdentityLabel: "true"}, nil)
+		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{webhook.UsePodIdentityLabel: "true"}, nil)
 		pod := createPodUsingDeploymentWithServiceAccount(f, serviceAccount)
 		validateMutatedPod(f, pod)
 	})
+
+	// E2E scenario from https://github.com/Azure/aad-pod-managed-identity/tree/main/examples/msal-net/akvdotnet
+	ginkgo.It("should exchange the service account token for an valid AAD token [KindOnly]", func() {
+		// trust is only set up for 'pod-identity-sa' service account in the default namespace for now
+		const namespace = "default"
+		serviceAccount := createServiceAccount(f.ClientSet, namespace, "pod-identity-sa", map[string]string{webhook.UsePodIdentityLabel: "true"}, map[string]string{webhook.ClientIDAnnotation: os.Getenv("SERVICE_PRINCIPAL_CLIENT_ID")})
+		defer f.ClientSet.CoreV1().ServiceAccounts(namespace).Delete(context.TODO(), serviceAccount, metav1.DeleteOptions{})
+
+		pod := createPodWithServiceAccount(f.ClientSet, namespace, serviceAccount, "aramase/dotnet:v0.4", nil, nil, []corev1.EnvVar{{
+			Name:  "KEYVAULT_NAME",
+			Value: os.Getenv("KEYVAULT_NAME"),
+		}, {
+			Name:  "SECRET_NAME",
+			Value: os.Getenv("KEYVAULT_SECRET_NAME"),
+		}})
+		defer f.ClientSet.CoreV1().Pods(namespace).Delete(context.TODO(), pod.Name, metav1.DeleteOptions{})
+
+		ginkgo.By("validating that the application has exchanged its service account token for an valid AAD token")
+		time.Sleep(3 * time.Second)
+		stdout, err := e2epod.GetPodLogs(f.ClientSet, namespace, pod.Name, pod.Spec.Containers[0].Name)
+		gomega.Expect(err).To(gomega.BeNil())
+
+		framework.Logf("stdout: %s", stdout)
+		gomega.Expect(strings.Contains(stdout, "Your secret is Hello!")).To(gomega.BeTrue())
+	})
 })
 
-func createServiceAccount(f *framework.Framework, labels, annotations map[string]string) string {
-	accountName := f.Namespace.Name + "-sa"
+func createServiceAccount(c kubernetes.Interface, namespace, name string, labels, annotations map[string]string) string {
 	account := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        accountName,
-			Namespace:   f.Namespace.Name,
+			Name:        name,
+			Namespace:   namespace,
 			Labels:      labels,
 			Annotations: annotations,
 		},
 	}
-	_, err := f.ClientSet.CoreV1().ServiceAccounts(f.Namespace.Name).Create(context.TODO(), account, metav1.CreateOptions{})
-	framework.ExpectNoError(err, "failed to create service account %s", accountName)
-	framework.Logf("created service account %s", accountName)
-	return accountName
+	_, err := c.CoreV1().ServiceAccounts(namespace).Create(context.TODO(), account, metav1.CreateOptions{})
+	framework.ExpectNoError(err, "failed to create service account %s", name)
+	framework.Logf("created service account %s", name)
+	return name
 }
 
-func createPodWithServiceAccount(f *framework.Framework, serviceAccount string) *corev1.Pod {
+func createPodWithServiceAccount(c kubernetes.Interface, namespace, serviceAccount, image string, command, args []string, env []corev1.EnvVar) *corev1.Pod {
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: f.Namespace.Name + "-",
-			Namespace:    f.Namespace.Name,
+			GenerateName: namespace + "-",
+			Namespace:    namespace,
 		},
 		Spec: corev1.PodSpec{
-			Containers: []corev1.Container{
-				{
-					Name: "busybox",
-					// this image supports both Linux and Windows
-					Image:   "k8s.gcr.io/e2e-test-images/busybox:1.29-1",
-					Command: []string{"sleep"},
-					Args:    []string{"3600"},
-				},
-			},
+			Containers: []corev1.Container{{
+				Name: namespace + "-test-container",
+				// this image supports both Linux and Windows
+				Image:   image,
+				Command: command,
+				Args:    args,
+				Env:     env,
+			}},
 			RestartPolicy:      corev1.RestartPolicyNever,
 			ServiceAccountName: serviceAccount,
 		},
@@ -81,13 +108,13 @@ func createPodWithServiceAccount(f *framework.Framework, serviceAccount string) 
 	}
 
 	if arcCluster {
-		createSecretForArcCluster(f, serviceAccount)
+		createSecretForArcCluster(c, namespace, serviceAccount)
 	}
 
-	pod, err := f.ClientSet.CoreV1().Pods(f.Namespace.Name).Create(context.TODO(), pod, metav1.CreateOptions{})
+	pod, err := c.CoreV1().Pods(namespace).Create(context.TODO(), pod, metav1.CreateOptions{})
 	framework.ExpectNoError(err, "failed to create pod %s", pod.Name)
 
-	err = e2epod.WaitForPodNameRunningInNamespace(f.ClientSet, pod.Name, pod.Namespace)
+	err = e2epod.WaitForPodNameRunningInNamespace(c, pod.Name, pod.Namespace)
 	framework.ExpectNoError(err, "failed to start pod %s", pod.Name)
 
 	framework.Logf("created pod %s", pod.Name)
@@ -138,7 +165,7 @@ func createPodUsingDeploymentWithServiceAccount(f *framework.Framework, serviceA
 	}
 
 	if arcCluster {
-		createSecretForArcCluster(f, serviceAccount)
+		createSecretForArcCluster(f.ClientSet, f.Namespace.Name, serviceAccount)
 	}
 
 	d, err := f.ClientSet.AppsV1().Deployments(f.Namespace.Name).Create(context.TODO(), d, metav1.CreateOptions{})
@@ -213,7 +240,7 @@ func validateMutatedPod(f *framework.Framework, pod *corev1.Pod) {
 		framework.Failf("pod %s does not have azure-identity-token as a projected token volume", pod.Name)
 	}
 
-	_ = f.ExecCommandInContainer(pod.Name, "busybox", "cat", filepath.Join(webhook.TokenFileMountPath, webhook.TokenFilePathName))
+	_ = f.ExecCommandInContainer(pod.Name, pod.Spec.Containers[0].Name, "cat", filepath.Join(webhook.TokenFileMountPath, webhook.TokenFilePathName))
 }
 
 func getVolumeProjectionSources(f *framework.Framework, serviceAccountName string) []corev1.VolumeProjection {
@@ -242,19 +269,19 @@ func getVolumeProjectionSources(f *framework.Framework, serviceAccountName strin
 	}
 }
 
-func createSecretForArcCluster(f *framework.Framework, serviceAccount string) {
+func createSecretForArcCluster(c kubernetes.Interface, namespace, serviceAccount string) {
 	// TODO(chewong): remove this secret creation process once we stopped using fake arc cluster
 	secretName := fmt.Sprintf("localtoken-%s", serviceAccount)
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
-			Namespace: f.Namespace.Name,
+			Namespace: namespace,
 		},
 		Type: corev1.SecretTypeOpaque,
 		Data: map[string][]byte{
 			"token": []byte("fake token"),
 		},
 	}
-	_, err := f.ClientSet.CoreV1().Secrets(f.Namespace.Name).Create(context.TODO(), secret, metav1.CreateOptions{})
+	_, err := c.CoreV1().Secrets(namespace).Create(context.TODO(), secret, metav1.CreateOptions{})
 	framework.ExpectNoError(err, "failed to create secret %s", secretName)
 }

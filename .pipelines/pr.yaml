@@ -47,22 +47,32 @@ jobs:
     workspace:
       clean: all
     variables:
-      # we can enable actual tenant id for functional e2e
-      AZURE_TENANT_ID: "fake tenant id"
+      # contains the following environment variables:
+      # - AZURE_TENANT_ID
+      # - KEYVAULT_NAME
+      # - KEYVAULT_SECRET_NAME
+      # - SERVICE_ACCOUNT_ISSUER
+      # - SERVICE_ACCOUNT_KEYVAULT_NAME
+      # - SERVICE_PRINCIPAL_CLIENT_ID
+      - group: e2e-environment-variables
     strategy:
       matrix:
         aks_windows_dockershim:
           REGISTRY: upstreamk8sci.azurecr.io/aad-pod-managed-identity
           WINDOWS_CLUSTER: "true"
+          GINKGO_SKIP: \[KindOnly\]
         aks_windows_containerd:
           REGISTRY: upstreamk8sci.azurecr.io/aad-pod-managed-identity
           WINDOWS_CLUSTER: "true"
           WINDOWS_CONTAINERD: "true"
+          GINKGO_SKIP: \[KindOnly\]
         aks_linux:
           REGISTRY: upstreamk8sci.azurecr.io/aad-pod-managed-identity
+          GINKGO_SKIP: \[KindOnly\]
         arc:
           REGISTRY: upstreamk8sci.azurecr.io/aad-pod-managed-identity
           ARC_CLUSTER: "true"
+          GINKGO_SKIP: \[KindOnly\]
         kind_v1_18_19:
           KIND_NODE_VERSION: v1.18.19
           LOCAL_ONLY: "true"
@@ -81,6 +91,13 @@ jobs:
         condition: ne(variables.LOCAL_ONLY, 'true')
       - script: make test-e2e
         displayName: Webhook E2E test suite
+        env:
+          AZURE_TENANT_ID: $(AZURE_TENANT_ID)
+          KEYVAULT_NAME: $(KEYVAULT_NAME)
+          KEYVAULT_SECRET_NAME: $(KEYVAULT_SECRET_NAME)
+          SERVICE_ACCOUNT_ISSUER: $(SERVICE_ACCOUNT_ISSUER)
+          SERVICE_ACCOUNT_KEYVAULT_NAME: $(SERVICE_ACCOUNT_KEYVAULT_NAME)
+          SERVICE_PRINCIPAL_CLIENT_ID: $(SERVICE_PRINCIPAL_CLIENT_ID)
       - script: az group delete --name "${CLUSTER_NAME}" --yes --no-wait || true
         displayName: Cleanup
         condition: ne(variables.LOCAL_ONLY, 'true')

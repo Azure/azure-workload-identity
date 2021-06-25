@@ -45,7 +45,9 @@ jobs:
         condition: always()
   - job:
     timeoutInMinutes: 20
-    dependsOn: scan_images
+    dependsOn:
+      - scan_images
+      - verify_deployment_yaml
     workspace:
       clean: all
     variables:
@@ -71,7 +73,9 @@ jobs:
         displayName: Webhook E2E test suite
   - job:
     timeoutInMinutes: 60
-    dependsOn: scan_images
+    dependsOn:
+      - scan_images
+      - verify_deployment_yaml
     workspace:
       clean: all
     variables:
@@ -109,3 +113,41 @@ jobs:
       - script: az group delete --name "${CLUSTER_NAME}" --yes --no-wait || true
         displayName: Cleanup
         condition: always()
+  - job:
+    timeoutInMinutes: 40
+    dependsOn:
+    - lint
+    - scan_images
+    workspace:
+      clean: all
+    variables:
+      # contains the following environment variables:
+      # - AZURE_TENANT_ID
+      # - KEYVAULT_NAME
+      # - KEYVAULT_SECRET_NAME
+      # - SERVICE_ACCOUNT_ISSUER
+      # - SERVICE_ACCOUNT_KEYVAULT_NAME
+      # - SERVICE_PRINCIPAL_CLIENT_ID
+      - group: e2e-environment-variables
+      - name: LOCAL_ONLY
+        value: "true"
+    strategy:
+      matrix:
+        kind_v1_18_19:
+          KIND_NODE_VERSION: v1.18.19
+        kind_v1_19_11:
+          KIND_NODE_VERSION: v1.19.11
+        kind_v1_20_7:
+          KIND_NODE_VERSION: v1.20.7
+        kind_v1_21_1:
+          KIND_NODE_VERSION: v1.21.1
+    steps:
+      - script: make test-e2e
+        displayName: Webhook E2E test suite
+        env:
+          AZURE_TENANT_ID: $(AZURE_TENANT_ID)
+          KEYVAULT_NAME: $(KEYVAULT_NAME)
+          KEYVAULT_SECRET_NAME: $(KEYVAULT_SECRET_NAME)
+          SERVICE_ACCOUNT_ISSUER: $(SERVICE_ACCOUNT_ISSUER)
+          SERVICE_ACCOUNT_KEYVAULT_NAME: $(SERVICE_ACCOUNT_KEYVAULT_NAME)
+          SERVICE_PRINCIPAL_CLIENT_ID: $(SERVICE_PRINCIPAL_CLIENT_ID)
