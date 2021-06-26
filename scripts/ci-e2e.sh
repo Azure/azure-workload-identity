@@ -4,9 +4,12 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+: "${AZURE_TENANT_ID:?Environment variable empty or not defined.}"
+
 REPO_ROOT=$(dirname "${BASH_SOURCE[0]}")/..
 cd "${REPO_ROOT}" || exit 1
 
+readonly CLUSTER_NAME="${CLUSTER_NAME:-pod-managed-identity-e2e-$(openssl rand -hex 2)}"
 readonly KUBECTL="${REPO_ROOT}/hack/tools/bin/kubectl"
 
 IMAGE_VERSION="$(git rev-parse --short HEAD)"
@@ -14,6 +17,7 @@ export IMAGE_VERSION
 
 create_cluster() {
   if [[ "${LOCAL_ONLY:-}" == "true" ]]; then
+    download_service_account_keys
     # create a kind cluster, then build and load the webhook manager image to the cluster
     make kind-create
     OUTPUT_TYPE="type=docker" make docker-build-webhook
@@ -21,9 +25,6 @@ create_cluster() {
   else
     : "${REGISTRY:?Environment variable empty or not defined.}"
 
-    az login -i > /dev/null && echo "Using machine identity for az commands" || echo "Using pre-existing credential for az commands"
-
-    CLUSTER_NAME="${CLUSTER_NAME:-pod-managed-identity-e2e-$(openssl rand -hex 2)}"
     "${REPO_ROOT}/scripts/create-aks-cluster.sh"
 
     # assume BYO cluster if KUBECONFIG is defined
@@ -52,6 +53,15 @@ create_cluster() {
     echo "Building controller and deploying webhook to the cluster"
     make docker-build-webhook
   fi
+  ${KUBECTL} get nodes -owide
+}
+
+download_service_account_keys() {
+  if [[ -z "${SERVICE_ACCOUNT_KEYVAULT_NAME:-}" ]]; then
+    return
+  fi
+  az keyvault secret show --vault-name "${SERVICE_ACCOUNT_KEYVAULT_NAME}" --name sa-pub | jq -r .value | base64 -d > "${REPO_ROOT}/sa.pub"
+  az keyvault secret show --vault-name "${SERVICE_ACCOUNT_KEYVAULT_NAME}" --name sa-key | jq -r .value | base64 -d > "${REPO_ROOT}/sa.key"
 }
 
 cleanup() {
@@ -70,9 +80,9 @@ cleanup() {
 trap cleanup EXIT
 
 main() {
-  create_cluster
-  ${KUBECTL} get nodes -owide
+  az login -i > /dev/null && echo "Using machine identity for az commands" || echo "Using pre-existing credential for az commands"
 
+  create_cluster
   make clean deploy
 
   if [[ -n "${WINDOWS_NODE_NAME:-}" ]]; then
