@@ -516,6 +516,10 @@ func TestAddEnvironmentVariables(t *testing.T) {
 						Name:  "TOKEN_FILE_PATH",
 						Value: filepath.Join(TokenFileMountPath, TokenFilePathName),
 					},
+					{
+						Name:  "AZURE_AUTHORITY_HOST",
+						Value: "https://login.microsoftonline.com/",
+					},
 				},
 			},
 		},
@@ -537,6 +541,10 @@ func TestAddEnvironmentVariables(t *testing.T) {
 						Name:  "TOKEN_FILE_PATH",
 						Value: filepath.Join(TokenFileMountPath, TokenFilePathName),
 					},
+					{
+						Name:  "AZURE_AUTHORITY_HOST",
+						Value: "https://login.microsoftonline.com/",
+					},
 				},
 			},
 			expectedContainer: corev1.Container{
@@ -554,6 +562,10 @@ func TestAddEnvironmentVariables(t *testing.T) {
 					{
 						Name:  "TOKEN_FILE_PATH",
 						Value: filepath.Join(TokenFileMountPath, TokenFilePathName),
+					},
+					{
+						Name:  "AZURE_AUTHORITY_HOST",
+						Value: "https://login.microsoftonline.com/",
 					},
 				},
 			},
@@ -590,6 +602,10 @@ func TestAddEnvironmentVariables(t *testing.T) {
 						Name:  "TOKEN_FILE_PATH",
 						Value: filepath.Join(TokenFileMountPath, TokenFilePathName),
 					},
+					{
+						Name:  "AZURE_AUTHORITY_HOST",
+						Value: "https://login.microsoftonline.com/",
+					},
 				},
 			},
 		},
@@ -597,7 +613,7 @@ func TestAddEnvironmentVariables(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			actualContainer := addEnvironmentVariables(test.container, "clientID", "tenantID")
+			actualContainer := addEnvironmentVariables(test.container, "clientID", "tenantID", "https://login.microsoftonline.com/")
 			if !reflect.DeepEqual(actualContainer, test.expectedContainer) {
 				t.Fatalf("expected: %v, got: %v", test.expectedContainer, actualContainer)
 			}
@@ -923,6 +939,69 @@ func TestAddProjectedSecretVolume(t *testing.T) {
 			}
 			if !reflect.DeepEqual(test.pod.Spec.Volumes, test.expectedVolume) {
 				t.Fatalf("expected: %v, got: %v", test.pod.Spec.Volumes, test.expectedVolume)
+			}
+		})
+	}
+}
+
+func TestGetAzureAuthorityHost(t *testing.T) {
+	tests := []struct {
+		name        string
+		config      *config.Config
+		want        string
+		expectedErr bool
+	}{
+		{
+			name:   "default azure environment",
+			config: &config.Config{},
+			want:   "https://login.microsoftonline.com/",
+		},
+		{
+			name: "public cloud",
+			config: &config.Config{
+				Cloud: "AzurePublicCloud",
+			},
+			want: "https://login.microsoftonline.com/",
+		},
+		{
+			name: "us government cloud",
+			config: &config.Config{
+				Cloud: "AzureUSGovernmentCloud",
+			},
+			want: "https://login.microsoftonline.us/",
+		},
+		{
+			name: "china cloud",
+			config: &config.Config{
+				Cloud: "AzureChinaCloud",
+			},
+			want: "https://login.chinacloudapi.cn/",
+		},
+		{
+			name: "german cloud",
+			config: &config.Config{
+				Cloud: "AzureGermanCloud",
+			},
+			want: "https://login.microsoftonline.de/",
+		},
+		{
+			name: "invalid cloud name",
+			config: &config.Config{
+				Cloud: "InvalidCloud",
+			},
+			want:        "",
+			expectedErr: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got, err := getAzureAuthorityHost(test.config)
+			if test.expectedErr && err == nil || !test.expectedErr && err != nil {
+				t.Errorf("expected err: %v, got: %v", test.expectedErr, err)
+			}
+			if got != test.want {
+				t.Errorf("getAzureAuthorityHost() = %v, want %v", got, test.want)
 			}
 		})
 	}

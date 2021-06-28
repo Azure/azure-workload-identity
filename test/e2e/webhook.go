@@ -194,6 +194,7 @@ func validateMutatedPod(f *framework.Framework, pod *corev1.Pod) {
 			webhook.AzureClientIDEnvVar,
 			webhook.AzureTenantIDEnvVar,
 			webhook.TokenFilePathEnvVar,
+			webhook.AzureAuthorityHostEnvVar,
 		} {
 			if _, ok := m[injected]; !ok {
 				framework.Failf("container %s in pod %s does not have env var %s injected", container.Name, pod.Name, injected)
