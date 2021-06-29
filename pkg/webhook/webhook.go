@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/Azure/aad-pod-managed-identity/pkg/config"
+	"github.com/Azure/go-autorest/autorest/azure"
 
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
@@ -24,11 +25,12 @@ import (
 
 // podMutator mutates pod objects to add project service account token volume
 type podMutator struct {
-	client       client.Client
-	config       *config.Config
-	isARCCluster bool
-	decoder      *admission.Decoder
-	audience     string
+	client             client.Client
+	config             *config.Config
+	isARCCluster       bool
+	decoder            *admission.Decoder
+	audience           string
+	azureAuthorityHost string
 }
 
 // NewPodMutator returns a pod mutation handler
@@ -40,12 +42,19 @@ func NewPodMutator(client client.Client, arcCluster bool, audience string) (admi
 	if audience == "" {
 		audience = DefaultAudience
 	}
+	// this is used to configure the AZURE_AUTHORITY_HOST env var that's
+	// used by the azure sdk
+	azureAuthorityHost, err := getAzureAuthorityHost(c)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get AAD endpoint")
+	}
 
 	return &podMutator{
-		client:       client,
-		config:       c,
-		isARCCluster: arcCluster,
-		audience:     audience,
+		client:             client,
+		config:             c,
+		isARCCluster:       arcCluster,
+		audience:           audience,
+		azureAuthorityHost: azureAuthorityHost,
 	}, nil
 }
 
@@ -93,7 +102,7 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) admissio
 			continue
 		}
 		// add environment variables to container if not exists
-		pod.Spec.Containers[i] = addEnvironmentVariables(pod.Spec.Containers[i], clientID, tenantID)
+		pod.Spec.Containers[i] = addEnvironmentVariables(pod.Spec.Containers[i], clientID, tenantID, m.azureAuthorityHost)
 		// add the volume mount if not exists
 		pod.Spec.Containers[i] = addProjectedTokenVolumeMount(pod.Spec.Containers[i])
 	}
@@ -202,7 +211,7 @@ func getTenantID(sa *corev1.ServiceAccount, c *config.Config) string {
 }
 
 // addEnvironmentVariables adds the clientID, tenantID and token file path environment variables needed for SDK
-func addEnvironmentVariables(container corev1.Container, clientID, tenantID string) corev1.Container {
+func addEnvironmentVariables(container corev1.Container, clientID, tenantID, azureAuthorityHost string) corev1.Container {
 	m := make(map[string]string)
 	for _, env := range container.Env {
 		m[env.Name] = env.Value
@@ -218,6 +227,10 @@ func addEnvironmentVariables(container corev1.Container, clientID, tenantID stri
 	// add the token file path env var
 	if _, ok := m[TokenFilePathEnvVar]; !ok {
 		container.Env = append(container.Env, corev1.EnvVar{Name: TokenFilePathEnvVar, Value: filepath.Join(TokenFileMountPath, TokenFilePathName)})
+	}
+	// add the azure authority host env var
+	if _, ok := m[AzureAuthorityHostEnvVar]; !ok {
+		container.Env = append(container.Env, corev1.EnvVar{Name: AzureAuthorityHostEnvVar, Value: azureAuthorityHost})
 	}
 
 	return container
@@ -329,4 +342,17 @@ func addProjectedSecretVolume(pod *corev1.Pod, config *config.Config, secretName
 		})
 
 	return nil
+}
+
+// getAzureAuthorityHost returns the active directory endpoint to use for requesting
+// tokens based on the azure environment the webhook is configured with.
+func getAzureAuthorityHost(c *config.Config) (string, error) {
+	var env azure.Environment
+	var err error
+	if c.Cloud == "" {
+		env = azure.PublicCloud
+	} else {
+		env, err = azure.EnvironmentFromName(c.Cloud)
+	}
+	return env.ActiveDirectoryEndpoint, err
 }
