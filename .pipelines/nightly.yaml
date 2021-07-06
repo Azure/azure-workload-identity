@@ -23,23 +23,34 @@ jobs:
           publish: false
   - job: verify_deployment_yaml
     timeoutInMinutes: 20
-    dependsOn: scan_images
     workspace:
       clean: all
     variables:
-      # we can enable actual tenant id for functional e2e
-      AZURE_TENANT_ID: "fake tenant id"
+      # contains the following environment variables:
+      # - AZURE_TENANT_ID
+      # - SERVICE_ACCOUNT_ISSUER
+      - group: e2e-environment-variables
     steps:
-      - script: make kind-create
+      - script: |
+          openssl genrsa -out sa.key 2048
+          openssl rsa -in sa.key -pubout -out sa.pub
+          make kind-create
         displayName: Create a kind cluster
+        env:
+          SKIP_PREFLIGHT: "true"
+          SERVICE_ACCOUNT_ISSUER: $(SERVICE_ACCOUNT_ISSUER)
       - script: make install-cert-manager
         displayName: Installing cert-manager
       - script: |
+          sed -i "s/AZURE_TENANT_ID: .*/AZURE_TENANT_ID: ${AZURE_TENANT_ID}/" manifest_staging/deploy/aad-pi-webhook.yaml
+          sed -i "s/AZURE_ENVIRONMENT: .*/AZURE_ENVIRONMENT: AzurePublicCloud/" manifest_staging/deploy/aad-pi-webhook.yaml
           KUBECTL=$(pwd)/hack/tools/bin/kubectl
           ${KUBECTL} apply -f manifest_staging/deploy/aad-pi-webhook.yaml
           ${KUBECTL} wait --for=condition=Available --timeout=5m -n aad-pi-webhook-system deployment/aad-pi-webhook-controller-manager
           ${KUBECTL} delete -f manifest_staging/deploy/aad-pi-webhook.yaml --wait --timeout=5m
         displayName: Verify deployment YAML in manifest_staging/
+        env:
+          AZURE_TENANT_ID: $(AZURE_TENANT_ID)
       - script: make kind-delete
         displayName: Cleanup
         condition: always()
@@ -55,6 +66,7 @@ jobs:
       AZURE_TENANT_ID: "fake tenant id"
       REGISTRY: upstreamk8sci.azurecr.io/aad-pod-managed-identity
       SOAK_CLUSTER: "true"
+      GINKGO_SKIP: \[KindOnly\]
     strategy:
       matrix:
         soak_aks_windows_dockershim:
@@ -82,6 +94,7 @@ jobs:
       # we can enable actual tenant id for functional e2e
       AZURE_TENANT_ID: "fake tenant id"
       REGISTRY: upstreamk8sci.azurecr.io/aad-pod-managed-identity
+      GINKGO_SKIP: \[KindOnly\]
     strategy:
       matrix:
         upgrade_aks_windows_dockershim:
@@ -116,8 +129,8 @@ jobs:
   - job:
     timeoutInMinutes: 40
     dependsOn:
-    - lint
-    - scan_images
+      - scan_images
+      - verify_deployment_yaml
     workspace:
       clean: all
     variables:
