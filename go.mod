@@ -5,15 +5,15 @@ go 1.16
 require (
 	github.com/Azure/go-autorest/autorest v0.11.1
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/onsi/ginkgo v1.16.2
-	github.com/onsi/gomega v1.11.0
+	github.com/onsi/ginkgo v1.16.4
+	github.com/onsi/gomega v1.13.0
 	github.com/pkg/errors v0.9.1
-	k8s.io/api v0.20.2
-	k8s.io/apimachinery v0.20.2
-	k8s.io/client-go v0.20.2
+	k8s.io/api v0.21.2
+	k8s.io/apimachinery v0.21.2
+	k8s.io/client-go v0.21.2
 	k8s.io/klog/v2 v2.8.0
 	k8s.io/kubernetes v1.20.2
-	sigs.k8s.io/controller-runtime v0.8.3
+	sigs.k8s.io/controller-runtime v0.9.2
 )
 
 replace (

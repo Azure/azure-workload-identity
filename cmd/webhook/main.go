@@ -15,8 +15,9 @@ import (
 )
 
 var (
-	arcCluster bool
-	audience   string
+	arcCluster    bool
+	audience      string
+	tlsMinVersion string
 )
 
 func init() {
@@ -29,6 +30,7 @@ func main() {
 	// util to check if running in arc cluster.
 	flag.BoolVar(&arcCluster, "arc-cluster", false, "Running on arc cluster")
 	flag.StringVar(&audience, "audience", "", "Audience for service account token")
+	flag.StringVar(&tlsMinVersion, "tls-min-version", "1.3", "Minimum TLS version")
 	flag.Parse()
 
 	entryLog := log.Log.WithName("entrypoint")
@@ -44,6 +46,7 @@ func main() {
 	// setup webhooks
 	entryLog.Info("setting up webhook server")
 	hookServer := mgr.GetWebhookServer()
+	hookServer.TLSMinVersion = tlsMinVersion
 
 	entryLog.Info("registering webhook to the webhook server")
 	podMutator, err := wh.NewPodMutator(mgr.GetClient(), arcCluster, audience)
