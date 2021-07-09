@@ -30,6 +30,8 @@ func main() {
 	// util to check if running in arc cluster.
 	flag.BoolVar(&arcCluster, "arc-cluster", false, "Running on arc cluster")
 	flag.StringVar(&audience, "audience", "", "Audience for service account token")
+	// NOTE: {TempDir} in MacOS is created under /var/folders/ instead of /tmp
+	// ref: https://github.com/kubernetes-sigs/controller-runtime/issues/900
 	flag.StringVar(&webhookCertDir, "webhook-cert-dir", "", "Webhook certificates dir to use. Defaults to {TempDir}/k8s-webhook-server/serving-certs")
 	flag.Parse()
 
