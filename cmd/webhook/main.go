@@ -18,6 +18,8 @@ var (
 	arcCluster    bool
 	audience      string
 	tlsMinVersion string
+	webhookCertDir string
+	tlsMinVersion string
 )
 
 func init() {
@@ -30,14 +32,20 @@ func main() {
 	// util to check if running in arc cluster.
 	flag.BoolVar(&arcCluster, "arc-cluster", false, "Running on arc cluster")
 	flag.StringVar(&audience, "audience", "", "Audience for service account token")
-	flag.StringVar(&tlsMinVersion, "tls-min-version", "1.3", "Minimum TLS version")
+	// NOTE: {TempDir} in MacOS is created under /var/folders/ instead of /tmp
+	// ref: https://github.com/kubernetes-sigs/controller-runtime/issues/900
+	flag.StringVar(&webhookCertDir, "webhook-cert-dir", "", "Webhook certificates dir to use. Defaults to {TempDir}/k8s-webhook-server/serving-certs")
+  flag.StringVar(&tlsMinVersion, "tls-min-version", "1.3", "Minimum TLS version")
 	flag.Parse()
 
 	entryLog := log.Log.WithName("entrypoint")
 
 	// Setup a manager
 	entryLog.Info("setting up manager")
-	mgr, err := manager.New(config.GetConfigOrDie(), manager.Options{})
+	mgrOpts := manager.Options{
+		CertDir: webhookCertDir,
+	}
+	mgr, err := manager.New(config.GetConfigOrDie(), mgrOpts)
 	if err != nil {
 		entryLog.Error(err, "unable to set up controller manager")
 		os.Exit(1)
