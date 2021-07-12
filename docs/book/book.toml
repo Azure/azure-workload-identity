@@ -1,0 +1,13 @@
+[book]
+authors = ["Ernest Wong"]
+language = "en"
+multilingual = false
+src = "src"
+title = "AAD Pod Managed Identity"
+
+[output.html]
+curly-quotes = true
+git-repository-url = "https://github.com/Azure/aad-pod-managed-identity"
+
+[preprocessor.toc]
+command = "bin/mdbook-toc"

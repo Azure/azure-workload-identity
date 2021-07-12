@@ -24,3 +24,6 @@ hack/tools/bin/
 obj/
 sa.key
 sa.pub
+
+# book
+docs/book/book/
