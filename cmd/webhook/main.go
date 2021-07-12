@@ -15,11 +15,10 @@ import (
 )
 
 var (
-	arcCluster    bool
-	audience      string
-	tlsMinVersion string
+	arcCluster     bool
+	audience       string
 	webhookCertDir string
-	tlsMinVersion string
+	tlsMinVersion  string
 )
 
 func init() {
@@ -35,7 +34,7 @@ func main() {
 	// NOTE: {TempDir} in MacOS is created under /var/folders/ instead of /tmp
 	// ref: https://github.com/kubernetes-sigs/controller-runtime/issues/900
 	flag.StringVar(&webhookCertDir, "webhook-cert-dir", "", "Webhook certificates dir to use. Defaults to {TempDir}/k8s-webhook-server/serving-certs")
-  flag.StringVar(&tlsMinVersion, "tls-min-version", "1.3", "Minimum TLS version")
+	flag.StringVar(&tlsMinVersion, "tls-min-version", "1.3", "Minimum TLS version")
 	flag.Parse()
 
 	entryLog := log.Log.WithName("entrypoint")
