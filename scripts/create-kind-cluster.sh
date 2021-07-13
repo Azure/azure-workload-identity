@@ -59,7 +59,7 @@ EOF
 
 create_kind_cluster() {
   # create a kind cluster
-  cat <<EOF | ${KIND} create cluster --name "${KIND_CLUSTER_NAME}" --image "kindest/node:${KIND_NODE_VERSION:-v1.20.2}" --config=-
+  cat <<EOF | ${KIND} create cluster --name "${KIND_CLUSTER_NAME}" --image "kindest/node:${KIND_NODE_VERSION:-v1.21.2}" --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:

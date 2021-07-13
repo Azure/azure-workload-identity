@@ -93,6 +93,38 @@ main() {
   fi
 
   make test-e2e-run
+
+  if [[ "${TEST_HELM_CHART:-}" == "true" ]]; then
+    make uninstall-deploy
+    test_helm_chart
+  fi
+}
+
+test_helm_chart() {
+  readonly HELM="${REPO_ROOT}/hack/tools/bin/helm"
+  ${KUBECTL} create namespace aad-pi-webhook-system
+
+  # test helm upgrade from chart to manifest_staging/chart
+  if [[ -d "${REPO_ROOT}/charts/pod-identity-webhook" ]]; then
+    ${HELM} install pod-identity-webhook "${REPO_ROOT}/charts/pod-identity-webhook" \
+      --set azureTenantID="${AZURE_TENANT_ID}" \
+      --namespace aad-pi-webhook-system \
+      --wait
+    # TODO: remove this once we have a readiness probe in place
+    sleep 60
+    make test-e2e-run
+  fi
+
+  ${HELM} upgrade --install pod-identity-webhook "${REPO_ROOT}/manifest_staging/charts/pod-identity-webhook" \
+    --set image.repository="${REGISTRY:-mcr.microsoft.com/oss/azure/aad-pod-managed-identity/webhook}" \
+    --set image.release="${IMAGE_VERSION}" \
+    --set azureTenantID="${AZURE_TENANT_ID}" \
+    --namespace aad-pi-webhook-system \
+    --reuse-values \
+    --wait
+  # TODO: remove this once we have a readiness probe in place
+  sleep 60
+  make test-e2e-run
 }
 
 main
