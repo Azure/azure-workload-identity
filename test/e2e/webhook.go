@@ -45,12 +45,17 @@ var _ = ginkgo.Describe("Webhook", func() {
 		serviceAccount := createServiceAccount(f.ClientSet, namespace, "pod-identity-sa", map[string]string{webhook.UsePodIdentityLabel: "true"}, map[string]string{webhook.ClientIDAnnotation: os.Getenv("SERVICE_PRINCIPAL_CLIENT_ID")})
 		defer f.ClientSet.CoreV1().ServiceAccounts(namespace).Delete(context.TODO(), serviceAccount, metav1.DeleteOptions{})
 
+		keyvaultName, ok := os.LookupEnv("KEYVAULT_NAME")
+		gomega.Expect(ok).To(gomega.BeTrue(), "KEYVAULT_NAME must be set")
+		keyvaultSecretName, ok := os.LookupEnv("KEYVAULT_SECRET_NAME")
+		gomega.Expect(ok).To(gomega.BeTrue(), "KEYVAULT_SECRET_NAME must be set")
+
 		pod := createPodWithServiceAccount(f.ClientSet, namespace, serviceAccount, "aramase/dotnet:v0.4", nil, nil, []corev1.EnvVar{{
 			Name:  "KEYVAULT_NAME",
-			Value: os.Getenv("KEYVAULT_NAME"),
+			Value: keyvaultName,
 		}, {
 			Name:  "SECRET_NAME",
-			Value: os.Getenv("KEYVAULT_SECRET_NAME"),
+			Value: keyvaultSecretName,
 		}})
 		defer f.ClientSet.CoreV1().Pods(namespace).Delete(context.TODO(), pod.Name, metav1.DeleteOptions{})
 

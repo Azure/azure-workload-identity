@@ -8,6 +8,9 @@ PROXY_IMAGE := $(REGISTRY)/$(PROXY_IMAGE_NAME):$(IMAGE_VERSION)
 INIT_IMAGE := $(REGISTRY)/$(INIT_IMAGE_NAME):$(IMAGE_VERSION)
 WEBHOOK_IMAGE := $(REGISTRY)/$(WEBHOOK_IMAGE_NAME):$(IMAGE_VERSION)
 
+GOOS := $(shell go env GOOS)
+GOARCH :=$(shell go env GOARCH)
+
 # Directories
 ROOT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 BIN_DIR := $(abspath $(ROOT_DIR)/bin)
@@ -49,6 +52,10 @@ SHELLCHECK := $(TOOLS_BIN_DIR)/$(SHELLCHECK_BIN)-$(SHELLCHECK_VER)
 ENVSUBST_VER := v1.2.0
 ENVSUBST_BIN := envsubst
 ENVSUBST := $(TOOLS_BIN_DIR)/$(ENVSUBST_BIN)
+
+HELM_VER := v3.6.2
+HELM_BIN := helm
+HELM := $(TOOLS_BIN_DIR)/$(HELM_BIN)-$(HELM_VER)
 
 # Scripts
 GO_INSTALL := ./hack/go-install.sh
@@ -117,6 +124,10 @@ deploy: $(KUBECTL) $(KUSTOMIZE) $(ENVSUBST)
 	$(KUSTOMIZE) build config/default | $(ENVSUBST) | $(KUBECTL) apply -f -
 	$(KUBECTL) wait --for=condition=Available --timeout=5m -n aad-pi-webhook-system deployment/aad-pi-webhook-controller-manager
 
+.PHONY: uninstall-deploy
+uninstall-deploy: $(KUBECTL) $(KUSTOMIZE) $(ENVSUBST)
+	$(KUSTOMIZE) build config/default | $(ENVSUBST) | $(KUBECTL) delete -f -
+
 ## --------------------------------------
 ## Code Generation
 ## --------------------------------------
@@ -161,7 +172,7 @@ $(KUSTOMIZE):
 $(KUBECTL):
 	mkdir -p $(TOOLS_BIN_DIR)
 	rm -f "$(KUBECTL)*"
-	curl -sfL https://storage.googleapis.com/kubernetes-release/release/$(KUBECTL_VER)/bin/$(shell go env GOOS)/$(shell go env GOARCH)/kubectl -o $(KUBECTL)
+	curl -sfL https://storage.googleapis.com/kubernetes-release/release/$(KUBECTL_VER)/bin/$(GOOS)/$(GOARCH)/kubectl -o $(KUBECTL)
 	ln -sf "$(KUBECTL)" "$(TOOLS_BIN_DIR)/$(KUBECTL_BIN)"
 	chmod +x "$(TOOLS_BIN_DIR)/$(KUBECTL_BIN)" "$(KUBECTL)"
 
@@ -182,6 +193,14 @@ $(SHELLCHECK):
 
 $(ENVSUBST):
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/a8m/envsubst/cmd/envsubst $(ENVSUBST_BIN) $(ENVSUBST_VER)
+
+$(HELM):
+	curl -sfOL "https://get.helm.sh/helm-$(HELM_VER)-$(GOOS)-$(GOARCH).tar.gz"
+	tar -zxvf helm-$(HELM_VER)-$(GOOS)-$(GOARCH).tar.gz
+	cp "$(OS)-$(GOARCH)/$(HELM_BIN)" "$(HELM)"
+	ln -sf "$(HELM)" "$(TOOLS_BIN_DIR)/$(HELM_BIN)"
+	chmod +x "$(TOOLS_BIN_DIR)/$(HELM_BIN)" "$(HELM)"
+	rm -rf helm* $(OS)-$(GOARCH)
 
 CERT_MANAGER_VERSION ?= v1.2.0
 export CERT_MANAGER_VERSION
@@ -230,7 +249,7 @@ test-e2e-run: $(E2E_TEST) $(GINKGO)
 		$(E2E_TEST) -- -kubeconfig=$(KUBECONFIG) -e2e.arc-cluster=$(ARC_CLUSTER) $(E2E_ARGS)
 
 .PHONY: test-e2e
-test-e2e: $(KUBECTL)
+test-e2e: $(KUBECTL) $(HELM)
 	./scripts/ci-e2e.sh
 
 ## --------------------------------------
@@ -266,6 +285,10 @@ clean:
 .PHONY: lint
 lint: $(GOLANGCI_LINT)
 	$(GOLANGCI_LINT) run -v
+
+.PHONY: helm-lint
+helm-lint: $(HELM)
+	$(HELM) lint manifest_staging/charts/pod-identity-webhook
 
 .PHONY: lint-full
 lint-full: $(GOLANGCI_LINT) ## Run slower linters to detect possible issues

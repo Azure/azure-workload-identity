@@ -22,7 +22,11 @@ jobs:
       clean: all
     steps:
       - script: make lint
-        displayName: Run lint
+        displayName: golangci-lint
+      - script: make helm-lint
+        displayName: helm lint
+      - script: go mod tidy && git diff --exit-code go.mod go.sum
+        displayName: go mod tidy
   - job: unit_test
     timeoutInMinutes: 5
     workspace:
@@ -76,15 +80,19 @@ jobs:
         kind_v1_18_19:
           KIND_NODE_VERSION: v1.18.19
           LOCAL_ONLY: "true"
+          TEST_HELM_CHART: "true"
         kind_v1_19_11:
           KIND_NODE_VERSION: v1.19.11
           LOCAL_ONLY: "true"
+          TEST_HELM_CHART: "true"
         kind_v1_20_7:
           KIND_NODE_VERSION: v1.20.7
           LOCAL_ONLY: "true"
-        kind_v1_21_1:
-          KIND_NODE_VERSION: v1.21.1
+          TEST_HELM_CHART: "true"
+        kind_v1_21_2:
+          KIND_NODE_VERSION: v1.21.2
           LOCAL_ONLY: "true"
+          TEST_HELM_CHART: "true"
     steps:
       - script: echo "##vso[task.setvariable variable=CLUSTER_NAME]pod-managed-identity-e2e-$(openssl rand -hex 2)"
         displayName: Set CLUSTER_NAME
