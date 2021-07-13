@@ -110,8 +110,6 @@ test_helm_chart() {
       --set azureTenantID="${AZURE_TENANT_ID}" \
       --namespace aad-pi-webhook-system \
       --wait
-    # TODO: remove this once we have a readiness probe in place
-    sleep 60
     make test-e2e-run
   fi
 
@@ -122,8 +120,6 @@ test_helm_chart() {
     --namespace aad-pi-webhook-system \
     --reuse-values \
     --wait
-  # TODO: remove this once we have a readiness probe in place
-  sleep 60
   make test-e2e-run
 }
 
