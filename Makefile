@@ -4,6 +4,18 @@ INIT_IMAGE_NAME := proxy-init
 WEBHOOK_IMAGE_NAME := webhook
 IMAGE_VERSION ?= v0.2.0
 
+ORG_PATH := github.com/Azure
+PROJECT_NAME := aad-pod-managed-identity
+BUILD_COMMIT := $(shell git rev-parse --short HEAD)
+REPO_PATH := "$(ORG_PATH)/$(PROJECT_NAME)"
+
+# build variables
+BUILD_TIMESTAMP := $$(date +%Y-%m-%d-%H:%M)
+BUILD_TIME_VAR := $(REPO_PATH)/pkg/version.BuildTime
+BUILD_VERSION_VAR := $(REPO_PATH)/pkg/version.BuildVersion
+VCS_VAR := $(REPO_PATH)/pkg/version.Vcs
+LDFLAGS ?= "-X $(BUILD_TIME_VAR)=$(BUILD_TIMESTAMP) -X $(BUILD_VERSION_VAR)=$(IMAGE_VERSION) -X $(VCS_VAR)=$(BUILD_COMMIT)"
+
 PROXY_IMAGE := $(REGISTRY)/$(PROXY_IMAGE_NAME):$(IMAGE_VERSION)
 INIT_IMAGE := $(REGISTRY)/$(INIT_IMAGE_NAME):$(IMAGE_VERSION)
 WEBHOOK_IMAGE := $(REGISTRY)/$(WEBHOOK_IMAGE_NAME):$(IMAGE_VERSION)
@@ -79,7 +91,7 @@ docker-build-proxy:
 
 .PHONY: docker-build-webhook
 docker-build-webhook:
-	docker buildx build --no-cache -t $(WEBHOOK_IMAGE) -f docker/webhook.Dockerfile --platform="linux/amd64" --output=$(OUTPUT_TYPE) .
+	docker buildx build --no-cache --build-arg LDFLAGS=${LDFLAGS} -t $(WEBHOOK_IMAGE) -f docker/webhook.Dockerfile --platform="linux/amd64" --output=$(OUTPUT_TYPE) .
 
 .PHONY: docker-push
 docker-push: docker-push-init docker-push-proxy docker-push-webhook
@@ -105,7 +117,7 @@ all: manager
 # Build manager binary
 .PHONY: manager
 manager: generate fmt vet
-	go build -o bin/manager cmd/webhook/main.go
+	go build -a -ldflags $(LDFLAGS) -o bin/manager cmd/webhook/main.go
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 .PHONY: run

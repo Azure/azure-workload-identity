@@ -12,6 +12,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
+	"github.com/Azure/aad-pod-managed-identity/pkg/version"
 	wh "github.com/Azure/aad-pod-managed-identity/pkg/webhook"
 )
 
@@ -48,7 +49,13 @@ func main() {
 		CertDir:                webhookCertDir,
 		HealthProbeBindAddress: healthAddr,
 	}
-	mgr, err := manager.New(config.GetConfigOrDie(), mgrOpts)
+	cfg := config.GetConfigOrDie()
+	cfg.UserAgent = version.GetUserAgent()
+
+	// log the user agent as it makes it easier to debug issues
+	entryLog.Info(cfg.UserAgent)
+
+	mgr, err := manager.New(cfg, mgrOpts)
 	if err != nil {
 		entryLog.Error(err, "unable to set up controller manager")
 		os.Exit(1)
