@@ -109,3 +109,4 @@ jobs:
       - script: az group delete --name "${CLUSTER_NAME}" --yes --no-wait || true
         displayName: Cleanup
         condition: ne(variables.LOCAL_ONLY, 'true')
+      - template: templates/publish-logs.yaml

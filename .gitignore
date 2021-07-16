@@ -27,3 +27,6 @@ sa.pub
 
 # book
 docs/book/book/
+
+# logs
+_artifacts/

@@ -3,8 +3,12 @@
 package e2e
 
 import (
+	"context"
 	"fmt"
+	"os"
 	"path"
+	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 
@@ -14,17 +18,24 @@ import (
 	"github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/test/e2e/framework"
 	e2ekubectl "k8s.io/kubernetes/test/e2e/framework/kubectl"
 	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
 )
 
 var (
-	arcCluster bool
+	arcCluster     bool
+	c              *kubernetes.Clientset
+	coreNamespaces = []string{
+		metav1.NamespaceSystem,
+		"aad-pi-webhook-system",
+	}
 )
 
 var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
-	c, err := framework.LoadClientset()
+	var err error
+	c, err = framework.LoadClientset()
 	if err != nil {
 		framework.Failf("error loading clientset: %v", err)
 	}
@@ -53,7 +64,7 @@ var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
 
 	// Ensure all pods are running and ready before starting tests
 	podStartupTimeout := framework.TestContext.SystemPodsStartupTimeout
-	for _, namespace := range []string{metav1.NamespaceSystem, "aad-pi-webhook-system", "cert-manager"} {
+	for _, namespace := range coreNamespaces {
 		if err := e2epod.WaitForPodsRunningReady(c, namespace, int32(framework.TestContext.MinStartupPods), int32(framework.TestContext.AllowedNotReadyNodes), podStartupTimeout, map[string]string{}); err != nil {
 			framework.DumpAllNamespaceInfo(c, namespace)
 			e2ekubectl.LogFailedContainers(c, namespace, framework.Logf)
@@ -75,7 +86,66 @@ var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
 var _ = ginkgo.SynchronizedAfterSuite(func() {
 	framework.Logf("Running AfterSuite actions on all node")
 	framework.RunCleanupActions()
-}, func() {})
+}, func() {
+	collectPodLogs()
+})
+
+func collectPodLogs() {
+	var wg sync.WaitGroup
+	var since time.Time
+	if os.Getenv("SOAK_CLUSTER") == "true" {
+		// get logs for the last 24h since e2e is run against soak clusters every 24h
+		since = time.Now().Add(-24 * time.Hour)
+	}
+
+	for _, namespace := range coreNamespaces {
+		pods, err := c.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{})
+		if err != nil {
+			framework.Logf("failed to list pods from %s: %v", namespace, err)
+			continue
+		}
+
+		for _, pod := range pods.Items {
+			for _, container := range pod.Spec.Containers {
+				wg.Add(1)
+				go func(namespace string, pod corev1.Pod, container corev1.Container) {
+					defer ginkgo.GinkgoRecover()
+					defer wg.Done()
+
+					framework.Logf("fetching logs from pod %s/%s, container %s", namespace, pod.Name, container.Name)
+
+					logFile := path.Join(framework.TestContext.ReportDir, namespace, pod.Name, container.Name+".log")
+					gomega.Expect(os.MkdirAll(filepath.Dir(logFile), 0755)).To(gomega.Succeed())
+
+					f, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+					if err != nil {
+						// Failing to fetch logs should not cause the test to fail
+						framework.Logf("error opening file to write pod logs: %v", err)
+						return
+					}
+					defer f.Close()
+
+					var log string
+					if since.IsZero() {
+						log, err = e2epod.GetPodLogs(c, namespace, pod.Name, container.Name)
+					} else {
+						log, err = e2epod.GetPodLogsSince(c, namespace, pod.Name, container.Name, since)
+					}
+					if err != nil {
+						framework.Logf("error when getting logs from pod %s/%s, container %s: %v", namespace, pod.Name, container.Name, err)
+						return
+					}
+
+					_, err = f.Write([]byte(log))
+					if err != nil {
+						framework.Logf("error when writing logs to %s: %v", logFile, err)
+					}
+				}(namespace, pod, container)
+			}
+		}
+	}
+	wg.Wait()
+}
 
 // RunE2ETests checks configuration parameters (specified through flags) and then runs
 // E2E tests using the Ginkgo runner.
