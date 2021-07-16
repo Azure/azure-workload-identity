@@ -247,18 +247,19 @@ $(E2E_TEST):
 # Ginkgo configurations
 GINKGO_FOCUS ?=
 GINKGO_SKIP ?=
-GINKGO_NODES ?= 5
+GINKGO_NODES ?= 3
 GINKGO_NO_COLOR ?= false
 GINKGO_ARGS ?= -focus="$(GINKGO_FOCUS)" -skip="$(GINKGO_SKIP)" -nodes=$(GINKGO_NODES) -noColor=$(GINKGO_NO_COLOR)
 
 # E2E configurations
-E2E_ARGS ?=
 KUBECONFIG ?= $(HOME)/.kube/config
+E2E_ARGS := -kubeconfig=$(KUBECONFIG) -report-dir=$(PWD)/_artifacts -e2e.arc-cluster=$(ARC_CLUSTER)
+E2E_EXTRA_ARGS ?=
 
 .PHONY: test-e2e-run
 test-e2e-run: $(E2E_TEST) $(GINKGO)
 	$(GINKGO) -v -trace $(GINKGO_ARGS) \
-		$(E2E_TEST) -- -kubeconfig=$(KUBECONFIG) -e2e.arc-cluster=$(ARC_CLUSTER) $(E2E_ARGS)
+		$(E2E_TEST) -- $(E2E_ARGS) $(E2E_EXTRA_ARGS)
 
 .PHONY: test-e2e
 test-e2e: $(KUBECTL) $(HELM)

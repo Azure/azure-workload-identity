@@ -1,0 +1,18 @@
+parameters:
+  - name: log_path
+    type: string
+    default: _artifacts
+
+steps:
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: JUnit
+      testResultsFiles: "_artifacts/**/junit*.xml"
+    displayName: Publish test results
+    condition: always()
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathToPublish: ${{ parameters.log_path }}
+      artifactName: artifacts/$(Agent.JobName)
+    displayName: Publish logs
+    condition: always()
