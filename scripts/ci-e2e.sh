@@ -84,6 +84,8 @@ main() {
 
   create_cluster
   make clean deploy
+  # adding a sleep here because the cert mount is not ready immediately after the deploy
+  sleep 120
 
   if [[ -n "${WINDOWS_NODE_NAME:-}" ]]; then
     # remove the taint from the windows node we introduced above
@@ -110,6 +112,8 @@ test_helm_chart() {
       --set azureTenantID="${AZURE_TENANT_ID}" \
       --namespace aad-pi-webhook-system \
       --wait
+    # adding a sleep here because the cert mount is not ready immediately after the deploy
+    sleep 120
     make test-e2e-run
   fi
 
@@ -120,6 +124,8 @@ test_helm_chart() {
     --namespace aad-pi-webhook-system \
     --reuse-values \
     --wait
+  # adding a sleep here because the cert mount is not ready immediately after the deploy
+  sleep 120
   make test-e2e-run
 }
 
