@@ -4,6 +4,10 @@ pr:
   branches:
     include:
       - main
+  paths:
+    exclude:
+    - docs
+    - README.md
 
 pool: staging-pool
 
