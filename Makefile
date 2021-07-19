@@ -131,7 +131,7 @@ AZURE_TENANT_ID ?=
 
 .PHONY: deploy
 deploy: $(KUBECTL) $(KUSTOMIZE) $(ENVSUBST)
-	$(MAKE) manifests install-cert-manager
+	$(MAKE) manifests
 	cd config/manager && $(KUSTOMIZE) edit set image manager=$(WEBHOOK_IMAGE)
 	$(KUSTOMIZE) build config/default | $(ENVSUBST) | $(KUBECTL) apply -f -
 	$(KUBECTL) wait --for=condition=Available --timeout=5m -n aad-pi-webhook-system deployment/aad-pi-webhook-controller-manager
@@ -213,14 +213,6 @@ $(HELM):
 	ln -sf "$(HELM)" "$(TOOLS_BIN_DIR)/$(HELM_BIN)"
 	chmod +x "$(TOOLS_BIN_DIR)/$(HELM_BIN)" "$(HELM)"
 	rm -rf helm* $(OS)-$(GOARCH)
-
-CERT_MANAGER_VERSION ?= v1.2.0
-export CERT_MANAGER_VERSION
-
-# Install cert manager in the cluster
-.PHONY: install-cert-manager
-install-cert-manager: $(KUBECTL)
-	./hack/install-cert-manager.sh
 
 ## --------------------------------------
 ## Testing

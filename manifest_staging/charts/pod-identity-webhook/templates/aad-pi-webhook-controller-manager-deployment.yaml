@@ -26,9 +26,15 @@ spec:
     spec:
       containers:
       - args:
-        - -arc-cluster={{ .Values.arcCluster }}
+        - --arc-cluster={{ .Values.arcCluster }}
         command:
         - /manager
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
         envFrom:
         - configMapRef:
             name: aad-pi-webhook-config
@@ -53,13 +59,14 @@ spec:
         resources:
           {{- toYaml .Values.resources | nindent 10 }}
         volumeMounts:
-        - mountPath: /tmp/k8s-webhook-server/serving-certs
+        - mountPath: /certs
           name: cert
           readOnly: true
       nodeSelector:
         {{- toYaml .Values.nodeSelector | nindent 8 }}
+      serviceAccountName: aad-pi-webhook-admin
       volumes:
       - name: cert
         secret:
           defaultMode: 420
-          secretName: webhook-server-cert
+          secretName: aad-pi-webhook-server-cert

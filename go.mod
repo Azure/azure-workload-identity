@@ -7,6 +7,7 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.13.0
+	github.com/open-policy-agent/cert-controller v0.2.0
 	github.com/pkg/errors v0.9.1
 	k8s.io/api v0.21.2
 	k8s.io/apimachinery v0.21.2

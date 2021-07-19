@@ -18,11 +18,12 @@ spec:
     metadata:
       labels: {}
     spec:
+      serviceAccountName: admin
       containers:
       - command:
         - /manager
         args:
-        - -arc-cluster=${ARC_CLUSTER:-false}
+        - --arc-cluster=${ARC_CLUSTER:-false}
         image: manager:latest
         imagePullPolicy: IfNotPresent
         name: manager
@@ -45,6 +46,12 @@ spec:
           requests:
             cpu: 100m
             memory: 20Mi
+        env:
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
         envFrom:
           - configMapRef:
               name: aad-pi-webhook-config

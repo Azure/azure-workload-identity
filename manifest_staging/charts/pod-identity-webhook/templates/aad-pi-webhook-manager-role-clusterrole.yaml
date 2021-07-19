@@ -1,6 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
+  creationTimestamp: null
   labels:
     app: '{{ template "pod-identity-webhook.name" . }}'
     chart: '{{ template "pod-identity-webhook.name" . }}'
@@ -14,6 +15,18 @@ rules:
   - serviceaccounts
   verbs:
   - create
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - mutatingwebhookconfigurations
+  verbs:
+  - create
+  - delete
   - get
   - list
   - patch

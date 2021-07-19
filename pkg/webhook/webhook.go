@@ -23,6 +23,10 @@ import (
 // +kubebuilder:webhook:path=/mutate-v1-pod,mutating=true,failurePolicy=ignore,groups="",resources=pods,verbs=create;update,versions=v1,name=mpod.aad-pod-identity.io,sideEffects=None,admissionReviewVersions=v1;v1beta1,matchPolicy=Equivalent
 // +kubebuilder:rbac:groups="",resources=serviceaccounts,verbs=get;list;watch;create;update;patch
 
+// this is required for the webhook server certs generated and rotated as part of cert-controller rotator
+// +kubebuilder:rbac:groups="",namespace=aad-pi-webhook-system,resources=secrets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=mutatingwebhookconfigurations,verbs=get;list;watch;create;update;patch;delete
+
 // podMutator mutates pod objects to add project service account token volume
 type podMutator struct {
 	client             client.Client

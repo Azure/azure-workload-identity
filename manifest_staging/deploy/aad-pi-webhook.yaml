@@ -5,6 +5,36 @@ metadata:
     mpod.aad-pod-identity.io/system: "true"
   name: aad-pi-webhook-system
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    mpod.aad-pod-identity.io/system: "true"
+  name: aad-pi-webhook-admin
+  namespace: aad-pi-webhook-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  creationTimestamp: null
+  labels:
+    mpod.aad-pod-identity.io/system: "true"
+  name: aad-pi-webhook-manager-role
+  namespace: aad-pi-webhook-system
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -24,6 +54,34 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - mutatingwebhookconfigurations
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    mpod.aad-pod-identity.io/system: "true"
+  name: aad-pi-webhook-manager-rolebinding
+  namespace: aad-pi-webhook-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: aad-pi-webhook-manager-role
+subjects:
+- kind: ServiceAccount
+  name: aad-pi-webhook-admin
+  namespace: aad-pi-webhook-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -37,7 +95,7 @@ roleRef:
   name: aad-pi-webhook-manager-role
 subjects:
 - kind: ServiceAccount
-  name: default
+  name: aad-pi-webhook-admin
   namespace: aad-pi-webhook-system
 ---
 apiVersion: v1
@@ -49,6 +107,14 @@ metadata:
   labels:
     mpod.aad-pod-identity.io/system: "true"
   name: aad-pi-webhook-config
+  namespace: aad-pi-webhook-system
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  labels:
+    mpod.aad-pod-identity.io/system: "true"
+  name: aad-pi-webhook-server-cert
   namespace: aad-pi-webhook-system
 ---
 apiVersion: v1
@@ -84,9 +150,15 @@ spec:
     spec:
       containers:
       - args:
-        - -arc-cluster=false
+        - --arc-cluster=false
         command:
         - /manager
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
         envFrom:
         - configMapRef:
             name: aad-pi-webhook-config
@@ -116,48 +188,22 @@ spec:
             cpu: 100m
             memory: 20Mi
         volumeMounts:
-        - mountPath: /tmp/k8s-webhook-server/serving-certs
+        - mountPath: /certs
           name: cert
           readOnly: true
       nodeSelector:
         kubernetes.io/os: linux
+      serviceAccountName: aad-pi-webhook-admin
       volumes:
       - name: cert
         secret:
           defaultMode: 420
-          secretName: webhook-server-cert
----
-apiVersion: cert-manager.io/v1alpha2
-kind: Certificate
-metadata:
-  labels:
-    mpod.aad-pod-identity.io/system: "true"
-  name: aad-pi-webhook-serving-cert
-  namespace: aad-pi-webhook-system
-spec:
-  dnsNames:
-  - aad-pi-webhook-webhook-service.aad-pi-webhook-system.svc
-  - aad-pi-webhook-webhook-service.aad-pi-webhook-system.svc.cluster.local
-  issuerRef:
-    kind: Issuer
-    name: aad-pi-webhook-selfsigned-issuer
-  secretName: webhook-server-cert
----
-apiVersion: cert-manager.io/v1alpha2
-kind: Issuer
-metadata:
-  labels:
-    mpod.aad-pod-identity.io/system: "true"
-  name: aad-pi-webhook-selfsigned-issuer
-  namespace: aad-pi-webhook-system
-spec:
-  selfSigned: {}
+          secretName: aad-pi-webhook-server-cert
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
-  annotations:
-    cert-manager.io/inject-ca-from: aad-pi-webhook-system/aad-pi-webhook-serving-cert
+  creationTimestamp: null
   labels:
     mpod.aad-pod-identity.io/system: "true"
   name: aad-pi-webhook-mutating-webhook-configuration

@@ -1,8 +1,7 @@
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
-  annotations:
-    cert-manager.io/inject-ca-from: '{{ .Release.Namespace }}/aad-pi-webhook-serving-cert'
+  creationTimestamp: null
   labels:
     app: '{{ template "pod-identity-webhook.name" . }}'
     chart: '{{ template "pod-identity-webhook.name" . }}'
