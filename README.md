@@ -1,25 +1,51 @@
 # AAD Pod Managed Identity
 
-AAD Pod Managed Identity is the next iteration of [AAD Pod Identity](https://github.com/Azure/aad-pod-identity) that enables Kubernetes applications to access Azure cloud resources securely with [Azure Active Directory](https://azure.microsoft.com/en-us/services/active-directory/) based on annotated [service accounts](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/).
+AAD Pod Managed Identity is the next iteration of [AAD Pod Identity][1] that enables Kubernetes applications to access Azure cloud resources securely with [Azure Active Directory][2] based on annotated [service accounts][3].
 
-## Contributing
+## Quick Start
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
+Check out the AAD Pod Managed Identity [Quick Start][4] to create your first application with .
 
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
+## Overview
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+The repository contains the following components:
 
-## Trademarks
+1.  [Mutating Webhook][5]
+    > The webhook is for mutating pods that reference an annotated service account. The webhook will inject the environment variables and the projected service account token volume.
 
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft
-trademarks or logos is subject to and must follow
-[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
-Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
-Any use of third-party trademarks or logos are subject to those third-party's policies.
+2.  [Proxy Init][6] and [Proxy][7]
+    > The proxy init container and proxy sidecar container will be used for applications that are still using [AAD Pod Identity][1].
+
+## Motivation
+
+*   Industry-standard and Kubernetes-friendly authentication based on OpenID Connect (OIDC).
+*   Remove convoluted steps to set up [cluster role assignments][8].
+*   Remove the following dependencies:
+    *   [Instance Metadata Service][9] (IMDS)
+    *   [CustomResourceDefinitions][10] (CRDs)
+
+## Goals
+
+*   A secure way for cloud-native applications to obtain AAD tokens and access Azure cloud resources in a Kubernetes cluster.
+
+<!-- - Ensure backward compatibility when upgrading from [AAD Pod Identity](https://github.com/Azure/aad-pod-identity). -->
+
+[1]: https://github.com/Azure/aad-pod-identity
+
+[2]: https://azure.microsoft.com/en-us/services/active-directory/
+
+[3]: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+
+[4]: https://shiny-garbanzo-db6e5930.pages.github.io/quick-start.html
+
+[5]: https://shiny-garbanzo-db6e5930.pages.github.io/concepts.html#mutating-webhook
+
+[6]: https://shiny-garbanzo-db6e5930.pages.github.io/concepts.html#proxy-init
+
+[7]: https://shiny-garbanzo-db6e5930.pages.github.io/concepts.html#proxy
+
+[8]: https://azure.github.io/aad-pod-identity/docs/getting-started/role-assignment/
+
+[9]: https://docs.microsoft.com/en-us/azure/virtual-machines/windows/instance-metadata-service?tabs=windows
+
+[10]: https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/#customresourcedefinitions

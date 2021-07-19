@@ -2,14 +2,14 @@
 
 <!-- toc -->
 
-In this tutorial, we will cover the basics of how to use the AAD Pod Identity webhook to acquire a token to access a secret in an [Azure Key Vault](https://azure.microsoft.com/en-us/services/key-vault/).
+In this tutorial, we will cover the basics of how to use the AAD Pod Identity webhook to acquire a token to access a secret in an [Azure Key Vault][1].
 
 ## Prerequisites
 
-- [kubectl](https://kubernetes.io/docs/tasks/tools/)
-- [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) and [Docker](https://www.docker.com/)
-- [Microsoft Azure](https://azure.microsoft.com/en-us/) account
-- [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
+*   [kubectl][2]
+*   [kind][3] and [Docker][4]
+*   [Microsoft Azure][5] account
+*   [Azure CLI][6]
 
 ## 1. Create and upload OIDC discovery document and JWKs
 
@@ -21,6 +21,7 @@ Generate a public/private key pair:
 openssl genrsa -out sa.key 2048
 openssl rsa -in sa.key -pubout -out sa.pub
 ```
+
 <details>
 <summary>Output</summary>
 
@@ -70,6 +71,7 @@ nodes:
         service-account-key-file: /etc/kubernetes/pki/sa.pub
         service-account-signing-key-file: /etc/kubernetes/pki/sa.key
 ```
+
 <details>
 <summary>Output</summary>
 
@@ -98,6 +100,7 @@ Have a question, bug, or feature request? Let us know! https://kind.sigs.k8s.io/
 </details>
 
 Run the following command to verify that the kind cluster is online:
+
 ```bash
 kubectl get nodes
 ```
@@ -114,7 +117,7 @@ aad-pod-managed-identity-control-plane   Ready    control-plane,master   2m28s  
 
 ## 3. Install cert-manager
 
-[cert-manager](https://github.com/jetstack/cert-manager) is used for provisioning the certificates for the webhook server. Cert manager also has a component called CA injector, which is responsible for injecting the CA bundle into the MutatingWebhookConfiguration.
+[cert-manager][7] is used for provisioning the certificates for the webhook server. Cert manager also has a component called CA injector, which is responsible for injecting the CA bundle into the MutatingWebhookConfiguration.
 
 ```bash
 kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.2.0/cert-manager.yaml
@@ -175,50 +178,49 @@ export AZURE_ENVIRONMENT="AzurePublicCloud"
 
 To install the webhook, choose one of the following options below:
 
-   1. Deployment YAML
+1.  Deployment YAML
 
-      > Replace the Azure tenant ID and cloud environment name in [here](https://github.com/Azure/aad-pod-managed-identity/blob/c6b92d50910091441a71c1cb32517d53649d74e7/manifest_staging/deploy/aad-pi-webhook.yaml#L45-L46) before executing
+    > Replace the Azure tenant ID and cloud environment name in [here][8] before executing
 
-      ```bash
-      sed -i "s/AZURE_TENANT_ID: .*/AZURE_TENANT_ID: ${AZURE_TENANT_ID}/" deploy/aad-pi-webhook.yaml
-      sed -i "s/AZURE_ENVIRONMENT: .*/AZURE_ENVIRONMENT: ${AZURE_ENVIRONMENT}/" deploy/aad-pi-webhook.yaml
-      kubectl apply -f deploy/aad-pi-webhook.yaml
-      ```
+    ```bash
+    sed -i "s/AZURE_TENANT_ID: .*/AZURE_TENANT_ID: ${AZURE_TENANT_ID}/" deploy/aad-pi-webhook.yaml
+    sed -i "s/AZURE_ENVIRONMENT: .*/AZURE_ENVIRONMENT: ${AZURE_ENVIRONMENT}/" deploy/aad-pi-webhook.yaml
+    kubectl apply -f deploy/aad-pi-webhook.yaml
+    ```
 
-      <details>
-      <summary>Output</summary>
+    <details>
+    <summary>Output</summary>
 
-      ```bash
-      namespace/aad-pi-webhook-system created
-      clusterrole.rbac.authorization.k8s.io/aad-pi-webhook-manager-role created
-      clusterrolebinding.rbac.authorization.k8s.io/aad-pi-webhook-manager-rolebinding created
-      configmap/aad-pi-webhook-config created
-      service/aad-pi-webhook-webhook-service created
-      deployment.apps/aad-pi-webhook-controller-manager created
-      certificate.cert-manager.io/aad-pi-webhook-serving-cert created
-      issuer.cert-manager.io/aad-pi-webhook-selfsigned-issuer created
-      mutatingwebhookconfiguration.admissionregistration.k8s.io/aad-pi-webhook-mutating-webhook-configuration created
-      ```
+    ```bash
+    namespace/aad-pi-webhook-system created
+    clusterrole.rbac.authorization.k8s.io/aad-pi-webhook-manager-role created
+    clusterrolebinding.rbac.authorization.k8s.io/aad-pi-webhook-manager-rolebinding created
+    configmap/aad-pi-webhook-config created
+    service/aad-pi-webhook-webhook-service created
+    deployment.apps/aad-pi-webhook-controller-manager created
+    certificate.cert-manager.io/aad-pi-webhook-serving-cert created
+    issuer.cert-manager.io/aad-pi-webhook-selfsigned-issuer created
+    mutatingwebhookconfiguration.admissionregistration.k8s.io/aad-pi-webhook-mutating-webhook-configuration created
+    ```
 
-      </details>
+    </details>
 
+2.  Helm
 
-   1. Helm
+    ```bash
+    helm install pod-identity-webhook manifest_staging/charts/pod-identity-webhook \
+       --namespace aad-pi-webhook-system \
+       --set azureTenantID=<AzureTenantID>
+    ```
 
-      ```bash
-      helm install pod-identity-webhook manifest_staging/charts/pod-identity-webhook \
-         --namespace aad-pi-webhook-system \
-         --set azureTenantID=<AzureTenantID>
-      ```
+    <details>
+    <summary>Output</summary>
 
-      <details>
-      <summary>Output</summary>
+    ```bash
+    TODO
+    ```
 
-      ```bash
-      TODO
-      ```
-
-      </details>
+    </details>
 
 ## 5. Create an Azure Key Vault and secret
 
@@ -446,7 +448,6 @@ Your secret is Hello!
 
 </details>
 
-
 ## 10. Cleanup
 
 ```bash
@@ -456,3 +457,19 @@ kubectl delete sa pod-identity-sa
 az keyvault delete --name ${KEYVAULT_NAME} --resource-group ${RESOURCE_GROUP}
 az ad sp delete --id ${SERVICE_PRINCIPAL_CLIENT_ID}
 ```
+
+[1]: https://azure.microsoft.com/en-us/services/key-vault/
+
+[2]: https://kubernetes.io/docs/tasks/tools/
+
+[3]: https://kind.sigs.k8s.io/docs/user/quick-start/#installation
+
+[4]: https://www.docker.com/
+
+[5]: https://azure.microsoft.com/en-us/
+
+[6]: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli
+
+[7]: https://github.com/jetstack/cert-manager
+
+[8]: https://github.com/Azure/aad-pod-managed-identity/blob/c6b92d50910091441a71c1cb32517d53649d74e7/manifest_staging/deploy/aad-pi-webhook.yaml#L45-L46
