@@ -39,7 +39,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 	})
 
 	// E2E scenario from https://github.com/Azure/aad-pod-managed-identity/tree/main/examples/msal-net/akvdotnet
-	ginkgo.It("should exchange the service account token for an valid AAD token [KindOnly]", func() {
+	ginkgo.It("should exchange the service account token for a valid AAD token [KindOnly]", func() {
 		// trust is only set up for 'pod-identity-sa' service account in the default namespace for now
 		const namespace = "default"
 		serviceAccount := createServiceAccount(f.ClientSet, namespace, "pod-identity-sa", map[string]string{webhook.UsePodIdentityLabel: "true"}, map[string]string{webhook.ClientIDAnnotation: os.Getenv("SERVICE_PRINCIPAL_CLIENT_ID")})
@@ -59,7 +59,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 		}})
 		defer f.ClientSet.CoreV1().Pods(namespace).Delete(context.TODO(), pod.Name, metav1.DeleteOptions{})
 
-		ginkgo.By("validating that the application has exchanged its service account token for an valid AAD token")
+		ginkgo.By("validating that the application has exchanged its service account token for a valid AAD token")
 		time.Sleep(3 * time.Second)
 		stdout, err := e2epod.GetPodLogs(f.ClientSet, namespace, pod.Name, pod.Spec.Containers[0].Name)
 		gomega.Expect(err).To(gomega.BeNil())
