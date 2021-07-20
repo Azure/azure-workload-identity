@@ -39,8 +39,6 @@ jobs:
         env:
           SKIP_PREFLIGHT: "true"
           SERVICE_ACCOUNT_ISSUER: $(SERVICE_ACCOUNT_ISSUER)
-      - script: make install-cert-manager
-        displayName: Installing cert-manager
       - script: |
           sed -i "s/AZURE_TENANT_ID: .*/AZURE_TENANT_ID: ${AZURE_TENANT_ID}/" manifest_staging/deploy/aad-pi-webhook.yaml
           sed -i "s/AZURE_ENVIRONMENT: .*/AZURE_ENVIRONMENT: AzurePublicCloud/" manifest_staging/deploy/aad-pi-webhook.yaml
