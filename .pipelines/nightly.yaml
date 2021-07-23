@@ -112,12 +112,6 @@ jobs:
         displayName: Webhook E2E test suite
         env:
           SKIP_CLEANUP: "true"
-      - script: |
-          KUBECTL="$(pwd)/hack/tools/bin/kubectl"
-          WINDOWS_NODE_NAME="$(${KUBECTL} get node --selector=kubernetes.io/os=windows -ojson | jq -r '.items[0].metadata.name')"
-          ${KUBECTL} taint nodes "${WINDOWS_NODE_NAME}" kubernetes.io/os=windows:NoSchedule --overwrite
-        displayName: Taint Windows nodes before upgrade
-        condition: and(succeeded(), eq(variables.WINDOWS_CLUSTER, 'true'))
       - script: az aks upgrade --resource-group "${CLUSTER_NAME}" --name "${CLUSTER_NAME}" --kubernetes-version 1.21.1 --yes > /dev/null
         displayName: Upgrade cluster
       - script: make test-e2e

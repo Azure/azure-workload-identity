@@ -241,7 +241,8 @@ GINKGO_FOCUS ?=
 GINKGO_SKIP ?=
 GINKGO_NODES ?= 3
 GINKGO_NO_COLOR ?= false
-GINKGO_ARGS ?= -focus="$(GINKGO_FOCUS)" -skip="$(GINKGO_SKIP)" -nodes=$(GINKGO_NODES) -noColor=$(GINKGO_NO_COLOR)
+GINKGO_TIMEOUT ?= 5m
+GINKGO_ARGS ?= -focus="$(GINKGO_FOCUS)" -skip="$(GINKGO_SKIP)" -nodes=$(GINKGO_NODES) -noColor=$(GINKGO_NO_COLOR) -timeout=$(GINKGO_TIMEOUT)
 
 # E2E configurations
 KUBECONFIG ?= $(HOME)/.kube/config
