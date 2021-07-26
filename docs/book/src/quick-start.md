@@ -258,8 +258,7 @@ az keyvault secret set --vault-name ${KEYVAULT_NAME} \
 ## 6. Create a service principal and grant permissions to access the secret
 
 ```bash
-az ad sp create-for-rbac --skip-assignment --name https://test-sp
-export SERVICE_PRINCIPAL_CLIENT_ID="$(az ad sp show --id https://test-sp --query appId -otsv)"
+export SERVICE_PRINCIPAL_CLIENT_ID="$(az ad sp create-for-rbac --skip-assignment --name https://test-sp --query appId -otsv)"
 ```
 
 Set access policy for the service principal to access the keyvault secret:
@@ -301,6 +300,12 @@ serviceaccount/pod-identity-sa created
 ```
 
 </details>
+
+If the service principal is not in the same tenant as the Kubernetes cluster, then annotate the service account with the tenant id of the service principal.
+
+```bash
+kubectl annotate sa pod-identity-sa azure.pod.identity/tenant-id=${TENANT_ID} --overwrite
+```
 
 ## 9. Deploy workload
 
@@ -349,22 +354,22 @@ kubectl describe pod quick-start
 You can verifiy the following injected properties in the output:
 
 | Environment variable   | Description                                           |
-|------------------------|-------------------------------------------------------|
+| ---------------------- | ----------------------------------------------------- |
 | `AZURE_AUTHORITY_HOST` | The Azure Active Directory (AAD) endpoint.            |
 | `AZURE_CLIENT_ID`      | The client ID of the identity.                        |
 | `AZURE_TENANT_ID`      | The tenant ID of the Azure account.                   |
-| `TOKEN_FILE_PATH`      | The path of the projected service account token file.  |
+| `TOKEN_FILE_PATH`      | The path of the projected service account token file. |
 
 <br/>
 
-| Volume mount                                   | Description                                             |
-|------------------------------------------------|---------------------------------------------------------|
-| `/var/run/secrets/tokens/azure-identity-token` | The path of the projected service account token file.    |
+| Volume mount                                   | Description                                           |
+| ---------------------------------------------- | ----------------------------------------------------- |
+| `/var/run/secrets/tokens/azure-identity-token` | The path of the projected service account token file. |
 
 <br/>
 
 | Volume                 | Description                           |
-|------------------------|---------------------------------------|
+| ---------------------- | ------------------------------------- |
 | `azure-identity-token` | The projected service account volume. |
 
 ```log

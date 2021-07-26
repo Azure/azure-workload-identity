@@ -15,6 +15,8 @@ export RESOURCE_GROUP="<AKV resource group or existing resource group>"
 export LOCATION="<location>"
 export KEYVAULT_NAME="<key vault name>"
 export KEYVAULT_SECRET_NAME="<key vault secret name>"
+# this is only required if the keyvault instance is not in the same tenant as the cluster
+export TENANT_ID="<tenant id for the key vault instance>"
 ```
 
 **Prerequisites**
@@ -38,8 +40,7 @@ az keyvault secret set --vault-name ${KEYVAULT_NAME} --name ${KEYVAULT_SECRET_NA
 
 ```bash
 # create service principal
-az ad sp create-for-rbac --skip-assignment --name https://test-sp
-export SERVICE_PRINCIPAL_CLIENT_ID=$(az ad sp show --id https://test-sp --query appId -o tsv)
+export SERVICE_PRINCIPAL_CLIENT_ID=$(az ad sp create-for-rbac --skip-assignment --name https://test-sp --query appId -o tsv)
 
 # set policy to access keyvault secrets
 az keyvault set-policy -n ${KEYVAULT_NAME} --secret-permissions get --spn ${SERVICE_PRINCIPAL_CLIENT_ID}
@@ -63,6 +64,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   annotations:
+    azure.pod.identity/tenant-id: ${TENANT_ID}
     azure.pod.identity/client-id: ${SERVICE_PRINCIPAL_CLIENT_ID}
   labels:
     azure.pod.identity/use: "true"
