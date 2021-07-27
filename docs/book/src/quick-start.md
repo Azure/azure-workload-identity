@@ -271,11 +271,7 @@ az keyvault set-policy --name ${KEYVAULT_NAME} \
 
 </details>
 
-## 7. Setup trust between service principal and cluster OIDC issue
-
-TODO
-
-## 8. Create a Kubernetes service account
+## 7. Create a Kubernetes service account
 
 Create a Kubernetes service account with the required labels and annotations.
 
@@ -306,6 +302,10 @@ If the service principal is not in the same tenant as the Kubernetes cluster, th
 ```bash
 kubectl annotate sa pod-identity-sa azure.pod.identity/tenant-id=${TENANT_ID} --overwrite
 ```
+
+## 8. Setup trust between service principal and cluster OIDC issue
+
+TODO
 
 ## 9. Deploy workload
 
