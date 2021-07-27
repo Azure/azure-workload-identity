@@ -12,6 +12,8 @@ AAD Pod Managed Identity supports the following mappings:
 *   many-to-one (multiple service accounts referencing the same AAD object).
 *   one-to-many (a service account referencing multiple AAD objects by changing the [client ID annotation][15]).
 
+> Note: if the service account annotations are updated, you need to restart the pod for the changes to take effect.
+
 Users who used [aad-pod-identity][3] can think of a service account as an [AzureIdentity][4], except service account is part of the core Kubernetes API, rather than a CRD. This [doc][5] describes a list of available labels and annotaions to configure.
 
 ## Mutating Webhook
