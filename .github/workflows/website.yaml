@@ -1,9 +1,12 @@
-name: Publish GitHub Pages
+name: generate_website
 
 on:
   push:
     branches:
       - main
+    paths:
+      - ".github/workflows/website.yaml"
+      - "docs/**"
 
 jobs:
   deploy:
@@ -21,3 +24,4 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs/book/book
+          destination_dir: ./website
