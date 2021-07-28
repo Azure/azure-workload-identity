@@ -17,6 +17,7 @@ linters:
     - ineffassign
     - misspell
     - nakedret
+    - nilerr
     - prealloc
     - revive
     - staticcheck
@@ -25,5 +26,6 @@ linters:
     - unconvert
     - unused
     - varcheck
+    - whitespace
   # Run with --fast=false for more extensive checks
   fast: true
