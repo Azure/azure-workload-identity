@@ -5,6 +5,7 @@ linters:
   disable-all: true
   enable:
     - deadcode
+    - errcheck
     - errorlint
     - goconst
     - gocyclo

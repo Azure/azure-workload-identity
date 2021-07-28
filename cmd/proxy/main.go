@@ -57,7 +57,7 @@ func (p *proxy) writeResponse(w http.ResponseWriter, res *http.Response) {
 	// Set a special header to notify that the proxy actually serviced the request.
 	w.Header().Set("Server", "pi-sidecar-proxy")
 	w.WriteHeader(res.StatusCode)
-	io.Copy(w, res.Body)
+	_, _ = io.Copy(w, res.Body)
 	res.Body.Close()
 
 	klog.InfoS("request complete", "status", res.StatusCode)
