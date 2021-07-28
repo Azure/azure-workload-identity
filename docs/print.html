@@ -272,50 +272,7 @@ Have a question, bug, or feature request? Let us know! https://kind.sigs.k8s.io/
 aad-pod-managed-identity-control-plane   Ready    control-plane,master   2m28s   v1.21.1   172.18.0.2    &lt;none&gt;        Ubuntu 21.04   5.4.0-1047-azure   containerd://1.5.2
 </code></pre>
 </details>
-<h2 id="3-install-cert-manager"><a class="header" href="#3-install-cert-manager">3. Install cert-manager</a></h2>
-<p><a href="https://github.com/jetstack/cert-manager">cert-manager</a> is used for provisioning the certificates for the webhook server. Cert manager also has a component called CA injector, which is responsible for injecting the CA bundle into the MutatingWebhookConfiguration.</p>
-<pre><code class="language-bash">kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.2.0/cert-manager.yaml
-</code></pre>
-<details>
-<summary>Output</summary>
-<pre><code class="language-bash">customresourcedefinition.apiextensions.k8s.io/issuers.cert-manager.io created
-customresourcedefinition.apiextensions.k8s.io/orders.acme.cert-manager.io created
-namespace/cert-manager created
-serviceaccount/cert-manager-cainjector created
-serviceaccount/cert-manager created
-serviceaccount/cert-manager-webhook created
-clusterrole.rbac.authorization.k8s.io/cert-manager-cainjector created
-clusterrole.rbac.authorization.k8s.io/cert-manager-controller-issuers created
-clusterrole.rbac.authorization.k8s.io/cert-manager-controller-clusterissuers created
-clusterrole.rbac.authorization.k8s.io/cert-manager-controller-certificates created
-clusterrole.rbac.authorization.k8s.io/cert-manager-controller-orders created
-clusterrole.rbac.authorization.k8s.io/cert-manager-controller-challenges created
-clusterrole.rbac.authorization.k8s.io/cert-manager-controller-ingress-shim created
-clusterrole.rbac.authorization.k8s.io/cert-manager-view created
-clusterrole.rbac.authorization.k8s.io/cert-manager-edit created
-clusterrolebinding.rbac.authorization.k8s.io/cert-manager-cainjector created
-clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-issuers created
-clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-clusterissuers created
-clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-certificates created
-clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-orders created
-clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-challenges created
-clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-ingress-shim created
-role.rbac.authorization.k8s.io/cert-manager-cainjector:leaderelection created
-role.rbac.authorization.k8s.io/cert-manager:leaderelection created
-role.rbac.authorization.k8s.io/cert-manager-webhook:dynamic-serving created
-rolebinding.rbac.authorization.k8s.io/cert-manager-cainjector:leaderelection created
-rolebinding.rbac.authorization.k8s.io/cert-manager:leaderelection created
-rolebinding.rbac.authorization.k8s.io/cert-manager-webhook:dynamic-serving created
-service/cert-manager created
-service/cert-manager-webhook created
-deployment.apps/cert-manager-cainjector created
-deployment.apps/cert-manager created
-deployment.apps/cert-manager-webhook created
-mutatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
-validatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
-</code></pre>
-</details>
-<h2 id="4-install-the-aad-pod-identity-webhook"><a class="header" href="#4-install-the-aad-pod-identity-webhook">4. Install the AAD Pod Identity webhook</a></h2>
+<h2 id="3-install-the-aad-pod-identity-webhook"><a class="header" href="#3-install-the-aad-pod-identity-webhook">3. Install the AAD Pod Identity webhook</a></h2>
 <p>Obtain your Azure tenant ID by running the following command:</p>
 <pre><code class="language-bash">export AZURE_TENANT_ID=&quot;$(az account show -s &lt;AzureSubscriptionID&gt; --query tenantId -otsv)&quot;
 # TODO: account for different environments
@@ -335,13 +292,15 @@ kubectl apply -f deploy/aad-pi-webhook.yaml
 <details>
 <summary>Output</summary>
 <pre><code class="language-bash">namespace/aad-pi-webhook-system created
+serviceaccount/aad-pi-webhook-admin created
+role.rbac.authorization.k8s.io/aad-pi-webhook-manager-role created
 clusterrole.rbac.authorization.k8s.io/aad-pi-webhook-manager-role created
+rolebinding.rbac.authorization.k8s.io/aad-pi-webhook-manager-rolebinding created
 clusterrolebinding.rbac.authorization.k8s.io/aad-pi-webhook-manager-rolebinding created
 configmap/aad-pi-webhook-config created
+secret/aad-pi-webhook-server-cert created
 service/aad-pi-webhook-webhook-service created
 deployment.apps/aad-pi-webhook-controller-manager created
-certificate.cert-manager.io/aad-pi-webhook-serving-cert created
-issuer.cert-manager.io/aad-pi-webhook-selfsigned-issuer created
 mutatingwebhookconfiguration.admissionregistration.k8s.io/aad-pi-webhook-mutating-webhook-configuration created
 </code></pre>
 </details>
@@ -359,7 +318,7 @@ mutatingwebhookconfiguration.admissionregistration.k8s.io/aad-pi-webhook-mutatin
 </details>
 </li>
 </ol>
-<h2 id="5-create-an-azure-key-vault-and-secret"><a class="header" href="#5-create-an-azure-key-vault-and-secret">5. Create an Azure Key Vault and secret</a></h2>
+<h2 id="4-create-an-azure-key-vault-and-secret"><a class="header" href="#4-create-an-azure-key-vault-and-secret">4. Create an Azure Key Vault and secret</a></h2>
 <p>Export the following environment variables:</p>
 <pre><code class="language-bash">export RESOURCE_GROUP=&quot;aad-pi-webhook-test&quot;
 export LOCATION=&quot;westus2&quot;
@@ -379,7 +338,7 @@ export KEYVAULT_SECRET_NAME=&quot;my-secret&quot;
    --name ${KEYVAULT_SECRET_NAME} \
    --value &quot;Hello!&quot;
 </code></pre>
-<h2 id="6-create-a-service-principal-and-grant-permissions-to-access-the-secret"><a class="header" href="#6-create-a-service-principal-and-grant-permissions-to-access-the-secret">6. Create a service principal and grant permissions to access the secret</a></h2>
+<h2 id="5-create-a-service-principal-and-grant-permissions-to-access-the-secret"><a class="header" href="#5-create-a-service-principal-and-grant-permissions-to-access-the-secret">5. Create a service principal and grant permissions to access the secret</a></h2>
 <pre><code class="language-bash">export SERVICE_PRINCIPAL_CLIENT_ID=&quot;$(az ad sp create-for-rbac --skip-assignment --name https://test-sp --query appId -otsv)&quot;
 </code></pre>
 <p>Set access policy for the service principal to access the keyvault secret:</p>
@@ -388,7 +347,7 @@ export KEYVAULT_SECRET_NAME=&quot;my-secret&quot;
   --spn ${SERVICE_PRINCIPAL_CLIENT_ID}
 </code></pre>
 </details>
-<h2 id="7-create-a-kubernetes-service-account"><a class="header" href="#7-create-a-kubernetes-service-account">7. Create a Kubernetes service account</a></h2>
+<h2 id="6-create-a-kubernetes-service-account"><a class="header" href="#6-create-a-kubernetes-service-account">6. Create a Kubernetes service account</a></h2>
 <p>Create a Kubernetes service account with the required labels and annotations.</p>
 <pre><code class="language-bash">cat &lt;&lt;EOF | kubectl apply -f -
 apiVersion: v1
@@ -409,9 +368,9 @@ EOF
 <p>If the service principal is not in the same tenant as the Kubernetes cluster, then annotate the service account with the tenant id of the service principal.</p>
 <pre><code class="language-bash">kubectl annotate sa pod-identity-sa azure.pod.identity/tenant-id=${TENANT_ID} --overwrite
 </code></pre>
-<h2 id="8-setup-trust-between-service-principal-and-cluster-oidc-issue"><a class="header" href="#8-setup-trust-between-service-principal-and-cluster-oidc-issue">8. Setup trust between service principal and cluster OIDC issue</a></h2>
+<h2 id="7-setup-trust-between-service-principal-and-cluster-oidc-issue"><a class="header" href="#7-setup-trust-between-service-principal-and-cluster-oidc-issue">7. Setup trust between service principal and cluster OIDC issue</a></h2>
 <p>TODO</p>
-<h2 id="9-deploy-workload"><a class="header" href="#9-deploy-workload">9. Deploy workload</a></h2>
+<h2 id="8-deploy-workload"><a class="header" href="#8-deploy-workload">8. Deploy workload</a></h2>
 <p>Deploy a pod referencing the service account created in the last step:</p>
 <pre><code class="language-bash">cat &lt;&lt;EOF | kubectl apply -f -
 apiVersion: v1
@@ -528,7 +487,7 @@ Events:
 Your secret is Hello!
 </code></pre>
 </details>
-<h2 id="10-cleanup"><a class="header" href="#10-cleanup">10. Cleanup</a></h2>
+<h2 id="9-cleanup"><a class="header" href="#9-cleanup">9. Cleanup</a></h2>
 <pre><code class="language-bash">kubectl delete pod quick-start
 kubectl delete sa pod-identity-sa
 
