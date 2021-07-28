@@ -115,58 +115,7 @@ aad-pod-managed-identity-control-plane   Ready    control-plane,master   2m28s  
 
 </details>
 
-## 3. Install cert-manager
-
-[cert-manager][7] is used for provisioning the certificates for the webhook server. Cert manager also has a component called CA injector, which is responsible for injecting the CA bundle into the MutatingWebhookConfiguration.
-
-```bash
-kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.2.0/cert-manager.yaml
-```
-
-<details>
-<summary>Output</summary>
-
-```bash
-customresourcedefinition.apiextensions.k8s.io/issuers.cert-manager.io created
-customresourcedefinition.apiextensions.k8s.io/orders.acme.cert-manager.io created
-namespace/cert-manager created
-serviceaccount/cert-manager-cainjector created
-serviceaccount/cert-manager created
-serviceaccount/cert-manager-webhook created
-clusterrole.rbac.authorization.k8s.io/cert-manager-cainjector created
-clusterrole.rbac.authorization.k8s.io/cert-manager-controller-issuers created
-clusterrole.rbac.authorization.k8s.io/cert-manager-controller-clusterissuers created
-clusterrole.rbac.authorization.k8s.io/cert-manager-controller-certificates created
-clusterrole.rbac.authorization.k8s.io/cert-manager-controller-orders created
-clusterrole.rbac.authorization.k8s.io/cert-manager-controller-challenges created
-clusterrole.rbac.authorization.k8s.io/cert-manager-controller-ingress-shim created
-clusterrole.rbac.authorization.k8s.io/cert-manager-view created
-clusterrole.rbac.authorization.k8s.io/cert-manager-edit created
-clusterrolebinding.rbac.authorization.k8s.io/cert-manager-cainjector created
-clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-issuers created
-clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-clusterissuers created
-clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-certificates created
-clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-orders created
-clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-challenges created
-clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-ingress-shim created
-role.rbac.authorization.k8s.io/cert-manager-cainjector:leaderelection created
-role.rbac.authorization.k8s.io/cert-manager:leaderelection created
-role.rbac.authorization.k8s.io/cert-manager-webhook:dynamic-serving created
-rolebinding.rbac.authorization.k8s.io/cert-manager-cainjector:leaderelection created
-rolebinding.rbac.authorization.k8s.io/cert-manager:leaderelection created
-rolebinding.rbac.authorization.k8s.io/cert-manager-webhook:dynamic-serving created
-service/cert-manager created
-service/cert-manager-webhook created
-deployment.apps/cert-manager-cainjector created
-deployment.apps/cert-manager created
-deployment.apps/cert-manager-webhook created
-mutatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
-validatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
-```
-
-</details>
-
-## 4. Install the AAD Pod Identity webhook
+## 3. Install the AAD Pod Identity webhook
 
 Obtain your Azure tenant ID by running the following command:
 
@@ -180,7 +129,7 @@ To install the webhook, choose one of the following options below:
 
 1.  Deployment YAML
 
-    > Replace the Azure tenant ID and cloud environment name in [here][8] before executing
+    > Replace the Azure tenant ID and cloud environment name in [here][7] before executing
 
     ```bash
     sed -i "s/AZURE_TENANT_ID: .*/AZURE_TENANT_ID: ${AZURE_TENANT_ID}/" deploy/aad-pi-webhook.yaml
@@ -193,13 +142,15 @@ To install the webhook, choose one of the following options below:
 
     ```bash
     namespace/aad-pi-webhook-system created
+    serviceaccount/aad-pi-webhook-admin created
+    role.rbac.authorization.k8s.io/aad-pi-webhook-manager-role created
     clusterrole.rbac.authorization.k8s.io/aad-pi-webhook-manager-role created
+    rolebinding.rbac.authorization.k8s.io/aad-pi-webhook-manager-rolebinding created
     clusterrolebinding.rbac.authorization.k8s.io/aad-pi-webhook-manager-rolebinding created
     configmap/aad-pi-webhook-config created
+    secret/aad-pi-webhook-server-cert created
     service/aad-pi-webhook-webhook-service created
     deployment.apps/aad-pi-webhook-controller-manager created
-    certificate.cert-manager.io/aad-pi-webhook-serving-cert created
-    issuer.cert-manager.io/aad-pi-webhook-selfsigned-issuer created
     mutatingwebhookconfiguration.admissionregistration.k8s.io/aad-pi-webhook-mutating-webhook-configuration created
     ```
 
@@ -222,7 +173,7 @@ To install the webhook, choose one of the following options below:
 
     </details>
 
-## 5. Create an Azure Key Vault and secret
+## 4. Create an Azure Key Vault and secret
 
 Export the following environment variables:
 
@@ -255,7 +206,7 @@ az keyvault secret set --vault-name ${KEYVAULT_NAME} \
    --value "Hello!"
 ```
 
-## 6. Create a service principal and grant permissions to access the secret
+## 5. Create a service principal and grant permissions to access the secret
 
 ```bash
 export SERVICE_PRINCIPAL_CLIENT_ID="$(az ad sp create-for-rbac --skip-assignment --name https://test-sp --query appId -otsv)"
@@ -271,7 +222,7 @@ az keyvault set-policy --name ${KEYVAULT_NAME} \
 
 </details>
 
-## 7. Create a Kubernetes service account
+## 6. Create a Kubernetes service account
 
 Create a Kubernetes service account with the required labels and annotations.
 
@@ -303,11 +254,11 @@ If the service principal is not in the same tenant as the Kubernetes cluster, th
 kubectl annotate sa pod-identity-sa azure.pod.identity/tenant-id=${TENANT_ID} --overwrite
 ```
 
-## 8. Setup trust between service principal and cluster OIDC issue
+## 7. Setup trust between service principal and cluster OIDC issue
 
 TODO
 
-## 9. Deploy workload
+## 8. Deploy workload
 
 Deploy a pod referencing the service account created in the last step:
 
@@ -453,7 +404,7 @@ Your secret is Hello!
 
 </details>
 
-## 10. Cleanup
+## 9. Cleanup
 
 ```bash
 kubectl delete pod quick-start
@@ -475,6 +426,4 @@ az ad sp delete --id ${SERVICE_PRINCIPAL_CLIENT_ID}
 
 [6]: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli
 
-[7]: https://github.com/jetstack/cert-manager
-
-[8]: https://github.com/Azure/aad-pod-managed-identity/blob/c6b92d50910091441a71c1cb32517d53649d74e7/manifest_staging/deploy/aad-pi-webhook.yaml#L45-L46
+[7]: https://github.com/Azure/aad-pod-managed-identity/blob/c6b92d50910091441a71c1cb32517d53649d74e7/manifest_staging/deploy/aad-pi-webhook.yaml#L45-L46
