@@ -1,0 +1,655 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>AAD Pod Managed Identity</title>
+                <meta name="robots" content="noindex" />
+                
+
+        <!-- Custom HTML head -->
+        
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+                <link rel="icon" href="favicon.svg">
+                        <link rel="shortcut icon" href="favicon.png">
+                <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+                <link rel="stylesheet" href="css/print.css" media="print">
+        
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+                <link rel="stylesheet" href="fonts/fonts.css">
+        
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+            </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><a href="quick-start.html">Quick Start</a></li><li class="chapter-item expanded affix "><a href="concepts.html">Concepts</a></li><li class="chapter-item expanded "><a href="topics.html"><strong aria-hidden="true">1.</strong> Topics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="topics/labels-and-annotations.html"><strong aria-hidden="true">1.1.</strong> Labels And Annotations</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Troubleshooting</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> Known Limitations</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Developers</div></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="code-of-conduct.html"><strong aria-hidden="true">6.</strong> Code of Conduct</a></li></ol>            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                                                <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                                            </div>
+
+                    <h1 class="menu-title">AAD Pod Managed Identity</h1>
+
+                    <div class="right-buttons">
+                                                <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                                                                        <a href="https://github.com/Azure/aad-pod-managed-identity" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                                                
+                    </div>
+                </div>
+
+                                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
+<p>AAD Pod Managed Identity is the next iteration of <a href="https://github.com/Azure/aad-pod-identity">AAD Pod Identity</a> that enables Kubernetes applications to access Azure cloud resources securely with <a href="https://azure.microsoft.com/en-us/services/active-directory/">Azure Active Directory</a> based on annotated <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/">service accounts</a>.</p>
+<h2 id="quick-start"><a class="header" href="#quick-start">Quick Start</a></h2>
+<p>Check out the AAD Pod Managed Identity <a href="https://shiny-garbanzo-db6e5930.pages.github.io/quick-start.html">Quick Start</a> to create your first application with .</p>
+<h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
+<p>The repository contains the following components:</p>
+<ol>
+<li>
+<p><a href="https://shiny-garbanzo-db6e5930.pages.github.io/concepts.html#mutating-webhook">Mutating Webhook</a></p>
+<blockquote>
+<p>The webhook is for mutating pods that reference an annotated service account. The webhook will inject the environment variables and the projected service account token volume.</p>
+</blockquote>
+</li>
+<li>
+<p><a href="https://shiny-garbanzo-db6e5930.pages.github.io/concepts.html#proxy-init">Proxy Init</a> and <a href="https://shiny-garbanzo-db6e5930.pages.github.io/concepts.html#proxy">Proxy</a></p>
+<blockquote>
+<p>The proxy init container and proxy sidecar container will be used for applications that are still using <a href="https://github.com/Azure/aad-pod-identity">AAD Pod Identity</a>.</p>
+</blockquote>
+</li>
+</ol>
+<h2 id="motivation"><a class="header" href="#motivation">Motivation</a></h2>
+<ul>
+<li>Industry-standard and Kubernetes-friendly authentication based on OpenID Connect (OIDC).</li>
+<li>Remove convoluted steps to set up <a href="https://azure.github.io/aad-pod-identity/docs/getting-started/role-assignment/">cluster role assignments</a>.</li>
+<li>Remove the following dependencies:
+<ul>
+<li><a href="https://docs.microsoft.com/en-us/azure/virtual-machines/windows/instance-metadata-service?tabs=windows">Instance Metadata Service</a> (IMDS)</li>
+<li><a href="https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/#customresourcedefinitions">CustomResourceDefinitions</a> (CRDs)</li>
+</ul>
+</li>
+</ul>
+<h2 id="goals"><a class="header" href="#goals">Goals</a></h2>
+<ul>
+<li>A secure way for cloud-native applications to obtain AAD tokens and access Azure cloud resources in a Kubernetes cluster.</li>
+</ul>
+<!-- - Ensure backward compatibility when upgrading from [AAD Pod Identity](https://github.com/Azure/aad-pod-identity). -->
+<div style="break-before: page; page-break-before: always;"></div><h1 id="quick-start-1"><a class="header" href="#quick-start-1">Quick Start</a></h1>
+<!-- toc -->
+<p>In this tutorial, we will cover the basics of how to use the AAD Pod Identity webhook to acquire a token to access a secret in an <a href="https://azure.microsoft.com/en-us/services/key-vault/">Azure Key Vault</a>.</p>
+<h2 id="prerequisites"><a class="header" href="#prerequisites">Prerequisites</a></h2>
+<ul>
+<li><a href="https://kubernetes.io/docs/tasks/tools/">kubectl</a></li>
+<li><a href="https://kind.sigs.k8s.io/docs/user/quick-start/#installation">kind</a> and <a href="https://www.docker.com/">Docker</a></li>
+<li><a href="https://azure.microsoft.com/en-us/">Microsoft Azure</a> account</li>
+<li><a href="https://docs.microsoft.com/en-us/cli/azure/install-azure-cli">Azure CLI</a></li>
+</ul>
+<h2 id="1-create-and-upload-oidc-discovery-document-and-jwks"><a class="header" href="#1-create-and-upload-oidc-discovery-document-and-jwks">1. Create and upload OIDC discovery document and JWKs</a></h2>
+<p>Generate a public/private key pair:</p>
+<blockquote>
+<p>Skip this step if you are planning to bring your own keys.</p>
+</blockquote>
+<pre><code class="language-bash">openssl genrsa -out sa.key 2048
+openssl rsa -in sa.key -pubout -out sa.pub
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code class="language-bash">Generating RSA private key, 2048 bit long modulus
+..............+++
+......+++
+e is 65537 (0x10001)
+writing RSA key
+</code></pre>
+</details>
+<p>TODO (steps to upload files to a storage account)</p>
+<h2 id="2-create-a-kind-cluster"><a class="header" href="#2-create-a-kind-cluster">2. Create a kind cluster</a></h2>
+<p>Export the following environment variables:</p>
+<pre><code class="language-bash">export SERVICE_ACCOUNT_ISSUER=TODO
+export SERVICE_ACCOUNT_KEY_FILE=$(pwd)/sa.pub
+export SERVICE_ACCOUNT_SIGNING_KEY_FILE=$(pwd)/sa.key
+</code></pre>
+<p>Create a kind cluster with one control plane node and customize various service account-related flags for the API server:</p>
+<blockquote>
+<p>The minimum supported Kubernetes version for the webhook is v1.18.0, however, we recommend using Kubernetes version v1.20.0+.</p>
+</blockquote>
+<pre><code class="language-bash">kind create cluster --name aad-pod-managed-identity --image kindest/node:v1.21.1 --config=-
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+  extraMounts:
+    - hostPath: ${SERVICE_ACCOUNT_KEY_FILE}
+      containerPath: /etc/kubernetes/pki/sa.pub
+    - hostPath: ${SERVICE_ACCOUNT_SIGNING_KEY_FILE}
+      containerPath: /etc/kubernetes/pki/sa.key
+  kubeadmConfigPatches:
+  - |
+    kind: ClusterConfiguration
+    apiServer:
+      extraArgs:
+        service-account-issuer: ${SERVICE_ACCOUNT_ISSUER}
+        service-account-key-file: /etc/kubernetes/pki/sa.pub
+        service-account-signing-key-file: /etc/kubernetes/pki/sa.key
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code class="language-bash">Creating cluster &quot;aad-pod-managed-identity&quot; ...
+ • Ensuring node image (kindest/node:v1.21.1) 🖼  ...
+ ✓ Ensuring node image (kindest/node:v1.21.1) 🖼
+ • Preparing nodes 📦   ...
+ ✓ Preparing nodes 📦
+ • Writing configuration 📜  ...
+ ✓ Writing configuration 📜
+ • Starting control-plane 🕹️  ...
+ ✓ Starting control-plane 🕹️
+ • Installing CNI 🔌  ...
+ ✓ Installing CNI 🔌
+ • Installing StorageClass 💾  ...
+ ✓ Installing StorageClass 💾
+Set kubectl context to &quot;kind-aad-pod-managed-identity&quot;
+You can now use your cluster with:
+
+kubectl cluster-info --context kind-aad-pod-managed-identity
+
+Have a question, bug, or feature request? Let us know! https://kind.sigs.k8s.io/#community 🙂
+</code></pre>
+</details>
+<p>Run the following command to verify that the kind cluster is online:</p>
+<pre><code class="language-bash">kubectl get nodes
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code class="language-bash">NAME                                     STATUS   ROLES                  AGE     VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE       KERNEL-VERSION     CONTAINER-RUNTIME
+aad-pod-managed-identity-control-plane   Ready    control-plane,master   2m28s   v1.21.1   172.18.0.2    &lt;none&gt;        Ubuntu 21.04   5.4.0-1047-azure   containerd://1.5.2
+</code></pre>
+</details>
+<h2 id="3-install-cert-manager"><a class="header" href="#3-install-cert-manager">3. Install cert-manager</a></h2>
+<p><a href="https://github.com/jetstack/cert-manager">cert-manager</a> is used for provisioning the certificates for the webhook server. Cert manager also has a component called CA injector, which is responsible for injecting the CA bundle into the MutatingWebhookConfiguration.</p>
+<pre><code class="language-bash">kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.2.0/cert-manager.yaml
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code class="language-bash">customresourcedefinition.apiextensions.k8s.io/issuers.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/orders.acme.cert-manager.io created
+namespace/cert-manager created
+serviceaccount/cert-manager-cainjector created
+serviceaccount/cert-manager created
+serviceaccount/cert-manager-webhook created
+clusterrole.rbac.authorization.k8s.io/cert-manager-cainjector created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-issuers created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-clusterissuers created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-certificates created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-orders created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-challenges created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-ingress-shim created
+clusterrole.rbac.authorization.k8s.io/cert-manager-view created
+clusterrole.rbac.authorization.k8s.io/cert-manager-edit created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-cainjector created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-issuers created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-clusterissuers created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-certificates created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-orders created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-challenges created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-ingress-shim created
+role.rbac.authorization.k8s.io/cert-manager-cainjector:leaderelection created
+role.rbac.authorization.k8s.io/cert-manager:leaderelection created
+role.rbac.authorization.k8s.io/cert-manager-webhook:dynamic-serving created
+rolebinding.rbac.authorization.k8s.io/cert-manager-cainjector:leaderelection created
+rolebinding.rbac.authorization.k8s.io/cert-manager:leaderelection created
+rolebinding.rbac.authorization.k8s.io/cert-manager-webhook:dynamic-serving created
+service/cert-manager created
+service/cert-manager-webhook created
+deployment.apps/cert-manager-cainjector created
+deployment.apps/cert-manager created
+deployment.apps/cert-manager-webhook created
+mutatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
+validatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
+</code></pre>
+</details>
+<h2 id="4-install-the-aad-pod-identity-webhook"><a class="header" href="#4-install-the-aad-pod-identity-webhook">4. Install the AAD Pod Identity webhook</a></h2>
+<p>Obtain your Azure tenant ID by running the following command:</p>
+<pre><code class="language-bash">export AZURE_TENANT_ID=&quot;$(az account show -s &lt;AzureSubscriptionID&gt; --query tenantId -otsv)&quot;
+# TODO: account for different environments
+export AZURE_ENVIRONMENT=&quot;AzurePublicCloud&quot;
+</code></pre>
+<p>To install the webhook, choose one of the following options below:</p>
+<ol>
+<li>
+<p>Deployment YAML</p>
+<blockquote>
+<p>Replace the Azure tenant ID and cloud environment name in <a href="https://github.com/Azure/aad-pod-managed-identity/blob/c6b92d50910091441a71c1cb32517d53649d74e7/manifest_staging/deploy/aad-pi-webhook.yaml#L45-L46">here</a> before executing</p>
+</blockquote>
+<pre><code class="language-bash">sed -i &quot;s/AZURE_TENANT_ID: .*/AZURE_TENANT_ID: ${AZURE_TENANT_ID}/&quot; deploy/aad-pi-webhook.yaml
+sed -i &quot;s/AZURE_ENVIRONMENT: .*/AZURE_ENVIRONMENT: ${AZURE_ENVIRONMENT}/&quot; deploy/aad-pi-webhook.yaml
+kubectl apply -f deploy/aad-pi-webhook.yaml
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code class="language-bash">namespace/aad-pi-webhook-system created
+clusterrole.rbac.authorization.k8s.io/aad-pi-webhook-manager-role created
+clusterrolebinding.rbac.authorization.k8s.io/aad-pi-webhook-manager-rolebinding created
+configmap/aad-pi-webhook-config created
+service/aad-pi-webhook-webhook-service created
+deployment.apps/aad-pi-webhook-controller-manager created
+certificate.cert-manager.io/aad-pi-webhook-serving-cert created
+issuer.cert-manager.io/aad-pi-webhook-selfsigned-issuer created
+mutatingwebhookconfiguration.admissionregistration.k8s.io/aad-pi-webhook-mutating-webhook-configuration created
+</code></pre>
+</details>
+</li>
+<li>
+<p>Helm</p>
+<pre><code class="language-bash">helm install pod-identity-webhook manifest_staging/charts/pod-identity-webhook \
+   --namespace aad-pi-webhook-system \
+   --set azureTenantID=&lt;AzureTenantID&gt;
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code class="language-bash">TODO
+</code></pre>
+</details>
+</li>
+</ol>
+<h2 id="5-create-an-azure-key-vault-and-secret"><a class="header" href="#5-create-an-azure-key-vault-and-secret">5. Create an Azure Key Vault and secret</a></h2>
+<p>Export the following environment variables:</p>
+<pre><code class="language-bash">export RESOURCE_GROUP=&quot;aad-pi-webhook-test&quot;
+export LOCATION=&quot;westus2&quot;
+export KEYVAULT_NAME=&quot;aad-pi-webhook-test-$(openssl rand -hex 2)&quot;
+export KEYVAULT_SECRET_NAME=&quot;my-secret&quot;
+</code></pre>
+<p>Create a resource group:</p>
+<pre><code class="language-bash">az group create --name ${RESOURCE_GROUP} --location ${LOCATION}
+</code></pre>
+<p>Create an Azure Key Vault:</p>
+<pre><code class="language-bash">az keyvault create --resource-group ${RESOURCE_GROUP} \
+   --location ${LOCATION} \
+   --name ${KEYVAULT_NAME}
+</code></pre>
+<p>Create a secret:</p>
+<pre><code class="language-bash">az keyvault secret set --vault-name ${KEYVAULT_NAME} \
+   --name ${KEYVAULT_SECRET_NAME} \
+   --value &quot;Hello!&quot;
+</code></pre>
+<h2 id="6-create-a-service-principal-and-grant-permissions-to-access-the-secret"><a class="header" href="#6-create-a-service-principal-and-grant-permissions-to-access-the-secret">6. Create a service principal and grant permissions to access the secret</a></h2>
+<pre><code class="language-bash">export SERVICE_PRINCIPAL_CLIENT_ID=&quot;$(az ad sp create-for-rbac --skip-assignment --name https://test-sp --query appId -otsv)&quot;
+</code></pre>
+<p>Set access policy for the service principal to access the keyvault secret:</p>
+<pre><code class="language-bash">az keyvault set-policy --name ${KEYVAULT_NAME} \
+  --secret-permissions get \
+  --spn ${SERVICE_PRINCIPAL_CLIENT_ID}
+</code></pre>
+</details>
+<h2 id="7-create-a-kubernetes-service-account"><a class="header" href="#7-create-a-kubernetes-service-account">7. Create a Kubernetes service account</a></h2>
+<p>Create a Kubernetes service account with the required labels and annotations.</p>
+<pre><code class="language-bash">cat &lt;&lt;EOF | kubectl apply -f -
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    azure.pod.identity/client-id: ${SERVICE_PRINCIPAL_CLIENT_ID}
+  labels:
+    azure.pod.identity/use: &quot;true&quot;
+  name: pod-identity-sa
+EOF
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code class="language-bash">serviceaccount/pod-identity-sa created
+</code></pre>
+</details>
+<p>If the service principal is not in the same tenant as the Kubernetes cluster, then annotate the service account with the tenant id of the service principal.</p>
+<pre><code class="language-bash">kubectl annotate sa pod-identity-sa azure.pod.identity/tenant-id=${TENANT_ID} --overwrite
+</code></pre>
+<h2 id="8-setup-trust-between-service-principal-and-cluster-oidc-issue"><a class="header" href="#8-setup-trust-between-service-principal-and-cluster-oidc-issue">8. Setup trust between service principal and cluster OIDC issue</a></h2>
+<p>TODO</p>
+<h2 id="9-deploy-workload"><a class="header" href="#9-deploy-workload">9. Deploy workload</a></h2>
+<p>Deploy a pod referencing the service account created in the last step:</p>
+<pre><code class="language-bash">cat &lt;&lt;EOF | kubectl apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: quick-start
+spec:
+  serviceAccountName: pod-identity-sa
+  containers:
+    - image: aramase/dotnet:v0.4
+      imagePullPolicy: IfNotPresent
+      name: oidc
+      env:
+      - name: KEYVAULT_NAME
+        value: ${KEYVAULT_NAME}
+      - name: SECRET_NAME
+        value: ${KEYVAULT_SECRET_NAME}
+  nodeSelector:
+    kubernetes.io/os: linux
+EOF
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code class="language-bash">pod/quick-start created
+</code></pre>
+</details>
+<p>To check whether all properties are injected properly by the webhook:</p>
+<pre><code class="language-bash">kubectl describe pod quick-start
+</code></pre>
+<details>
+<summary>Output</summary>
+<p>You can verifiy the following injected properties in the output:</p>
+<table><thead><tr><th>Environment variable</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>AZURE_AUTHORITY_HOST</code></td><td>The Azure Active Directory (AAD) endpoint.</td></tr>
+<tr><td><code>AZURE_CLIENT_ID</code></td><td>The client ID of the identity.</td></tr>
+<tr><td><code>AZURE_TENANT_ID</code></td><td>The tenant ID of the Azure account.</td></tr>
+<tr><td><code>TOKEN_FILE_PATH</code></td><td>The path of the projected service account token file.</td></tr>
+</tbody></table>
+<br/>
+<table><thead><tr><th>Volume mount</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>/var/run/secrets/tokens/azure-identity-token</code></td><td>The path of the projected service account token file.</td></tr>
+</tbody></table>
+<br/>
+<table><thead><tr><th>Volume</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>azure-identity-token</code></td><td>The projected service account volume.</td></tr>
+</tbody></table>
+<pre><code class="language-log">Name:         quick-start
+Namespace:    default
+Priority:     0
+Node:         aad-pod-managed-identity-control-plane/172.18.0.2
+Start Time:   Wed, 07 Jul 2021 14:45:38 -0700
+Labels:       &lt;none&gt;
+Annotations:  &lt;none&gt;
+Status:       Running
+IP:           10.244.0.9
+IPs:
+  IP:  10.244.0.9
+Containers:
+  oidc:
+    Container ID:   containerd://efa8d09f78dc88dd17518ce5430ea820cef5743b33d77ae2b31e1082cc439218
+    Image:          aramase/dotnet:v0.4
+    Image ID:       docker.io/aramase/dotnet@sha256:821dbaa070bf7e26dd9172092658f6e6f910a2db198723e10b3ebb4e35a99eb5
+    Port:           &lt;none&gt;
+    Host Port:      &lt;none&gt;
+    State:          Running
+      Started:      Wed, 07 Jul 2021 14:45:45 -0700
+    Ready:          True
+    Restart Count:  0
+    Environment:
+      KEYVAULT_NAME:        ${KEYVAULT_NAME}
+      SECRET_NAME:          ${KEYVAULT_SECRET_NAME}
+      AZURE_AUTHORITY_HOST: (Injected by the webhook)
+      AZURE_CLIENT_ID:      (Injected by the webhook)
+      AZURE_TENANT_ID:      (Injected by the webhook)
+      TOKEN_FILE_PATH:      (Injected by the webhook)
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from pod-identity-sa-token-mlgn8 (ro)
+      /var/run/secrets/tokens from azure-identity-token (ro) (Injected by the webhook)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  pod-identity-sa-token-mlgn8:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  pod-identity-sa-token-mlgn8
+    Optional:    false
+  azure-identity-token: (Injected by the webhook)
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  86400
+QoS Class:                   BestEffort
+Node-Selectors:              kubernetes.io/os=linux
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age    From               Message
+  ----    ------     ----   ----               -------
+  Normal  Scheduled  3m27s  default-scheduler  Successfully assigned default/quick-start to aad-pod-managed-identity-control-plane
+  Normal  Pulling    3m26s  kubelet            Pulling image &quot;aramase/dotnet:v0.4&quot;
+  Normal  Pulled     3m21s  kubelet            Successfully pulled image &quot;aramase/dotnet:v0.4&quot; in 5.824712366s
+  Normal  Created    3m20s  kubelet            Created container oidc
+  Normal  Started    3m20s  kubelet            Started container oidc
+</code></pre>
+</details>
+<p>To verify that pod is able to get a token and access the secret from the Key Vault:</p>
+<pre><code class="language-bash">kubectl logs quick-start
+</code></pre>
+<details>
+<summary>Output</summary>
+<p>If successful, the log output would be similar to the following output:</p>
+<pre><code class="language-bash">START 07/07/2021 21:45:45 (quick-start)
+Your secret is Hello!
+</code></pre>
+</details>
+<h2 id="10-cleanup"><a class="header" href="#10-cleanup">10. Cleanup</a></h2>
+<pre><code class="language-bash">kubectl delete pod quick-start
+kubectl delete sa pod-identity-sa
+
+az keyvault delete --name ${KEYVAULT_NAME} --resource-group ${RESOURCE_GROUP}
+az ad sp delete --id ${SERVICE_PRINCIPAL_CLIENT_ID}
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="concepts"><a class="header" href="#concepts">Concepts</a></h1>
+<p><img src="./images/flow-diagram.png" alt="Flow Diagram" /></p>
+<h2 id="service-account"><a class="header" href="#service-account">Service Account</a></h2>
+<blockquote>
+<p>“A service account provides an identity for processes that run in a Pod.” - <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/">source</a></p>
+</blockquote>
+<p>AAD Pod Managed Identity supports the following mappings:</p>
+<ul>
+<li>one-to-one (a service account referencing an AAD object)</li>
+<li>many-to-one (multiple service accounts referencing the same AAD object).</li>
+<li>one-to-many (a service account referencing multiple AAD objects by changing the <a href="../topics/service-account-labels-and-annotations.html#annotations">client ID annotation</a>).</li>
+</ul>
+<blockquote>
+<p>Note: if the service account annotations are updated, you need to restart the pod for the changes to take effect.</p>
+</blockquote>
+<p>Users who used <a href="https://github.com/Azure/aad-pod-identity">aad-pod-identity</a> can think of a service account as an <a href="https://azure.github.io/aad-pod-identity/docs/concepts/azureidentity/">AzureIdentity</a>, except service account is part of the core Kubernetes API, rather than a CRD. This <a href="../topics/service-account-labels-and-annotations.html">doc</a> describes a list of available labels and annotaions to configure.</p>
+<h2 id="mutating-webhook"><a class="header" href="#mutating-webhook">Mutating Webhook</a></h2>
+<p>AAD Pod Managed Identity uses a <a href="https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/">mutating admission webhook</a> to inject the following properties to pods with a service account that is configured to use AAD Pod Managed Identity:</p>
+<h3 id="environment-variables"><a class="header" href="#environment-variables">Environment Variables</a></h3>
+<table><thead><tr><th>Environment variable</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>AZURE_AUTHORITY_HOST</code></td><td>The Azure Active Directory (AAD) endpoint.</td></tr>
+<tr><td><code>AZURE_CLIENT_ID</code></td><td>The client ID of the identity.</td></tr>
+<tr><td><code>AZURE_TENANT_ID</code></td><td>The tenant ID of the Azure account.</td></tr>
+<tr><td><code>TOKEN_FILE_PATH</code></td><td>The path of the projected service account token file.</td></tr>
+</tbody></table>
+<h3 id="volumes"><a class="header" href="#volumes">Volumes</a></h3>
+<table><thead><tr><th>Volume</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>azure-identity-token</code></td><td>The projected service account volume.</td></tr>
+</tbody></table>
+<h3 id="volume-mounts"><a class="header" href="#volume-mounts">Volume Mounts</a></h3>
+<table><thead><tr><th>Volume mount</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>/var/run/secrets/tokens/azure-identity-token</code></td><td>The path of the projected service account token file.</td></tr>
+</tbody></table>
+<p>With these properties injected, the webhook allows pods to use a <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-token-volume-projection">service account token</a> projected to its volume to exchange for a valid AAD token using the <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-overview">Microsoft Authentication Library</a> (MSAL).</p>
+<h2 id="proxy-init"><a class="header" href="#proxy-init">Proxy Init</a></h2>
+<p>Proxy Init is an <a href="https://kubernetes.io/docs/concepts/workloads/pods/init-containers/">init container</a> that establishes an iptables rule to redirect all IMDS requests from <code>169.254.169.254</code> to the <a href="concepts.html#proxy">proxy</a> server by running the following command:</p>
+<pre><code class="language-sh"># Forward outbound traffic for 169.254.169.254:80 to proxy
+iptables -t nat -A OUTPUT -p tcp -d 169.254.169.254 --dport 80 -j REDIRECT --to-port 8000
+</code></pre>
+<h2 id="proxy"><a class="header" href="#proxy">Proxy</a></h2>
+<p>Proxy is a <a href="https://docs.microsoft.com/en-us/azure/architecture/patterns/sidecar">sidecar container</a> that obtains an AAD token using MSAL on behalf of applications that are still relying on the AAD Authentication Library (ADAL), for example, <a href="https://github.com/Azure/aad-pod-identity">AAD Pod Identity</a>.</p>
+<blockquote>
+<p>“Starting June 30th, 2020, we will no longer add new features to ADAL. We’ll continue adding critical security fixes to ADAL until June 30th, 2022. After this date, your apps using ADAL will continue to work, but we recommend upgrading to MSAL to take advantage of the latest features and to stay secure.” - <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-migration#frequently-asked-questions-faq">source</a></p>
+</blockquote>
+<p>All IMDS requests from the container are routed to this proxy server due to an existing iptables rule created by <a href="concepts.html#proxy-init">Proxy Init</a>.</p>
+<h2 id="trust"><a class="header" href="#trust">Trust</a></h2>
+<p>Not all service account tokens can be exchanged for a valid AAD token. Trust between an existing service account and an AAD object (a service principal or a user-assigned identity) has to be established in advance.</p>
+<p>TODO: how to establish trust</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="topics"><a class="header" href="#topics">Topics</a></h1>
+<p>This section contains information about enabling and configuring various features with AAD Pod Managed Identity.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="labels-and-annotations"><a class="header" href="#labels-and-annotations">Labels and Annotations</a></h1>
+<p>The following is a list of available labels and annotations that can be used to configure the behavior when obtaining an AAD token via MSAL.</p>
+<h2 id="service-account-1"><a class="header" href="#service-account-1">Service Account</a></h2>
+<h3 id="labels"><a class="header" href="#labels">Labels</a></h3>
+<table><thead><tr><th>Label</th><th>Description</th><th>Recommened value</th><th>Required?</th></tr></thead><tbody>
+<tr><td><code>azure.pod.identity/use</code></td><td>Represents the service account is to be used for pod identity.</td><td><code>true</code></td><td>✓</td></tr>
+</tbody></table>
+<h3 id="annotations"><a class="header" href="#annotations">Annotations</a></h3>
+<table><thead><tr><th>Annotation</th><th>Description</th><th>Default</th></tr></thead><tbody>
+<tr><td><code>azure.pod.identity/client-id</code></td><td>Represents the identity client ID to be used with the pod.</td><td></td></tr>
+<tr><td><code>azure.pod.identity/tenant-id</code></td><td>Represents the Azure tenant ID to be used with the pod.</td><td><code>AZURE_TENANT_ID</code> environment variable extracted from <a href="https://github.com/Azure/aad-pod-managed-identity/blob/1f4c734cfad7f0653601aa375daf4d32ef0cb5d2/manifest_staging/deploy/aad-pi-webhook.yaml#L43-L52"><code>aad-pi-webhook-config</code></a> ConfigMap</td></tr>
+<tr><td><code>azure.pod.identity/service-account-token-expiration</code></td><td>Represents the <code>expirationSeconds</code> field for the projected service account token. It is an optional field that the user might want to configure this to prevent any downtime caused by errors during service account token refresh. Kubernetes service account token expiry will not be correlated with AAD tokens. AAD tokens will expire in 24 hours after they are issued.</td><td><code>86400</code> (minimum <code>3600</code>)</td></tr>
+</tbody></table>
+<h2 id="pod"><a class="header" href="#pod">Pod</a></h2>
+<h3 id="annotations-1"><a class="header" href="#annotations-1">Annotations</a></h3>
+<table><thead><tr><th>Annotation</th><th>Description</th><th>Default</th></tr></thead><tbody>
+<tr><td><code>azure.pod.identity/service-account-token-expiration</code></td><td>Represents the <code>expirationSeconds</code> field for the projected service account token. It is an optional field that the user might want to configure this to prevent any downtime caused by errors during service account token refresh. Kubernetes service account token expiry will not be correlated with AAD tokens. AAD tokens will expire in 24 hours after they are issued.</td><td><code>86400</code> (minimum <code>3600</code>)</td></tr>
+<tr><td><code>azure.pod.identity/skip-containers</code></td><td>Represents a semi-colon-separated list of containers (e.g. <code>container1;container2</code>) to skip adding projected service account token volume. By default, the projected service account token volume will be added to all containers if the service account is labeled with <code>azure.pod.identity/use: true</code>.</td><td></td></tr>
+</tbody></table>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contributing"><a class="header" href="#contributing">Contributing</a></h1>
+<p>The AAD Pod Managed Identity project welcomes contributions and suggestions. Most contributions require you to agree to a Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us the rights to use your contribution. For details, visit <a href="https://cla.microsoft.com">https://cla.microsoft.com</a>.</p>
+<p>When you submit a pull request, a CLA-bot will automatically determine whether you need to provide a CLA and decorate the PR appropriately (e.g., label, comment). Simply follow the instructions provided by the bot. You will only need to do this once across all repos using our CLA.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="code-of-conduct"><a class="header" href="#code-of-conduct">Code of Conduct</a></h1>
+<p>This project has adopted the <a href="https://opensource.microsoft.com/codeofconduct/">Microsoft Open Source Code of Conduct</a>. For more information, see the <a href="https://opensource.microsoft.com/codeofconduct/faq">Code of Conduct FAQ</a> or contact <a href="mailto:opencode@microsoft.com">opencode@microsoft.com</a> with any additional questions or comments.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                        
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                            </nav>
+
+        </div>
+
+        
+        
+        
+                <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+        
+                <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+                        <script type="text/javascript">
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+                
+    </body>
+</html>
