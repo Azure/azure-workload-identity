@@ -1,0 +1,33 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  labels:
+    app: '{{ template "pod-identity-webhook.name" . }}'
+    chart: '{{ template "pod-identity-webhook.name" . }}'
+    mpod.aad-pod-identity.io/system: "true"
+    release: '{{ .Release.Name }}'
+  name: aad-pi-webhook-mutating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: aad-pi-webhook-webhook-service
+      namespace: '{{ .Release.Namespace }}'
+      path: /mutate-v1-pod
+  failurePolicy: Ignore
+  matchPolicy: Equivalent
+  name: mpod.aad-pod-identity.io
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - pods
+  sideEffects: None

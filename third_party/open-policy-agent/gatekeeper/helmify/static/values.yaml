@@ -9,7 +9,7 @@ image:
   repository: mcr.microsoft.com/oss/azure/aad-pod-managed-identity/webhook
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  release: v0.2.0
+  release: v0.3.0
 nodeSelector:
   kubernetes.io/os: linux
 arcCluster: false
