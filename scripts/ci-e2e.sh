@@ -102,15 +102,16 @@ test_helm_chart() {
   ${KUBECTL} create namespace aad-pi-webhook-system
 
   # test helm upgrade from chart to manifest_staging/chart
-  if [[ -d "${REPO_ROOT}/charts/pod-identity-webhook" ]]; then
-    ${HELM} install pod-identity-webhook "${REPO_ROOT}/charts/pod-identity-webhook" \
-      --set azureTenantID="${AZURE_TENANT_ID}" \
-      --namespace aad-pi-webhook-system \
-      --wait
-    # adding a sleep here because the cert mount is not ready immediately after the deploy
-    sleep 120
-    make test-e2e-run
-  fi
+  # TODO (aramase) re-enable this when the release is complete and v0.3.0 image is available
+  # if [[ -d "${REPO_ROOT}/charts/pod-identity-webhook" ]]; then
+  #   ${HELM} install pod-identity-webhook "${REPO_ROOT}/charts/pod-identity-webhook" \
+  #     --set azureTenantID="${AZURE_TENANT_ID}" \
+  #     --namespace aad-pi-webhook-system \
+  #     --wait
+  #   # adding a sleep here because the cert mount is not ready immediately after the deploy
+  #   sleep 120
+  #   make test-e2e-run
+  # fi
 
   ${HELM} upgrade --install pod-identity-webhook "${REPO_ROOT}/manifest_staging/charts/pod-identity-webhook" \
     --set image.repository="${REGISTRY:-mcr.microsoft.com/oss/azure/aad-pod-managed-identity/webhook}" \
