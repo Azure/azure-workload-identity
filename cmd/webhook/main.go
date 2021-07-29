@@ -61,7 +61,6 @@ func init() {
 }
 
 func main() {
-
 	// TODO (aramase) once webhook is added as an arc extension, use extension
 	// util to check if running in arc cluster.
 	flag.BoolVar(&arcCluster, "arc-cluster", false, "Running on arc cluster")

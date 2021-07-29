@@ -5,6 +5,7 @@ linters:
   disable-all: true
   enable:
     - deadcode
+    - errcheck
     - errorlint
     - goconst
     - gocyclo
@@ -16,12 +17,15 @@ linters:
     - ineffassign
     - misspell
     - nakedret
+    - nilerr
     - prealloc
     - revive
     - staticcheck
     - structcheck
+    - typecheck
     - unconvert
     - unused
     - varcheck
+    - whitespace
   # Run with --fast=false for more extensive checks
   fast: true
