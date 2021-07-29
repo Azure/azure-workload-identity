@@ -1,0 +1,17 @@
+apiVersion: v1
+entries:
+  pod-identity-webhook:
+  - apiVersion: v2
+    appVersion: v0.3.0
+    created: "2021-07-29T03:36:55.905332012Z"
+    description: A Helm chart to install the aad-pod-managed-identity webhook
+    digest: 514d1a639197fa58ed912fa8b5cffc0149f3deb56fca809e9ba5edc47f1120b6
+    home: https://github.com/Azure/aad-pod-managed-identity
+    name: pod-identity-webhook
+    sources:
+    - https://github.com/Azure/aad-pod-managed-identity
+    type: application
+    urls:
+    - https://Azure.github.io/aad-pod-managed-identity/charts/pod-identity-webhook-0.3.0.tgz
+    version: 0.3.0
+generated: "2021-07-29T03:36:55.904642223Z"
