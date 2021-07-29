@@ -1,49 +1,52 @@
 # AAD Managed Pod Identity Helm Chart
 
+## Get Repo
+
+```console
+helm repo add aad-pod-managed-identity https://azure.github.io/aad-pod-managed-identity/charts
+helm repo update
+```
 
 ## Install Chart
 
 ```console
-helm install aad-pi-webhook charts/pod-identity-webhook
+# Helm install with aad-pi-webhook-system namespace already created
+helm install -n aad-pi-webhook-system [RELEASE_NAME] aad-pod-managed-identity/pod-identity-webhook
+
+# Helm install and create namespace
+helm install -n aad-pi-webhook-system [RELEASE_NAME] aad-pod-managed-identity/pod-identity-webhook --create-namespace
 ```
 
 _See [parameters](#parameters) below._
 
 _See [helm install](https://helm.sh/docs/helm/helm_install/) for command documentation._
 
-
 ## Upgrade Chart
 
 ```console
-helm upgrade aad-pi-webhook
+helm upgrade -n aad-pi-webhook-system [RELEASE_NAME] aad-pod-managed-identity/pod-identity-webhook
 ```
 
 ## Parameters
 
-| Parameter                                    | Description                                                                            | Default                                                                   |
-| :--------------------------------------------| :--------------------------------------------------------------------------------------| :-------------------------------------------------------------------------|
-| labels                                       | The labels to add to the aad-managed-pod-identity pods                                 | `mpod.aad-pod-identity.io/system: "true"`                                 |
-| replicaCount                                 | The number of aad-managed-pod-identity replicas to deploy for the webhook              | `1`                                                                       |
-| image.repository                             | Image repository                                                                       | `mcr.microsoft.com/oss/azure/aad-pod-managed-identity/webhook`                                                                        |
-| image.pullPolicy                             | Image pullPolicy                                                                       | `IfNotPresent`                                                            |
-| image.release                                | The image release tag to use                                                           | Current release version: `v0.2.0`                                         |
-| nodeSelector                                 | The node selector to use for pod scheduling                                            | `kubernetes.io/os: linux`                                                 |
-| arcCluster                                   | Specify if it runs on Arc cluster                                                      | `false`                                                                   |
-| resources                                    | The resource request/limits for the container image                                    | limits: 100m CPU, 30Mi, requests: 100m CPU, 20Mi                          |
-| affinity                                     | The node affinity to use for pod scheduling                                            | `{}`                                                                      |
-| tolerations                                  | The tolerations to use for pod scheduling                                              | `[]`                                                                      |
-| service.type                                 | Service type                                                                           | `ClusterIP`                                                               |
-| service.port                                 | Service port                                                                           | `443`                                                                     |
-| service.targetPort                           | Service target port                                                                    | `9443`                                                                    |
-| azureTenantID                                | [required] Azure tenant ID                                                           | ` `                                                                       |
-| azureEnvironment                             | Azure Environment                                                          | `AzurePublicCloud`                                                                       |
-
+| Parameter          | Description                                                               | Default                                                        |
+| :----------------- | :------------------------------------------------------------------------ | :------------------------------------------------------------- |
+| labels             | The labels to add to the aad-managed-pod-identity pods                    | `mpod.aad-pod-identity.io/system: "true"`                      |
+| replicaCount       | The number of aad-managed-pod-identity replicas to deploy for the webhook | `1`                                                            |
+| image.repository   | Image repository                                                          | `mcr.microsoft.com/oss/azure/aad-pod-managed-identity/webhook` |
+| image.pullPolicy   | Image pullPolicy                                                          | `IfNotPresent`                                                 |
+| image.release      | The image release tag to use                                              | Current release version: `v0.3.0`                              |
+| nodeSelector       | The node selector to use for pod scheduling                               | `kubernetes.io/os: linux`                                      |
+| arcCluster         | Specify if it runs on Arc cluster                                         | `false`                                                        |
+| resources          | The resource request/limits for the container image                       | limits: 100m CPU, 30Mi, requests: 100m CPU, 20Mi               |
+| affinity           | The node affinity to use for pod scheduling                               | `{}`                                                           |
+| tolerations        | The tolerations to use for pod scheduling                                 | `[]`                                                           |
+| service.type       | Service type                                                              | `ClusterIP`                                                    |
+| service.port       | Service port                                                              | `443`                                                          |
+| service.targetPort | Service target port                                                       | `9443`                                                         |
+| azureTenantID      | [**REQUIRED**] Azure tenant ID                                            | ``                                                             |
+| azureEnvironment   | Azure Environment                                                         | `AzurePublicCloud`                                             |
 
 ## Contributing Changes
 
-This Helm chart is autogenerated from the AAD Managed Pod Identity static manifest. The
-generator code lives under `third_party/open-policy-agent/gatekeeper/helmify`. To make modifications to this
-template, please edit `kustomization.yaml`, `kustomize-for-helm.yaml` and
-`replacements.go` under that directory and then run `make manifests`. Your
-changes will show up in the `manifest_staging` directory and will be promoted
-to the root `charts` directory the next time a aad-managed-pod-identity release is cut.
+This Helm chart is autogenerated from the AAD Managed Pod Identity static manifest. The generator code lives under `third_party/open-policy-agent/gatekeeper/helmify`. To make modifications to this template, please edit `kustomization.yaml`, `kustomize-for-helm.yaml` and `replacements.go` under that directory and then run `make manifests`. Your changes will show up in the `manifest_staging` directory and will be promoted to the root `charts` directory the next time a aad-pod-managed-identity release is cut.

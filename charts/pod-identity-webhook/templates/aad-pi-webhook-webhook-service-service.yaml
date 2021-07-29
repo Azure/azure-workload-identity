@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: '{{ template "pod-identity-webhook.name" . }}'
+    chart: '{{ template "pod-identity-webhook.name" . }}'
+    mpod.aad-pod-identity.io/system: "true"
+    release: '{{ .Release.Name }}'
+  name: aad-pi-webhook-webhook-service
+  namespace: '{{ .Release.Namespace }}'
+spec:
+  {{- if .Values.service }}
+  type: {{  .Values.service.type | default "ClusterIP" }}
+  {{- end }}
+  ports:
+  - port: 443
+    targetPort: 9443
+  selector:
+    app: '{{ template "pod-identity-webhook.name" . }}'
+    chart: '{{ template "pod-identity-webhook.name" . }}'
+    mpod.aad-pod-identity.io/system: "true"
+    release: '{{ .Release.Name }}'
