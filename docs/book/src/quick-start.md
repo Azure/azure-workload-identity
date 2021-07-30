@@ -256,7 +256,31 @@ kubectl annotate sa pod-identity-sa azure.pod.identity/tenant-id=${TENANT_ID} --
 
 ## 7. Setup trust between service principal and cluster OIDC issue
 
-TODO
+Login to [Azure Cloud Shell][8] and run the following commands:
+
+```bash
+# Get the object ID of the service principal
+export SERVICE_PRINCIPAL_OBJECT_ID="$(az ad app show --id ${SERVICE_PRINCIPAL_CLIENT_ID} --query objectId -otsv)"
+export SERVICE_ACCOUNT_ISSUER=<replace with Issuer URL>
+```
+
+Add the federated identity credential:
+
+```bash
+cat <<EOF > body.json
+{
+  "name": "Kubernetes federated credential",
+  "issuer": "${SERVICE_ACCOUNT_ISSUER}",
+  "subject": "system:serviceaccount:default:pod-identity-sa",
+  "description": "Kubernetes service account federated credential",
+  "audiences": [
+    "api://AzureADTokenExchange"
+  ]
+}
+EOF
+
+az rest --method POST --uri "https://graph.microsoft.com/beta/applications/${SERVICE_PRINCIPAL_OBJECT_ID}/federatedIdentityCredentials" --body @body.json
+```
 
 ## 8. Deploy workload
 
@@ -427,3 +451,5 @@ az ad sp delete --id ${SERVICE_PRINCIPAL_CLIENT_ID}
 [6]: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli
 
 [7]: https://github.com/Azure/aad-pod-managed-identity/blob/c6b92d50910091441a71c1cb32517d53649d74e7/manifest_staging/deploy/aad-pi-webhook.yaml#L45-L46
+
+[8]: https://portal.azure.com/#cloudshell/
