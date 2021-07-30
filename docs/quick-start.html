@@ -332,7 +332,26 @@ EOF
 <pre><code class="language-bash">kubectl annotate sa pod-identity-sa azure.pod.identity/tenant-id=${TENANT_ID} --overwrite
 </code></pre>
 <h2 id="7-setup-trust-between-service-principal-and-cluster-oidc-issue"><a class="header" href="#7-setup-trust-between-service-principal-and-cluster-oidc-issue">7. Setup trust between service principal and cluster OIDC issue</a></h2>
-<p>TODO</p>
+<p>Login to <a href="https://portal.azure.com/#cloudshell/">Azure Cloud Shell</a> and run the following commands:</p>
+<pre><code class="language-bash"># Get the object ID of the service principal
+export SERVICE_PRINCIPAL_OBJECT_ID=&quot;$(az ad app show --id ${SERVICE_PRINCIPAL_CLIENT_ID} --query objectId -otsv)&quot;
+export SERVICE_ACCOUNT_ISSUER=&lt;replace with Issuer URL&gt;
+</code></pre>
+<p>Add the federated identity credential:</p>
+<pre><code class="language-bash">cat &lt;&lt;EOF &gt; body.json
+{
+  &quot;name&quot;: &quot;Kubernetes federated credential&quot;,
+  &quot;issuer&quot;: &quot;${SERVICE_ACCOUNT_ISSUER}&quot;,
+  &quot;subject&quot;: &quot;system:serviceaccount:default:pod-identity-sa&quot;,
+  &quot;description&quot;: &quot;Kubernetes service account federated credential&quot;,
+  &quot;audiences&quot;: [
+    &quot;api://AzureADTokenExchange&quot;
+  ]
+}
+EOF
+
+az rest --method POST --uri &quot;https://graph.microsoft.com/beta/applications/${SERVICE_PRINCIPAL_OBJECT_ID}/federatedIdentityCredentials&quot; --body @body.json
+</code></pre>
 <h2 id="8-deploy-workload"><a class="header" href="#8-deploy-workload">8. Deploy workload</a></h2>
 <p>Deploy a pod referencing the service account created in the last step:</p>
 <pre><code class="language-bash">cat &lt;&lt;EOF | kubectl apply -f -
