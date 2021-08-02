@@ -29,7 +29,7 @@ create_cluster() {
 
     # assume BYO cluster if KUBECONFIG is defined
     if [[ -z "${KUBECONFIG:-}" ]]; then
-      az aks get-credentials --resource-group "${CLUSTER_NAME}" --name "${CLUSTER_NAME}"
+      az aks get-credentials --resource-group "${CLUSTER_NAME}" --name "${CLUSTER_NAME}" --overwrite-existing
     fi
 
     # assume one windows node for now
