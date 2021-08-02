@@ -162,7 +162,7 @@ spec:
         envFrom:
         - configMapRef:
             name: aad-pi-webhook-config
-        image: mcr.microsoft.com/oss/azure/aad-pod-managed-identity/webhook:v0.2.0
+        image: mcr.microsoft.com/oss/azure/aad-pod-managed-identity/webhook:v0.3.0
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
