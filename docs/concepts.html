@@ -156,12 +156,12 @@
 <ul>
 <li>one-to-one (a service account referencing an AAD object)</li>
 <li>many-to-one (multiple service accounts referencing the same AAD object).</li>
-<li>one-to-many (a service account referencing multiple AAD objects by changing the <a href="../topics/service-account-labels-and-annotations.html#annotations">client ID annotation</a>).</li>
+<li>one-to-many (a service account referencing multiple AAD objects by changing the <a href="../topics/labels-and-annotations.html#annotations">client ID annotation</a>).</li>
 </ul>
 <blockquote>
 <p>Note: if the service account annotations are updated, you need to restart the pod for the changes to take effect.</p>
 </blockquote>
-<p>Users who used <a href="https://github.com/Azure/aad-pod-identity">aad-pod-identity</a> can think of a service account as an <a href="https://azure.github.io/aad-pod-identity/docs/concepts/azureidentity/">AzureIdentity</a>, except service account is part of the core Kubernetes API, rather than a CRD. This <a href="../topics/service-account-labels-and-annotations.html">doc</a> describes a list of available labels and annotaions to configure.</p>
+<p>Users who used <a href="https://github.com/Azure/aad-pod-identity">aad-pod-identity</a> can think of a service account as an <a href="https://azure.github.io/aad-pod-identity/docs/concepts/azureidentity/">AzureIdentity</a>, except service account is part of the core Kubernetes API, rather than a CRD. This <a href="../topics/service-account-labels-and-annotations.html">doc</a> describes a list of available labels and annotations to configure.</p>
 <h2 id="mutating-webhook"><a class="header" href="#mutating-webhook">Mutating Webhook</a></h2>
 <p>AAD Pod Managed Identity uses a <a href="https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/">mutating admission webhook</a> to inject the following properties to pods with a service account that is configured to use AAD Pod Managed Identity:</p>
 <h3 id="environment-variables"><a class="header" href="#environment-variables">Environment Variables</a></h3>
