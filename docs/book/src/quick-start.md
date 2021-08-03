@@ -6,10 +6,10 @@ In this tutorial, we will cover the basics of how to use the AAD Pod Identity we
 
 ## Prerequisites
 
-*   [kubectl][2]
-*   [kind][3] and [Docker][4]
-*   [Microsoft Azure][5] account
-*   [Azure CLI][6]
+* [kubectl][2]
+* [kind][3] and [Docker][4]
+* [Microsoft Azure][5] account
+* [Azure CLI][6]
 
 ## 1. Create and upload OIDC discovery document and JWKs
 
