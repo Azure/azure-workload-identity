@@ -31,6 +31,7 @@ jobs:
       # - SERVICE_ACCOUNT_ISSUER
       - group: e2e-environment-variables
     steps:
+      - template: templates/setup-go.yaml
       - script: |
           openssl genrsa -out sa.key 2048
           openssl rsa -in sa.key -pubout -out sa.pub
@@ -79,6 +80,7 @@ jobs:
           ARC_CLUSTER: "true"
           CLUSTER_NAME: "pmi-aks-arc"
     steps:
+      - template: templates/setup-go.yaml
       - script: make test-e2e
         displayName: Webhook E2E test suite
       - template: templates/publish-logs.yaml
@@ -106,6 +108,7 @@ jobs:
         upgrade_arc:
           ARC_CLUSTER: "true"
     steps:
+      - template: templates/setup-go.yaml
       - script: echo "##vso[task.setvariable variable=CLUSTER_NAME]pod-managed-identity-e2e-$(openssl rand -hex 2)"
         displayName: Set CLUSTER_NAME
       - script: make test-e2e
@@ -149,6 +152,7 @@ jobs:
         kind_v1_21_2:
           KIND_NODE_VERSION: v1.21.2
     steps:
+      - template: templates/setup-go.yaml
       - script: make test-e2e
         displayName: Webhook E2E test suite
         env:
