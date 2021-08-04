@@ -2,7 +2,7 @@ REGISTRY ?= mcr.microsoft.com/oss/azure/aad-pod-managed-identity
 PROXY_IMAGE_NAME := proxy
 INIT_IMAGE_NAME := proxy-init
 WEBHOOK_IMAGE_NAME := webhook
-IMAGE_VERSION ?= v0.2.0
+IMAGE_VERSION ?= v0.3.0
 
 ORG_PATH := github.com/Azure
 PROJECT_NAME := aad-pod-managed-identity
@@ -309,8 +309,8 @@ shellcheck: $(SHELLCHECK)
 ## --------------------------------------
 
 release-manifest:
-	@sed -i -e 's/^VERSION := .*/VERSION := ${NEW_VERSION}/' ./Makefile
-	$(KUSTOMIZE) edit config/default set image $(REGISTRY)/$(WEBHOOK_IMAGE_NAME):$(NEW_VERSION)
+	@sed -i -e 's/^IMAGE_VERSION ?= .*/IMAGE_VERSION ?= ${NEW_VERSION}/' ./Makefile
+	cd config/manager && $(KUSTOMIZE) edit set image manager=$(REGISTRY)/$(WEBHOOK_IMAGE_NAME):$(NEW_VERSION)
 	@sed -i -e "s/appVersion: .*/appVersion: ${NEW_VERSION}/" ./third_party/open-policy-agent/gatekeeper/helmify/static/Chart.yaml
 	@sed -i -e "s/version: .*/version: $$(echo ${NEW_VERSION} | cut -c2-)/" ./third_party/open-policy-agent/gatekeeper/helmify/static/Chart.yaml
 	@sed -i -e "s/release: .*/release: ${NEW_VERSION}/" ./third_party/open-policy-agent/gatekeeper/helmify/static/values.yaml

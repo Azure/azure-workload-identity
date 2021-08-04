@@ -5,7 +5,7 @@ kind: Kustomization
 images:
 - name: manager
   newName: mcr.microsoft.com/oss/azure/aad-pod-managed-identity/webhook
-  newTag: v0.2.0
+  newTag: v0.3.0
 configMapGenerator:
 - literals:
   - AZURE_TENANT_ID="${AZURE_TENANT_ID}"
