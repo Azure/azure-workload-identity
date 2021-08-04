@@ -20,6 +20,7 @@ PROXY_IMAGE := $(REGISTRY)/$(PROXY_IMAGE_NAME):$(IMAGE_VERSION)
 INIT_IMAGE := $(REGISTRY)/$(INIT_IMAGE_NAME):$(IMAGE_VERSION)
 WEBHOOK_IMAGE := $(REGISTRY)/$(WEBHOOK_IMAGE_NAME):$(IMAGE_VERSION)
 
+
 GOOS := $(shell go env GOOS)
 GOARCH :=$(shell go env GOARCH)
 
@@ -71,6 +72,14 @@ HELM := $(TOOLS_BIN_DIR)/$(HELM_BIN)-$(HELM_VER)
 
 # Scripts
 GO_INSTALL := ./hack/go-install.sh
+
+## --------------------------------------
+## Binaries
+## --------------------------------------
+
+.PHONY: build-cli
+build-cli:
+	go build -o $(BIN_DIR)/azwi -ldflags $(LDFLAGS) ./cmd/cli
 
 ## --------------------------------------
 ## Images
