@@ -215,6 +215,15 @@ $(HELM):
 	rm -rf helm* $(OS)-$(GOARCH)
 
 ## --------------------------------------
+## E2E images
+## --------------------------------------
+MSAL_GO_E2E_IMAGE := $(REGISTRY)/msal-go-e2e:$(IMAGE_VERSION)
+
+.PHONY: docker-build-e2e-msal-go
+docker-build-e2e-msal-go:
+	docker buildx build --no-cache -t $(MSAL_GO_E2E_IMAGE) -f examples/msal-go/Dockerfile --platform="linux/amd64" --output=$(OUTPUT_TYPE) examples/msal-go
+
+## --------------------------------------
 ## Testing
 ## --------------------------------------
 
@@ -246,7 +255,7 @@ GINKGO_ARGS ?= -focus="$(GINKGO_FOCUS)" -skip="$(GINKGO_SKIP)" -nodes=$(GINKGO_N
 
 # E2E configurations
 KUBECONFIG ?= $(HOME)/.kube/config
-E2E_ARGS := -kubeconfig=$(KUBECONFIG) -report-dir=$(PWD)/_artifacts -e2e.arc-cluster=$(ARC_CLUSTER)
+E2E_ARGS := -kubeconfig=$(KUBECONFIG) -report-dir=$(PWD)/_artifacts -e2e.arc-cluster=$(ARC_CLUSTER) -e2e.token-exchange-image=$(MSAL_GO_E2E_IMAGE)
 E2E_EXTRA_ARGS ?=
 
 .PHONY: test-e2e-run
@@ -271,6 +280,7 @@ kind-create: $(KIND) $(KUBECTL)
 .PHONY: kind-load-image
 kind-load-image:
 	$(KIND) load docker-image $(WEBHOOK_IMAGE) --name $(KIND_CLUSTER_NAME)
+	$(KIND) load docker-image $(MSAL_GO_E2E_IMAGE) --name $(KIND_CLUSTER_NAME)
 
 .PHONY: kind-delete
 kind-delete: $(KIND)

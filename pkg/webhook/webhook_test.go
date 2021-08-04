@@ -509,15 +509,15 @@ func TestAddEnvironmentVariables(t *testing.T) {
 						Value: "clientID",
 					},
 					{
-						Name:  "AZURE_TENANT_ID",
+						Name:  AzureTenantIDEnvVar,
 						Value: "tenantID",
 					},
 					{
-						Name:  "TOKEN_FILE_PATH",
+						Name:  AzureFederatedTokenFileEnvVar,
 						Value: filepath.Join(TokenFileMountPath, TokenFilePathName),
 					},
 					{
-						Name:  "AZURE_AUTHORITY_HOST",
+						Name:  AzureAuthorityHostEnvVar,
 						Value: "https://login.microsoftonline.com/",
 					},
 				},
@@ -534,15 +534,15 @@ func TestAddEnvironmentVariables(t *testing.T) {
 						Value: "myClientID",
 					},
 					{
-						Name:  "AZURE_TENANT_ID",
+						Name:  AzureTenantIDEnvVar,
 						Value: "myTenantID",
 					},
 					{
-						Name:  "TOKEN_FILE_PATH",
+						Name:  AzureFederatedTokenFileEnvVar,
 						Value: filepath.Join(TokenFileMountPath, TokenFilePathName),
 					},
 					{
-						Name:  "AZURE_AUTHORITY_HOST",
+						Name:  AzureAuthorityHostEnvVar,
 						Value: "https://login.microsoftonline.com/",
 					},
 				},
@@ -556,15 +556,15 @@ func TestAddEnvironmentVariables(t *testing.T) {
 						Value: "myClientID",
 					},
 					{
-						Name:  "AZURE_TENANT_ID",
+						Name:  AzureTenantIDEnvVar,
 						Value: "myTenantID",
 					},
 					{
-						Name:  "TOKEN_FILE_PATH",
+						Name:  AzureFederatedTokenFileEnvVar,
 						Value: filepath.Join(TokenFileMountPath, TokenFilePathName),
 					},
 					{
-						Name:  "AZURE_AUTHORITY_HOST",
+						Name:  AzureAuthorityHostEnvVar,
 						Value: "https://login.microsoftonline.com/",
 					},
 				},
@@ -595,15 +595,15 @@ func TestAddEnvironmentVariables(t *testing.T) {
 						Value: "clientID",
 					},
 					{
-						Name:  "AZURE_TENANT_ID",
+						Name:  AzureTenantIDEnvVar,
 						Value: "tenantID",
 					},
 					{
-						Name:  "TOKEN_FILE_PATH",
+						Name:  AzureFederatedTokenFileEnvVar,
 						Value: filepath.Join(TokenFileMountPath, TokenFilePathName),
 					},
 					{
-						Name:  "AZURE_AUTHORITY_HOST",
+						Name:  AzureAuthorityHostEnvVar,
 						Value: "https://login.microsoftonline.com/",
 					},
 				},
