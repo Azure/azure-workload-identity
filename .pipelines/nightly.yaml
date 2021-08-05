@@ -132,12 +132,12 @@ jobs:
       clean: all
     variables:
       # contains the following environment variables:
+      # - APPLICATION_CLIENT_ID
       # - AZURE_TENANT_ID
       # - KEYVAULT_NAME
       # - KEYVAULT_SECRET_NAME
       # - SERVICE_ACCOUNT_ISSUER
       # - SERVICE_ACCOUNT_KEYVAULT_NAME
-      # - SERVICE_PRINCIPAL_CLIENT_ID
       - group: e2e-environment-variables
       - name: LOCAL_ONLY
         value: "true"
@@ -157,10 +157,10 @@ jobs:
       - script: make test-e2e
         displayName: Webhook E2E test suite
         env:
+          APPLICATION_CLIENT_ID: $(APPLICATION_CLIENT_ID)
           AZURE_TENANT_ID: $(AZURE_TENANT_ID)
           KEYVAULT_NAME: $(KEYVAULT_NAME)
           KEYVAULT_SECRET_NAME: $(KEYVAULT_SECRET_NAME)
           SERVICE_ACCOUNT_ISSUER: $(SERVICE_ACCOUNT_ISSUER)
           SERVICE_ACCOUNT_KEYVAULT_NAME: $(SERVICE_ACCOUNT_KEYVAULT_NAME)
-          SERVICE_PRINCIPAL_CLIENT_ID: $(SERVICE_PRINCIPAL_CLIENT_ID)
       - template: templates/publish-logs.yaml
