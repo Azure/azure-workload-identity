@@ -12,15 +12,15 @@ cd "${REPO_ROOT}" || exit 1
 readonly CLUSTER_NAME="${CLUSTER_NAME:-pod-managed-identity-e2e-$(openssl rand -hex 2)}"
 readonly KUBECTL="${REPO_ROOT}/hack/tools/bin/kubectl"
 
-IMAGE_VERSION="$(git rev-parse --short HEAD)"
+IMAGE_VERSION="$(git describe --tags --always --dirty)"
 export IMAGE_VERSION
 
 create_cluster() {
   if [[ "${LOCAL_ONLY:-}" == "true" ]]; then
     download_service_account_keys
-    # create a kind cluster, then build and load the webhook manager image to the cluster
+    # create a kind cluster, then build and load the webhook manager image to the kind cluster
     make kind-create
-    OUTPUT_TYPE="type=docker" make docker-build-webhook
+    [[ "${SKIP_IMAGE_BUILD:-}" == "true" ]] || OUTPUT_TYPE="type=docker" make docker-build-webhook
     make kind-load-image
   else
     : "${REGISTRY:?Environment variable empty or not defined.}"
@@ -48,7 +48,7 @@ create_cluster() {
     fi
 
     echo "Building controller and deploying webhook to the cluster"
-    make docker-build-webhook
+    [[ "${SKIP_IMAGE_BUILD:-}" == "true" ]] || make docker-build-webhook
   fi
   ${KUBECTL} get nodes -owide
 }
@@ -81,8 +81,7 @@ main() {
 
   create_cluster
   make clean deploy
-  # adding a sleep here because the cert mount is not ready immediately after the deploy
-  sleep 120
+  poll_webhook_readiness
 
   if [[ -n "${WINDOWS_NODE_NAME:-}" ]]; then
     E2E_ARGS="--node-os-distro=windows ${E2E_ARGS:-}"
@@ -102,15 +101,12 @@ test_helm_chart() {
   ${KUBECTL} create namespace aad-pi-webhook-system
 
   # test helm upgrade from chart to manifest_staging/chart
-  if [[ -d "${REPO_ROOT}/charts/pod-identity-webhook" ]]; then
-    ${HELM} install pod-identity-webhook "${REPO_ROOT}/charts/pod-identity-webhook" \
-      --set azureTenantID="${AZURE_TENANT_ID}" \
-      --namespace aad-pi-webhook-system \
-      --wait
-    # adding a sleep here because the cert mount is not ready immediately after the deploy
-    sleep 120
-    make test-e2e-run
-  fi
+  ${HELM} install pod-identity-webhook "${REPO_ROOT}/charts/pod-identity-webhook" \
+    --set azureTenantID="${AZURE_TENANT_ID}" \
+    --namespace aad-pi-webhook-system \
+    --wait
+  poll_webhook_readiness
+  make test-e2e-run
 
   ${HELM} upgrade --install pod-identity-webhook "${REPO_ROOT}/manifest_staging/charts/pod-identity-webhook" \
     --set image.repository="${REGISTRY:-mcr.microsoft.com/oss/azure/aad-pod-managed-identity/webhook}" \
@@ -119,9 +115,50 @@ test_helm_chart() {
     --namespace aad-pi-webhook-system \
     --reuse-values \
     --wait
-  # adding a sleep here because the cert mount is not ready immediately after the deploy
-  sleep 120
+  poll_webhook_readiness
   make test-e2e-run
+}
+
+poll_webhook_readiness() {
+  TEST_RESOURCE=$(cat <<-EOF
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: aad-pi-webhook-system-test
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: test-service-account
+  namespace: aad-pi-webhook-system-test
+  labels:
+    azure.pod.identity/use: "true"
+  annotations:
+    azure.pod.identity/service-account-token-expiration: "100"
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+  namespace: aad-pi-webhook-system-test
+spec:
+  serviceAccountName: test-service-account
+  containers:
+  - name: nginx
+    image: nginx:1.15.8
+EOF
+)
+  for _ in {1..30}; do
+    # webhook is considered ready when it starts denying requests
+    # with invalid service account token expiration
+    if echo "${TEST_RESOURCE}" | ${KUBECTL} apply -f -; then
+      echo "${TEST_RESOURCE}" | ${KUBECTL} delete --grace-period=1 --ignore-not-found -f -
+      sleep 4
+    else
+      break
+    fi
+  done
+  echo "${TEST_RESOURCE}" | ${KUBECTL} delete --ignore-not-found -f -
 }
 
 main
