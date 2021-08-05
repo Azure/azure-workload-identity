@@ -12,6 +12,7 @@ import (
 	"github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/test/e2e/framework"
@@ -36,6 +37,17 @@ func createServiceAccount(c kubernetes.Interface, namespace, name string, labels
 	}
 	_, err := c.CoreV1().ServiceAccounts(namespace).Create(context.TODO(), account, metav1.CreateOptions{})
 	framework.ExpectNoError(err, "failed to create service account %s", name)
+
+	// make sure the service account is created
+	// ref: https://github.com/Azure/aad-pod-managed-identity/issues/114
+	gomega.Eventually(func() bool {
+		_, err := c.CoreV1().ServiceAccounts(namespace).Get(context.TODO(), name, metav1.GetOptions{})
+		if apierrors.IsNotFound(err) {
+			framework.Logf("service account %s/%s is not found", namespace, name)
+		}
+		return err == nil
+	}, framework.PollShortTimeout, framework.Poll).Should(gomega.BeTrue())
+
 	framework.Logf("created service account %s", name)
 	return name
 }
