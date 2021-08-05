@@ -308,7 +308,7 @@ shellcheck: $(SHELLCHECK)
 ## Release
 ## --------------------------------------
 
-release-manifest:
+release-manifest: $(KUSTOMIZE)
 	@sed -i -e 's/^IMAGE_VERSION ?= .*/IMAGE_VERSION ?= ${NEW_VERSION}/' ./Makefile
 	cd config/manager && $(KUSTOMIZE) edit set image manager=$(REGISTRY)/$(WEBHOOK_IMAGE_NAME):$(NEW_VERSION)
 	@sed -i -e "s/appVersion: .*/appVersion: ${NEW_VERSION}/" ./third_party/open-policy-agent/gatekeeper/helmify/static/Chart.yaml
@@ -322,7 +322,7 @@ release-manifest:
 promote-staging-manifest: #promote staging manifests to release dir
 	@rm -rf deploy
 	@cp -r manifest_staging/deploy .
-	@rm -rf charts
+	@rm -rf charts/pod-identity-webhook
 	@cp -r manifest_staging/charts .
 	@mkdir -p ./charts/tmp
 	@helm package ./charts/pod-identity-webhook -d ./charts/tmp/
