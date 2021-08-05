@@ -192,8 +192,30 @@ iptables -t nat -A OUTPUT -p tcp -d 169.254.169.254 --dport 80 -j REDIRECT --to-
 </blockquote>
 <p>All IMDS requests from the container are routed to this proxy server due to an existing iptables rule created by <a href="#proxy-init">Proxy Init</a>.</p>
 <h2 id="trust"><a class="header" href="#trust">Trust</a></h2>
-<p>Not all service account tokens can be exchanged for a valid AAD token. Trust between an existing service account and an AAD object (a service principal or a user-assigned identity) has to be established in advance.</p>
-<p>TODO: how to establish trust</p>
+<p>Not all service account tokens can be exchanged for a valid AAD token. Trust between an existing service account and an AAD application has to be established in advance.</p>
+<p>To establish trust, login to <a href="https://portal.azure.com/#cloudshell/">Azure Cloud Shell</a> and export the following environment variables:</p>
+<pre><code class="language-bash"># Get the client and object ID of the AAD application
+export APPLICATION_CLIENT_ID=&quot;...&quot;
+export APPLICATION_OBJECT_ID=&quot;$(az ad app show --id ${APPLICATION_CLIENT_ID} --query objectId -otsv)&quot;
+export SERVICE_ACCOUNT_ISSUER=&quot;...&quot;
+export SERVICE_ACCOUNT_NAMESPACE=&quot;...&quot;
+export SERVICE_ACCOUNT_NAME=&quot;...&quot;
+</code></pre>
+<p>Add the federated identity credential:</p>
+<pre><code class="language-bash">cat &lt;&lt;EOF &gt; body.json
+{
+  &quot;name&quot;: &quot;kubernetes-federated-credential&quot;,
+  &quot;issuer&quot;: &quot;${SERVICE_ACCOUNT_ISSUER}&quot;,
+  &quot;subject&quot;: &quot;system:serviceaccount:${SERVICE_ACCOUNT_NAMESPACE}:${SERVICE_ACCOUNT_NAME}&quot;,
+  &quot;description&quot;: &quot;Kubernetes service account federated credential&quot;,
+  &quot;audiences&quot;: [
+    &quot;api://AzureADTokenExchange&quot;
+  ]
+}
+EOF
+
+az rest --method POST --uri &quot;https://graph.microsoft.com/beta/applications/${APPLICATION_OBJECT_ID}/federatedIdentityCredentials&quot; --body @body.json
+</code></pre>
 
                     </main>
 

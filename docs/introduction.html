@@ -149,18 +149,18 @@
                         <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
 <p>AAD Pod Managed Identity is the next iteration of <a href="https://github.com/Azure/aad-pod-identity">AAD Pod Identity</a> that enables Kubernetes applications to access Azure cloud resources securely with <a href="https://azure.microsoft.com/en-us/services/active-directory/">Azure Active Directory</a> based on annotated <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/">service accounts</a>.</p>
 <h2 id="quick-start"><a class="header" href="#quick-start">Quick Start</a></h2>
-<p>Check out the AAD Pod Managed Identity <a href="https://shiny-garbanzo-db6e5930.pages.github.io/quick-start.html">Quick Start</a> to create your first application with .</p>
+<p>Check out the AAD Pod Managed Identity <a href="https://azure.github.io/aad-pod-managed-identity/quick-start.html">Quick Start</a> to create your first application with .</p>
 <h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
 <p>The repository contains the following components:</p>
 <ol>
 <li>
-<p><a href="https://shiny-garbanzo-db6e5930.pages.github.io/concepts.html#mutating-webhook">Mutating Webhook</a></p>
+<p><a href="https://azure.github.io/aad-pod-managed-identity/concepts.html#mutating-webhook">Mutating Webhook</a></p>
 <blockquote>
 <p>The webhook is for mutating pods that reference an annotated service account. The webhook will inject the environment variables and the projected service account token volume.</p>
 </blockquote>
 </li>
 <li>
-<p><a href="https://shiny-garbanzo-db6e5930.pages.github.io/concepts.html#proxy-init">Proxy Init</a> and <a href="https://shiny-garbanzo-db6e5930.pages.github.io/concepts.html#proxy">Proxy</a></p>
+<p><a href="https://azure.github.io/aad-pod-managed-identity/concepts.html#proxy-init">Proxy Init</a> and <a href="https://azure.github.io/aad-pod-managed-identity/concepts.html#proxy">Proxy</a></p>
 <blockquote>
 <p>The proxy init container and proxy sidecar container will be used for applications that are still using <a href="https://github.com/Azure/aad-pod-identity">AAD Pod Identity</a>.</p>
 </blockquote>
