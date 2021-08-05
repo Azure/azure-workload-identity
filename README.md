@@ -36,13 +36,13 @@ The repository contains the following components:
 
 [3]: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
 
-[4]: https://shiny-garbanzo-db6e5930.pages.github.io/quick-start.html
+[4]: https://azure.github.io/aad-pod-managed-identity/quick-start.html
 
-[5]: https://shiny-garbanzo-db6e5930.pages.github.io/concepts.html#mutating-webhook
+[5]: https://azure.github.io/aad-pod-managed-identity/concepts.html#mutating-webhook
 
-[6]: https://shiny-garbanzo-db6e5930.pages.github.io/concepts.html#proxy-init
+[6]: https://azure.github.io/aad-pod-managed-identity/concepts.html#proxy-init
 
-[7]: https://shiny-garbanzo-db6e5930.pages.github.io/concepts.html#proxy
+[7]: https://azure.github.io/aad-pod-managed-identity/concepts.html#proxy
 
 [8]: https://azure.github.io/aad-pod-identity/docs/getting-started/role-assignment/
 

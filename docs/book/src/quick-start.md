@@ -2,7 +2,7 @@
 
 <!-- toc -->
 
-In this tutorial, we will cover the basics of how to use the AAD Pod Identity webhook to acquire a token to access a secret in an [Azure Key Vault][1].
+In this tutorial, we will cover the basics of how to use the AAD Pod Identity webhook to acquire a token to access a secret in an [Azure Key Vault][1]. If you are using an AKS cluster with OIDC enabled, you may skip step 0 to step 4.
 
 ## Prerequisites
 
@@ -11,11 +11,21 @@ In this tutorial, we will cover the basics of how to use the AAD Pod Identity we
 * [Microsoft Azure][5] account
 * [Azure CLI][6]
 
-## 1. Create and upload OIDC discovery document and JWKs
+## 0. Export environment variables and create resource group
 
-Generate a public/private key pair:
+Export the following environment variables:
+
+```bash
+export RESOURCE_GROUP="aad-pi-webhook-test"
+export LOCATION="westus2"
+az group create --name "${RESOURCE_GROUP}" --location "${LOCATION}"
+```
+
+## 1. Create and upload OIDC discovery document and JWKS
 
 > Skip this step if you are planning to bring your own keys.
+
+Generate a public/private key pair:
 
 ```bash
 openssl genrsa -out sa.key 2048
@@ -35,16 +45,116 @@ writing RSA key
 
 </details>
 
-TODO (steps to upload files to a storage account)
+>  Skip this step if you already set up the OIDC discovery document and JWKS.
+
+Azure blob storage will be used to host the OIDC discovery document and JWKS. However, you can host them in anywhere, as long as they are publicly available.
+
+```bash
+export AZURE_STORAGE_ACCOUNT="pmi$(openssl rand -hex 4)"
+export AZURE_STORAGE_CONTAINER="oidc-test"
+az storage account create --resource-group "${RESOURCE_GROUP}" --name "${AZURE_STORAGE_ACCOUNT}"
+az storage container create --name "${AZURE_STORAGE_CONTAINER}" --public-access container
+```
+
+Generate and upload the OIDC discovery document:
+
+```bash
+cat <<EOF > openid-configuration.json
+{
+  "issuer": "https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/",
+  "authorization_endpoint": "https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/connect/authorize",
+  "jwks_uri": "https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/openid/v1/jwks",
+  "response_types_supported": [
+    "id_token"
+  ],
+  "subject_types_supported": [
+    "public"
+  ],
+  "id_token_signing_alg_values_supported": [
+    "RS256"
+  ]
+}
+EOF
+az storage blob upload \
+  --container-name "${AZURE_STORAGE_CONTAINER}" \
+  --file openid-configuration.json \
+  --name .well-known/openid-configuration
+```
+
+Generate and upload the JWKS:
+
+```bash
+pushd hack/generate-jwks
+go run main.go --public-keys ../../sa.pub | jq > jwks.json
+az storage blob upload \
+  --container-name "${AZURE_STORAGE_CONTAINER}" \
+  --file jwks.json \
+  --name openid/v1/jwks
+popd
+```
+
+Verify that the OIDC discovery document is publicly accessible:
+
+```bash
+curl -s "https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/.well-known/openid-configuration"
+```
+
+<details>
+<summary>Output</summary>
+
+```json
+{
+  "issuer": "https://<REDACTED>.blob.core.windows.net/oidc-test/",
+  "authorization_endpoint": "https://<REDACTED>.blob.core.windows.net/oidc-test/connect/authorize",
+  "jwks_uri": "https://<REDACTED>.blob.core.windows.net/oidc-test/openid/v1/jwks",
+  "response_types_supported": [
+    "id_token"
+  ],
+  "subject_types_supported": [
+    "public"
+  ],
+  "id_token_signing_alg_values_supported": [
+    "RS256"
+  ]
+}
+```
+
+</details>
+
+Verify that the JWKS is publicly accessible:
+
+```bash
+curl -s "https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/openid/v1/jwks"
+```
+
+<details>
+<summary>Output</summary>
+
+```json
+{
+  "keys": [
+    {
+      "use": "sig",
+      "kty": "RSA",
+      "kid": "Me5VC6i4_4mymFj7T5rcUftFjYX70YoCfSnZB6-nBY4",
+      "alg": "RS256",
+      "n": "ywg7HeKIFX3vleVKZHeYoNpuLHIDisnczYXrUdIGCNilCJFA1ymjG2UAADnt_FpYUsCVyKYJTqcxNbK4boNg_P3uK39OAqXabwYrilEZvsVJQKhzn8dXLeqAnM98L8eBpySU208KTsfMkS3Q6lqwurUP7c_a3g_1XRJukz_EmQxg9jLD_fQd5VwPTEo8HJQIFqIxFWzjTkkK5hbcL9Cclkf6RpeRyjh7Vem57Fu-jAlxDUiYiqyieM4OBNm4CQjiqDE8_xOC8viNpHNw542MYVDKSRnYui31lCOj32wBDphczR8BbnrZgbqN3K_zzB3gIjcGbWbbGA5xKJYqSu5uRwN89_CWrT3vGw5RN3XQPSbhGC4smgZkOCw3N9i1b-x-rrd-mRse6F95ONaoslCJUbJvxvDdb5X0P4_CVZRwJvUyP3OJ44ZvwzshA-zilG-QC9E1j2R9DTSMqOJzUuOxS0JIvoboteI1FAByV9KyU948zQRM7r7MMZYBKWIsu6h7",
+      "e": "AQAB"
+    }
+  ]
+}
+```
+
+</details>
 
 ## 2. Create a kind cluster
 
 Export the following environment variables:
 
 ```bash
-export SERVICE_ACCOUNT_ISSUER=TODO
-export SERVICE_ACCOUNT_KEY_FILE=$(pwd)/sa.pub
-export SERVICE_ACCOUNT_SIGNING_KEY_FILE=$(pwd)/sa.key
+export SERVICE_ACCOUNT_ISSUER="https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/"
+export SERVICE_ACCOUNT_KEY_FILE="$(pwd)/sa.pub"
+export SERVICE_ACCOUNT_SIGNING_KEY_FILE="$(pwd)/sa.key"
 ```
 
 Create a kind cluster with one control plane node and customize various service account-related flags for the API server:
@@ -52,7 +162,7 @@ Create a kind cluster with one control plane node and customize various service 
 > The minimum supported Kubernetes version for the webhook is v1.18.0, however, we recommend using Kubernetes version v1.20.0+.
 
 ```bash
-kind create cluster --name aad-pod-managed-identity --image kindest/node:v1.21.1 --config=-
+cat <<EOF | kind create cluster --name aad-pod-managed-identity --image kindest/node:v1.21.1 --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
@@ -70,6 +180,7 @@ nodes:
         service-account-issuer: ${SERVICE_ACCOUNT_ISSUER}
         service-account-key-file: /etc/kubernetes/pki/sa.pub
         service-account-signing-key-file: /etc/kubernetes/pki/sa.key
+EOF
 ```
 
 <details>
@@ -159,16 +270,23 @@ To install the webhook, choose one of the following options below:
 2.  Helm
 
     ```bash
+    kubectl create namespace aad-pi-webhook-system
     helm install pod-identity-webhook manifest_staging/charts/pod-identity-webhook \
        --namespace aad-pi-webhook-system \
-       --set azureTenantID=<AzureTenantID>
+       --set azureTenantID="${AZURE_TENANT_ID}"
     ```
 
     <details>
     <summary>Output</summary>
 
     ```bash
-    TODO
+    namespace/aad-pi-webhook-system created
+    NAME: pod-identity-webhook
+    LAST DEPLOYED: Wed Aug  4 10:49:20 2021
+    NAMESPACE: aad-pi-webhook-system
+    STATUS: deployed
+    REVISION: 1
+    TEST SUITE: None
     ```
 
     </details>
@@ -178,46 +296,38 @@ To install the webhook, choose one of the following options below:
 Export the following environment variables:
 
 ```bash
-export RESOURCE_GROUP="aad-pi-webhook-test"
-export LOCATION="westus2"
 export KEYVAULT_NAME="aad-pi-webhook-test-$(openssl rand -hex 2)"
 export KEYVAULT_SECRET_NAME="my-secret"
-```
-
-Create a resource group:
-
-```bash
-az group create --name ${RESOURCE_GROUP} --location ${LOCATION}
 ```
 
 Create an Azure Key Vault:
 
 ```bash
-az keyvault create --resource-group ${RESOURCE_GROUP} \
-   --location ${LOCATION} \
-   --name ${KEYVAULT_NAME}
+az keyvault create --resource-group "${RESOURCE_GROUP}" \
+   --location "${LOCATION}" \
+   --name "${KEYVAULT_NAME}"
 ```
 
 Create a secret:
 
 ```bash
-az keyvault secret set --vault-name ${KEYVAULT_NAME} \
-   --name ${KEYVAULT_SECRET_NAME} \
+az keyvault secret set --vault-name "${KEYVAULT_NAME}" \
+   --name "${KEYVAULT_SECRET_NAME}" \
    --value "Hello!"
 ```
 
-## 5. Create a service principal and grant permissions to access the secret
+## 5. Create an AAD application and grant permissions to access the secret
 
 ```bash
-export SERVICE_PRINCIPAL_CLIENT_ID="$(az ad sp create-for-rbac --skip-assignment --name https://test-sp --query appId -otsv)"
+export APPLICATION_CLIENT_ID="$(az ad sp create-for-rbac --skip-assignment --name https://test-sp --query appId -otsv)"
 ```
 
-Set access policy for the service principal to access the keyvault secret:
+Set access policy for the AAD application to access the keyvault secret:
 
 ```bash
-az keyvault set-policy --name ${KEYVAULT_NAME} \
+az keyvault set-policy --name "${KEYVAULT_NAME}" \
   --secret-permissions get \
-  --spn ${SERVICE_PRINCIPAL_CLIENT_ID}
+  --spn "${APPLICATION_CLIENT_ID}"
 ```
 
 </details>
@@ -232,7 +342,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   annotations:
-    azure.pod.identity/client-id: ${SERVICE_PRINCIPAL_CLIENT_ID}
+    azure.pod.identity/client-id: ${APPLICATION_CLIENT_ID}
   labels:
     azure.pod.identity/use: "true"
   name: pod-identity-sa
@@ -248,20 +358,21 @@ serviceaccount/pod-identity-sa created
 
 </details>
 
-If the service principal is not in the same tenant as the Kubernetes cluster, then annotate the service account with the tenant id of the service principal.
+If the AAD application is not in the same tenant as the Kubernetes cluster, then annotate the service account with the application tenant ID.
 
 ```bash
-kubectl annotate sa pod-identity-sa azure.pod.identity/tenant-id=${TENANT_ID} --overwrite
+kubectl annotate sa pod-identity-sa azure.pod.identity/tenant-id="${APPLICATION_TENANT_ID}" --overwrite
 ```
 
-## 7. Setup trust between service principal and cluster OIDC issue
+## 7. Establish trust between the AAD application and the service account issuer & subject
 
 Login to [Azure Cloud Shell][8] and run the following commands:
 
 ```bash
-# Get the object ID of the service principal
-export SERVICE_PRINCIPAL_OBJECT_ID="$(az ad app show --id ${SERVICE_PRINCIPAL_CLIENT_ID} --query objectId -otsv)"
-export SERVICE_ACCOUNT_ISSUER=<replace with Issuer URL>
+# Get the object ID of the AAD application
+export APPLICATION_OBJECT_ID="$(az ad app show --id ${APPLICATION_CLIENT_ID} --query objectId -otsv)"
+# If you skip step 2
+export SERVICE_ACCOUNT_ISSUER="..."
 ```
 
 Add the federated identity credential:
@@ -269,7 +380,7 @@ Add the federated identity credential:
 ```bash
 cat <<EOF > body.json
 {
-  "name": "Kubernetes federated credential",
+  "name": "kubernetes-federated-credential",
   "issuer": "${SERVICE_ACCOUNT_ISSUER}",
   "subject": "system:serviceaccount:default:pod-identity-sa",
   "description": "Kubernetes service account federated credential",
@@ -279,7 +390,7 @@ cat <<EOF > body.json
 }
 EOF
 
-az rest --method POST --uri "https://graph.microsoft.com/beta/applications/${SERVICE_PRINCIPAL_OBJECT_ID}/federatedIdentityCredentials" --body @body.json
+az rest --method POST --uri "https://graph.microsoft.com/beta/applications/${APPLICATION_OBJECT_ID}/federatedIdentityCredentials" --body @body.json
 ```
 
 ## 8. Deploy workload
@@ -434,8 +545,8 @@ Your secret is Hello!
 kubectl delete pod quick-start
 kubectl delete sa pod-identity-sa
 
-az keyvault delete --name ${KEYVAULT_NAME} --resource-group ${RESOURCE_GROUP}
-az ad sp delete --id ${SERVICE_PRINCIPAL_CLIENT_ID}
+az keyvault delete --name "${KEYVAULT_NAME}" --resource-group "${RESOURCE_GROUP}"
+az ad sp delete --id "${APPLICATION_CLIENT_ID}"
 ```
 
 [1]: https://azure.microsoft.com/en-us/services/key-vault/
