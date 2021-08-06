@@ -25,9 +25,10 @@ import (
 )
 
 var (
-	arcCluster     bool
-	c              *kubernetes.Clientset
-	coreNamespaces = []string{
+	arcCluster            bool
+	tokenExchangeE2EImage string
+	c                     *kubernetes.Clientset
+	coreNamespaces        = []string{
 		metav1.NamespaceSystem,
 		"aad-pi-webhook-system",
 	}

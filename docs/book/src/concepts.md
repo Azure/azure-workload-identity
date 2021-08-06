@@ -61,9 +61,36 @@ All IMDS requests from the container are routed to this proxy server due to an e
 
 ## Trust
 
-Not all service account tokens can be exchanged for a valid AAD token. Trust between an existing service account and an AAD object (a service principal or a user-assigned identity) has to be established in advance.
+Not all service account tokens can be exchanged for a valid AAD token. Trust between an existing service account and an AAD application has to be established in advance.
 
-TODO: how to establish trust
+To establish trust, login to [Azure Cloud Shell][16] and export the following environment variables:
+
+```bash
+# Get the client and object ID of the AAD application
+export APPLICATION_CLIENT_ID="..."
+export APPLICATION_OBJECT_ID="$(az ad app show --id ${APPLICATION_CLIENT_ID} --query objectId -otsv)"
+export SERVICE_ACCOUNT_ISSUER="..."
+export SERVICE_ACCOUNT_NAMESPACE="..."
+export SERVICE_ACCOUNT_NAME="..."
+```
+
+Add the federated identity credential:
+
+```bash
+cat <<EOF > body.json
+{
+  "name": "kubernetes-federated-credential",
+  "issuer": "${SERVICE_ACCOUNT_ISSUER}",
+  "subject": "system:serviceaccount:${SERVICE_ACCOUNT_NAMESPACE}:${SERVICE_ACCOUNT_NAME}",
+  "description": "Kubernetes service account federated credential",
+  "audiences": [
+    "api://AzureADTokenExchange"
+  ]
+}
+EOF
+
+az rest --method POST --uri "https://graph.microsoft.com/beta/applications/${APPLICATION_OBJECT_ID}/federatedIdentityCredentials" --body @body.json
+```
 
 [1]: ./images/flow-diagram.png
 
@@ -94,3 +121,5 @@ TODO: how to establish trust
 [14]: https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview
 
 [15]: ../topics/labels-and-annotations.html#annotations
+
+[16]: https://portal.azure.com/#cloudshell/

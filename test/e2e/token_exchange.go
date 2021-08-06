@@ -21,10 +21,10 @@ import (
 var _ = ginkgo.Describe("TokenExchange [KindOnly]", func() {
 	f := framework.NewDefaultFramework("token-exchange")
 
-	// E2E scenario from https://github.com/Azure/aad-pod-managed-identity/tree/main/examples/msal-net/akvdotnet
+	// E2E scenario from https://github.com/Azure/aad-pod-managed-identity/tree/main/examples/msal-go
 	ginkgo.It("should exchange the service account token for a valid AAD token", func() {
-		clientID, ok := os.LookupEnv("SERVICE_PRINCIPAL_CLIENT_ID")
-		gomega.Expect(ok).To(gomega.BeTrue(), "SERVICE_PRINCIPAL_CLIENT_ID must be set")
+		clientID, ok := os.LookupEnv("APPLICATION_CLIENT_ID")
+		gomega.Expect(ok).To(gomega.BeTrue(), "APPLICATION_CLIENT_ID must be set")
 		keyvaultName, ok := os.LookupEnv("KEYVAULT_NAME")
 		gomega.Expect(ok).To(gomega.BeTrue(), "KEYVAULT_NAME must be set")
 		keyvaultSecretName, ok := os.LookupEnv("KEYVAULT_SECRET_NAME")
@@ -39,7 +39,7 @@ var _ = ginkgo.Describe("TokenExchange [KindOnly]", func() {
 			f.ClientSet,
 			namespace,
 			serviceAccount,
-			"aramase/dotnet:v0.4",
+			tokenExchangeE2EImage,
 			nil,
 			nil,
 			[]corev1.EnvVar{{
@@ -63,7 +63,7 @@ var _ = ginkgo.Describe("TokenExchange [KindOnly]", func() {
 					return false
 				}
 				framework.Logf("stdout: %s", stdout)
-				return strings.Contains(stdout, "Your secret is Hello!")
+				return strings.Contains(stdout, `"successfully got secret" secret="Hello!"`)
 			}, framework.PollShortTimeout, framework.Poll).Should(gomega.BeTrue())
 		}
 	})

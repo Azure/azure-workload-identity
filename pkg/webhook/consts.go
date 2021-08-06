@@ -24,12 +24,12 @@ const (
 
 // Environment variables injected in the pod
 const (
-	AzureClientIDEnvVar      = "AZURE_CLIENT_ID"
-	AzureTenantIDEnvVar      = "AZURE_TENANT_ID"
-	TokenFilePathEnvVar      = "TOKEN_FILE_PATH" // #nosec
-	AzureAuthorityHostEnvVar = "AZURE_AUTHORITY_HOST"
-	TokenFilePathName        = "azure-identity-token"
-	TokenFileMountPath       = "/var/run/secrets/tokens" // #nosec
+	AzureClientIDEnvVar           = "AZURE_CLIENT_ID"
+	AzureTenantIDEnvVar           = "AZURE_TENANT_ID"
+	AzureFederatedTokenFileEnvVar = "AZURE_FEDERATED_TOKEN_FILE" // #nosec
+	AzureAuthorityHostEnvVar      = "AZURE_AUTHORITY_HOST"
+	TokenFilePathName             = "azure-identity-token"
+	TokenFileMountPath            = "/var/run/secrets/tokens" // #nosec
 	// DefaultAudience is the audience added to the service account token audience
 	// This value is to be consistent with other token exchange flows in AAD and has
 	// no impact on the actual token exchange flow.

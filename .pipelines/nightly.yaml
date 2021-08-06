@@ -83,19 +83,11 @@ jobs:
       - script: make test-e2e
         displayName: Webhook E2E test suite
       - template: templates/publish-logs.yaml
-  - job:
-    timeoutInMinutes: 60
-    dependsOn:
-      - scan_images
-      - verify_deployment_yaml
-    workspace:
-      clean: all
-    variables:
-      # we can enable actual tenant id for functional e2e
-      AZURE_TENANT_ID: "fake tenant id"
-      REGISTRY: upstreamk8sci.azurecr.io/aad-pod-managed-identity
-      GINKGO_SKIP: \[KindOnly\]
-    strategy:
+  - template: templates/upgrade.yaml
+    parameters:
+      dependsOn:
+        - scan_images
+        - verify_deployment_yaml
       matrix:
         upgrade_aks_windows_dockershim:
           WINDOWS_CLUSTER: "true"
@@ -106,23 +98,6 @@ jobs:
           DUMMY_VAR: ""
         upgrade_arc:
           ARC_CLUSTER: "true"
-    steps:
-      - script: echo "##vso[task.setvariable variable=CLUSTER_NAME]pod-managed-identity-e2e-$(openssl rand -hex 2)"
-        displayName: Set CLUSTER_NAME
-      - script: make test-e2e
-        displayName: Webhook E2E test suite
-        env:
-          SKIP_CLEANUP: "true"
-      - script: az aks upgrade --resource-group "${CLUSTER_NAME}" --name "${CLUSTER_NAME}" --kubernetes-version 1.21.1 --yes > /dev/null
-        displayName: Upgrade cluster
-      - script: make test-e2e
-        displayName: Webhook E2E test suite
-        env:
-          SKIP_IMAGE_BUILD: "true"
-      - script: az group delete --name "${CLUSTER_NAME}" --yes --no-wait || true
-        displayName: Cleanup
-        condition: always()
-      - template: templates/publish-logs.yaml
   - job:
     timeoutInMinutes: 40
     dependsOn:
@@ -132,12 +107,12 @@ jobs:
       clean: all
     variables:
       # contains the following environment variables:
+      # - APPLICATION_CLIENT_ID
       # - AZURE_TENANT_ID
       # - KEYVAULT_NAME
       # - KEYVAULT_SECRET_NAME
       # - SERVICE_ACCOUNT_ISSUER
       # - SERVICE_ACCOUNT_KEYVAULT_NAME
-      # - SERVICE_PRINCIPAL_CLIENT_ID
       - group: e2e-environment-variables
       - name: LOCAL_ONLY
         value: "true"
@@ -145,22 +120,22 @@ jobs:
         value: "true"
     strategy:
       matrix:
-        kind_v1_18_19:
-          KIND_NODE_VERSION: v1.18.19
         kind_v1_19_11:
           KIND_NODE_VERSION: v1.19.11
         kind_v1_20_7:
           KIND_NODE_VERSION: v1.20.7
         kind_v1_21_2:
           KIND_NODE_VERSION: v1.21.2
+        kind_v1_22_0:
+          KIND_NODE_VERSION: v1.22.0
     steps:
       - script: make test-e2e
         displayName: Webhook E2E test suite
         env:
+          APPLICATION_CLIENT_ID: $(APPLICATION_CLIENT_ID)
           AZURE_TENANT_ID: $(AZURE_TENANT_ID)
           KEYVAULT_NAME: $(KEYVAULT_NAME)
           KEYVAULT_SECRET_NAME: $(KEYVAULT_SECRET_NAME)
           SERVICE_ACCOUNT_ISSUER: $(SERVICE_ACCOUNT_ISSUER)
           SERVICE_ACCOUNT_KEYVAULT_NAME: $(SERVICE_ACCOUNT_KEYVAULT_NAME)
-          SERVICE_PRINCIPAL_CLIENT_ID: $(SERVICE_PRINCIPAL_CLIENT_ID)
       - template: templates/publish-logs.yaml
