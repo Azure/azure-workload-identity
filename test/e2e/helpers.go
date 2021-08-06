@@ -216,12 +216,23 @@ func validateMutatedPod(f *framework.Framework, pod *corev1.Pod, skipContainers 
 		for _, injected := range []string{
 			webhook.AzureClientIDEnvVar,
 			webhook.AzureTenantIDEnvVar,
-			webhook.TokenFilePathEnvVar,
 			webhook.AzureAuthorityHostEnvVar,
 		} {
 			if _, ok := m[injected]; !ok {
 				framework.Failf("container %s in pod %s does not have env var %s injected", container.Name, pod.Name, injected)
 			}
+		}
+
+		// v0.3.0 injects the token file path as TOKEN_FILE_PATH environment variable. For v0.3.0+ the environment variable
+		// is updated to AZURE_FEDERATED_TOKEN_FILE. Adding this check to support upgrade tests from v0.3.0 to v0.3.0+
+		// TODO (aramase) remove this after v0.4.0
+		framework.Logf("ensuring that the token file path environment variable is injected to %s in %s", container.Name, pod.Name)
+		tokenFilePathSet := false
+		if _, ok := m["TOKEN_FILE_PATH"]; ok {
+			tokenFilePathSet = true
+		}
+		if _, ok := m[webhook.AzureFederatedTokenFileEnvVar]; !ok && !tokenFilePathSet {
+			framework.Failf("container %s in pod %s does not have env var %s injected", container.Name, pod.Name, webhook.AzureFederatedTokenFileEnvVar)
 		}
 
 		framework.Logf("ensuring that azure-identity-token is mounted to %s", container.Name)

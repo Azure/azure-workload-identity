@@ -26,9 +26,9 @@ func clientAssertionBearerAuthorizerCallback(tenantID, resource string) (*autore
 	// 	AZURE_CLIENT_ID with the clientID set in the service account annotation
 	// 	AZURE_TENANT_ID with the tenantID set in the service account annotation. If not defined, then
 	// 	the tenantID provided via aad-pi-webhook-config for the webhook will be used.
-	// 	TOKEN_FILE_PATH is the service account token path
+	// 	AZURE_FEDERATED_TOKEN_FILE is the service account token path
 	clientID := os.Getenv("AZURE_CLIENT_ID")
-	tokenFilePath := os.Getenv("TOKEN_FILE_PATH")
+	tokenFilePath := os.Getenv("AZURE_FEDERATED_TOKEN_FILE")
 
 	// generate a token using the msal confidential client
 	// this will always generate a new token request to AAD

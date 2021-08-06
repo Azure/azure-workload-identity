@@ -17,9 +17,9 @@ public class MyClientAssertionCredential : TokenCredential
         // 	AZURE_CLIENT_ID with the clientID set in the service account annotation
         // 	AZURE_TENANT_ID with the tenantID set in the service account annotation. If not defined, then
         // 		the tenantID provided via aad-pi-webhook-config for the webhook will be used.
-        // 	TOKEN_FILE_PATH is the service account token path
+        // 	AZURE_FEDERATED_TOKEN_FILE is the service account token path
         var clientID = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
-        var tokenPath = Environment.GetEnvironmentVariable("TOKEN_FILE_PATH");
+        var tokenPath = Environment.GetEnvironmentVariable("AZURE_FEDERATED_TOKEN_FILE");
         var tenantID = Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
 
         _confidentialClientApp = ConfidentialClientApplicationBuilder.Create(clientID)

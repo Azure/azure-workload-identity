@@ -13,6 +13,7 @@ import (
 
 func init() {
 	flag.BoolVar(&arcCluster, "e2e.arc-cluster", false, "Running on an arc-enabled cluster")
+	flag.StringVar(&tokenExchangeE2EImage, "e2e.token-exchange-image", "aramase/dotnet:v0.4", "The image to use for token exchange tests")
 }
 
 // handleFlags sets up all flags and parses the command line.
