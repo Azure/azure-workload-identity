@@ -27,8 +27,10 @@ func clientAssertionBearerAuthorizerCallback(tenantID, resource string) (*autore
 	// 	AZURE_TENANT_ID with the tenantID set in the service account annotation. If not defined, then
 	// 	the tenantID provided via aad-pi-webhook-config for the webhook will be used.
 	// 	AZURE_FEDERATED_TOKEN_FILE is the service account token path
+	// 	AZURE_AUTHORITY_HOST is the AAD authority hostname
 	clientID := os.Getenv("AZURE_CLIENT_ID")
 	tokenFilePath := os.Getenv("AZURE_FEDERATED_TOKEN_FILE")
+	authorityHost := os.Getenv("AZURE_AUTHORITY_HOST")
 
 	// generate a token using the msal confidential client
 	// this will always generate a new token request to AAD
@@ -47,7 +49,7 @@ func clientAssertionBearerAuthorizerCallback(tenantID, resource string) (*autore
 	confidentialClientApp, err := confidential.New(
 		clientID,
 		cred,
-		confidential.WithAuthority(fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/token", tenantID)))
+		confidential.WithAuthority(fmt.Sprintf("%s%s/oauth2/token", authorityHost, tenantID)))
 	if err != nil {
 		return nil, errors.Errorf("failed to create confidential client app: %v", err)
 	}
