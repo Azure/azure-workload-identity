@@ -12,7 +12,7 @@ cd "${REPO_ROOT}" || exit 1
 readonly CLUSTER_NAME="${CLUSTER_NAME:-pod-managed-identity-e2e-$(openssl rand -hex 2)}"
 readonly KUBECTL="${REPO_ROOT}/hack/tools/bin/kubectl"
 
-IMAGE_VERSION="$(git describe --tags --always --dirty)"
+IMAGE_VERSION="$(git describe --tags --always)"
 export IMAGE_VERSION
 
 create_cluster() {
