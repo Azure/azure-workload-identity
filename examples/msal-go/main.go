@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/v7.0/keyvault"
 	"github.com/Azure/go-autorest/autorest"
@@ -20,9 +21,14 @@ func main() {
 	kvClient := keyvault.New()
 	kvClient.Authorizer = autorest.NewBearerAuthorizerCallback(nil, clientAssertionBearerAuthorizerCallback)
 
-	secretBundle, err := kvClient.GetSecret(context.Background(), keyvaultURL, secretName, "")
-	if err != nil {
-		klog.Fatalf("failed to get secret from keyvault, err: %+v", err)
+	for {
+		secretBundle, err := kvClient.GetSecret(context.Background(), keyvaultURL, secretName, "")
+		if err != nil {
+			klog.Fatalf("failed to get secret from keyvault, err: %+v", err)
+		}
+		klog.InfoS("successfully got secret", "secret", *secretBundle.Value)
+
+		// wait for 60 seconds before polling again
+		time.Sleep(60 * time.Second)
 	}
-	klog.InfoS("successfully got secret", "secret", *secretBundle.Value)
 }
