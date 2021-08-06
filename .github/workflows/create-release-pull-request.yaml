@@ -1,0 +1,39 @@
+name: create_release_pull_request
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Which version are we creating a release pull request for?'
+        required: true
+      based_on_branch:
+        description: 'Which branch should we base the release pull request on?'
+        required: true
+        default: main
+
+jobs:
+  create-release-pull-request:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: validate version
+        run: |
+          echo "${{ github.event.inputs.release_version }}" | grep -E 'v[0-9]+\.[0-9]+\.[0-9]+$'
+          echo "${{ github.event.inputs.based_on_branch }}" | grep -E '^(main|release-[0-9]+\.[0-9]+)$'
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+          fetch-depth: 0
+          ref: "{{ github.event.inputs.based_on_branch }}"
+      - uses: actions/setup-go@v2
+        with:
+          go-version: "1.16.6"
+      - run: make release-manifest
+        env:
+          NEW_VERSION: "${{ github.event.inputs.release_version }}"
+      - run: make promote-staging-manifest
+      - name: Create release pull request
+        uses: peter-evans/create-pull-request@v3
+        with:
+          commit-message: "release: update manifest and helm charts for ${{ github.event.inputs.release_version }}"
+          title: "release: update manifest and helm charts for ${{ github.event.inputs.release_version }}"
+          branch: "release-${{ github.event.inputs.release_version }}"
+          base: ${{ github.event.inputs.based_on_branch }}

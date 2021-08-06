@@ -1,0 +1,36 @@
+parameters:
+  - name: dependsOn
+    type: object
+  - name: matrix
+    type: object
+
+jobs:
+  - job:
+    timeoutInMinutes: 60
+    dependsOn: ${{ parameters.dependsOn }}
+    workspace:
+      clean: all
+    variables:
+      # we can enable actual tenant id for functional e2e
+      AZURE_TENANT_ID: "fake tenant id"
+      REGISTRY: upstreamk8sci.azurecr.io/aad-pod-managed-identity
+      GINKGO_SKIP: \[KindOnly\]
+    strategy:
+      matrix: ${{ parameters.matrix }}
+    steps:
+      - script: echo "##vso[task.setvariable variable=CLUSTER_NAME]pod-managed-identity-e2e-$(openssl rand -hex 2)"
+        displayName: Set CLUSTER_NAME
+      - script: make test-e2e
+        displayName: Webhook E2E test suite
+        env:
+          SKIP_CLEANUP: "true"
+      - script: az aks upgrade --resource-group "${CLUSTER_NAME}" --name "${CLUSTER_NAME}" --kubernetes-version 1.21.1 --yes > /dev/null
+        displayName: Upgrade cluster
+      - script: make test-e2e
+        displayName: Webhook E2E test suite
+        env:
+          SKIP_IMAGE_BUILD: "true"
+      - script: az group delete --name "${CLUSTER_NAME}" --yes --no-wait || true
+        displayName: Cleanup
+        condition: always()
+      - template: publish-logs.yaml
