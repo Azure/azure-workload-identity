@@ -145,7 +145,7 @@ func setupWebhook(mgr manager.Manager, setupFinished chan struct{}) {
 	hookServer.TLSMinVersion = tlsMinVersion
 
 	entryLog.Info("registering webhook to the webhook server")
-	podMutator, err := wh.NewPodMutator(mgr.GetClient(), arcCluster, audience)
+	podMutator, err := wh.NewPodMutator(mgr.GetClient(), mgr.GetAPIReader(), arcCluster, audience)
 	if err != nil {
 		entryLog.Error(err, "unable to set up pod mutator")
 		os.Exit(1)

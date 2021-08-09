@@ -10,6 +10,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	atypes "sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
@@ -723,30 +724,52 @@ func TestHandle(t *testing.T) {
 
 	decoder, _ := atypes.NewDecoder(runtime.NewScheme())
 
-	m := &podMutator{
-		client:  fake.NewClientBuilder().WithObjects(serviceAccount).Build(),
-		config:  &config.Config{TenantID: "tenantID"},
-		decoder: decoder,
-	}
-
-	raw := []byte(`{"apiVersion":"v1","kind":"Pod","metadata":{"name":"pod","namespace":"ns1"},"spec":{"containers":[{"image":"image","name":"cont1"}],"serviceAccountName":"sa"}}`)
-
-	req := atypes.Request{
-		AdmissionRequest: admissionv1.AdmissionRequest{
-			Kind: metav1.GroupVersionKind{
-				Group:   "",
-				Version: "v1",
-				Kind:    "Pod",
-			},
-			Object:    runtime.RawExtension{Raw: raw},
-			Namespace: "ns1",
-			Operation: admissionv1.Create,
+	tests := []struct {
+		name          string
+		clientObjects []client.Object
+		readerObjects []client.Object
+	}{
+		{
+			name:          "service account in cache",
+			clientObjects: []client.Object{serviceAccount},
+			readerObjects: nil,
+		},
+		{
+			name:          "service account not in cache",
+			clientObjects: nil,
+			readerObjects: []client.Object{serviceAccount},
 		},
 	}
 
-	resp := m.Handle(context.Background(), req)
-	if !resp.Allowed {
-		t.Fatalf("expected to be allowed")
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			m := &podMutator{
+				client:  fake.NewClientBuilder().WithObjects(test.clientObjects...).Build(),
+				reader:  fake.NewClientBuilder().WithObjects(test.readerObjects...).Build(),
+				config:  &config.Config{TenantID: "tenantID"},
+				decoder: decoder,
+			}
+
+			raw := []byte(`{"apiVersion":"v1","kind":"Pod","metadata":{"name":"pod","namespace":"ns1"},"spec":{"containers":[{"image":"image","name":"cont1"}],"serviceAccountName":"sa"}}`)
+
+			req := atypes.Request{
+				AdmissionRequest: admissionv1.AdmissionRequest{
+					Kind: metav1.GroupVersionKind{
+						Group:   "",
+						Version: "v1",
+						Kind:    "Pod",
+					},
+					Object:    runtime.RawExtension{Raw: raw},
+					Namespace: "ns1",
+					Operation: admissionv1.Create,
+				},
+			}
+
+			resp := m.Handle(context.Background(), req)
+			if !resp.Allowed {
+				t.Fatalf("expected to be allowed")
+			}
+		})
 	}
 }
 

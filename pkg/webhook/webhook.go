@@ -14,6 +14,7 @@ import (
 
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -29,7 +30,10 @@ import (
 
 // podMutator mutates pod objects to add project service account token volume
 type podMutator struct {
-	client             client.Client
+	client client.Client
+	// reader is an instance of mgr.GetAPIReader that is configured to use the API server.
+	// This should be used sparingly and only when the client does not fit the use case.
+	reader             client.Reader
 	config             *config.Config
 	isARCCluster       bool
 	decoder            *admission.Decoder
@@ -38,7 +42,7 @@ type podMutator struct {
 }
 
 // NewPodMutator returns a pod mutation handler
-func NewPodMutator(client client.Client, arcCluster bool, audience string) (admission.Handler, error) {
+func NewPodMutator(client client.Client, reader client.Reader, arcCluster bool, audience string) (admission.Handler, error) {
 	c, err := config.ParseConfig()
 	if err != nil {
 		return nil, err
@@ -55,6 +59,7 @@ func NewPodMutator(client client.Client, arcCluster bool, audience string) (admi
 
 	return &podMutator{
 		client:             client,
+		reader:             reader,
 		config:             c,
 		isARCCluster:       arcCluster,
 		audience:           audience,
@@ -78,11 +83,19 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) admissio
 	logger := log.Log.WithName("handler").WithValues("pod", pod.Name, "namespace", pod.Namespace, "serviceAccount", pod.Spec.ServiceAccountName)
 	// get service account associated with the pod
 	serviceAccount := &corev1.ServiceAccount{}
-	err = m.client.Get(ctx, types.NamespacedName{Name: pod.Spec.ServiceAccountName, Namespace: pod.Namespace}, serviceAccount)
-	if err != nil {
-		logger.Error(err, "failed to get service account")
-		return admission.Errored(http.StatusBadRequest, err)
+	if err = m.client.Get(ctx, types.NamespacedName{Name: pod.Spec.ServiceAccountName, Namespace: pod.Namespace}, serviceAccount); err != nil {
+		if !apierrors.IsNotFound(err) {
+			logger.Error(err, "failed to get service account")
+			return admission.Errored(http.StatusBadRequest, err)
+		}
+		// bypass cache and get from the API server as it's not found in cache
+		err = m.reader.Get(ctx, types.NamespacedName{Name: pod.Spec.ServiceAccountName, Namespace: pod.Namespace}, serviceAccount)
+		if err != nil {
+			logger.Error(err, "failed to get service account")
+			return admission.Errored(http.StatusBadRequest, err)
+		}
 	}
+
 	// check if the service account has the annotation
 	if !isServiceAccountAnnotated(serviceAccount) {
 		logger.Info("service account not annotated")
