@@ -437,13 +437,13 @@ kubectl describe pod quick-start
 <details>
 <summary>Output</summary>
 
-You can verifiy the following injected properties in the output:
+You can verify the following injected properties in the output:
 
 | Environment variable   | Description                                           |
 | ---------------------- | ----------------------------------------------------- |
 | `AZURE_AUTHORITY_HOST` | The Azure Active Directory (AAD) endpoint.            |
-| `AZURE_CLIENT_ID`      | The client ID of the identity.                        |
-| `AZURE_TENANT_ID`      | The tenant ID of the Azure account.                   |
+| `AZURE_CLIENT_ID`      | The client ID of the AAD application.                 |
+| `AZURE_TENANT_ID`      | The tenant ID of the registered AAD application.      |
 | `TOKEN_FILE_PATH`      | The path of the projected service account token file. |
 
 <br/>
