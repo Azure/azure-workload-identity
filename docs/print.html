@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><a href="quick-start.html">Quick Start</a></li><li class="chapter-item expanded affix "><a href="concepts.html">Concepts</a></li><li class="chapter-item expanded "><a href="topics.html"><strong aria-hidden="true">1.</strong> Topics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="topics/labels-and-annotations.html"><strong aria-hidden="true">1.1.</strong> Labels And Annotations</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Troubleshooting</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> Known Limitations</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Developers</div></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="code-of-conduct.html"><strong aria-hidden="true">6.</strong> Code of Conduct</a></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><a href="quick-start.html">Quick Start</a></li><li class="chapter-item expanded affix "><a href="concepts.html">Concepts</a></li><li class="chapter-item expanded "><a href="topics.html"><strong aria-hidden="true">1.</strong> Topics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="topics/labels-and-annotations.html"><strong aria-hidden="true">1.1.</strong> Labels And Annotations</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Troubleshooting</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> Known Limitations</div></li><li class="chapter-item expanded "><a href="development.html"><strong aria-hidden="true">4.</strong> Development</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="development/releasing.html"><strong aria-hidden="true">4.1.</strong> Releasing</a></li></ol></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="code-of-conduct.html"><strong aria-hidden="true">6.</strong> Code of Conduct</a></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -169,6 +169,8 @@
 </ol>
 <h2 id="motivation"><a class="header" href="#motivation">Motivation</a></h2>
 <ul>
+<li>Cloud-agnostic.</li>
+<li>Support Linux and Windows workload.</li>
 <li>Industry-standard and Kubernetes-friendly authentication based on OpenID Connect (OIDC).</li>
 <li>Remove convoluted steps to set up <a href="https://azure.github.io/aad-pod-identity/docs/getting-started/role-assignment/">cluster role assignments</a>.</li>
 <li>Remove the following dependencies:
@@ -690,9 +692,206 @@ az rest --method POST --uri &quot;https://graph.microsoft.com/beta/applications/
 <h2 id="pod"><a class="header" href="#pod">Pod</a></h2>
 <h3 id="annotations-1"><a class="header" href="#annotations-1">Annotations</a></h3>
 <table><thead><tr><th>Annotation</th><th>Description</th><th>Default</th></tr></thead><tbody>
-<tr><td><code>azure.pod.identity/service-account-token-expiration</code></td><td>Represents the <code>expirationSeconds</code> field for the projected service account token. It is an optional field that the user might want to configure this to prevent any downtime caused by errors during service account token refresh. Kubernetes service account token expiry will not be correlated with AAD tokens. AAD tokens will expire in 24 hours after they are issued.</td><td><code>86400</code> (minimum <code>3600</code>)</td></tr>
+<tr><td><code>azure.pod.identity/service-account-token-expiration</code></td><td><strong>(Takes precedence if the service account is also annotated)</strong> Represents the <code>expirationSeconds</code> field for the projected service account token. It is an optional field that the user might want to configure this to prevent any downtime caused by errors during service account token refresh. Kubernetes service account token expiry will not be correlated with AAD tokens. AAD tokens will expire in 24 hours after they are issued.</td><td><code>86400</code> (minimum <code>3600</code>)</td></tr>
 <tr><td><code>azure.pod.identity/skip-containers</code></td><td>Represents a semi-colon-separated list of containers (e.g. <code>container1;container2</code>) to skip adding projected service account token volume. By default, the projected service account token volume will be added to all containers if the service account is labeled with <code>azure.pod.identity/use: true</code>.</td><td></td></tr>
 </tbody></table>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="development"><a class="header" href="#development">Development</a></h1>
+<!-- toc -->
+<h2 id="setting-up"><a class="header" href="#setting-up">Setting up</a></h2>
+<h3 id="base-requirements"><a class="header" href="#base-requirements">Base requirements</a></h3>
+<ol>
+<li>Prerequisites from <a href="https://azure.github.io/aad-pod-managed-identity/quick-start.html#prerequisites">quickstart</a></li>
+<li>Install <a href="https://golang.org/dl/">go</a>
+<ul>
+<li>Get the latest patch version for go 1.16.</li>
+</ul>
+</li>
+<li>Install <a href="https://stedolan.github.io/jq/">jq</a>
+<ul>
+<li><code>brew install jq</code> on macOS.</li>
+<li><code>chocolatey install jq</code> on Windows.</li>
+<li><code>sudo apt install jq</code> on Ubuntu Linux.</li>
+</ul>
+</li>
+<li>Install make.</li>
+</ol>
+<h3 id="clone-the-repository"><a class="header" href="#clone-the-repository">Clone the repository</a></h3>
+<pre><code class="language-bash">git clone https://github.com/Azure/aad-pod-managed-identity.git $(go env GOPATH)/src/github.com/Azure/aad-pod-managed-identity
+</code></pre>
+<h2 id="create-a-test-cluster"><a class="header" href="#create-a-test-cluster">Create a test cluster</a></h2>
+<h3 id="generate-a-custom-publicprivate-key-pair"><a class="header" href="#generate-a-custom-publicprivate-key-pair">Generate a custom public/private key pair</a></h3>
+<blockquote>
+<p>Skip this step if you are planning to bring your own keys.</p>
+</blockquote>
+<pre><code class="language-bash">openssl genrsa -out sa.key 2048
+openssl rsa -in sa.key -pubout -out sa.pub
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code class="language-bash">Generating RSA private key, 2048 bit long modulus
+..............+++
+......+++
+e is 65537 (0x10001)
+writing RSA key
+</code></pre>
+</details>
+<h3 id="setup-the-oidc-discovery-document-and-jwks"><a class="header" href="#setup-the-oidc-discovery-document-and-jwks">Setup the OIDC discovery document and JWKS</a></h3>
+<blockquote>
+<p>Skip this step if you already set up the OIDC discovery document and JWKS.</p>
+</blockquote>
+<p>Azure blob storage will be used to host the OIDC discovery document and JWKS. However, you can host them in anywhere, as long as they are publicly available.</p>
+<pre><code class="language-bash">export AZURE_STORAGE_ACCOUNT=&quot;pmi$(openssl rand -hex 4)&quot;
+export AZURE_STORAGE_CONTAINER=&quot;oidc-test&quot;
+az storage account create --resource-group &quot;${RESOURCE_GROUP}&quot; --name &quot;${AZURE_STORAGE_ACCOUNT}&quot;
+az storage container create --name &quot;${AZURE_STORAGE_CONTAINER}&quot; --public-access container
+</code></pre>
+<p>Generate and upload the OIDC discovery document:</p>
+<pre><code class="language-bash">cat &lt;&lt;EOF &gt; openid-configuration.json
+{
+  &quot;issuer&quot;: &quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/&quot;,
+  &quot;authorization_endpoint&quot;: &quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/connect/authorize&quot;,
+  &quot;jwks_uri&quot;: &quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/openid/v1/jwks&quot;,
+  &quot;response_types_supported&quot;: [
+    &quot;id_token&quot;
+  ],
+  &quot;subject_types_supported&quot;: [
+    &quot;public&quot;
+  ],
+  &quot;id_token_signing_alg_values_supported&quot;: [
+    &quot;RS256&quot;
+  ]
+}
+EOF
+az storage blob upload \
+  --container-name &quot;${AZURE_STORAGE_CONTAINER}&quot; \
+  --file openid-configuration.json \
+  --name .well-known/openid-configuration
+</code></pre>
+<p>Generate and upload the JWKS:</p>
+<pre><code class="language-bash">pushd hack/generate-jwks
+go run main.go --public-keys ../../sa.pub | jq &gt; jwks.json
+az storage blob upload \
+  --container-name &quot;${AZURE_STORAGE_CONTAINER}&quot; \
+  --file jwks.json \
+  --name openid/v1/jwks
+popd
+</code></pre>
+<p>Verify that the OIDC discovery document is publicly accessible:</p>
+<pre><code class="language-bash">curl -s &quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/.well-known/openid-configuration&quot;
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code class="language-json">{
+  &quot;issuer&quot;: &quot;https://&lt;REDACTED&gt;.blob.core.windows.net/oidc-test/&quot;,
+  &quot;authorization_endpoint&quot;: &quot;https://&lt;REDACTED&gt;.blob.core.windows.net/oidc-test/connect/authorize&quot;,
+  &quot;jwks_uri&quot;: &quot;https://&lt;REDACTED&gt;.blob.core.windows.net/oidc-test/openid/v1/jwks&quot;,
+  &quot;response_types_supported&quot;: [
+    &quot;id_token&quot;
+  ],
+  &quot;subject_types_supported&quot;: [
+    &quot;public&quot;
+  ],
+  &quot;id_token_signing_alg_values_supported&quot;: [
+    &quot;RS256&quot;
+  ]
+}
+</code></pre>
+</details>
+<h3 id="create-a-kind-cluster"><a class="header" href="#create-a-kind-cluster">Create a kind cluster</a></h3>
+<p>Export the following environment variables:</p>
+<pre><code class="language-bash">export SERVICE_ACCOUNT_ISSUER=&quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/&quot;
+export SERVICE_ACCOUNT_KEY_FILE=&quot;$(pwd)/sa.pub&quot;
+export SERVICE_ACCOUNT_SIGNING_KEY_FILE=&quot;$(pwd)/sa.key&quot;
+</code></pre>
+<p>Create a kind cluster with one control plane node and customize various service account-related flags for the API server:</p>
+<blockquote>
+<p>The minimum supported Kubernetes version for the webhook is v1.18.0, however, we recommend using Kubernetes version v1.20.0+.</p>
+</blockquote>
+<pre><code class="language-bash">cat &lt;&lt;EOF | kind create cluster --name aad-pod-managed-identity --image kindest/node:v1.21.1 --config=-
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+  extraMounts:
+    - hostPath: ${SERVICE_ACCOUNT_KEY_FILE}
+      containerPath: /etc/kubernetes/pki/sa.pub
+    - hostPath: ${SERVICE_ACCOUNT_SIGNING_KEY_FILE}
+      containerPath: /etc/kubernetes/pki/sa.key
+  kubeadmConfigPatches:
+  - |
+    kind: ClusterConfiguration
+    apiServer:
+      extraArgs:
+        service-account-issuer: ${SERVICE_ACCOUNT_ISSUER}
+        service-account-key-file: /etc/kubernetes/pki/sa.pub
+        service-account-signing-key-file: /etc/kubernetes/pki/sa.key
+EOF
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code class="language-bash">Creating cluster &quot;aad-pod-managed-identity&quot; ...
+ • Ensuring node image (kindest/node:v1.21.1) 🖼  ...
+ ✓ Ensuring node image (kindest/node:v1.21.1) 🖼
+ • Preparing nodes 📦   ...
+ ✓ Preparing nodes 📦
+ • Writing configuration 📜  ...
+ ✓ Writing configuration 📜
+ • Starting control-plane 🕹️  ...
+ ✓ Starting control-plane 🕹️
+ • Installing CNI 🔌  ...
+ ✓ Installing CNI 🔌
+ • Installing StorageClass 💾  ...
+ ✓ Installing StorageClass 💾
+Set kubectl context to &quot;kind-aad-pod-managed-identity&quot;
+You can now use your cluster with:
+
+kubectl cluster-info --context kind-aad-pod-managed-identity
+
+Have a question, bug, or feature request? Let us know! https://kind.sigs.k8s.io/#community 🙂
+</code></pre>
+</details>
+<p>Run the following command to verify that the kind cluster is online:</p>
+<pre><code class="language-bash">kubectl get nodes
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code class="language-bash">NAME                                     STATUS   ROLES                  AGE     VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE       KERNEL-VERSION     CONTAINER-RUNTIME
+aad-pod-managed-identity-control-plane   Ready    control-plane,master   2m28s   v1.21.1   172.18.0.2    &lt;none&gt;        Ubuntu 21.04   5.4.0-1047-azure   containerd://1.5.2
+</code></pre>
+</details>
+<h2 id="build-and-deploy-the-webhook"><a class="header" href="#build-and-deploy-the-webhook">Build and deploy the webhook</a></h2>
+<pre><code class="language-bash">export REGISTRY=&lt;YourPublicRegistry&gt;
+export IMAGE_VERSION=&quot;$(git describe --tags --always)&quot;
+export AZURE_TENANT_ID=&quot;...&quot;
+make docker-build-webhook deploy
+</code></pre>
+<h2 id="unit-test"><a class="header" href="#unit-test">Unit Test</a></h2>
+<pre><code class="language-bash">make test
+</code></pre>
+<h2 id="e2e-test"><a class="header" href="#e2e-test">E2E Test</a></h2>
+<pre><code class="language-bash">make test-e2e-run
+</code></pre>
+<p>Optional settings are:</p>
+<table><thead><tr><th>Environment variables</th><th>Description</th><th>Default</th></tr></thead><tbody>
+<tr><td><code>GINKGO_FOCUS</code></td><td>Allow you to focus on a subset of specs using regex.</td><td></td></tr>
+<tr><td><code>GINKGO_SKIP</code></td><td>Allow you to skip a subset of specs using regex.</td><td></td></tr>
+<tr><td><code>GINKGO_NODES</code></td><td>The number of ginkgo workers to run the specs.</td><td><code>3</code></td></tr>
+<tr><td><code>GINKGO_NO_COLOR</code></td><td>True if you want colorized output.</td><td><code>false</code></td></tr>
+<tr><td><code>GINKGO_TIMEOUT</code></td><td>The test suite timeout duration.</td><td><code>5m</code></td></tr>
+<tr><td><code>KUBECONFIG</code></td><td>The cluster KUBECONFIG you want to run the e2e test against.</td><td><code>${HOME}/.kube/config</code></td></tr>
+<tr><td><code>E2E_EXTRA_ARGS</code></td><td>Allow you to insert extra arguments when executing the test suite.</td><td></td></tr>
+</tbody></table>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="releasing"><a class="header" href="#releasing">Releasing</a></h1>
+<!-- toc -->
+<p>We use GitHub Actions to automate our release process.</p>
+<h2 id="1-create-a-release-pull-request"><a class="header" href="#1-create-a-release-pull-request">1. Create a release pull request</a></h2>
+<p><img src="development/../images/release-step-1.png" alt="Create a release pull request" /></p>
+<h2 id="2-review-and-approve-the-release-pull-request"><a class="header" href="#2-review-and-approve-the-release-pull-request">2. Review and approve the release pull request</a></h2>
+<p><img src="development/../images/release-step-2.png" alt="Review and approve the release pull request" /></p>
+<h2 id="3-verify-that-the-create_tag-action-is-triggered-after-the-release-pull-request-is-merged"><a class="header" href="#3-verify-that-the-create_tag-action-is-triggered-after-the-release-pull-request-is-merged">3. Verify that the create_tag action is triggered after the release pull request is merged</a></h2>
+<p><img src="development/../images/release-step-3.png" alt="Verify that the create_tag action is triggered after the release pull request is merged" /></p>
+<h2 id="4-verify-that-the-tag-is-successfully-created"><a class="header" href="#4-verify-that-the-tag-is-successfully-created">4. Verify that the tag is successfully created</a></h2>
+<p><img src="development/../images/release-step-4.png" alt="Verify that the tag is successfully created" /></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="contributing"><a class="header" href="#contributing">Contributing</a></h1>
 <p>The AAD Pod Managed Identity project welcomes contributions and suggestions. Most contributions require you to agree to a Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us the rights to use your contribution. For details, visit <a href="https://cla.microsoft.com">https://cla.microsoft.com</a>.</p>
 <p>When you submit a pull request, a CLA-bot will automatically determine whether you need to provide a CLA and decorate the PR appropriately (e.g., label, comment). Simply follow the instructions provided by the bot. You will only need to do this once across all repos using our CLA.</p>

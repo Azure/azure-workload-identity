@@ -1,0 +1,385 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Development - AAD Pod Managed Identity</title>
+                
+
+        <!-- Custom HTML head -->
+        
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+                <link rel="icon" href="favicon.svg">
+                        <link rel="shortcut icon" href="favicon.png">
+                <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+                <link rel="stylesheet" href="css/print.css" media="print">
+        
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+                <link rel="stylesheet" href="fonts/fonts.css">
+        
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+            </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><a href="quick-start.html">Quick Start</a></li><li class="chapter-item expanded affix "><a href="concepts.html">Concepts</a></li><li class="chapter-item expanded "><a href="topics.html"><strong aria-hidden="true">1.</strong> Topics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="topics/labels-and-annotations.html"><strong aria-hidden="true">1.1.</strong> Labels And Annotations</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Troubleshooting</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> Known Limitations</div></li><li class="chapter-item expanded "><a href="development.html" class="active"><strong aria-hidden="true">4.</strong> Development</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="development/releasing.html"><strong aria-hidden="true">4.1.</strong> Releasing</a></li></ol></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="code-of-conduct.html"><strong aria-hidden="true">6.</strong> Code of Conduct</a></li></ol>            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                                                <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                                            </div>
+
+                    <h1 class="menu-title">AAD Pod Managed Identity</h1>
+
+                    <div class="right-buttons">
+                                                <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                                                                        <a href="https://github.com/Azure/aad-pod-managed-identity" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                                                
+                    </div>
+                </div>
+
+                                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="development"><a class="header" href="#development">Development</a></h1>
+<!-- toc -->
+<h2 id="setting-up"><a class="header" href="#setting-up">Setting up</a></h2>
+<h3 id="base-requirements"><a class="header" href="#base-requirements">Base requirements</a></h3>
+<ol>
+<li>Prerequisites from <a href="https://azure.github.io/aad-pod-managed-identity/quick-start.html#prerequisites">quickstart</a></li>
+<li>Install <a href="https://golang.org/dl/">go</a>
+<ul>
+<li>Get the latest patch version for go 1.16.</li>
+</ul>
+</li>
+<li>Install <a href="https://stedolan.github.io/jq/">jq</a>
+<ul>
+<li><code>brew install jq</code> on macOS.</li>
+<li><code>chocolatey install jq</code> on Windows.</li>
+<li><code>sudo apt install jq</code> on Ubuntu Linux.</li>
+</ul>
+</li>
+<li>Install make.</li>
+</ol>
+<h3 id="clone-the-repository"><a class="header" href="#clone-the-repository">Clone the repository</a></h3>
+<pre><code class="language-bash">git clone https://github.com/Azure/aad-pod-managed-identity.git $(go env GOPATH)/src/github.com/Azure/aad-pod-managed-identity
+</code></pre>
+<h2 id="create-a-test-cluster"><a class="header" href="#create-a-test-cluster">Create a test cluster</a></h2>
+<h3 id="generate-a-custom-publicprivate-key-pair"><a class="header" href="#generate-a-custom-publicprivate-key-pair">Generate a custom public/private key pair</a></h3>
+<blockquote>
+<p>Skip this step if you are planning to bring your own keys.</p>
+</blockquote>
+<pre><code class="language-bash">openssl genrsa -out sa.key 2048
+openssl rsa -in sa.key -pubout -out sa.pub
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code class="language-bash">Generating RSA private key, 2048 bit long modulus
+..............+++
+......+++
+e is 65537 (0x10001)
+writing RSA key
+</code></pre>
+</details>
+<h3 id="setup-the-oidc-discovery-document-and-jwks"><a class="header" href="#setup-the-oidc-discovery-document-and-jwks">Setup the OIDC discovery document and JWKS</a></h3>
+<blockquote>
+<p>Skip this step if you already set up the OIDC discovery document and JWKS.</p>
+</blockquote>
+<p>Azure blob storage will be used to host the OIDC discovery document and JWKS. However, you can host them in anywhere, as long as they are publicly available.</p>
+<pre><code class="language-bash">export AZURE_STORAGE_ACCOUNT=&quot;pmi$(openssl rand -hex 4)&quot;
+export AZURE_STORAGE_CONTAINER=&quot;oidc-test&quot;
+az storage account create --resource-group &quot;${RESOURCE_GROUP}&quot; --name &quot;${AZURE_STORAGE_ACCOUNT}&quot;
+az storage container create --name &quot;${AZURE_STORAGE_CONTAINER}&quot; --public-access container
+</code></pre>
+<p>Generate and upload the OIDC discovery document:</p>
+<pre><code class="language-bash">cat &lt;&lt;EOF &gt; openid-configuration.json
+{
+  &quot;issuer&quot;: &quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/&quot;,
+  &quot;authorization_endpoint&quot;: &quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/connect/authorize&quot;,
+  &quot;jwks_uri&quot;: &quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/openid/v1/jwks&quot;,
+  &quot;response_types_supported&quot;: [
+    &quot;id_token&quot;
+  ],
+  &quot;subject_types_supported&quot;: [
+    &quot;public&quot;
+  ],
+  &quot;id_token_signing_alg_values_supported&quot;: [
+    &quot;RS256&quot;
+  ]
+}
+EOF
+az storage blob upload \
+  --container-name &quot;${AZURE_STORAGE_CONTAINER}&quot; \
+  --file openid-configuration.json \
+  --name .well-known/openid-configuration
+</code></pre>
+<p>Generate and upload the JWKS:</p>
+<pre><code class="language-bash">pushd hack/generate-jwks
+go run main.go --public-keys ../../sa.pub | jq &gt; jwks.json
+az storage blob upload \
+  --container-name &quot;${AZURE_STORAGE_CONTAINER}&quot; \
+  --file jwks.json \
+  --name openid/v1/jwks
+popd
+</code></pre>
+<p>Verify that the OIDC discovery document is publicly accessible:</p>
+<pre><code class="language-bash">curl -s &quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/.well-known/openid-configuration&quot;
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code class="language-json">{
+  &quot;issuer&quot;: &quot;https://&lt;REDACTED&gt;.blob.core.windows.net/oidc-test/&quot;,
+  &quot;authorization_endpoint&quot;: &quot;https://&lt;REDACTED&gt;.blob.core.windows.net/oidc-test/connect/authorize&quot;,
+  &quot;jwks_uri&quot;: &quot;https://&lt;REDACTED&gt;.blob.core.windows.net/oidc-test/openid/v1/jwks&quot;,
+  &quot;response_types_supported&quot;: [
+    &quot;id_token&quot;
+  ],
+  &quot;subject_types_supported&quot;: [
+    &quot;public&quot;
+  ],
+  &quot;id_token_signing_alg_values_supported&quot;: [
+    &quot;RS256&quot;
+  ]
+}
+</code></pre>
+</details>
+<h3 id="create-a-kind-cluster"><a class="header" href="#create-a-kind-cluster">Create a kind cluster</a></h3>
+<p>Export the following environment variables:</p>
+<pre><code class="language-bash">export SERVICE_ACCOUNT_ISSUER=&quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/&quot;
+export SERVICE_ACCOUNT_KEY_FILE=&quot;$(pwd)/sa.pub&quot;
+export SERVICE_ACCOUNT_SIGNING_KEY_FILE=&quot;$(pwd)/sa.key&quot;
+</code></pre>
+<p>Create a kind cluster with one control plane node and customize various service account-related flags for the API server:</p>
+<blockquote>
+<p>The minimum supported Kubernetes version for the webhook is v1.18.0, however, we recommend using Kubernetes version v1.20.0+.</p>
+</blockquote>
+<pre><code class="language-bash">cat &lt;&lt;EOF | kind create cluster --name aad-pod-managed-identity --image kindest/node:v1.21.1 --config=-
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+  extraMounts:
+    - hostPath: ${SERVICE_ACCOUNT_KEY_FILE}
+      containerPath: /etc/kubernetes/pki/sa.pub
+    - hostPath: ${SERVICE_ACCOUNT_SIGNING_KEY_FILE}
+      containerPath: /etc/kubernetes/pki/sa.key
+  kubeadmConfigPatches:
+  - |
+    kind: ClusterConfiguration
+    apiServer:
+      extraArgs:
+        service-account-issuer: ${SERVICE_ACCOUNT_ISSUER}
+        service-account-key-file: /etc/kubernetes/pki/sa.pub
+        service-account-signing-key-file: /etc/kubernetes/pki/sa.key
+EOF
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code class="language-bash">Creating cluster &quot;aad-pod-managed-identity&quot; ...
+ • Ensuring node image (kindest/node:v1.21.1) 🖼  ...
+ ✓ Ensuring node image (kindest/node:v1.21.1) 🖼
+ • Preparing nodes 📦   ...
+ ✓ Preparing nodes 📦
+ • Writing configuration 📜  ...
+ ✓ Writing configuration 📜
+ • Starting control-plane 🕹️  ...
+ ✓ Starting control-plane 🕹️
+ • Installing CNI 🔌  ...
+ ✓ Installing CNI 🔌
+ • Installing StorageClass 💾  ...
+ ✓ Installing StorageClass 💾
+Set kubectl context to &quot;kind-aad-pod-managed-identity&quot;
+You can now use your cluster with:
+
+kubectl cluster-info --context kind-aad-pod-managed-identity
+
+Have a question, bug, or feature request? Let us know! https://kind.sigs.k8s.io/#community 🙂
+</code></pre>
+</details>
+<p>Run the following command to verify that the kind cluster is online:</p>
+<pre><code class="language-bash">kubectl get nodes
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code class="language-bash">NAME                                     STATUS   ROLES                  AGE     VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE       KERNEL-VERSION     CONTAINER-RUNTIME
+aad-pod-managed-identity-control-plane   Ready    control-plane,master   2m28s   v1.21.1   172.18.0.2    &lt;none&gt;        Ubuntu 21.04   5.4.0-1047-azure   containerd://1.5.2
+</code></pre>
+</details>
+<h2 id="build-and-deploy-the-webhook"><a class="header" href="#build-and-deploy-the-webhook">Build and deploy the webhook</a></h2>
+<pre><code class="language-bash">export REGISTRY=&lt;YourPublicRegistry&gt;
+export IMAGE_VERSION=&quot;$(git describe --tags --always)&quot;
+export AZURE_TENANT_ID=&quot;...&quot;
+make docker-build-webhook deploy
+</code></pre>
+<h2 id="unit-test"><a class="header" href="#unit-test">Unit Test</a></h2>
+<pre><code class="language-bash">make test
+</code></pre>
+<h2 id="e2e-test"><a class="header" href="#e2e-test">E2E Test</a></h2>
+<pre><code class="language-bash">make test-e2e-run
+</code></pre>
+<p>Optional settings are:</p>
+<table><thead><tr><th>Environment variables</th><th>Description</th><th>Default</th></tr></thead><tbody>
+<tr><td><code>GINKGO_FOCUS</code></td><td>Allow you to focus on a subset of specs using regex.</td><td></td></tr>
+<tr><td><code>GINKGO_SKIP</code></td><td>Allow you to skip a subset of specs using regex.</td><td></td></tr>
+<tr><td><code>GINKGO_NODES</code></td><td>The number of ginkgo workers to run the specs.</td><td><code>3</code></td></tr>
+<tr><td><code>GINKGO_NO_COLOR</code></td><td>True if you want colorized output.</td><td><code>false</code></td></tr>
+<tr><td><code>GINKGO_TIMEOUT</code></td><td>The test suite timeout duration.</td><td><code>5m</code></td></tr>
+<tr><td><code>KUBECONFIG</code></td><td>The cluster KUBECONFIG you want to run the e2e test against.</td><td><code>${HOME}/.kube/config</code></td></tr>
+<tr><td><code>E2E_EXTRA_ARGS</code></td><td>Allow you to insert extra arguments when executing the test suite.</td><td></td></tr>
+</tbody></table>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                                                    <a rel="prev" href="topics/labels-and-annotations.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+                                                    <a rel="next" href="development/releasing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                                    <a rel="prev" href="topics/labels-and-annotations.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+                                    <a rel="next" href="development/releasing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                            </nav>
+
+        </div>
+
+        
+        
+        
+                <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+        
+                <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+        
+    </body>
+</html>

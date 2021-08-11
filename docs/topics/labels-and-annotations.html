@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><a href="../quick-start.html">Quick Start</a></li><li class="chapter-item expanded affix "><a href="../concepts.html">Concepts</a></li><li class="chapter-item expanded "><a href="../topics.html"><strong aria-hidden="true">1.</strong> Topics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../topics/labels-and-annotations.html" class="active"><strong aria-hidden="true">1.1.</strong> Labels And Annotations</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Troubleshooting</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> Known Limitations</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Developers</div></li><li class="chapter-item expanded "><a href="../contributing.html"><strong aria-hidden="true">5.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="../code-of-conduct.html"><strong aria-hidden="true">6.</strong> Code of Conduct</a></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><a href="../quick-start.html">Quick Start</a></li><li class="chapter-item expanded affix "><a href="../concepts.html">Concepts</a></li><li class="chapter-item expanded "><a href="../topics.html"><strong aria-hidden="true">1.</strong> Topics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../topics/labels-and-annotations.html" class="active"><strong aria-hidden="true">1.1.</strong> Labels And Annotations</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Troubleshooting</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> Known Limitations</div></li><li class="chapter-item expanded "><a href="../development.html"><strong aria-hidden="true">4.</strong> Development</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../development/releasing.html"><strong aria-hidden="true">4.1.</strong> Releasing</a></li></ol></li><li class="chapter-item expanded "><a href="../contributing.html"><strong aria-hidden="true">5.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="../code-of-conduct.html"><strong aria-hidden="true">6.</strong> Code of Conduct</a></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -162,7 +162,7 @@
 <h2 id="pod"><a class="header" href="#pod">Pod</a></h2>
 <h3 id="annotations-1"><a class="header" href="#annotations-1">Annotations</a></h3>
 <table><thead><tr><th>Annotation</th><th>Description</th><th>Default</th></tr></thead><tbody>
-<tr><td><code>azure.pod.identity/service-account-token-expiration</code></td><td>Represents the <code>expirationSeconds</code> field for the projected service account token. It is an optional field that the user might want to configure this to prevent any downtime caused by errors during service account token refresh. Kubernetes service account token expiry will not be correlated with AAD tokens. AAD tokens will expire in 24 hours after they are issued.</td><td><code>86400</code> (minimum <code>3600</code>)</td></tr>
+<tr><td><code>azure.pod.identity/service-account-token-expiration</code></td><td><strong>(Takes precedence if the service account is also annotated)</strong> Represents the <code>expirationSeconds</code> field for the projected service account token. It is an optional field that the user might want to configure this to prevent any downtime caused by errors during service account token refresh. Kubernetes service account token expiry will not be correlated with AAD tokens. AAD tokens will expire in 24 hours after they are issued.</td><td><code>86400</code> (minimum <code>3600</code>)</td></tr>
 <tr><td><code>azure.pod.identity/skip-containers</code></td><td>Represents a semi-colon-separated list of containers (e.g. <code>container1;container2</code>) to skip adding projected service account token volume. By default, the projected service account token volume will be added to all containers if the service account is labeled with <code>azure.pod.identity/use: true</code>.</td><td></td></tr>
 </tbody></table>
 
@@ -174,7 +174,7 @@
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
-                                                    <a rel="next" href="../contributing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                                    <a rel="next" href="../development.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         
@@ -188,7 +188,7 @@
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
-                                    <a rel="next" href="../contributing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                    <a rel="next" href="../development.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
                             </nav>
