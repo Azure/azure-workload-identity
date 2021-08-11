@@ -18,6 +18,8 @@ The repository contains the following components:
 
 ## Motivation
 
+*   Cloud-agnostic.
+*   Support Linux and Windows workload.
 *   Industry-standard and Kubernetes-friendly authentication based on OpenID Connect (OIDC).
 *   Remove convoluted steps to set up [cluster role assignments][8].
 *   Remove the following dependencies:
