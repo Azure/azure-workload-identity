@@ -7,6 +7,7 @@
   - [Labels And Annotations](./topics/labels-and-annotations.md)
 - [Troubleshooting]()
 - [Known Limitations]()
-- [Developers]()
+- [Development](./development.md)
+  - [Releasing](./development/releasing.md)
 - [Contributing](./contributing.md)
 - [Code of Conduct](./code-of-conduct.md)

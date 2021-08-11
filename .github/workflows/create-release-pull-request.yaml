@@ -22,7 +22,7 @@ jobs:
         with:
           submodules: true
           fetch-depth: 0
-          ref: "{{ github.event.inputs.based_on_branch }}"
+          ref: "${{ github.event.inputs.based_on_branch }}"
       - uses: actions/setup-go@v2
         with:
           go-version: "1.16.6"
