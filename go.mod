@@ -4,6 +4,9 @@ go 1.16
 
 require (
 	github.com/Azure/go-autorest/autorest v0.11.12
+	github.com/Azure/go-autorest/autorest/adal v0.9.5
+	github.com/AzureAD/microsoft-authentication-library-for-go v0.3.0
+	github.com/gorilla/mux v1.8.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.13.0

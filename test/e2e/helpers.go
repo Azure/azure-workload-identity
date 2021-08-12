@@ -21,8 +21,10 @@ import (
 )
 
 const (
-	busybox1 = "busybox-1"
-	busybox2 = "busybox-2"
+	busybox1  = "busybox-1"
+	busybox2  = "busybox-2"
+	proxyInit = "proxy-init"
+	proxy     = "proxy"
 )
 
 // createServiceAccount creates a service account with customizable name, namespace, labels and annotations.
@@ -55,8 +57,17 @@ func createServiceAccount(c kubernetes.Interface, namespace, name string, labels
 // createPodWithServiceAccount creates a pod with two containers, busybox-1 and busybox-2 with customizable
 // namespace, service account, image, command, arguments, environment variables, and annotations.
 func createPodWithServiceAccount(c kubernetes.Interface, namespace, serviceAccount, image string, command, args []string, env []corev1.EnvVar, annotations map[string]string) (*corev1.Pod, error) {
-	framework.Logf("creating a pod in %s namespace with service account %s", namespace, serviceAccount)
+	if arcCluster {
+		createSecretForArcCluster(c, namespace, serviceAccount)
+	}
 
+	pod := generatePodWithServiceAccount(c, namespace, serviceAccount, image, command, args, env, annotations)
+	return createPod(c, pod)
+}
+
+// generatePodWithServiceAccount generates a pod with two containers, busybox-1 and busybox-2 with customizable
+// namespace, service account, image, command, arguments, environment variables, and annotations.
+func generatePodWithServiceAccount(c kubernetes.Interface, namespace, serviceAccount, image string, command, args []string, env []corev1.EnvVar, annotations map[string]string) *corev1.Pod {
 	zero := int64(0)
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -86,20 +97,23 @@ func createPodWithServiceAccount(c kubernetes.Interface, namespace, serviceAccou
 		},
 	}
 
+	nodeOSDistro := "linux"
 	if framework.NodeOSDistroIs("windows") {
-		e2epod.SetNodeSelection(&pod.Spec, e2epod.NodeSelection{
-			Selector: map[string]string{
-				"kubernetes.io/os": "windows",
-			},
-		})
+		nodeOSDistro = "windows"
 	}
+	e2epod.SetNodeSelection(&pod.Spec, e2epod.NodeSelection{
+		Selector: map[string]string{
+			"kubernetes.io/os": nodeOSDistro,
+		},
+	})
 
-	if arcCluster {
-		createSecretForArcCluster(c, namespace, serviceAccount)
-	}
+	return pod
+}
 
-	pod, err := c.CoreV1().Pods(namespace).Create(context.TODO(), pod, metav1.CreateOptions{})
-	return pod, err
+// createPod creates the given pod
+func createPod(c kubernetes.Interface, pod *corev1.Pod) (*corev1.Pod, error) {
+	framework.Logf("creating a pod in %s namespace with service account %s", pod.Namespace, pod.Spec.ServiceAccountName)
+	return c.CoreV1().Pods(pod.Namespace).Create(context.TODO(), pod, metav1.CreateOptions{})
 }
 
 // createPodUsingDeploymentWithServiceAccount creates a deployment containing one pod with customizable service account.
@@ -140,13 +154,15 @@ func createPodUsingDeploymentWithServiceAccount(f *framework.Framework, serviceA
 		},
 	}
 
+	nodeOSDistro := "linux"
 	if framework.NodeOSDistroIs("windows") {
-		e2epod.SetNodeSelection(&d.Spec.Template.Spec, e2epod.NodeSelection{
-			Selector: map[string]string{
-				"kubernetes.io/os": "windows",
-			},
-		})
+		nodeOSDistro = "windows"
 	}
+	e2epod.SetNodeSelection(&d.Spec.Template.Spec, e2epod.NodeSelection{
+		Selector: map[string]string{
+			"kubernetes.io/os": nodeOSDistro,
+		},
+	})
 
 	if arcCluster {
 		createSecretForArcCluster(f.ClientSet, f.Namespace.Name, serviceAccount)

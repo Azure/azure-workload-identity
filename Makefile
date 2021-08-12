@@ -119,6 +119,11 @@ all: manager
 manager: generate fmt vet
 	go build -a -ldflags $(LDFLAGS) -o bin/manager cmd/webhook/main.go
 
+# Build proxy binary
+.PHONY: proxy
+proxy: fmt vet
+	go build -a -ldflags $(LDFLAGS) -o bin/proxy cmd/proxy/main.go
+
 # Run against the configured Kubernetes cluster in ~/.kube/config
 .PHONY: run
 run: generate fmt vet manifests
@@ -248,14 +253,18 @@ $(E2E_TEST):
 # Ginkgo configurations
 GINKGO_FOCUS ?=
 GINKGO_SKIP ?=
-GINKGO_NODES ?= 3
+GINKGO_NODES ?= 1
 GINKGO_NO_COLOR ?= false
 GINKGO_TIMEOUT ?= 5m
 GINKGO_ARGS ?= -focus="$(GINKGO_FOCUS)" -skip="$(GINKGO_SKIP)" -nodes=$(GINKGO_NODES) -noColor=$(GINKGO_NO_COLOR) -timeout=$(GINKGO_TIMEOUT)
 
 # E2E configurations
 KUBECONFIG ?= $(HOME)/.kube/config
-E2E_ARGS := -kubeconfig=$(KUBECONFIG) -report-dir=$(PWD)/_artifacts -e2e.arc-cluster=$(ARC_CLUSTER) -e2e.token-exchange-image=$(MSAL_GO_E2E_IMAGE)
+E2E_ARGS := -kubeconfig=$(KUBECONFIG) -report-dir=$(PWD)/_artifacts \
+				 -e2e.arc-cluster=$(ARC_CLUSTER) \
+				 -e2e.token-exchange-image=$(MSAL_GO_E2E_IMAGE) \
+				 -e2e.proxy-image=$(PROXY_IMAGE) \
+				 -e2e.proxy-init-image=$(INIT_IMAGE)
 E2E_EXTRA_ARGS ?=
 
 .PHONY: test-e2e-run
@@ -281,6 +290,8 @@ kind-create: $(KIND) $(KUBECTL)
 kind-load-image:
 	$(KIND) load docker-image $(WEBHOOK_IMAGE) --name $(KIND_CLUSTER_NAME)
 	$(KIND) load docker-image $(MSAL_GO_E2E_IMAGE) --name $(KIND_CLUSTER_NAME)
+	$(KIND) load docker-image $(PROXY_IMAGE) --name $(KIND_CLUSTER_NAME)
+	$(KIND) load docker-image $(INIT_IMAGE) --name $(KIND_CLUSTER_NAME)
 
 .PHONY: kind-delete
 kind-delete: $(KIND)

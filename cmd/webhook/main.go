@@ -74,7 +74,7 @@ func main() {
 	// Setup a manager
 	entryLog.Info("setting up manager")
 	config := ctrl.GetConfigOrDie()
-	config.UserAgent = version.GetUserAgent()
+	config.UserAgent = version.GetUserAgent("webhook")
 
 	// log the user agent as it makes it easier to debug issues
 	entryLog.Info(config.UserAgent)
