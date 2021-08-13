@@ -25,9 +25,9 @@ var _ = ginkgo.Describe("Proxy [KindOnly][LinuxOnly]", func() {
 	ginkgo.It("should get a valid AAD token with the proxy sidecar", func() {
 		clientID, ok := os.LookupEnv("APPLICATION_CLIENT_ID")
 		gomega.Expect(ok).To(gomega.BeTrue(), "APPLICATION_CLIENT_ID must be set")
-		// trust is only set up for 'pod-identity-sa' service account in the default namespace for now
+		// trust is only set up for 'proxy-test-sa' service account in the default namespace for now
 		const namespace = "default"
-		serviceAccount := createServiceAccount(f.ClientSet, namespace, "pod-identity-sa", map[string]string{webhook.UsePodIdentityLabel: "true"}, map[string]string{webhook.ClientIDAnnotation: clientID})
+		serviceAccount := createServiceAccount(f.ClientSet, namespace, "proxy-test-sa", map[string]string{webhook.UsePodIdentityLabel: "true"}, map[string]string{webhook.ClientIDAnnotation: clientID})
 		defer f.ClientSet.CoreV1().ServiceAccounts(namespace).Delete(context.TODO(), serviceAccount, metav1.DeleteOptions{})
 
 		pod := generatePodWithServiceAccount(
