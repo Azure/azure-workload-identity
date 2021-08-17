@@ -345,8 +345,3 @@ promote-staging-manifest: #promote staging manifests to release dir
 	@cp -r manifest_staging/deploy .
 	@rm -rf charts/pod-identity-webhook
 	@cp -r manifest_staging/charts .
-	@mkdir -p ./charts/tmp
-	@helm package ./charts/pod-identity-webhook -d ./charts/tmp/
-	@helm repo index ./charts/tmp --url https://azure.github.io/aad-pod-managed-identity/charts --merge ./charts/index.yaml
-	@mv ./charts/tmp/* ./charts
-	@rm -rf ./charts/tmp
