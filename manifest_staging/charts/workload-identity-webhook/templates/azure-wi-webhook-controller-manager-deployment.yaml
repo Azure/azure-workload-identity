@@ -2,26 +2,26 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: '{{ template "pod-identity-webhook.name" . }}'
-    chart: '{{ template "pod-identity-webhook.name" . }}'
-    mpod.aad-pod-identity.io/system: "true"
+    app: '{{ template "workload-identity-webhook.name" . }}'
+    azure-workload-identity.io/system: "true"
+    chart: '{{ template "workload-identity-webhook.name" . }}'
     release: '{{ .Release.Name }}'
-  name: aad-pi-webhook-controller-manager
+  name: azure-wi-webhook-controller-manager
   namespace: '{{ .Release.Namespace }}'
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: '{{ template "pod-identity-webhook.name" . }}'
-      chart: '{{ template "pod-identity-webhook.name" . }}'
-      mpod.aad-pod-identity.io/system: "true"
+      app: '{{ template "workload-identity-webhook.name" . }}'
+      azure-workload-identity.io/system: "true"
+      chart: '{{ template "workload-identity-webhook.name" . }}'
       release: '{{ .Release.Name }}'
   template:
     metadata:
       labels:
-        app: '{{ template "pod-identity-webhook.name" . }}'
-        chart: '{{ template "pod-identity-webhook.name" . }}'
-        mpod.aad-pod-identity.io/system: "true"
+        app: '{{ template "workload-identity-webhook.name" . }}'
+        azure-workload-identity.io/system: "true"
+        chart: '{{ template "workload-identity-webhook.name" . }}'
         release: '{{ .Release.Name }}'
     spec:
       containers:
@@ -37,7 +37,7 @@ spec:
               fieldPath: metadata.namespace
         envFrom:
         - configMapRef:
-            name: aad-pi-webhook-config
+            name: azure-wi-webhook-config
         image: '{{ .Values.image.repository }}:{{ .Values.image.release }}'
         imagePullPolicy: '{{ .Values.image.pullPolicy }}'
         livenessProbe:
@@ -64,9 +64,9 @@ spec:
           readOnly: true
       nodeSelector:
         {{- toYaml .Values.nodeSelector | nindent 8 }}
-      serviceAccountName: aad-pi-webhook-admin
+      serviceAccountName: azure-wi-webhook-admin
       volumes:
       - name: cert
         secret:
           defaultMode: 420
-          secretName: aad-pi-webhook-server-cert
+          secretName: azure-wi-webhook-server-cert

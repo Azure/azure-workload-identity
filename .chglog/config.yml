@@ -3,7 +3,7 @@ style: github
 template: CHANGELOG.tpl.md
 info:
   title: CHANGELOG
-  repository_url: https://github.com/Azure/aad-pod-managed-identity
+  repository_url: https://github.com/Azure/azure-workload-identity
 options:
   commits:
     filters:

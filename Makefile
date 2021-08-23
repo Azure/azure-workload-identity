@@ -1,11 +1,11 @@
-REGISTRY ?= mcr.microsoft.com/oss/azure/aad-pod-managed-identity
+REGISTRY ?= mcr.microsoft.com/oss/azure/workload-identity
 PROXY_IMAGE_NAME := proxy
 INIT_IMAGE_NAME := proxy-init
 WEBHOOK_IMAGE_NAME := webhook
 IMAGE_VERSION ?= v0.3.0
 
 ORG_PATH := github.com/Azure
-PROJECT_NAME := aad-pod-managed-identity
+PROJECT_NAME := azure-workload-identity
 BUILD_COMMIT := $(shell git rev-parse --short HEAD)
 REPO_PATH := "$(ORG_PATH)/$(PROJECT_NAME)"
 
@@ -139,7 +139,7 @@ deploy: $(KUBECTL) $(KUSTOMIZE) $(ENVSUBST)
 	$(MAKE) manifests
 	cd config/manager && $(KUSTOMIZE) edit set image manager=$(WEBHOOK_IMAGE)
 	$(KUSTOMIZE) build config/default | $(ENVSUBST) | $(KUBECTL) apply -f -
-	$(KUBECTL) wait --for=condition=Available --timeout=5m -n aad-pi-webhook-system deployment/aad-pi-webhook-controller-manager
+	$(KUBECTL) wait --for=condition=Available --timeout=5m -n azure-workload-identity-system deployment/azure-wi-webhook-controller-manager
 
 .PHONY: uninstall-deploy
 uninstall-deploy: $(KUBECTL) $(KUSTOMIZE) $(ENVSUBST)
@@ -156,14 +156,14 @@ manifests: $(CONTROLLER_GEN) $(KUSTOMIZE)
 
 	rm -rf manifest_staging
 	mkdir -p manifest_staging/deploy
-	mkdir -p manifest_staging/charts/pod-identity-webhook
+	mkdir -p manifest_staging/charts/workload-identity-webhook
 
-	$(KUSTOMIZE) build config/default -o manifest_staging/deploy/aad-pi-webhook.yaml
+	$(KUSTOMIZE) build config/default -o manifest_staging/deploy/azure-wi-webhook.yaml
 	$(KUSTOMIZE) build third_party/open-policy-agent/gatekeeper/helmify | go run third_party/open-policy-agent/gatekeeper/helmify/*.go
 
-	@sed -i -e "s/AZURE_TENANT_ID: .*/AZURE_TENANT_ID: <replace with Azure Tenant ID>/" manifest_staging/deploy/aad-pi-webhook.yaml
-	@sed -i -e "s/AZURE_ENVIRONMENT: .*/AZURE_ENVIRONMENT: <replace with Azure Environment Name>/" manifest_staging/deploy/aad-pi-webhook.yaml
-	@sed -i -e "s/-arc-cluster=.*/-arc-cluster=false/" manifest_staging/deploy/aad-pi-webhook.yaml
+	@sed -i -e "s/AZURE_TENANT_ID: .*/AZURE_TENANT_ID: <replace with Azure Tenant ID>/" manifest_staging/deploy/azure-wi-webhook.yaml
+	@sed -i -e "s/AZURE_ENVIRONMENT: .*/AZURE_ENVIRONMENT: <replace with Azure Environment Name>/" manifest_staging/deploy/azure-wi-webhook.yaml
+	@sed -i -e "s/-arc-cluster=.*/-arc-cluster=false/" manifest_staging/deploy/azure-wi-webhook.yaml
 
 # Generate code
 .PHONY: generate
@@ -280,7 +280,7 @@ test-e2e: $(KUBECTL) $(HELM)
 ## Kind
 ## --------------------------------------
 
-KIND_CLUSTER_NAME ?= aad-pod-managed-identity
+KIND_CLUSTER_NAME ?= azure-workload-identity
 
 .PHONY: kind-create
 kind-create: $(KIND) $(KUBECTL)
@@ -315,7 +315,7 @@ lint: $(GOLANGCI_LINT)
 
 .PHONY: helm-lint
 helm-lint: $(HELM)
-	$(HELM) lint manifest_staging/charts/pod-identity-webhook
+	$(HELM) lint manifest_staging/charts/workload-identity-webhook
 
 .PHONY: lint-full
 lint-full: $(GOLANGCI_LINT) ## Run slower linters to detect possible issues
@@ -343,5 +343,5 @@ release-manifest: $(KUSTOMIZE)
 promote-staging-manifest: #promote staging manifests to release dir
 	@rm -rf deploy
 	@cp -r manifest_staging/deploy .
-	@rm -rf charts/pod-identity-webhook
+	@rm -rf charts/workload-identity-webhook
 	@cp -r manifest_staging/charts .

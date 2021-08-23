@@ -54,6 +54,6 @@ spec:
                 fieldPath: metadata.namespace
         envFrom:
           - configMapRef:
-              name: aad-pi-webhook-config
+              name: azure-wi-webhook-config
       nodeSelector:
         kubernetes.io/os: linux

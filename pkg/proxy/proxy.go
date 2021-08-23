@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/aad-pod-managed-identity/pkg/version"
-	"github.com/Azure/aad-pod-managed-identity/pkg/webhook"
+	"github.com/Azure/azure-workload-identity/pkg/version"
+	"github.com/Azure/azure-workload-identity/pkg/webhook"
 
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/AzureAD/microsoft-authentication-library-for-go/apps/confidential"

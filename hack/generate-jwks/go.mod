@@ -1,4 +1,4 @@
-module github.com/Azure/aad-pod-managed-identity/hack/generate-jwks
+module github.com/Azure/azure-workload-identity/hack/generate-jwks
 
 go 1.16
 

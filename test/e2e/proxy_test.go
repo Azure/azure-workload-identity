@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Azure/aad-pod-managed-identity/pkg/webhook"
+	"github.com/Azure/azure-workload-identity/pkg/webhook"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"

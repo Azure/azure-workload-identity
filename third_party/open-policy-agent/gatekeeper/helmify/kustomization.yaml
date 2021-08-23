@@ -1,7 +1,7 @@
 namespace: "{{ .Release.Namespace }}"
 commonLabels:
-  app: '{{ template "pod-identity-webhook.name" . }}'
-  chart: '{{ template "pod-identity-webhook.name" . }}'
+  app: '{{ template "workload-identity-webhook.name" . }}'
+  chart: '{{ template "workload-identity-webhook.name" . }}'
   release: "{{ .Release.Name }}"
 bases:
   - "../../../../config/default" # calls ../../default
@@ -11,7 +11,7 @@ patchesJson6902:
   # these are defined in the chart values rather than hard-coded
   - target:
       kind: Deployment
-      name: aad-pi-webhook-controller-manager
+      name: azure-wi-webhook-controller-manager
     patch: |-
       - op: remove
         path: /spec/template/spec/containers/0/resources/limits

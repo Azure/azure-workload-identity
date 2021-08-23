@@ -1,16 +1,16 @@
 # Adds namespace to all resources.
-namespace: aad-pi-webhook-system
+namespace: azure-workload-identity-system
 
 # Value of this field is prepended to the
 # names of all resources, e.g. a deployment named
 # "wordpress" becomes "alices-wordpress".
 # Note that it should also match with the prefix (text before '-') of the namespace
 # field above.
-namePrefix: aad-pi-webhook-
+namePrefix: azure-wi-webhook-
 
 # Labels to add to all resources and selectors.
 commonLabels:
-  mpod.aad-pod-identity.io/system: "true"
+  azure-workload-identity.io/system: "true"
 
 bases:
 # - ../crd

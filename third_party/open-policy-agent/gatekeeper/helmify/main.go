@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	outputDir = flag.String("output-dir", "manifest_staging/charts/pod-identity-webhook", "The root directory in which to write the Helm chart")
+	outputDir = flag.String("output-dir", "manifest_staging/charts/workload-identity-webhook", "The root directory in which to write the Helm chart")
 )
 
 var kindRegex = regexp.MustCompile(`(?m)^kind:[\s]+([\S]+)[\s]*$`)

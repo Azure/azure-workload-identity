@@ -66,19 +66,19 @@ jobs:
     strategy:
       matrix:
         aks_windows_dockershim:
-          REGISTRY: upstreamk8sci.azurecr.io/aad-pod-managed-identity
+          REGISTRY: upstreamk8sci.azurecr.io/azure-workload-identity
           WINDOWS_CLUSTER: "true"
           GINKGO_SKIP: \[KindOnly\]
         aks_windows_containerd:
-          REGISTRY: upstreamk8sci.azurecr.io/aad-pod-managed-identity
+          REGISTRY: upstreamk8sci.azurecr.io/azure-workload-identity
           WINDOWS_CLUSTER: "true"
           WINDOWS_CONTAINERD: "true"
           GINKGO_SKIP: \[KindOnly\]
         aks_linux:
-          REGISTRY: upstreamk8sci.azurecr.io/aad-pod-managed-identity
+          REGISTRY: upstreamk8sci.azurecr.io/azure-workload-identity
           GINKGO_SKIP: \[KindOnly\]
         arc:
-          REGISTRY: upstreamk8sci.azurecr.io/aad-pod-managed-identity
+          REGISTRY: upstreamk8sci.azurecr.io/azure-workload-identity
           ARC_CLUSTER: "true"
           GINKGO_SKIP: \[KindOnly\]
         kind_v1_19_11:

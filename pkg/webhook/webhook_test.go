@@ -14,7 +14,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	atypes "sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
-	"github.com/Azure/aad-pod-managed-identity/pkg/config"
+	"github.com/Azure/azure-workload-identity/pkg/config"
 )
 
 var (
@@ -38,7 +38,7 @@ func TestIsServiceAccountAnnotated(t *testing.T) {
 			expected: false,
 		},
 		{
-			name: "service account is annotated with azure.pod.identity/use=true",
+			name: "service account is annotated with azure.workload.identity/use=true",
 			sa: &corev1.ServiceAccount{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "sa",

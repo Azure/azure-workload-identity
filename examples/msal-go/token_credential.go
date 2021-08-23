@@ -25,7 +25,7 @@ func clientAssertionBearerAuthorizerCallback(tenantID, resource string) (*autore
 	// AAD Pod Identity webhook will inject the following env vars
 	// 	AZURE_CLIENT_ID with the clientID set in the service account annotation
 	// 	AZURE_TENANT_ID with the tenantID set in the service account annotation. If not defined, then
-	// 	the tenantID provided via aad-pi-webhook-config for the webhook will be used.
+	// 	the tenantID provided via azure-wi-webhook-config for the webhook will be used.
 	// 	AZURE_FEDERATED_TOKEN_FILE is the service account token path
 	// 	AZURE_AUTHORITY_HOST is the AAD authority hostname
 	clientID := os.Getenv("AZURE_CLIENT_ID")
@@ -34,7 +34,7 @@ func clientAssertionBearerAuthorizerCallback(tenantID, resource string) (*autore
 
 	// generate a token using the msal confidential client
 	// this will always generate a new token request to AAD
-	// TODO (aramase) consider using acquire token silent (https://github.com/Azure/aad-pod-managed-identity/issues/76)
+	// TODO (aramase) consider using acquire token silent (https://github.com/Azure/azure-workload-identity/issues/76)
 
 	// read the service account token from the filesystem
 	signedAssertion, err := readJWTFromFS(tokenFilePath)

@@ -3,23 +3,23 @@ kind: MutatingWebhookConfiguration
 metadata:
   creationTimestamp: null
   labels:
-    app: '{{ template "pod-identity-webhook.name" . }}'
-    chart: '{{ template "pod-identity-webhook.name" . }}'
-    mpod.aad-pod-identity.io/system: "true"
+    app: '{{ template "workload-identity-webhook.name" . }}'
+    azure-workload-identity.io/system: "true"
+    chart: '{{ template "workload-identity-webhook.name" . }}'
     release: '{{ .Release.Name }}'
-  name: aad-pi-webhook-mutating-webhook-configuration
+  name: azure-wi-webhook-mutating-webhook-configuration
 webhooks:
 - admissionReviewVersions:
   - v1
   - v1beta1
   clientConfig:
     service:
-      name: aad-pi-webhook-webhook-service
+      name: azure-wi-webhook-webhook-service
       namespace: '{{ .Release.Namespace }}'
       path: /mutate-v1-pod
   failurePolicy: Ignore
   matchPolicy: Equivalent
-  name: mpod.aad-pod-identity.io
+  name: mutation.azure-workload-identity.io
   rules:
   - apiGroups:
     - ""

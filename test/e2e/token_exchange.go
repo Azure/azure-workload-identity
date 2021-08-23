@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Azure/aad-pod-managed-identity/pkg/webhook"
+	"github.com/Azure/azure-workload-identity/pkg/webhook"
 
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
@@ -21,7 +21,7 @@ import (
 var _ = ginkgo.Describe("TokenExchange [KindOnly]", func() {
 	f := framework.NewDefaultFramework("token-exchange")
 
-	// E2E scenario from https://github.com/Azure/aad-pod-managed-identity/tree/main/examples/msal-go
+	// E2E scenario from https://github.com/Azure/azure-workload-identity/tree/main/examples/msal-go
 	ginkgo.It("should exchange the service account token for a valid AAD token", func() {
 		clientID, ok := os.LookupEnv("APPLICATION_CLIENT_ID")
 		gomega.Expect(ok).To(gomega.BeTrue(), "APPLICATION_CLIENT_ID must be set")

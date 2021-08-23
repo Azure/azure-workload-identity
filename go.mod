@@ -1,4 +1,4 @@
-module github.com/Azure/aad-pod-managed-identity
+module github.com/Azure/azure-workload-identity
 
 go 1.16
 

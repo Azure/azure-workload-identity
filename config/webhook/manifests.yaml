@@ -16,7 +16,7 @@ webhooks:
       path: /mutate-v1-pod
   failurePolicy: Ignore
   matchPolicy: Equivalent
-  name: mpod.aad-pod-identity.io
+  name: mutation.azure-workload-identity.io
   rules:
   - apiGroups:
     - ""

@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 
-	"github.com/Azure/aad-pod-managed-identity/pkg/proxy"
+	"github.com/Azure/azure-workload-identity/pkg/proxy"
 
 	"k8s.io/klog/v2"
 )

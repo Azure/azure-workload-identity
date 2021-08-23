@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/Azure/aad-pod-managed-identity/pkg/webhook"
+	"github.com/Azure/azure-workload-identity/pkg/webhook"
 
 	"github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
@@ -41,7 +41,7 @@ func createServiceAccount(c kubernetes.Interface, namespace, name string, labels
 	framework.ExpectNoError(err, "failed to create service account %s", name)
 
 	// make sure the service account is created
-	// ref: https://github.com/Azure/aad-pod-managed-identity/issues/114
+	// ref: https://github.com/Azure/azure-workload-identity/issues/114
 	gomega.Eventually(func() bool {
 		_, err := c.CoreV1().ServiceAccounts(namespace).Get(context.TODO(), name, metav1.GetOptions{})
 		if apierrors.IsNotFound(err) {
