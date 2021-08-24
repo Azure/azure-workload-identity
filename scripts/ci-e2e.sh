@@ -98,24 +98,27 @@ main() {
 
 test_helm_chart() {
   readonly HELM="${REPO_ROOT}/hack/tools/bin/helm"
-  ${KUBECTL} create namespace aad-pi-webhook-system
+  ${KUBECTL} create namespace azure-workload-identity-system
 
   # test helm upgrade from chart to manifest_staging/chart
-  ${HELM} install pod-identity-webhook "${REPO_ROOT}/charts/pod-identity-webhook" \
-    --set azureTenantID="${AZURE_TENANT_ID}" \
-    --namespace aad-pi-webhook-system \
-    --wait
-  poll_webhook_readiness
+  # TODO (aramase) reenable upgrade tests after v0.4.0 release once rename azure-workload-identity is complete
+
+  # ${HELM} install workload-identity-webhook "${REPO_ROOT}/charts/workload-identity-webhook" \
+  #   --set azureTenantID="${AZURE_TENANT_ID}" \
+  #   --namespace azure-workload-identity-system \
+  #   --wait
+  # poll_webhook_readiness
+
   # TODO (aramase) remove token exchange and proxy from GINKGO_SKIP after v0.4.0 release is published
   # Skipping TokenExchange test for the current release as we're using the latest msal-go image
   # which is updated to use AZURE_FEDERATED_TOKEN_FILE for token path.
-  GINKGO_SKIP=TokenExchange\|Proxy make test-e2e-run
+  # GINKGO_SKIP=TokenExchange\|Proxy make test-e2e-run
 
-  ${HELM} upgrade --install pod-identity-webhook "${REPO_ROOT}/manifest_staging/charts/pod-identity-webhook" \
-    --set image.repository="${REGISTRY:-mcr.microsoft.com/oss/azure/aad-pod-managed-identity/webhook}" \
+  ${HELM} upgrade --install workload-identity-webhook "${REPO_ROOT}/manifest_staging/charts/workload-identity-webhook" \
+    --set image.repository="${REGISTRY:-mcr.microsoft.com/oss/azure/workload-identity/webhook}" \
     --set image.release="${IMAGE_VERSION}" \
     --set azureTenantID="${AZURE_TENANT_ID}" \
-    --namespace aad-pi-webhook-system \
+    --namespace azure-workload-identity-system \
     --reuse-values \
     --wait
   poll_webhook_readiness
@@ -127,23 +130,23 @@ poll_webhook_readiness() {
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: aad-pi-webhook-system-test
+  name: azure-workload-identity-system-test
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: test-service-account
-  namespace: aad-pi-webhook-system-test
+  namespace: azure-workload-identity-system-test
   labels:
-    azure.pod.identity/use: "true"
+    azure.workload.identity/use: "true"
   annotations:
-    azure.pod.identity/service-account-token-expiration: "100"
+    azure.workload.identity/service-account-token-expiration: "100"
 ---
 apiVersion: v1
 kind: Pod
 metadata:
   name: nginx-pod
-  namespace: aad-pi-webhook-system-test
+  namespace: azure-workload-identity-system-test
 spec:
   serviceAccountName: test-service-account
   containers:

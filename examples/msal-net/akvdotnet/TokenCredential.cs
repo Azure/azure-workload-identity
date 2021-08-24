@@ -16,7 +16,7 @@ public class MyClientAssertionCredential : TokenCredential
         // AAD Pod Identity webhook will inject the following env vars
         // 	AZURE_CLIENT_ID with the clientID set in the service account annotation
         // 	AZURE_TENANT_ID with the tenantID set in the service account annotation. If not defined, then
-        // 		the tenantID provided via aad-pi-webhook-config for the webhook will be used.
+        // 		the tenantID provided via azure-wi-webhook-config for the webhook will be used.
         // 	AZURE_FEDERATED_TOKEN_FILE is the service account token path
         var clientID = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
         var tokenPath = Environment.GetEnvironmentVariable("AZURE_FEDERATED_TOKEN_FILE");

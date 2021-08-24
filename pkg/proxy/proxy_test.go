@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Azure/aad-pod-managed-identity/pkg/webhook"
+	"github.com/Azure/azure-workload-identity/pkg/webhook"
 
 	"github.com/gorilla/mux"
 )

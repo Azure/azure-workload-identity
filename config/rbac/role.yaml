@@ -36,7 +36,7 @@ kind: Role
 metadata:
   creationTimestamp: null
   name: manager-role
-  namespace: aad-pi-webhook-system
+  namespace: azure-workload-identity-system
 rules:
 - apiGroups:
   - ""

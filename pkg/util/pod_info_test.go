@@ -14,7 +14,7 @@ func TestGetNamespace(t *testing.T) {
 		{
 			name:         "default webhook namespace",
 			podNamespace: "",
-			want:         "aad-pi-webhook-system",
+			want:         "azure-workload-identity-system",
 		},
 		{
 			name:         "namespace set",

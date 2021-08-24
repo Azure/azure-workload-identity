@@ -33,7 +33,7 @@ var (
 	c              *kubernetes.Clientset
 	coreNamespaces = []string{
 		metav1.NamespaceSystem,
-		"aad-pi-webhook-system",
+		"azure-workload-identity-system",
 	}
 )
 

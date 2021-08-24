@@ -1,4 +1,4 @@
-module github.com/Azure/aad-pod-managed-identity/example/msal-go
+module github.com/Azure/azure-workload-identity/example/msal-go
 
 go 1.16
 

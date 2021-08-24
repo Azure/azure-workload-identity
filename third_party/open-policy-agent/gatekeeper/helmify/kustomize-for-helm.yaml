@@ -4,38 +4,38 @@ data:
   AZURE_TENANT_ID: HELMSUBST_CONFIGMAP_AZURE_TENANT_ID
 kind: ConfigMap
 metadata:
-  name: aad-pi-webhook-config
-  namespace: aad-pi-webhook-system
+  name: azure-wi-webhook-config
+  namespace: azure-workload-identity-system
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: aad-pi-webhook-webhook-service
-  namespace: aad-pi-webhook-system
+  name: azure-wi-webhook-webhook-service
+  namespace: azure-workload-identity-system
 spec:
   HELMSUBST_SERVICE_TYPE: ""
   ports:
   - port: {{ .Values.service.port }}
     targetPort: {{ .Values.service.targetPort }}
   selector:
-    mpod.aad-pod-identity.io/system: "true"
+    azure-workload-identity.io/system: "true"
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    mpod.aad-pod-identity.io/system: "true"
-  name: aad-pi-webhook-controller-manager
-  namespace: aad-pi-webhook-system
+    azure-workload-identity.io/system: "true"
+  name: azure-wi-webhook-controller-manager
+  namespace: azure-workload-identity-system
 spec:
   replicas: HELMSUBST_DEPLOYMENT_REPLICAS
   selector:
     matchLabels:
-      mpod.aad-pod-identity.io/system: "true"
+      azure-workload-identity.io/system: "true"
   template:
     metadata:
       labels:
-        mpod.aad-pod-identity.io/system: "true"
+        azure-workload-identity.io/system: "true"
     spec:
       containers:
       - args:
@@ -44,7 +44,7 @@ spec:
         - /manager
         envFrom:
         - configMapRef:
-            name: aad-pi-webhook-config
+            name: azure-wi-webhook-config
         image: "{{ .Values.image.repository }}:{{ .Values.image.release }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         name: manager
@@ -60,4 +60,4 @@ spec:
       - name: cert
         secret:
           defaultMode: 420
-          secretName: aad-pi-webhook-server-cert
+          secretName: azure-wi-webhook-server-cert

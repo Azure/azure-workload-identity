@@ -7,7 +7,7 @@ title = "AAD Pod Managed Identity"
 
 [output.html]
 curly-quotes = true
-git-repository-url = "https://github.com/Azure/aad-pod-managed-identity"
+git-repository-url = "https://github.com/Azure/azure-workload-identity"
 
 [preprocessor.toc]
 command = "bin/mdbook-toc"

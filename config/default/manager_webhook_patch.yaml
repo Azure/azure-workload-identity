@@ -20,4 +20,4 @@ spec:
       - name: cert
         secret:
           defaultMode: 420
-          secretName: aad-pi-webhook-server-cert
+          secretName: azure-wi-webhook-server-cert

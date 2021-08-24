@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/aad-pod-managed-identity/pkg/webhook"
+	"github.com/Azure/azure-workload-identity/pkg/webhook"
 
 	"github.com/onsi/ginkgo"
 	"k8s.io/kubernetes/test/e2e/framework"

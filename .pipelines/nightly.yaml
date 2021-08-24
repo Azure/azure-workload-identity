@@ -41,12 +41,12 @@ jobs:
           SERVICE_ACCOUNT_ISSUER: $(SERVICE_ACCOUNT_ISSUER)
       - script: |
           set -o errexit
-          sed -i "s/AZURE_TENANT_ID: .*/AZURE_TENANT_ID: ${AZURE_TENANT_ID}/" manifest_staging/deploy/aad-pi-webhook.yaml
-          sed -i "s/AZURE_ENVIRONMENT: .*/AZURE_ENVIRONMENT: AzurePublicCloud/" manifest_staging/deploy/aad-pi-webhook.yaml
+          sed -i "s/AZURE_TENANT_ID: .*/AZURE_TENANT_ID: ${AZURE_TENANT_ID}/" manifest_staging/deploy/azure-wi-webhook.yaml
+          sed -i "s/AZURE_ENVIRONMENT: .*/AZURE_ENVIRONMENT: AzurePublicCloud/" manifest_staging/deploy/azure-wi-webhook.yaml
           KUBECTL=$(pwd)/hack/tools/bin/kubectl
-          ${KUBECTL} apply -f manifest_staging/deploy/aad-pi-webhook.yaml
-          ${KUBECTL} wait --for=condition=Available --timeout=5m -n aad-pi-webhook-system deployment/aad-pi-webhook-controller-manager
-          ${KUBECTL} delete -f manifest_staging/deploy/aad-pi-webhook.yaml --wait --timeout=5m
+          ${KUBECTL} apply -f manifest_staging/deploy/azure-wi-webhook.yaml
+          ${KUBECTL} wait --for=condition=Available --timeout=5m -n azure-workload-identity-system deployment/azure-wi-webhook-controller-manager
+          ${KUBECTL} delete -f manifest_staging/deploy/azure-wi-webhook.yaml --wait --timeout=5m
         displayName: Verify deployment YAML in manifest_staging/
         env:
           AZURE_TENANT_ID: $(AZURE_TENANT_ID)
@@ -63,7 +63,7 @@ jobs:
     variables:
       # we can enable actual tenant id for functional e2e
       AZURE_TENANT_ID: "fake tenant id"
-      REGISTRY: upstreamk8sci.azurecr.io/aad-pod-managed-identity
+      REGISTRY: upstreamk8sci.azurecr.io/azure-workload-identity
       SOAK_CLUSTER: "true"
       GINKGO_SKIP: \[KindOnly\]
     strategy:

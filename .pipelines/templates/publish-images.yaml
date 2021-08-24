@@ -4,7 +4,7 @@ parameters:
     default: true
   - name: registry
     type: string
-    default: docker.pkg.github.com/azure/aad-pod-managed-identity
+    default: docker.pkg.github.com/azure/azure-workload-identity
   - name: image_version
     type: string
     default: latest

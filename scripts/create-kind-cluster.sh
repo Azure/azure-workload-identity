@@ -14,7 +14,7 @@ readonly KUBECTL="${REPO_ROOT}/hack/tools/bin/kubectl"
 SERVICE_ACCOUNT_SIGNING_KEY_FILE="$(pwd)/sa.key"
 SERVICE_ACCOUNT_KEY_FILE="$(pwd)/sa.pub"
 
-KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-aad-pod-managed-identity}"
+KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-azure-workload-identity}"
 
 preflight() {
   if [[ ! -f "${SERVICE_ACCOUNT_SIGNING_KEY_FILE}" ]]; then

@@ -20,23 +20,23 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	"github.com/Azure/aad-pod-managed-identity/pkg/util"
-	"github.com/Azure/aad-pod-managed-identity/pkg/version"
-	wh "github.com/Azure/aad-pod-managed-identity/pkg/webhook"
+	"github.com/Azure/azure-workload-identity/pkg/util"
+	"github.com/Azure/azure-workload-identity/pkg/version"
+	wh "github.com/Azure/azure-workload-identity/pkg/webhook"
 )
 
 var webhooks = []rotator.WebhookInfo{
 	{
-		Name: "aad-pi-webhook-mutating-webhook-configuration",
+		Name: "azure-wi-webhook-mutating-webhook-configuration",
 		Type: rotator.Mutating,
 	},
 }
 
 const (
-	secretName     = "aad-pi-webhook-server-cert" // #nosec
-	serviceName    = "aad-pi-webhook-webhook-service"
-	caName         = "aad-pod-managed-identity-ca"
-	caOrganization = "aad-pod-managed-identity"
+	secretName     = "azure-wi-webhook-server-cert" // #nosec
+	serviceName    = "azure-wi-webhook-webhook-service"
+	caName         = "azure-workload-identity-ca"
+	caOrganization = "azure-workload-identity"
 )
 
 var (
