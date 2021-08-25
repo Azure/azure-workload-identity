@@ -1,6 +1,6 @@
-# AAD Pod Managed Identity Book
+# Azure AD Workload Identity Book
 
-This directory includes the source code for https://azure.github.io/aad-pod-managed-identity/.
+This directory includes the source code for https://azure.github.io/azure-workload-identity/.
 
 ## Development
 

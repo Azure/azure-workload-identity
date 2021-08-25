@@ -3,7 +3,7 @@ authors = ["Ernest Wong"]
 language = "en"
 multilingual = false
 src = "src"
-title = "AAD Pod Managed Identity"
+title = "Azure AD Workload Identity"
 
 [output.html]
 curly-quotes = true

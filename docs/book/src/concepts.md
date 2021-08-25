@@ -6,7 +6,7 @@
 
 > "A service account provides an identity for processes that run in a Pod." - [source][2]
 
-AAD Pod Managed Identity supports the following mappings:
+Azure AD Workload Identity supports the following mappings:
 
 * one-to-one (a service account referencing an AAD object)
 * many-to-one (multiple service accounts referencing the same AAD object).
@@ -18,12 +18,12 @@ Users who used [aad-pod-identity][3] can think of a service account as an [Azure
 
 ## Mutating Webhook
 
-AAD Pod Managed Identity uses a [mutating admission webhook][6] to inject the following properties to pods with a service account that is configured to use AAD Pod Managed Identity:
+Azure AD Workload Identity uses a [mutating admission webhook][6] to inject the following properties to pods with a service account that is configured to use Azure AD Workload Identity:
 
 ### Environment Variables
 
 | Environment variable   | Description                                           |
-| ---------------------- | ----------------------------------------------------- |
+|------------------------|-------------------------------------------------------|
 | `AZURE_AUTHORITY_HOST` | The Azure Active Directory (AAD) endpoint.            |
 | `AZURE_CLIENT_ID`      | The client ID of the identity.                        |
 | `AZURE_TENANT_ID`      | The tenant ID of the Azure account.                   |
@@ -32,13 +32,13 @@ AAD Pod Managed Identity uses a [mutating admission webhook][6] to inject the fo
 ### Volumes
 
 | Volume                 | Description                           |
-| ---------------------- | ------------------------------------- |
+|------------------------|---------------------------------------|
 | `azure-identity-token` | The projected service account volume. |
 
 ### Volume Mounts
 
 | Volume mount                                   | Description                                           |
-| ---------------------------------------------- | ----------------------------------------------------- |
+|------------------------------------------------|-------------------------------------------------------|
 | `/var/run/secrets/tokens/azure-identity-token` | The path of the projected service account token file. |
 
 With these properties injected, the webhook allows pods to use a [service account token][7] projected to its volume to exchange for a valid AAD token using the [Microsoft Authentication Library][8] (MSAL).

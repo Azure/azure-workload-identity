@@ -2,7 +2,7 @@
 
 <!-- toc -->
 
-In this tutorial, we will cover the basics of how to use the AAD Pod Identity webhook to acquire a token to access a secret in an [Azure Key Vault][1]. If you are using an AKS cluster with OIDC enabled, you may skip step 0 to step 4.
+In this tutorial, we will cover the basics of how to use the Azure AD Workload Identity webhook to acquire a token to access a secret in an [Azure Key Vault][1]. If you are using an AKS cluster with OIDC enabled, you may skip step 0 to step 4.
 
 ## Prerequisites
 
@@ -16,7 +16,7 @@ In this tutorial, we will cover the basics of how to use the AAD Pod Identity we
 Export the following environment variables:
 
 ```bash
-export RESOURCE_GROUP="aad-pi-webhook-test"
+export RESOURCE_GROUP="azure-wi-webhook-test"
 export LOCATION="westus2"
 az group create --name "${RESOURCE_GROUP}" --location "${LOCATION}"
 ```
@@ -162,7 +162,7 @@ Create a kind cluster with one control plane node and customize various service 
 > The minimum supported Kubernetes version for the webhook is v1.18.0, however, we recommend using Kubernetes version v1.20.0+.
 
 ```bash
-cat <<EOF | kind create cluster --name aad-pod-managed-identity --image kindest/node:v1.21.1 --config=-
+cat <<EOF | kind create cluster --name azure-workload-identity --image kindest/node:v1.21.1 --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
@@ -187,7 +187,7 @@ EOF
 <summary>Output</summary>
 
 ```bash
-Creating cluster "aad-pod-managed-identity" ...
+Creating cluster "azure-workload-identity" ...
  • Ensuring node image (kindest/node:v1.21.1) 🖼  ...
  ✓ Ensuring node image (kindest/node:v1.21.1) 🖼
  • Preparing nodes 📦   ...
@@ -200,10 +200,10 @@ Creating cluster "aad-pod-managed-identity" ...
  ✓ Installing CNI 🔌
  • Installing StorageClass 💾  ...
  ✓ Installing StorageClass 💾
-Set kubectl context to "kind-aad-pod-managed-identity"
+Set kubectl context to "kind-azure-workload-identity"
 You can now use your cluster with:
 
-kubectl cluster-info --context kind-aad-pod-managed-identity
+kubectl cluster-info --context kind-azure-workload-identity
 
 Have a question, bug, or feature request? Let us know! https://kind.sigs.k8s.io/#community 🙂
 ```
@@ -221,12 +221,12 @@ kubectl get nodes
 
 ```bash
 NAME                                     STATUS   ROLES                  AGE     VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE       KERNEL-VERSION     CONTAINER-RUNTIME
-aad-pod-managed-identity-control-plane   Ready    control-plane,master   2m28s   v1.21.1   172.18.0.2    <none>        Ubuntu 21.04   5.4.0-1047-azure   containerd://1.5.2
+azure-workload-identity-control-plane   Ready    control-plane,master   2m28s   v1.21.1   172.18.0.2    <none>        Ubuntu 21.04   5.4.0-1047-azure   containerd://1.5.2
 ```
 
 </details>
 
-## 3. Install the AAD Pod Identity webhook
+## 3. Install the Azure AD Workload Identity webhook
 
 Obtain your Azure tenant ID by running the following command:
 
@@ -243,26 +243,26 @@ To install the webhook, choose one of the following options below:
     > Replace the Azure tenant ID and cloud environment name in [here][7] before executing
 
     ```bash
-    sed -i "s/AZURE_TENANT_ID: .*/AZURE_TENANT_ID: ${AZURE_TENANT_ID}/" deploy/aad-pi-webhook.yaml
-    sed -i "s/AZURE_ENVIRONMENT: .*/AZURE_ENVIRONMENT: ${AZURE_ENVIRONMENT}/" deploy/aad-pi-webhook.yaml
-    kubectl apply -f deploy/aad-pi-webhook.yaml
+    sed -i "s/AZURE_TENANT_ID: .*/AZURE_TENANT_ID: ${AZURE_TENANT_ID}/" deploy/azure-wi-webhook.yaml
+    sed -i "s/AZURE_ENVIRONMENT: .*/AZURE_ENVIRONMENT: ${AZURE_ENVIRONMENT}/" deploy/azure-wi-webhook.yaml
+    kubectl apply -f deploy/azure-wi-webhook.yaml
     ```
 
     <details>
     <summary>Output</summary>
 
     ```bash
-    namespace/aad-pi-webhook-system created
-    serviceaccount/aad-pi-webhook-admin created
-    role.rbac.authorization.k8s.io/aad-pi-webhook-manager-role created
-    clusterrole.rbac.authorization.k8s.io/aad-pi-webhook-manager-role created
-    rolebinding.rbac.authorization.k8s.io/aad-pi-webhook-manager-rolebinding created
-    clusterrolebinding.rbac.authorization.k8s.io/aad-pi-webhook-manager-rolebinding created
-    configmap/aad-pi-webhook-config created
-    secret/aad-pi-webhook-server-cert created
-    service/aad-pi-webhook-webhook-service created
-    deployment.apps/aad-pi-webhook-controller-manager created
-    mutatingwebhookconfiguration.admissionregistration.k8s.io/aad-pi-webhook-mutating-webhook-configuration created
+    namespace/azure-workload-identity-system created
+    serviceaccount/azure-wi-webhook-admin created
+    role.rbac.authorization.k8s.io/azure-wi-webhook-manager-role created
+    clusterrole.rbac.authorization.k8s.io/azure-wi-webhook-manager-role created
+    rolebinding.rbac.authorization.k8s.io/azure-wi-webhook-manager-rolebinding created
+    clusterrolebinding.rbac.authorization.k8s.io/azure-wi-webhook-manager-rolebinding created
+    configmap/azure-wi-webhook-config created
+    secret/azure-wi-webhook-server-cert created
+    service/azure-wi-webhook-webhook-service created
+    deployment.apps/azure-wi-webhook-controller-manager created
+    mutatingwebhookconfiguration.admissionregistration.k8s.io/azure-wi-webhook-mutating-webhook-configuration created
     ```
 
     </details>
@@ -270,9 +270,9 @@ To install the webhook, choose one of the following options below:
 2.  Helm
 
     ```bash
-    kubectl create namespace aad-pi-webhook-system
-    helm install pod-identity-webhook manifest_staging/charts/pod-identity-webhook \
-       --namespace aad-pi-webhook-system \
+    kubectl create namespace azure-workload-identity-system
+    helm install workload-identity-webhook manifest_staging/charts/workload-identity-webhook \
+       --namespace azure-workload-identity-system \
        --set azureTenantID="${AZURE_TENANT_ID}"
     ```
 
@@ -280,10 +280,10 @@ To install the webhook, choose one of the following options below:
     <summary>Output</summary>
 
     ```bash
-    namespace/aad-pi-webhook-system created
-    NAME: pod-identity-webhook
+    namespace/azure-workload-identity-system created
+    NAME: workload-identity-webhook
     LAST DEPLOYED: Wed Aug  4 10:49:20 2021
-    NAMESPACE: aad-pi-webhook-system
+    NAMESPACE: azure-workload-identity-system
     STATUS: deployed
     REVISION: 1
     TEST SUITE: None
@@ -296,7 +296,7 @@ To install the webhook, choose one of the following options below:
 Export the following environment variables:
 
 ```bash
-export KEYVAULT_NAME="aad-pi-webhook-test-$(openssl rand -hex 2)"
+export KEYVAULT_NAME="azure-wi-webhook-test-$(openssl rand -hex 2)"
 export KEYVAULT_SECRET_NAME="my-secret"
 ```
 
@@ -342,10 +342,10 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   annotations:
-    azure.pod.identity/client-id: ${APPLICATION_CLIENT_ID}
+    azure.workload.identity/client-id: ${APPLICATION_CLIENT_ID}
   labels:
-    azure.pod.identity/use: "true"
-  name: pod-identity-sa
+    azure.workload.identity/use: "true"
+  name: workload-identity-sa
 EOF
 ```
 
@@ -353,7 +353,7 @@ EOF
 <summary>Output</summary>
 
 ```bash
-serviceaccount/pod-identity-sa created
+serviceaccount/workload-identity-sa created
 ```
 
 </details>
@@ -361,7 +361,7 @@ serviceaccount/pod-identity-sa created
 If the AAD application is not in the same tenant as the Kubernetes cluster, then annotate the service account with the application tenant ID.
 
 ```bash
-kubectl annotate sa pod-identity-sa azure.pod.identity/tenant-id="${APPLICATION_TENANT_ID}" --overwrite
+kubectl annotate sa workload-identity-sa azure.workload.identity/tenant-id="${APPLICATION_TENANT_ID}" --overwrite
 ```
 
 ## 7. Establish trust between the AAD application and the service account issuer & subject
@@ -382,7 +382,7 @@ cat <<EOF > body.json
 {
   "name": "kubernetes-federated-credential",
   "issuer": "${SERVICE_ACCOUNT_ISSUER}",
-  "subject": "system:serviceaccount:default:pod-identity-sa",
+  "subject": "system:serviceaccount:default:workload-identity-sa",
   "description": "Kubernetes service account federated credential",
   "audiences": [
     "api://AzureADTokenExchange"
@@ -404,7 +404,7 @@ kind: Pod
 metadata:
   name: quick-start
 spec:
-  serviceAccountName: pod-identity-sa
+  serviceAccountName: workload-identity-sa
   containers:
     - image: aramase/dotnet:v0.4
       imagePullPolicy: IfNotPresent
@@ -440,7 +440,7 @@ kubectl describe pod quick-start
 You can verify the following injected properties in the output:
 
 | Environment variable   | Description                                           |
-| ---------------------- | ----------------------------------------------------- |
+|------------------------|-------------------------------------------------------|
 | `AZURE_AUTHORITY_HOST` | The Azure Active Directory (AAD) endpoint.            |
 | `AZURE_CLIENT_ID`      | The client ID of the AAD application.                 |
 | `AZURE_TENANT_ID`      | The tenant ID of the registered AAD application.      |
@@ -449,20 +449,20 @@ You can verify the following injected properties in the output:
 <br/>
 
 | Volume mount                                   | Description                                           |
-| ---------------------------------------------- | ----------------------------------------------------- |
+|------------------------------------------------|-------------------------------------------------------|
 | `/var/run/secrets/tokens/azure-identity-token` | The path of the projected service account token file. |
 
 <br/>
 
 | Volume                 | Description                           |
-| ---------------------- | ------------------------------------- |
+|------------------------|---------------------------------------|
 | `azure-identity-token` | The projected service account volume. |
 
 ```log
 Name:         quick-start
 Namespace:    default
 Priority:     0
-Node:         aad-pod-managed-identity-control-plane/172.18.0.2
+Node:         azure-workload-identity-control-plane/172.18.0.2
 Start Time:   Wed, 07 Jul 2021 14:45:38 -0700
 Labels:       <none>
 Annotations:  <none>
@@ -489,7 +489,7 @@ Containers:
       AZURE_TENANT_ID:      (Injected by the webhook)
       TOKEN_FILE_PATH:      (Injected by the webhook)
     Mounts:
-      /var/run/secrets/kubernetes.io/serviceaccount from pod-identity-sa-token-mlgn8 (ro)
+      /var/run/secrets/kubernetes.io/serviceaccount from workload-identity-sa-token-mlgn8 (ro)
       /var/run/secrets/tokens from azure-identity-token (ro) (Injected by the webhook)
 Conditions:
   Type              Status
@@ -498,9 +498,9 @@ Conditions:
   ContainersReady   True
   PodScheduled      True
 Volumes:
-  pod-identity-sa-token-mlgn8:
+  workload-identity-sa-token-mlgn8:
     Type:        Secret (a volume populated by a Secret)
-    SecretName:  pod-identity-sa-token-mlgn8
+    SecretName:  workload-identity-sa-token-mlgn8
     Optional:    false
   azure-identity-token: (Injected by the webhook)
     Type:                    Projected (a volume that contains injected data from multiple sources)
@@ -512,7 +512,7 @@ Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists fo
 Events:
   Type    Reason     Age    From               Message
   ----    ------     ----   ----               -------
-  Normal  Scheduled  3m27s  default-scheduler  Successfully assigned default/quick-start to aad-pod-managed-identity-control-plane
+  Normal  Scheduled  3m27s  default-scheduler  Successfully assigned default/quick-start to azure-workload-identity-control-plane
   Normal  Pulling    3m26s  kubelet            Pulling image "aramase/dotnet:v0.4"
   Normal  Pulled     3m21s  kubelet            Successfully pulled image "aramase/dotnet:v0.4" in 5.824712366s
   Normal  Created    3m20s  kubelet            Created container oidc
@@ -543,7 +543,7 @@ Your secret is Hello!
 
 ```bash
 kubectl delete pod quick-start
-kubectl delete sa pod-identity-sa
+kubectl delete sa workload-identity-sa
 
 az keyvault delete --name "${KEYVAULT_NAME}" --resource-group "${RESOURCE_GROUP}"
 az ad sp delete --id "${APPLICATION_CLIENT_ID}"
