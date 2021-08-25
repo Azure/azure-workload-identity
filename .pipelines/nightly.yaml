@@ -30,6 +30,12 @@ jobs:
       # - AZURE_TENANT_ID
       # - SERVICE_ACCOUNT_ISSUER
       - group: e2e-environment-variables
+      - name: REGISTRY
+        value: "e2e"
+      - name: IMAGE_VERSION
+        value: "latest"
+      - name: OUTPUT_TYPE
+        value: "type=docker"
     steps:
       - script: |
           openssl genrsa -out sa.key 2048
@@ -40,9 +46,15 @@ jobs:
           SKIP_PREFLIGHT: "true"
           SERVICE_ACCOUNT_ISSUER: $(SERVICE_ACCOUNT_ISSUER)
       - script: |
+          make docker-build-webhook
+          KIND=$(pwd)/hack/tools/bin/kind
+          ${KIND} load docker-image ${REGISTRY}/webhook:${IMAGE_VERSION} --name azure-workload-identity
+        displayName: Build the webhook image
+      - script: |
           set -o errexit
           sed -i "s/AZURE_TENANT_ID: .*/AZURE_TENANT_ID: ${AZURE_TENANT_ID}/" manifest_staging/deploy/azure-wi-webhook.yaml
           sed -i "s/AZURE_ENVIRONMENT: .*/AZURE_ENVIRONMENT: AzurePublicCloud/" manifest_staging/deploy/azure-wi-webhook.yaml
+          sed -i "s|image: .*$|image: ${WEBHOOK_IMAGE}|g" manifest_staging/deploy/azure-wi-webhook.yaml
           KUBECTL=$(pwd)/hack/tools/bin/kubectl
           ${KUBECTL} apply -f manifest_staging/deploy/azure-wi-webhook.yaml
           ${KUBECTL} wait --for=condition=Available --timeout=5m -n azure-workload-identity-system deployment/azure-wi-webhook-controller-manager
@@ -50,6 +62,7 @@ jobs:
         displayName: Verify deployment YAML in manifest_staging/
         env:
           AZURE_TENANT_ID: $(AZURE_TENANT_ID)
+          WEBHOOK_IMAGE: $(REGISTRY)/webhook:$(IMAGE_VERSION)
       - script: make kind-delete
         displayName: Cleanup
         condition: always()
