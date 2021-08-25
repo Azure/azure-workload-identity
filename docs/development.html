@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Development - AAD Pod Managed Identity</title>
+        <title>Development - Azure AD Workload Identity</title>
                 
 
         <!-- Custom HTML head -->
@@ -111,7 +111,7 @@
                         </button>
                                             </div>
 
-                    <h1 class="menu-title">AAD Pod Managed Identity</h1>
+                    <h1 class="menu-title">Azure AD Workload Identity</h1>
 
                     <div class="right-buttons">
                                                 <a href="print.html" title="Print this book" aria-label="Print this book">
@@ -151,7 +151,7 @@
 <h2 id="setting-up"><a class="header" href="#setting-up">Setting up</a></h2>
 <h3 id="base-requirements"><a class="header" href="#base-requirements">Base requirements</a></h3>
 <ol>
-<li>Prerequisites from <a href="https://azure.github.io/aad-pod-managed-identity/quick-start.html#prerequisites">quickstart</a></li>
+<li>Prerequisites from <a href="https://azure.github.io/azure-workload-identity/quick-start.html#prerequisites">quickstart</a></li>
 <li>Install <a href="https://golang.org/dl/">go</a>
 <ul>
 <li>Get the latest patch version for go 1.16.</li>
@@ -167,7 +167,7 @@
 <li>Install make.</li>
 </ol>
 <h3 id="clone-the-repository"><a class="header" href="#clone-the-repository">Clone the repository</a></h3>
-<pre><code class="language-bash">git clone https://github.com/Azure/aad-pod-managed-identity.git $(go env GOPATH)/src/github.com/Azure/aad-pod-managed-identity
+<pre><code class="language-bash">git clone https://github.com/Azure/azure-workload-identity.git $(go env GOPATH)/src/github.com/Azure/azure-workload-identity
 </code></pre>
 <h2 id="create-a-test-cluster"><a class="header" href="#create-a-test-cluster">Create a test cluster</a></h2>
 <h3 id="generate-a-custom-publicprivate-key-pair"><a class="header" href="#generate-a-custom-publicprivate-key-pair">Generate a custom public/private key pair</a></h3>
@@ -258,7 +258,7 @@ export SERVICE_ACCOUNT_SIGNING_KEY_FILE=&quot;$(pwd)/sa.key&quot;
 <blockquote>
 <p>The minimum supported Kubernetes version for the webhook is v1.18.0, however, we recommend using Kubernetes version v1.20.0+.</p>
 </blockquote>
-<pre><code class="language-bash">cat &lt;&lt;EOF | kind create cluster --name aad-pod-managed-identity --image kindest/node:v1.21.1 --config=-
+<pre><code class="language-bash">cat &lt;&lt;EOF | kind create cluster --name azure-workload-identity --image kindest/node:v1.21.1 --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
@@ -280,7 +280,7 @@ EOF
 </code></pre>
 <details>
 <summary>Output</summary>
-<pre><code class="language-bash">Creating cluster &quot;aad-pod-managed-identity&quot; ...
+<pre><code class="language-bash">Creating cluster &quot;azure-workload-identity&quot; ...
  • Ensuring node image (kindest/node:v1.21.1) 🖼  ...
  ✓ Ensuring node image (kindest/node:v1.21.1) 🖼
  • Preparing nodes 📦   ...
@@ -293,10 +293,10 @@ EOF
  ✓ Installing CNI 🔌
  • Installing StorageClass 💾  ...
  ✓ Installing StorageClass 💾
-Set kubectl context to &quot;kind-aad-pod-managed-identity&quot;
+Set kubectl context to &quot;kind-azure-workload-identity&quot;
 You can now use your cluster with:
 
-kubectl cluster-info --context kind-aad-pod-managed-identity
+kubectl cluster-info --context kind-azure-workload-identity
 
 Have a question, bug, or feature request? Let us know! https://kind.sigs.k8s.io/#community 🙂
 </code></pre>
@@ -307,7 +307,7 @@ Have a question, bug, or feature request? Let us know! https://kind.sigs.k8s.io/
 <details>
 <summary>Output</summary>
 <pre><code class="language-bash">NAME                                     STATUS   ROLES                  AGE     VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE       KERNEL-VERSION     CONTAINER-RUNTIME
-aad-pod-managed-identity-control-plane   Ready    control-plane,master   2m28s   v1.21.1   172.18.0.2    &lt;none&gt;        Ubuntu 21.04   5.4.0-1047-azure   containerd://1.5.2
+azure-workload-identity-control-plane   Ready    control-plane,master   2m28s   v1.21.1   172.18.0.2    &lt;none&gt;        Ubuntu 21.04   5.4.0-1047-azure   containerd://1.5.2
 </code></pre>
 </details>
 <h2 id="build-and-deploy-the-webhook"><a class="header" href="#build-and-deploy-the-webhook">Build and deploy the webhook</a></h2>

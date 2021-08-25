@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Concepts - AAD Pod Managed Identity</title>
+        <title>Concepts - Azure AD Workload Identity</title>
                 
 
         <!-- Custom HTML head -->
@@ -111,7 +111,7 @@
                         </button>
                                             </div>
 
-                    <h1 class="menu-title">AAD Pod Managed Identity</h1>
+                    <h1 class="menu-title">Azure AD Workload Identity</h1>
 
                     <div class="right-buttons">
                                                 <a href="print.html" title="Print this book" aria-label="Print this book">
@@ -152,7 +152,7 @@
 <blockquote>
 <p>“A service account provides an identity for processes that run in a Pod.” - <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/">source</a></p>
 </blockquote>
-<p>AAD Pod Managed Identity supports the following mappings:</p>
+<p>Azure AD Workload Identity supports the following mappings:</p>
 <ul>
 <li>one-to-one (a service account referencing an AAD object)</li>
 <li>many-to-one (multiple service accounts referencing the same AAD object).</li>
@@ -163,7 +163,7 @@
 </blockquote>
 <p>Users who used <a href="https://github.com/Azure/aad-pod-identity">aad-pod-identity</a> can think of a service account as an <a href="https://azure.github.io/aad-pod-identity/docs/concepts/azureidentity/">AzureIdentity</a>, except service account is part of the core Kubernetes API, rather than a CRD. This <a href="../topics/service-account-labels-and-annotations.html">doc</a> describes a list of available labels and annotations to configure.</p>
 <h2 id="mutating-webhook"><a class="header" href="#mutating-webhook">Mutating Webhook</a></h2>
-<p>AAD Pod Managed Identity uses a <a href="https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/">mutating admission webhook</a> to inject the following properties to pods with a service account that is configured to use AAD Pod Managed Identity:</p>
+<p>Azure AD Workload Identity uses a <a href="https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/">mutating admission webhook</a> to inject the following properties to pods with a service account that is configured to use Azure AD Workload Identity:</p>
 <h3 id="environment-variables"><a class="header" href="#environment-variables">Environment Variables</a></h3>
 <table><thead><tr><th>Environment variable</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>AZURE_AUTHORITY_HOST</code></td><td>The Azure Active Directory (AAD) endpoint.</td></tr>
