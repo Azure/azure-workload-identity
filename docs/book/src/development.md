@@ -6,7 +6,7 @@
 
 ### Base requirements
 
-1. Prerequisites from [quickstart](https://azure.github.io/aad-pod-managed-identity/quick-start.html#prerequisites)
+1. Prerequisites from [quickstart](https://azure.github.io/azure-workload-identity/quick-start.html#prerequisites)
 2. Install [go](https://golang.org/dl/)
    - Get the latest patch version for go 1.16.
 3. Install [jq](https://stedolan.github.io/jq/)
@@ -18,7 +18,7 @@
 ### Clone the repository
 
 ```bash
-git clone https://github.com/Azure/aad-pod-managed-identity.git $(go env GOPATH)/src/github.com/Azure/aad-pod-managed-identity
+git clone https://github.com/Azure/azure-workload-identity.git $(go env GOPATH)/src/github.com/Azure/azure-workload-identity
 ```
 
 ## Create a test cluster
@@ -139,7 +139,7 @@ Create a kind cluster with one control plane node and customize various service 
 > The minimum supported Kubernetes version for the webhook is v1.18.0, however, we recommend using Kubernetes version v1.20.0+.
 
 ```bash
-cat <<EOF | kind create cluster --name aad-pod-managed-identity --image kindest/node:v1.21.1 --config=-
+cat <<EOF | kind create cluster --name azure-workload-identity --image kindest/node:v1.21.1 --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
@@ -164,7 +164,7 @@ EOF
 <summary>Output</summary>
 
 ```bash
-Creating cluster "aad-pod-managed-identity" ...
+Creating cluster "azure-workload-identity" ...
  • Ensuring node image (kindest/node:v1.21.1) 🖼  ...
  ✓ Ensuring node image (kindest/node:v1.21.1) 🖼
  • Preparing nodes 📦   ...
@@ -177,10 +177,10 @@ Creating cluster "aad-pod-managed-identity" ...
  ✓ Installing CNI 🔌
  • Installing StorageClass 💾  ...
  ✓ Installing StorageClass 💾
-Set kubectl context to "kind-aad-pod-managed-identity"
+Set kubectl context to "kind-azure-workload-identity"
 You can now use your cluster with:
 
-kubectl cluster-info --context kind-aad-pod-managed-identity
+kubectl cluster-info --context kind-azure-workload-identity
 
 Have a question, bug, or feature request? Let us know! https://kind.sigs.k8s.io/#community 🙂
 ```
@@ -198,7 +198,7 @@ kubectl get nodes
 
 ```bash
 NAME                                     STATUS   ROLES                  AGE     VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE       KERNEL-VERSION     CONTAINER-RUNTIME
-aad-pod-managed-identity-control-plane   Ready    control-plane,master   2m28s   v1.21.1   172.18.0.2    <none>        Ubuntu 21.04   5.4.0-1047-azure   containerd://1.5.2
+azure-workload-identity-control-plane   Ready    control-plane,master   2m28s   v1.21.1   172.18.0.2    <none>        Ubuntu 21.04   5.4.0-1047-azure   containerd://1.5.2
 ```
 
 </details>
@@ -234,5 +234,5 @@ Optional settings are:
 | `GINKGO_NODES`        | The number of ginkgo workers to run the specs.                     | `3`                    |
 | `GINKGO_NO_COLOR`     | True if you want colorized output.                                 | `false`                |
 | `GINKGO_TIMEOUT`      | The test suite timeout duration.                                   | `5m`                   |
-| `KUBECONFIG`          | The cluster KUBECONFIG you want to run the e2e test against.       | `${HOME}/.kube/config`  |
+| `KUBECONFIG`          | The cluster KUBECONFIG you want to run the e2e test against.       | `${HOME}/.kube/config` |
 | `E2E_EXTRA_ARGS`      | Allow you to insert extra arguments when executing the test suite. |                        |

@@ -1,5 +1,5 @@
 **Reason for Change**:
-<!-- What does this PR improve or fix in AAD Pod Managed Identity? Why is it needed? -->
+<!-- What does this PR improve or fix in Azure AD Workload Identity? Why is it needed? -->
 
 <!--
 **Is this a deployment yaml update?**
@@ -8,7 +8,7 @@ If yes, please update the yamls in the [manifest_staging/](https://github.com/Az
 
 <!--
 **Are you making changes to the Helm chart?**
-Helm chart is auto-generated in AAD Pod Managed Identity. If you have any changes in `charts` directory, they will get clobbered when we do a new release. Please see https://github.com/Azure/azure-workload-identity/blob/main/third_party/open-policy-agent/gatekeeper/helmify/static/README.md#contributing-changes for modifying the Helm chart.
+Helm chart is auto-generated in Azure AD Workload Identity. If you have any changes in `charts` directory, they will get clobbered when we do a new release. Please see https://github.com/Azure/azure-workload-identity/blob/main/third_party/open-policy-agent/gatekeeper/helmify/static/README.md#contributing-changes for modifying the Helm chart.
 -->
 
 **Requirements**

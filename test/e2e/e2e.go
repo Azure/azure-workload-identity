@@ -161,5 +161,5 @@ func RunE2ETests(t *testing.T) {
 	if framework.TestContext.ReportDir != "" {
 		r = append(r, reporters.NewJUnitReporter(path.Join(framework.TestContext.ReportDir, fmt.Sprintf("junit_%v%02d.xml", framework.TestContext.ReportPrefix, config.GinkgoConfig.ParallelNode))))
 	}
-	ginkgo.RunSpecsWithDefaultAndCustomReporters(t, "AAD Pod Managed Identity E2E Test Suite", r)
+	ginkgo.RunSpecsWithDefaultAndCustomReporters(t, "Azure AD Workload Identity E2E Test Suite", r)
 }

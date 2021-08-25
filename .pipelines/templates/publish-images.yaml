@@ -4,7 +4,7 @@ parameters:
     default: true
   - name: registry
     type: string
-    default: docker.pkg.github.com/azure/azure-workload-identity
+    default: ghcr.io/azure/azure-workload-identity
   - name: image_version
     type: string
     default: latest
@@ -31,8 +31,8 @@ steps:
       done
     displayName: Scan images
   - script: |
-      if [[ "${REGISTRY}" =~ docker.pkg.github.com.* ]]; then
-        echo "${DOCKER_PASSWORD}" | docker login docker.pkg.github.com -u azure --password-stdin
+      if [[ "${REGISTRY}" =~ ghcr.io.* ]]; then
+        echo "${DOCKER_PASSWORD}" | docker login ghcr.io -u azure --password-stdin
       fi
     env:
       DOCKER_PASSWORD: $(DOCKER_PASSWORD)

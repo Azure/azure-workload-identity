@@ -160,7 +160,7 @@ func (m *podMutator) InjectDecoder(d *admission.Decoder) error {
 }
 
 // isServiceAccountAnnotated checks if the service account has been annotated
-// to use with pod identity
+// to use with workload identity
 func isServiceAccountAnnotated(sa *corev1.ServiceAccount) bool {
 	if len(sa.Labels) == 0 {
 		return false

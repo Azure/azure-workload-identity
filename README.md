@@ -1,10 +1,10 @@
-# AAD Pod Managed Identity
+# Azure AD Workload Identity
 
-AAD Pod Managed Identity is the next iteration of [AAD Pod Identity][1] that enables Kubernetes applications to access Azure cloud resources securely with [Azure Active Directory][2] based on annotated [service accounts][3].
+Azure AD Workload Identity is the next iteration of [AAD Pod Identity][1] that enables Kubernetes applications to access Azure cloud resources securely with [Azure Active Directory][2] based on annotated [service accounts][3].
 
 ## Quick Start
 
-Check out the AAD Pod Managed Identity [Quick Start][4] to create your first application with .
+Check out the Azure AD Workload Identity [Quick Start][4] to create your first application with .
 
 ## Overview
 
@@ -38,13 +38,13 @@ The repository contains the following components:
 
 [3]: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
 
-[4]: https://azure.github.io/aad-pod-managed-identity/quick-start.html
+[4]: https://azure.github.io/azure-workload-identity/quick-start.html
 
-[5]: https://azure.github.io/aad-pod-managed-identity/concepts.html#mutating-webhook
+[5]: https://azure.github.io/azure-workload-identity/concepts.html#mutating-webhook
 
-[6]: https://azure.github.io/aad-pod-managed-identity/concepts.html#proxy-init
+[6]: https://azure.github.io/azure-workload-identity/concepts.html#proxy-init
 
-[7]: https://azure.github.io/aad-pod-managed-identity/concepts.html#proxy
+[7]: https://azure.github.io/azure-workload-identity/concepts.html#proxy
 
 [8]: https://azure.github.io/aad-pod-identity/docs/getting-started/role-assignment/
 
