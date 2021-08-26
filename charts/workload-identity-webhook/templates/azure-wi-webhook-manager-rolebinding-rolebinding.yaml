@@ -1,0 +1,18 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app: '{{ template "workload-identity-webhook.name" . }}'
+    azure-workload-identity.io/system: "true"
+    chart: '{{ template "workload-identity-webhook.name" . }}'
+    release: '{{ .Release.Name }}'
+  name: azure-wi-webhook-manager-rolebinding
+  namespace: '{{ .Release.Namespace }}'
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: azure-wi-webhook-manager-role
+subjects:
+- kind: ServiceAccount
+  name: azure-wi-webhook-admin
+  namespace: '{{ .Release.Namespace }}'

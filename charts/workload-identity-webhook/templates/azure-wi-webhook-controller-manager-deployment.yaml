@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: '{{ template "workload-identity-webhook.name" . }}'
+    azure-workload-identity.io/system: "true"
+    chart: '{{ template "workload-identity-webhook.name" . }}'
+    release: '{{ .Release.Name }}'
+  name: azure-wi-webhook-controller-manager
+  namespace: '{{ .Release.Namespace }}'
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: '{{ template "workload-identity-webhook.name" . }}'
+      azure-workload-identity.io/system: "true"
+      chart: '{{ template "workload-identity-webhook.name" . }}'
+      release: '{{ .Release.Name }}'
+  template:
+    metadata:
+      labels:
+        app: '{{ template "workload-identity-webhook.name" . }}'
+        azure-workload-identity.io/system: "true"
+        chart: '{{ template "workload-identity-webhook.name" . }}'
+        release: '{{ .Release.Name }}'
+    spec:
+      containers:
+      - args:
+        - --arc-cluster={{ .Values.arcCluster }}
+        command:
+        - /manager
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        envFrom:
+        - configMapRef:
+            name: azure-wi-webhook-config
+        image: '{{ .Values.image.repository }}:{{ .Values.image.release }}'
+        imagePullPolicy: '{{ .Values.image.pullPolicy }}'
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: healthz
+        name: manager
+        ports:
+        - containerPort: 9443
+          name: webhook-server
+          protocol: TCP
+        - containerPort: 9440
+          name: healthz
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: healthz
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        volumeMounts:
+        - mountPath: /certs
+          name: cert
+          readOnly: true
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      serviceAccountName: azure-wi-webhook-admin
+      volumes:
+      - name: cert
+        secret:
+          defaultMode: 420
+          secretName: azure-wi-webhook-server-cert
