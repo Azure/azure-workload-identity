@@ -1,9 +1,0 @@
-apiVersion: v2
-name: pod-identity-webhook
-description: A Helm chart to install the aad-pod-managed-identity webhook
-type: application
-version: 0.3.0
-appVersion: v0.3.0
-home: https://github.com/Azure/aad-pod-managed-identity
-sources:
-  - https://github.com/Azure/aad-pod-managed-identity

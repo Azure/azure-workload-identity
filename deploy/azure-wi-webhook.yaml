@@ -2,25 +2,25 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    mpod.aad-pod-identity.io/system: "true"
-  name: aad-pi-webhook-system
+    azure-workload-identity.io/system: "true"
+  name: azure-workload-identity-system
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   labels:
-    mpod.aad-pod-identity.io/system: "true"
-  name: aad-pi-webhook-admin
-  namespace: aad-pi-webhook-system
+    azure-workload-identity.io/system: "true"
+  name: azure-wi-webhook-admin
+  namespace: azure-workload-identity-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   creationTimestamp: null
   labels:
-    mpod.aad-pod-identity.io/system: "true"
-  name: aad-pi-webhook-manager-role
-  namespace: aad-pi-webhook-system
+    azure-workload-identity.io/system: "true"
+  name: azure-wi-webhook-manager-role
+  namespace: azure-workload-identity-system
 rules:
 - apiGroups:
   - ""
@@ -40,8 +40,8 @@ kind: ClusterRole
 metadata:
   creationTimestamp: null
   labels:
-    mpod.aad-pod-identity.io/system: "true"
-  name: aad-pi-webhook-manager-role
+    azure-workload-identity.io/system: "true"
+  name: azure-wi-webhook-manager-role
 rules:
 - apiGroups:
   - ""
@@ -71,32 +71,32 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   labels:
-    mpod.aad-pod-identity.io/system: "true"
-  name: aad-pi-webhook-manager-rolebinding
-  namespace: aad-pi-webhook-system
+    azure-workload-identity.io/system: "true"
+  name: azure-wi-webhook-manager-rolebinding
+  namespace: azure-workload-identity-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: aad-pi-webhook-manager-role
+  name: azure-wi-webhook-manager-role
 subjects:
 - kind: ServiceAccount
-  name: aad-pi-webhook-admin
-  namespace: aad-pi-webhook-system
+  name: azure-wi-webhook-admin
+  namespace: azure-workload-identity-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   labels:
-    mpod.aad-pod-identity.io/system: "true"
-  name: aad-pi-webhook-manager-rolebinding
+    azure-workload-identity.io/system: "true"
+  name: azure-wi-webhook-manager-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: aad-pi-webhook-manager-role
+  name: azure-wi-webhook-manager-role
 subjects:
 - kind: ServiceAccount
-  name: aad-pi-webhook-admin
-  namespace: aad-pi-webhook-system
+  name: azure-wi-webhook-admin
+  namespace: azure-workload-identity-system
 ---
 apiVersion: v1
 data:
@@ -105,48 +105,48 @@ data:
 kind: ConfigMap
 metadata:
   labels:
-    mpod.aad-pod-identity.io/system: "true"
-  name: aad-pi-webhook-config
-  namespace: aad-pi-webhook-system
+    azure-workload-identity.io/system: "true"
+  name: azure-wi-webhook-config
+  namespace: azure-workload-identity-system
 ---
 apiVersion: v1
 kind: Secret
 metadata:
   labels:
-    mpod.aad-pod-identity.io/system: "true"
-  name: aad-pi-webhook-server-cert
-  namespace: aad-pi-webhook-system
+    azure-workload-identity.io/system: "true"
+  name: azure-wi-webhook-server-cert
+  namespace: azure-workload-identity-system
 ---
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    mpod.aad-pod-identity.io/system: "true"
-  name: aad-pi-webhook-webhook-service
-  namespace: aad-pi-webhook-system
+    azure-workload-identity.io/system: "true"
+  name: azure-wi-webhook-webhook-service
+  namespace: azure-workload-identity-system
 spec:
   ports:
   - port: 443
     targetPort: 9443
   selector:
-    mpod.aad-pod-identity.io/system: "true"
+    azure-workload-identity.io/system: "true"
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    mpod.aad-pod-identity.io/system: "true"
-  name: aad-pi-webhook-controller-manager
-  namespace: aad-pi-webhook-system
+    azure-workload-identity.io/system: "true"
+  name: azure-wi-webhook-controller-manager
+  namespace: azure-workload-identity-system
 spec:
   replicas: 1
   selector:
     matchLabels:
-      mpod.aad-pod-identity.io/system: "true"
+      azure-workload-identity.io/system: "true"
   template:
     metadata:
       labels:
-        mpod.aad-pod-identity.io/system: "true"
+        azure-workload-identity.io/system: "true"
     spec:
       containers:
       - args:
@@ -161,8 +161,8 @@ spec:
               fieldPath: metadata.namespace
         envFrom:
         - configMapRef:
-            name: aad-pi-webhook-config
-        image: mcr.microsoft.com/oss/azure/aad-pod-managed-identity/webhook:v0.3.0
+            name: azure-wi-webhook-config
+        image: mcr.microsoft.com/oss/azure/workload-identity/webhook:v0.4.0
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -193,32 +193,32 @@ spec:
           readOnly: true
       nodeSelector:
         kubernetes.io/os: linux
-      serviceAccountName: aad-pi-webhook-admin
+      serviceAccountName: azure-wi-webhook-admin
       volumes:
       - name: cert
         secret:
           defaultMode: 420
-          secretName: aad-pi-webhook-server-cert
+          secretName: azure-wi-webhook-server-cert
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   creationTimestamp: null
   labels:
-    mpod.aad-pod-identity.io/system: "true"
-  name: aad-pi-webhook-mutating-webhook-configuration
+    azure-workload-identity.io/system: "true"
+  name: azure-wi-webhook-mutating-webhook-configuration
 webhooks:
 - admissionReviewVersions:
   - v1
   - v1beta1
   clientConfig:
     service:
-      name: aad-pi-webhook-webhook-service
-      namespace: aad-pi-webhook-system
+      name: azure-wi-webhook-webhook-service
+      namespace: azure-workload-identity-system
       path: /mutate-v1-pod
   failurePolicy: Ignore
   matchPolicy: Equivalent
-  name: mpod.aad-pod-identity.io
+  name: mutation.azure-workload-identity.io
   rules:
   - apiGroups:
     - ""

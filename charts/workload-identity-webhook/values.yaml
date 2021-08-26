@@ -1,15 +1,15 @@
-# Default values for pod-identity-webhook.
+# Default values for workload-identity-webhook.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
 labels: 
-  mpod.aad-pod-identity.io/system: "true"
+  azure-workload-identity.io/system: "true"
 replicaCount: 1
 image:
-  repository: mcr.microsoft.com/oss/azure/aad-pod-managed-identity/webhook
+  repository: mcr.microsoft.com/oss/azure/workload-identity/webhook
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  release: v0.3.0
+  release: v0.4.0
 nodeSelector:
   kubernetes.io/os: linux
 arcCluster: false
