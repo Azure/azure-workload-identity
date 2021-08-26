@@ -332,7 +332,7 @@ export AZURE_ENVIRONMENT=&quot;AzurePublicCloud&quot;
 <li>
 <p>Deployment YAML</p>
 <blockquote>
-<p>Replace the Azure tenant ID and cloud environment name in <a href="https://github.com/Azure/aad-pod-managed-identity/blob/c6b92d50910091441a71c1cb32517d53649d74e7/manifest_staging/deploy/aad-pi-webhook.yaml#L45-L46">here</a> before executing</p>
+<p>Replace the Azure tenant ID and cloud environment name in <a href="https://github.com/Azure/azure-workload-identity/blob/1cb9d78159458b0c820c9c08fadf967833c8cdb4/deploy/azure-wi-webhook.yaml#L103-L104">here</a> before executing</p>
 </blockquote>
 <pre><code class="language-bash">sed -i &quot;s/AZURE_TENANT_ID: .*/AZURE_TENANT_ID: ${AZURE_TENANT_ID}/&quot; deploy/azure-wi-webhook.yaml
 sed -i &quot;s/AZURE_ENVIRONMENT: .*/AZURE_ENVIRONMENT: ${AZURE_ENVIRONMENT}/&quot; deploy/azure-wi-webhook.yaml
@@ -478,7 +478,7 @@ EOF
 <tr><td><code>AZURE_AUTHORITY_HOST</code></td><td>The Azure Active Directory (AAD) endpoint.</td></tr>
 <tr><td><code>AZURE_CLIENT_ID</code></td><td>The client ID of the AAD application.</td></tr>
 <tr><td><code>AZURE_TENANT_ID</code></td><td>The tenant ID of the registered AAD application.</td></tr>
-<tr><td><code>TOKEN_FILE_PATH</code></td><td>The path of the projected service account token file.</td></tr>
+<tr><td><code>AZURE_FEDERATED_TOKEN_FILE</code></td><td>The path of the projected service account token file.</td></tr>
 </tbody></table>
 <br/>
 <table><thead><tr><th>Volume mount</th><th>Description</th></tr></thead><tbody>
@@ -511,12 +511,12 @@ Containers:
     Ready:          True
     Restart Count:  0
     Environment:
-      KEYVAULT_NAME:        ${KEYVAULT_NAME}
-      SECRET_NAME:          ${KEYVAULT_SECRET_NAME}
-      AZURE_AUTHORITY_HOST: (Injected by the webhook)
-      AZURE_CLIENT_ID:      (Injected by the webhook)
-      AZURE_TENANT_ID:      (Injected by the webhook)
-      TOKEN_FILE_PATH:      (Injected by the webhook)
+      KEYVAULT_NAME:              ${KEYVAULT_NAME}
+      SECRET_NAME:                ${KEYVAULT_SECRET_NAME}
+      AZURE_AUTHORITY_HOST:       (Injected by the webhook)
+      AZURE_CLIENT_ID:            (Injected by the webhook)
+      AZURE_TENANT_ID:            (Injected by the webhook)
+      AZURE_FEDERATED_TOKEN_FILE: (Injected by the webhook)
     Mounts:
       /var/run/secrets/kubernetes.io/serviceaccount from workload-identity-sa-token-mlgn8 (ro)
       /var/run/secrets/tokens from azure-identity-token (ro) (Injected by the webhook)
