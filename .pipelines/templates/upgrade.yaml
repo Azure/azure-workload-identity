@@ -24,7 +24,14 @@ jobs:
         displayName: Webhook E2E test suite
         env:
           SKIP_CLEANUP: "true"
-      - script: az aks upgrade --resource-group "${CLUSTER_NAME}" --name "${CLUSTER_NAME}" --kubernetes-version 1.21.1 --yes > /dev/null
+      - script: |
+          # xref: https://github.com/Azure/secrets-store-csi-driver-provider-azure/blob/512316adc9daa2216de10a6288f6c1df8a122654/.pipelines/templates/aks-upgrade.yaml#L3-L8
+          MINOR_VERSION="$(az aks get-upgrades --resource-group ${CLUSTER_NAME} --name ${CLUSTER_NAME} --query "controlPlaneProfile.kubernetesVersion" | jq -r 'split(".") | .[:2] | join(".")')"
+          echo "Minor version is - ${MINOR_VERSION}"
+          UPGRADE_VERSION="$(az aks get-upgrades --resource-group ${CLUSTER_NAME} --name ${CLUSTER_NAME} --query "max(controlPlaneProfile.upgrades[?isPreview==null && !(starts_with(kubernetesVersion, '${MINOR_VERSION}'))].kubernetesVersion)" -otsv)"
+          echo "Upgrading to Kubernetes ${UPGRADE_VERSION}"
+
+          az aks upgrade --resource-group "${CLUSTER_NAME}" --name "${CLUSTER_NAME}" --kubernetes-version "${UPGRADE_VERSION}" --yes > /dev/null
         displayName: Upgrade cluster
       - script: make test-e2e
         displayName: Webhook E2E test suite
