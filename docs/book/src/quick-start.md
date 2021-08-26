@@ -439,23 +439,23 @@ kubectl describe pod quick-start
 
 You can verify the following injected properties in the output:
 
-| Environment variable   | Description                                           |
-|------------------------|-------------------------------------------------------|
-| `AZURE_AUTHORITY_HOST` | The Azure Active Directory (AAD) endpoint.            |
-| `AZURE_CLIENT_ID`      | The client ID of the AAD application.                 |
-| `AZURE_TENANT_ID`      | The tenant ID of the registered AAD application.      |
-| `TOKEN_FILE_PATH`      | The path of the projected service account token file. |
+| Environment variable         | Description                                           |
+| ---------------------------- | ----------------------------------------------------- |
+| `AZURE_AUTHORITY_HOST`       | The Azure Active Directory (AAD) endpoint.            |
+| `AZURE_CLIENT_ID`            | The client ID of the AAD application.                 |
+| `AZURE_TENANT_ID`            | The tenant ID of the registered AAD application.      |
+| `AZURE_FEDERATED_TOKEN_FILE` | The path of the projected service account token file. |
 
 <br/>
 
 | Volume mount                                   | Description                                           |
-|------------------------------------------------|-------------------------------------------------------|
+| ---------------------------------------------- | ----------------------------------------------------- |
 | `/var/run/secrets/tokens/azure-identity-token` | The path of the projected service account token file. |
 
 <br/>
 
 | Volume                 | Description                           |
-|------------------------|---------------------------------------|
+| ---------------------- | ------------------------------------- |
 | `azure-identity-token` | The projected service account volume. |
 
 ```log
@@ -482,12 +482,12 @@ Containers:
     Ready:          True
     Restart Count:  0
     Environment:
-      KEYVAULT_NAME:        ${KEYVAULT_NAME}
-      SECRET_NAME:          ${KEYVAULT_SECRET_NAME}
-      AZURE_AUTHORITY_HOST: (Injected by the webhook)
-      AZURE_CLIENT_ID:      (Injected by the webhook)
-      AZURE_TENANT_ID:      (Injected by the webhook)
-      TOKEN_FILE_PATH:      (Injected by the webhook)
+      KEYVAULT_NAME:              ${KEYVAULT_NAME}
+      SECRET_NAME:                ${KEYVAULT_SECRET_NAME}
+      AZURE_AUTHORITY_HOST:       (Injected by the webhook)
+      AZURE_CLIENT_ID:            (Injected by the webhook)
+      AZURE_TENANT_ID:            (Injected by the webhook)
+      AZURE_FEDERATED_TOKEN_FILE: (Injected by the webhook)
     Mounts:
       /var/run/secrets/kubernetes.io/serviceaccount from workload-identity-sa-token-mlgn8 (ro)
       /var/run/secrets/tokens from azure-identity-token (ro) (Injected by the webhook)
@@ -561,6 +561,6 @@ az ad sp delete --id "${APPLICATION_CLIENT_ID}"
 
 [6]: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli
 
-[7]: https://github.com/Azure/aad-pod-managed-identity/blob/c6b92d50910091441a71c1cb32517d53649d74e7/manifest_staging/deploy/aad-pi-webhook.yaml#L45-L46
+[7]: https://github.com/Azure/azure-workload-identity/blob/1cb9d78159458b0c820c9c08fadf967833c8cdb4/deploy/azure-wi-webhook.yaml#L103-L104
 
 [8]: https://portal.azure.com/#cloudshell/

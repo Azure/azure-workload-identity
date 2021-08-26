@@ -22,23 +22,23 @@ Azure AD Workload Identity uses a [mutating admission webhook][6] to inject the 
 
 ### Environment Variables
 
-| Environment variable   | Description                                           |
-|------------------------|-------------------------------------------------------|
-| `AZURE_AUTHORITY_HOST` | The Azure Active Directory (AAD) endpoint.            |
-| `AZURE_CLIENT_ID`      | The client ID of the identity.                        |
-| `AZURE_TENANT_ID`      | The tenant ID of the Azure account.                   |
-| `TOKEN_FILE_PATH`      | The path of the projected service account token file. |
+| Environment variable         | Description                                           |
+| ---------------------------- | ----------------------------------------------------- |
+| `AZURE_AUTHORITY_HOST`       | The Azure Active Directory (AAD) endpoint.            |
+| `AZURE_CLIENT_ID`            | The client ID of the identity.                        |
+| `AZURE_TENANT_ID`            | The tenant ID of the Azure account.                   |
+| `AZURE_FEDERATED_TOKEN_FILE` | The path of the projected service account token file. |
 
 ### Volumes
 
 | Volume                 | Description                           |
-|------------------------|---------------------------------------|
+| ---------------------- | ------------------------------------- |
 | `azure-identity-token` | The projected service account volume. |
 
 ### Volume Mounts
 
 | Volume mount                                   | Description                                           |
-|------------------------------------------------|-------------------------------------------------------|
+| ---------------------------------------------- | ----------------------------------------------------- |
 | `/var/run/secrets/tokens/azure-identity-token` | The path of the projected service account token file. |
 
 With these properties injected, the webhook allows pods to use a [service account token][7] projected to its volume to exchange for a valid AAD token using the [Microsoft Authentication Library][8] (MSAL).

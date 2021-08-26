@@ -101,18 +101,13 @@ test_helm_chart() {
   ${KUBECTL} create namespace azure-workload-identity-system
 
   # test helm upgrade from chart to manifest_staging/chart
-  # TODO (aramase) reenable upgrade tests after v0.4.0 release once rename azure-workload-identity is complete
 
-  # ${HELM} install workload-identity-webhook "${REPO_ROOT}/charts/workload-identity-webhook" \
-  #   --set azureTenantID="${AZURE_TENANT_ID}" \
-  #   --namespace azure-workload-identity-system \
-  #   --wait
-  # poll_webhook_readiness
-
-  # TODO (aramase) remove token exchange and proxy from GINKGO_SKIP after v0.4.0 release is published
-  # Skipping TokenExchange test for the current release as we're using the latest msal-go image
-  # which is updated to use AZURE_FEDERATED_TOKEN_FILE for token path.
-  # GINKGO_SKIP=TokenExchange\|Proxy make test-e2e-run
+  ${HELM} install workload-identity-webhook "${REPO_ROOT}/charts/workload-identity-webhook" \
+    --set azureTenantID="${AZURE_TENANT_ID}" \
+    --namespace azure-workload-identity-system \
+    --wait
+  poll_webhook_readiness
+  make test-e2e-run
 
   ${HELM} upgrade --install workload-identity-webhook "${REPO_ROOT}/manifest_staging/charts/workload-identity-webhook" \
     --set image.repository="${REGISTRY:-mcr.microsoft.com/oss/azure/workload-identity/webhook}" \
