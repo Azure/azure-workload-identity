@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><a href="quick-start.html">Quick Start</a></li><li class="chapter-item expanded affix "><a href="concepts.html">Concepts</a></li><li class="chapter-item expanded "><a href="topics.html"><strong aria-hidden="true">1.</strong> Topics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="topics/labels-and-annotations.html"><strong aria-hidden="true">1.1.</strong> Labels And Annotations</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Troubleshooting</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> Known Limitations</div></li><li class="chapter-item expanded "><a href="development.html"><strong aria-hidden="true">4.</strong> Development</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="development/releasing.html"><strong aria-hidden="true">4.1.</strong> Releasing</a></li></ol></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="code-of-conduct.html"><strong aria-hidden="true">6.</strong> Code of Conduct</a></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><a href="quick-start.html">Quick Start</a></li><li class="chapter-item expanded affix "><a href="concepts.html">Concepts</a></li><li class="chapter-item expanded "><a href="topics.html"><strong aria-hidden="true">1.</strong> Topics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="topics/labels-and-annotations.html"><strong aria-hidden="true">1.1.</strong> Labels And Annotations</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Troubleshooting</div></li><li class="chapter-item expanded "><a href="known-issues.html"><strong aria-hidden="true">3.</strong> Known Issues</a></li><li class="chapter-item expanded "><a href="development.html"><strong aria-hidden="true">4.</strong> Development</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="development/releasing.html"><strong aria-hidden="true">4.1.</strong> Releasing</a></li></ol></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="code-of-conduct.html"><strong aria-hidden="true">6.</strong> Code of Conduct</a></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -695,6 +695,25 @@ az rest --method POST --uri &quot;https://graph.microsoft.com/beta/applications/
 <tr><td><code>azure.workload.identity/service-account-token-expiration</code></td><td><strong>(Takes precedence if the service account is also annotated)</strong> Represents the <code>expirationSeconds</code> field for the projected service account token. It is an optional field that the user might want to configure this to prevent any downtime caused by errors during service account token refresh. Kubernetes service account token expiry will not be correlated with AAD tokens. AAD tokens will expire in 24 hours after they are issued.</td><td><code>86400</code> (minimum <code>3600</code>)</td></tr>
 <tr><td><code>azure.workload.identity/skip-containers</code></td><td>Represents a semi-colon-separated list of containers (e.g. <code>container1;container2</code>) to skip adding projected service account token volume. By default, the projected service account token volume will be added to all containers if the service account is labeled with <code>azure.workload.identity/use: true</code>.</td><td></td></tr>
 </tbody></table>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="known-issues"><a class="header" href="#known-issues">Known Issues</a></h1>
+<h2 id="permission-denied-when-reading-the-projected-service-account-token-file"><a class="header" href="#permission-denied-when-reading-the-projected-service-account-token-file">Permission denied when reading the projected service account token file</a></h2>
+<p>In Kubernetes 1.18, the default mode for the projected service account token file is <code>0600</code>. This causes containers running as non-root to fail while trying to read the token file:</p>
+<pre><code class="language-bash">F0826 20:03:20.113998 1 main.go:27] failed to get secret from keyvault, err: autorest/Client#Do: Preparing request failed: StatusCode=0 -- Original Error: failed to read service account token: open /var/run/secrets/tokens/azure-identity-token: permission denied
+</code></pre>
+<p>The default mode was changed to <code>0644</code> in Kubernetes v1.19, which allows containers running as non-root to read the projected service account token.</p>
+<p>If you ran into this issue, you can either:</p>
+<ol>
+<li>
+<p>Upgrade your cluster to v1.19+ or</p>
+</li>
+<li>
+<p>Apply the following <code>securityContext</code> field to your pod spec:</p>
+</li>
+</ol>
+<pre><code class="language-yaml">spec:
+  securityContext:
+    fsGroup: 65534
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="development"><a class="header" href="#development">Development</a></h1>
 <!-- toc -->
 <h2 id="setting-up"><a class="header" href="#setting-up">Setting up</a></h2>
