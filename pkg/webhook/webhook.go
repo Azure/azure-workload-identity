@@ -113,16 +113,8 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) admissio
 	tenantID := getTenantID(serviceAccount, m.config)
 	// get containers to skip
 	skipContainers := getSkipContainers(pod)
-	for i := range pod.Spec.Containers {
-		// container is in the skip list
-		if _, ok := skipContainers[pod.Spec.Containers[i].Name]; ok {
-			continue
-		}
-		// add environment variables to container if not exists
-		pod.Spec.Containers[i] = addEnvironmentVariables(pod.Spec.Containers[i], clientID, tenantID, m.azureAuthorityHost)
-		// add the volume mount if not exists
-		pod.Spec.Containers[i] = addProjectedTokenVolumeMount(pod.Spec.Containers[i])
-	}
+	pod.Spec.InitContainers = m.mutateContainers(pod.Spec.InitContainers, clientID, tenantID, skipContainers)
+	pod.Spec.Containers = m.mutateContainers(pod.Spec.Containers, clientID, tenantID, skipContainers)
 
 	if !m.isARCCluster {
 		// add the projected service account token volume to the pod if not exists
@@ -157,6 +149,22 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) admissio
 func (m *podMutator) InjectDecoder(d *admission.Decoder) error {
 	m.decoder = d
 	return nil
+}
+
+// mutateContainers mutates the containers by injecting the projected
+// service account token volume and environment variables
+func (m *podMutator) mutateContainers(containers []corev1.Container, clientID string, tenantID string, skipContainers map[string]struct{}) []corev1.Container {
+	for i := range containers {
+		// container is in the skip list
+		if _, ok := skipContainers[containers[i].Name]; ok {
+			continue
+		}
+		// add environment variables to container if not exists
+		containers[i] = addEnvironmentVariables(containers[i], clientID, tenantID, m.azureAuthorityHost)
+		// add the volume mount if not exists
+		containers[i] = addProjectedTokenVolumeMount(containers[i])
+	}
+	return containers
 }
 
 // isServiceAccountAnnotated checks if the service account has been annotated

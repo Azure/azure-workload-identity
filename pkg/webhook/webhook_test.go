@@ -750,7 +750,7 @@ func TestHandle(t *testing.T) {
 				decoder: decoder,
 			}
 
-			raw := []byte(`{"apiVersion":"v1","kind":"Pod","metadata":{"name":"pod","namespace":"ns1"},"spec":{"containers":[{"image":"image","name":"cont1"}],"serviceAccountName":"sa"}}`)
+			raw := []byte(`{"apiVersion":"v1","kind":"Pod","metadata":{"name":"pod","namespace":"ns1"},"spec":{"initContainers":[{"image":"image","name":"cont1"}],"containers":[{"image":"image","name":"cont1"}],"serviceAccountName":"sa"}}`)
 
 			req := atypes.Request{
 				AdmissionRequest: admissionv1.AdmissionRequest{
@@ -1025,6 +1025,120 @@ func TestGetAzureAuthorityHost(t *testing.T) {
 			}
 			if got != test.want {
 				t.Errorf("getAzureAuthorityHost() = %v, want %v", got, test.want)
+			}
+		})
+	}
+}
+
+func TestMutateContainers(t *testing.T) {
+	azureAuthorityHost := "https://login.microsoftonline.com/"
+	azureClientID := "client-id"
+	azureTenantID := "tenant-id"
+
+	tests := []struct {
+		name               string
+		containers         []corev1.Container
+		skipContainers     map[string]struct{}
+		expectedContainers []corev1.Container
+	}{{
+		name:               "no containers",
+		containers:         []corev1.Container{},
+		expectedContainers: []corev1.Container{},
+	}, {
+		name: "one container",
+		containers: []corev1.Container{{
+			Name:  "my-container",
+			Image: "my-image",
+		}},
+		expectedContainers: []corev1.Container{{
+			Name:  "my-container",
+			Image: "my-image",
+			Env: []corev1.EnvVar{
+				{
+					Name:  AzureClientIDEnvVar,
+					Value: azureClientID,
+				},
+				{
+					Name:  AzureTenantIDEnvVar,
+					Value: azureTenantID,
+				},
+				{
+					Name:  AzureFederatedTokenFileEnvVar,
+					Value: filepath.Join(TokenFileMountPath, TokenFilePathName),
+				},
+				{
+					Name:  AzureAuthorityHostEnvVar,
+					Value: azureAuthorityHost,
+				},
+			},
+			VolumeMounts: []corev1.VolumeMount{
+				{
+					Name:      TokenFilePathName,
+					MountPath: "/var/run/secrets/tokens",
+					ReadOnly:  true,
+				},
+			},
+		}},
+	}, {
+		name: "one container and one skip container",
+		containers: []corev1.Container{{
+			Name:  "my-container",
+			Image: "my-image",
+		}, {
+			Name:  "skip-container",
+			Image: "skip-image",
+		}},
+		skipContainers: map[string]struct{}{
+			"skip-container": {},
+		},
+		expectedContainers: []corev1.Container{{
+			Name:  "my-container",
+			Image: "my-image",
+			Env: []corev1.EnvVar{
+				{
+					Name:  AzureClientIDEnvVar,
+					Value: azureClientID,
+				},
+				{
+					Name:  AzureTenantIDEnvVar,
+					Value: azureTenantID,
+				},
+				{
+					Name:  AzureFederatedTokenFileEnvVar,
+					Value: filepath.Join(TokenFileMountPath, TokenFilePathName),
+				},
+				{
+					Name:  AzureAuthorityHostEnvVar,
+					Value: azureAuthorityHost,
+				},
+			},
+			VolumeMounts: []corev1.VolumeMount{
+				{
+					Name:      TokenFilePathName,
+					MountPath: "/var/run/secrets/tokens",
+					ReadOnly:  true,
+				},
+			},
+		}, {
+			Name:  "skip-container",
+			Image: "skip-image",
+		}},
+	}}
+
+	decoder, _ := atypes.NewDecoder(runtime.NewScheme())
+	m := &podMutator{
+		client:             fake.NewClientBuilder().WithObjects().Build(),
+		reader:             fake.NewClientBuilder().WithObjects().Build(),
+		config:             &config.Config{TenantID: azureTenantID},
+		decoder:            decoder,
+		azureAuthorityHost: azureAuthorityHost,
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			containers := m.mutateContainers(test.containers, azureClientID, azureTenantID, test.skipContainers)
+			if !reflect.DeepEqual(containers, test.expectedContainers) {
+				t.Errorf("expected: %v, got: %v", test.expectedContainers, test.containers)
 			}
 		})
 	}
