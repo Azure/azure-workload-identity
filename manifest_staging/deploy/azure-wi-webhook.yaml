@@ -139,7 +139,7 @@ metadata:
   name: azure-wi-webhook-controller-manager
   namespace: azure-workload-identity-system
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       azure-workload-identity.io/system: "true"
