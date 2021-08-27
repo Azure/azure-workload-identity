@@ -6,7 +6,7 @@
 - [Topics](./topics.md)
   - [Labels And Annotations](./topics/labels-and-annotations.md)
 - [Troubleshooting]()
-- [Known Limitations]()
+- [Known Issues](./known-issues.md)
 - [Development](./development.md)
   - [Releasing](./development/releasing.md)
 - [Contributing](./contributing.md)
