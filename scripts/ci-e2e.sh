@@ -107,7 +107,8 @@ test_helm_chart() {
     --namespace azure-workload-identity-system \
     --wait
   poll_webhook_readiness
-  make test-e2e-run
+  # TODO(chewong): enable init containers test once v0.5.0 is released
+  GINKGO_SKIP=init.containers make test-e2e-run
 
   ${HELM} upgrade --install workload-identity-webhook "${REPO_ROOT}/manifest_staging/charts/workload-identity-webhook" \
     --set image.repository="${REGISTRY:-mcr.microsoft.com/oss/azure/workload-identity/webhook}" \

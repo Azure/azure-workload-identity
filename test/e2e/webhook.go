@@ -3,12 +3,15 @@
 package e2e
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
 
 	"github.com/onsi/ginkgo"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/kubernetes/test/e2e/framework"
 )
 
@@ -28,6 +31,36 @@ var _ = ginkgo.Describe("Webhook", func() {
 			nil,
 		)
 		framework.ExpectNoError(err, "failed to create pod %s in %s", pod.Name, f.Namespace.Name)
+		validateMutatedPod(f, pod, nil)
+	})
+
+	ginkgo.It("should mutate the init containers within a pod", func() {
+		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{webhook.UsePodIdentityLabel: "true"}, nil)
+		if arcCluster {
+			createSecretForArcCluster(f.ClientSet, f.Namespace.Name, serviceAccount)
+		}
+
+		pod := generatePodWithServiceAccount(
+			f.ClientSet,
+			f.Namespace.Name,
+			serviceAccount,
+			"k8s.gcr.io/e2e-test-images/busybox:1.29-1",
+			[]string{"sleep"},
+			[]string{"3600"},
+			nil,
+			nil,
+		)
+		pod.Spec.InitContainers = []corev1.Container{{
+			Name:            "init-container",
+			Image:           "k8s.gcr.io/e2e-test-images/busybox:1.29-1",
+			ImagePullPolicy: corev1.PullIfNotPresent,
+			Command:         []string{"sleep"},
+			Args:            []string{"5"},
+		}}
+		pod, err := createPod(f.ClientSet, pod)
+		framework.ExpectNoError(err, "failed to create pod %s in %s", pod.Name, f.Namespace.Name)
+		defer f.ClientSet.CoreV1().Pods(f.Namespace.Name).Delete(context.TODO(), pod.Name, metav1.DeleteOptions{})
+
 		validateMutatedPod(f, pod, nil)
 	})
 
