@@ -8,7 +8,7 @@ spec:
   serviceAccountName: old-sa
   initContainers:
   - name: init-networking
-    image: mcr.microsoft.com/oss/azure/workload-identity/proxy-init:v0.2.0
+    image: mcr.microsoft.com/oss/azure/workload-identity/proxy-init:v0.4.0
     imagePullPolicy: Always
     securityContext:
       capabilities:
@@ -21,7 +21,7 @@ spec:
     ports:
     - containerPort: 80
   - name: proxy
-    image: mcr.microsoft.com/oss/azure/workload-identity/proxy:v0.2.0
+    image: mcr.microsoft.com/oss/azure/workload-identity/proxy:v0.4.0
     imagePullPolicy: Always
     ports:
     - containerPort: 8000
