@@ -209,7 +209,9 @@ func createSecretForArcCluster(c kubernetes.Interface, namespace, serviceAccount
 // 4. verify that the pod has access to token file via `cat /var/run/secrets/tokens/azure-identity-token`.
 func validateMutatedPod(f *framework.Framework, pod *corev1.Pod, skipContainers []string) {
 	withoutSkipContainers := []corev1.Container{}
-	for _, c := range pod.Spec.Containers {
+	// consider init containers as well
+	allContainers := append(pod.Spec.Containers, pod.Spec.InitContainers...)
+	for _, c := range allContainers {
 		keepContainer := true
 		for _, skip := range skipContainers {
 			if c.Name == skip {
