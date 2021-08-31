@@ -32,3 +32,4 @@ jobs:
           tag: ${{ steps.get-tag.outputs.tag }}
           bodyFile: CHANGELOG.md
           token: ${{ secrets.GITHUB_TOKEN }}
+          artifacts: "deploy/*.yaml"
