@@ -1,6 +1,6 @@
 module github.com/Azure/azure-workload-identity/hack/generate-jwks
 
-go 1.16
+go 1.17
 
 require (
 	github.com/google/go-cmp v0.5.5 // indirect
@@ -10,5 +10,7 @@ require (
 	k8s.io/klog/v2 v2.8.0
 )
 
-// fixes CVE-2020-29652
-replace golang.org/x/crypto => golang.org/x/crypto v0.0.0-20201216223049-8b5274cf687f
+require (
+	github.com/go-logr/logr v0.4.0 // indirect
+	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83 // indirect
+)

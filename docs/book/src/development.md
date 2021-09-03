@@ -8,7 +8,7 @@
 
 1. Prerequisites from [quickstart](https://azure.github.io/azure-workload-identity/quick-start.html#prerequisites)
 2. Install [go](https://golang.org/dl/)
-   - Get the latest patch version for go 1.16.
+   - Get the latest patch version for go 1.17.
 3. Install [jq](https://stedolan.github.io/jq/)
    - `brew install jq` on macOS.
    - `chocolatey install jq` on Windows.
@@ -228,7 +228,7 @@ make test-e2e-run
 Optional settings are:
 
 | Environment variables | Description                                                        | Default                |
-|-----------------------|--------------------------------------------------------------------|------------------------|
+| --------------------- | ------------------------------------------------------------------ | ---------------------- |
 | `GINKGO_FOCUS`        | Allow you to focus on a subset of specs using regex.               |                        |
 | `GINKGO_SKIP`         | Allow you to skip a subset of specs using regex.                   |                        |
 | `GINKGO_NODES`        | The number of ginkgo workers to run the specs.                     | `3`                    |
