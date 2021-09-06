@@ -63,7 +63,7 @@ SHELLCHECK := $(TOOLS_BIN_DIR)/$(SHELLCHECK_BIN)-$(SHELLCHECK_VER)
 
 ENVSUBST_VER := v1.2.0
 ENVSUBST_BIN := envsubst
-ENVSUBST := $(TOOLS_BIN_DIR)/$(ENVSUBST_BIN)
+ENVSUBST := $(TOOLS_BIN_DIR)/$(ENVSUBST_BIN)-$(ENVSUBST_VER)
 
 HELM_VER := v3.6.2
 HELM_BIN := helm
@@ -184,7 +184,14 @@ $(KIND):
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) sigs.k8s.io/kind $(KIND_BIN) $(KIND_VER)
 
 $(KUSTOMIZE):
-	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) sigs.k8s.io/kustomize/kustomize/$(shell echo $(KUSTOMIZE_VER) | cut -d'.' -f1) $(KUSTOMIZE_BIN) $(KUSTOMIZE_VER)
+	mkdir -p $(TOOLS_BIN_DIR)
+	rm -rf "$(SHELLCHECK)*"
+	curl -sfOL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F$(KUSTOMIZE_VER)/kustomize_$(KUSTOMIZE_VER)_$(GOOS)_$(GOARCH).tar.gz"
+	tar xf kustomize_${KUSTOMIZE_VER}_$(GOOS)_$(GOARCH).tar.gz
+	cp "kustomize" "$(KUSTOMIZE)"
+	ln -sf "$(KUSTOMIZE)" "$(TOOLS_BIN_DIR)/$(KUSTOMIZE_BIN)"
+	chmod +x "$(TOOLS_BIN_DIR)/$(KUSTOMIZE_BIN)" "$(KUSTOMIZE)"
+	rm -rf kustomize*
 
 $(KUBECTL):
 	mkdir -p $(TOOLS_BIN_DIR)
