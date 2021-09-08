@@ -3,13 +3,15 @@
 Use the go file to generate the JSON Web Key Sets (JWKS).
 
 ```bash
-go run main.go --public-keys <comma separated list of public keys>
+cd hack/generate-jwks
+go install .
+generate-jwks --public-keys <comma separated list of public keys>
 ```
 
 Sample output:
 
 ```bash
-➜ go run main.go --public-keys /tmp/apiserver.crt | jq
+➜ generate-jwks --public-keys /tmp/apiserver.crt
 {
   "keys": [
     {

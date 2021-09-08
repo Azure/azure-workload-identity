@@ -6,7 +6,7 @@
 
 ### Base requirements
 
-1. Prerequisites from [quickstart](https://azure.github.io/azure-workload-identity/quick-start.html#prerequisites)
+1. Prerequisites from [Quick Start](https://azure.github.io/azure-workload-identity/quick-start.html#prerequisites)
 2. Install [go](https://golang.org/dl/)
    - Get the latest patch version for go 1.17.
 3. Install [jq](https://stedolan.github.io/jq/)
@@ -83,16 +83,24 @@ az storage blob upload \
   --name .well-known/openid-configuration
 ```
 
-Generate and upload the JWKS:
+Install the `generate-jwks` tool:
+
+> Make sure the environment variable `GOBIN` is defined and it is part of your `PATH`.
 
 ```bash
 pushd hack/generate-jwks
-go run main.go --public-keys ../../sa.pub | jq > jwks.json
+go install .
+popd
+```
+
+Generate and upload the JWKS:
+
+```bash
+generate-jwks --public-keys sa.pub > jwks.json
 az storage blob upload \
   --container-name "${AZURE_STORAGE_CONTAINER}" \
   --file jwks.json \
   --name openid/v1/jwks
-popd
 ```
 
 Verify that the OIDC discovery document is publicly accessible:
