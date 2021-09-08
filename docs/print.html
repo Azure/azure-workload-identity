@@ -655,6 +655,7 @@ az ad sp delete --id &quot;${APPLICATION_CLIENT_ID}&quot;
 iptables -t nat -A OUTPUT -p tcp -d 169.254.169.254 --dport 80 -j REDIRECT --to-port 8000
 </code></pre>
 <h2 id="proxy"><a class="header" href="#proxy">Proxy</a></h2>
+<p><img src="./images/proxy-diagram.png" alt="Proxy" /></p>
 <p>Proxy is a <a href="https://docs.microsoft.com/en-us/azure/architecture/patterns/sidecar">sidecar container</a> that obtains an AAD token using MSAL on behalf of applications that are still relying on the AAD Authentication Library (ADAL), for example, <a href="https://github.com/Azure/aad-pod-identity">AAD Pod Identity</a>.</p>
 <blockquote>
 <p>“Starting June 30th, 2020, we will no longer add new features to ADAL. We’ll continue adding critical security fixes to ADAL until June 30th, 2022. After this date, your apps using ADAL will continue to work, but we recommend upgrading to MSAL to take advantage of the latest features and to stay secure.” - <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-migration#frequently-asked-questions-faq">source</a></p>
