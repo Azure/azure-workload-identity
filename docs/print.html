@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><a href="quick-start.html">Quick Start</a></li><li class="chapter-item expanded affix "><a href="concepts.html">Concepts</a></li><li class="chapter-item expanded "><a href="topics.html"><strong aria-hidden="true">1.</strong> Topics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="topics/labels-and-annotations.html"><strong aria-hidden="true">1.1.</strong> Labels And Annotations</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Troubleshooting</div></li><li class="chapter-item expanded "><a href="known-issues.html"><strong aria-hidden="true">3.</strong> Known Issues</a></li><li class="chapter-item expanded "><a href="development.html"><strong aria-hidden="true">4.</strong> Development</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="development/releasing.html"><strong aria-hidden="true">4.1.</strong> Releasing</a></li></ol></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="code-of-conduct.html"><strong aria-hidden="true">6.</strong> Code of Conduct</a></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><a href="quick-start.html">Quick Start</a></li><li class="chapter-item expanded affix "><a href="concepts.html">Concepts</a></li><li class="chapter-item expanded "><a href="topics.html"><strong aria-hidden="true">1.</strong> Topics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="topics/labels-and-annotations.html"><strong aria-hidden="true">1.1.</strong> Labels And Annotations</a></li><li class="chapter-item expanded "><a href="topics/key-rotation-for-self-managed-clusters.html"><strong aria-hidden="true">1.2.</strong> Key Rotation For Self-Managed Clusters</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Troubleshooting</div></li><li class="chapter-item expanded "><a href="known-issues.html"><strong aria-hidden="true">3.</strong> Known Issues</a></li><li class="chapter-item expanded "><a href="development.html"><strong aria-hidden="true">4.</strong> Development</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="development/releasing.html"><strong aria-hidden="true">4.1.</strong> Releasing</a></li></ol></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="code-of-conduct.html"><strong aria-hidden="true">6.</strong> Code of Conduct</a></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -157,7 +157,7 @@
 <li>
 <p><a href="https://azure.github.io/azure-workload-identity/concepts.html#mutating-webhook">Mutating Webhook</a></p>
 <blockquote>
-<p>The webhook is for mutating pods that reference an annotated service account. The webhook will inject the environment variables and the projected service account token volume.</p>
+<p>The webhook is for mutating pods that reference an annotated service account. The webhook will inject the environment variables and the <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-token-volume-projection">projected service account token volume</a>. Your application/SDK will consume them to authenticate itself to Azure resources.</p>
 </blockquote>
 </li>
 <li>
@@ -202,8 +202,13 @@ export LOCATION=&quot;westus2&quot;
 az group create --name &quot;${RESOURCE_GROUP}&quot; --location &quot;${LOCATION}&quot;
 </code></pre>
 <h2 id="1-create-and-upload-oidc-discovery-document-and-jwks"><a class="header" href="#1-create-and-upload-oidc-discovery-document-and-jwks">1. Create and upload OIDC discovery document and JWKS</a></h2>
+<p>A private key is used to cryptographically sign all the projected service account tokens. The relying party (Azure AD in this case) can utilize our OpenID Connect (OIDC) provider to obtain the public key information to ensure the integrity of the projected service account tokens. In this step, we will create and publish two JSON files to a public storage account:</p>
+<ol>
+<li><a href="https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfig">OpenID Provider Configuration Information</a> - <code>.well-known/openid-configuration</code></li>
+<li><a href="https://openid.net/specs/openid-connect-discovery-1_0-21.html#ProviderMetadata">JSON Web Key Set (JWKS)</a> - <code>openid/v1/jwks</code></li>
+</ol>
 <blockquote>
-<p>Skip this step if you are planning to bring your own keys.</p>
+<p>Skip the following command if you are planning to bring your own keys.</p>
 </blockquote>
 <p>Generate a public/private key pair:</p>
 <pre><code class="language-bash">openssl genrsa -out sa.key 2048
@@ -249,14 +254,20 @@ az storage blob upload \
   --file openid-configuration.json \
   --name .well-known/openid-configuration
 </code></pre>
-<p>Generate and upload the JWKS:</p>
+<p>Install the <code>generate-jwks</code> tool:</p>
+<blockquote>
+<p>Make sure the environment variable <code>GOBIN</code> is defined and it is part of your <code>PATH</code>.</p>
+</blockquote>
 <pre><code class="language-bash">pushd hack/generate-jwks
-go run main.go --public-keys ../../sa.pub | jq &gt; jwks.json
+go install .
+popd
+</code></pre>
+<p>Generate and upload the JWKS:</p>
+<pre><code class="language-bash">generate-jwks --public-keys sa.pub &gt; jwks.json
 az storage blob upload \
   --container-name &quot;${AZURE_STORAGE_CONTAINER}&quot; \
   --file jwks.json \
   --name openid/v1/jwks
-popd
 </code></pre>
 <p>Verify that the OIDC discovery document is publicly accessible:</p>
 <pre><code class="language-bash">curl -s &quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/.well-known/openid-configuration&quot;
@@ -695,6 +706,162 @@ az rest --method POST --uri &quot;https://graph.microsoft.com/beta/applications/
 <tr><td><code>azure.workload.identity/service-account-token-expiration</code></td><td><strong>(Takes precedence if the service account is also annotated)</strong> Represents the <code>expirationSeconds</code> field for the projected service account token. It is an optional field that the user might want to configure this to prevent any downtime caused by errors during service account token refresh. Kubernetes service account token expiry will not be correlated with AAD tokens. AAD tokens will expire in 24 hours after they are issued.</td><td><code>86400</code> (minimum <code>3600</code>)</td></tr>
 <tr><td><code>azure.workload.identity/skip-containers</code></td><td>Represents a semi-colon-separated list of containers (e.g. <code>container1;container2</code>) to skip adding projected service account token volume. By default, the projected service account token volume will be added to all containers if the service account is labeled with <code>azure.workload.identity/use: true</code>.</td><td></td></tr>
 </tbody></table>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="key-rotation-for-self-managed-clusters"><a class="header" href="#key-rotation-for-self-managed-clusters">Key Rotation For Self-Managed Clusters</a></h1>
+<!-- toc -->
+<p>A security best practice is to routinely rotate your key pair used to sign the service account tokens. This page explains how to generate and rotate it in the case of self-managed Kubernetes clusters where you have access to the control plane.</p>
+<blockquote>
+<p>This technique requires that the Kubernetes control plane is running in a high-availability (HA) setup with multiple API servers. Clusters that use a single API server will become unavailable while the API server is restarted.</p>
+</blockquote>
+<h2 id="1-generate-a-new-key-pair"><a class="header" href="#1-generate-a-new-key-pair">1. Generate a new key pair</a></h2>
+<blockquote>
+<p>Skip this step if you are planning to bring your own keys.</p>
+</blockquote>
+<pre><code class="language-bash">openssl genrsa -out sa-new.key 2048
+openssl rsa -in sa-new.key -pubout -out sa-new.pub
+</code></pre>
+<h2 id="2-backup-the-old-key-pair-and-distribute-the-new-key-pair"><a class="header" href="#2-backup-the-old-key-pair-and-distribute-the-new-key-pair">2. Backup the old key pair and distribute the new key pair</a></h2>
+<p>Schedule a jump pod to each control plane node, which mounts the <code>/etc/kubernetes/pki</code> folder:</p>
+<blockquote>
+<p><code>/etc/kubernetes/pki/sa.pub</code> and <code>/etc/kubernetes/pki/sa.key</code> are the paths of the service account key pair for a kind cluster. The paths can vary depending on your provider.</p>
+</blockquote>
+<pre><code class="language-bash">cat &lt;&lt; EOF | kubectl apply -f -
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: jump
+  labels:
+    k8s-app: jump
+spec:
+  selector:
+    matchLabels:
+      name: jump
+  template:
+    metadata:
+      labels:
+        name: jump
+    spec:
+      tolerations:
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+        effect: NoSchedule
+      containers:
+        - name: busybox
+          image: busybox
+          command:
+            - sleep
+            - &quot;3600&quot;
+          volumeMounts:
+              - mountPath: /etc/kubernetes/pki
+                name: etc-kubernetes-pki
+      volumes:
+        - name: etc-kubernetes-pki
+          hostPath:
+            path: /etc/kubernetes/pki
+EOF
+</code></pre>
+<p>Backup the old service account key pair to your local machine:</p>
+<pre><code class="language-bash">POD_NAME=&quot;$(kubectl get po -l name=jump -ojson | jq -r '.items[0].metadata.name')&quot;
+kubectl cp default/${POD_NAME}:/etc/kubernetes/pki/sa.pub sa-old.pub
+kubectl cp default/${POD_NAME}:/etc/kubernetes/pki/sa.key sa-old.key
+</code></pre>
+<p>Distribute the new key pair to the certificate directory of each control plane node:</p>
+<pre><code class="language-bash">for POD_NAME in &quot;$(kubectl get po -l name=jump -ojson | jq -r '.items[].metadata.name')&quot;; do
+  kubectl cp sa-new.pub default/${POD_NAME}:/etc/kubernetes/pki/sa-new.pub
+  kubectl cp sa-new.key default/${POD_NAME}:/etc/kubernetes/pki/sa-new.key
+done
+</code></pre>
+<h2 id="3-update-the-jwks"><a class="header" href="#3-update-the-jwks">3. Update the JWKS</a></h2>
+<p>In the case of service account tokens generated before you initiated the key rotation, you would need a time period where the old and new public keys exist in the JWKS. The relying party can then validate service account tokens signed by both the old and new private key.</p>
+<p>Install the <code>generate-jwks</code> tool:</p>
+<blockquote>
+<p>Make sure the environment variable <code>GOBIN</code> is defined and it is part of your <code>PATH</code>.</p>
+</blockquote>
+<pre><code class="language-bash">pushd hack/generate-jwks
+go install .
+popd
+</code></pre>
+<p>Generate and upload the JWKS:</p>
+<blockquote>
+<p>Assuming you followed our <a href="topics/../../quick-start.html">Quick Start</a> and store your OIDC discovery document and JWKS in an Azure storage account.</p>
+</blockquote>
+<pre><code class="language-bash">generate-jwks --public-keys sa-old.pub,sa-new.pub &gt; jwks.json
+export AZURE_STORAGE_ACCOUNT=&lt;AzureStorageAccount&gt;
+az storage blob upload \
+  --container-name &quot;${AZURE_STORAGE_CONTAINER}&quot; \
+  --file jwks.json \
+  --name openid/v1/jwks
+</code></pre>
+<h2 id="4-key-rotation"><a class="header" href="#4-key-rotation">4. Key Rotation</a></h2>
+<p>With the new key pair distributed, you can utilize <a href="https://github.com/kvaps/kubectl-node-shell">kubectl-node-shell</a> to update the following core components arguments by spawning a root shell to each control plane node:</p>
+<pre><code class="language-bash">kubectl node-shell &lt;NodeName&gt;
+
+# Run in the root shell
+# download yq (jq for yaml)
+curl -L https://github.com/mikefarah/yq/releases/download/v4.12.1/yq_linux_amd64 --output /usr/bin/yq
+chmod +x /usr/bin/yq
+
+# append the new public key as an kube-apiserver argument
+yq eval -i '.spec.containers[0].command |= . + [&quot;--service-account-key-file=/etc/kubernetes/pki/sa-new.pub&quot;]' /etc/kubernetes/manifests/kube-apiserver.yaml
+
+# replace the old private key with the new private key for kube-apiserver and kube-controller-manager
+sed -i 's|--service-account-signing-key-file=.*|--service-account-signing-key-file=/etc/kubernetes/pki/sa-new.key|' /etc/kubernetes/manifests/kube-apiserver.yaml
+sed -i 's|--service-account-private-key-file=.*|--service-account-private-key-file=/etc/kubernetes/pki/sa-new.key|' /etc/kubernetes/manifests/kube-controller-manager.yaml
+</code></pre>
+<p>The commands above should trigger a restart for kube-apiserver and kube-controller-manager pod.</p>
+<h2 id="5-verification"><a class="header" href="#5-verification">5. Verification</a></h2>
+<p>Create a dummy pod that uses an annotated service account.</p>
+<pre><code class="language-bash">cat &lt;&lt; EOF | kubectl apply -f -
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    azure.workload.identity/client-id: dummy
+  labels:
+    azure.workload.identity/use: &quot;true&quot;
+  name: workload-identity-sa
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dummy-pod
+spec:
+  serviceAccountName: workload-identity-sa
+  containers:
+    - name: busybox
+      image: busybox
+      command:
+        - sleep
+        - &quot;3600&quot;
+EOF
+</code></pre>
+<p>Output the projected service account token:</p>
+<pre><code class="language-bash">kubectl exec dummy-pod -- cat /var/run/secrets/tokens/azure-identity-token
+</code></pre>
+<p>Decode your token using <a href="https://jwt.io/">jwt.io</a>. The <code>kid</code> field in the token header should be the same as the <code>kid</code> of <code>generate-jwks --public-keys sa-new.pub | jq -r '.keys[0].kid'</code>. This means that the service account token is signed by the new private key.</p>
+<h2 id="6-cleanup"><a class="header" href="#6-cleanup">6. Cleanup</a></h2>
+<p>Delete the dangling resources created above:</p>
+<pre><code class="language-bash">kubectl delete ds jump
+kubectl delete pod dummy-pod
+kubectl delete sa workload-identity-sa
+</code></pre>
+<h2 id="7-remove-old-jwk-after-maximum-token-expiration"><a class="header" href="#7-remove-old-jwk-after-maximum-token-expiration">7. Remove old JWK after maximum token expiration</a></h2>
+<p>After the maximum token expiration (the default expiration is 24 hours) has passed, projected service account tokens signed by the old private key will be rotated by kubelet and signed with the new signing key. The kubelet proactively rotates the token if it is older than 80% of its total TTL, or if the token is older than 24 hours. You should update the JWKS accordingly to only include the new public key:</p>
+<pre><code class="language-bash">generate-jwks --public-keys sa-new.pub | jq &gt; jwks.json
+az storage blob upload \
+  --container-name &quot;${AZURE_STORAGE_CONTAINER}&quot; \
+  --file jwks.json \
+  --name openid/v1/jwks
+</code></pre>
+<p>Remove the old public key from kube-apiserver’s arguments:</p>
+<pre><code class="language-bash"># get the index of the old public key from the kube-apiserver argument array
+INDEX=&quot;$(yq e '.spec.containers[0].command' /etc/kubernetes/manifests/kube-apiserver.yaml | grep -Fn 'service-account-key-file' | head -n 1 | cut -d':' -f1)&quot;
+
+# convert to zero-index
+INDEX=&quot;$(expr ${INDEX} - 1)&quot;
+
+# remove the old public key argument using yq
+yq eval -i &quot;del(.spec.containers[0].command[${INDEX}])&quot; /etc/kubernetes/manifests/kube-apiserver.yaml
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="known-issues"><a class="header" href="#known-issues">Known Issues</a></h1>
 <h2 id="permission-denied-when-reading-the-projected-service-account-token-file"><a class="header" href="#permission-denied-when-reading-the-projected-service-account-token-file">Permission denied when reading the projected service account token file</a></h2>
 <p>In Kubernetes 1.18, the default mode for the projected service account token file is <code>0600</code>. This causes containers running as non-root to fail while trying to read the token file:</p>
@@ -719,7 +886,7 @@ az rest --method POST --uri &quot;https://graph.microsoft.com/beta/applications/
 <h2 id="setting-up"><a class="header" href="#setting-up">Setting up</a></h2>
 <h3 id="base-requirements"><a class="header" href="#base-requirements">Base requirements</a></h3>
 <ol>
-<li>Prerequisites from <a href="https://azure.github.io/azure-workload-identity/quick-start.html#prerequisites">quickstart</a></li>
+<li>Prerequisites from <a href="https://azure.github.io/azure-workload-identity/quick-start.html#prerequisites">Quick Start</a></li>
 <li>Install <a href="https://golang.org/dl/">go</a>
 <ul>
 <li>Get the latest patch version for go 1.17.</li>
@@ -786,14 +953,20 @@ az storage blob upload \
   --file openid-configuration.json \
   --name .well-known/openid-configuration
 </code></pre>
-<p>Generate and upload the JWKS:</p>
+<p>Install the <code>generate-jwks</code> tool:</p>
+<blockquote>
+<p>Make sure the environment variable <code>GOBIN</code> is defined and it is part of your <code>PATH</code>.</p>
+</blockquote>
 <pre><code class="language-bash">pushd hack/generate-jwks
-go run main.go --public-keys ../../sa.pub | jq &gt; jwks.json
+go install .
+popd
+</code></pre>
+<p>Generate and upload the JWKS:</p>
+<pre><code class="language-bash">generate-jwks --public-keys sa.pub &gt; jwks.json
 az storage blob upload \
   --container-name &quot;${AZURE_STORAGE_CONTAINER}&quot; \
   --file jwks.json \
   --name openid/v1/jwks
-popd
 </code></pre>
 <p>Verify that the OIDC discovery document is publicly accessible:</p>
 <pre><code class="language-bash">curl -s &quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/.well-known/openid-configuration&quot;

@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><a href="quick-start.html" class="active">Quick Start</a></li><li class="chapter-item expanded affix "><a href="concepts.html">Concepts</a></li><li class="chapter-item expanded "><a href="topics.html"><strong aria-hidden="true">1.</strong> Topics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="topics/labels-and-annotations.html"><strong aria-hidden="true">1.1.</strong> Labels And Annotations</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Troubleshooting</div></li><li class="chapter-item expanded "><a href="known-issues.html"><strong aria-hidden="true">3.</strong> Known Issues</a></li><li class="chapter-item expanded "><a href="development.html"><strong aria-hidden="true">4.</strong> Development</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="development/releasing.html"><strong aria-hidden="true">4.1.</strong> Releasing</a></li></ol></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="code-of-conduct.html"><strong aria-hidden="true">6.</strong> Code of Conduct</a></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><a href="quick-start.html" class="active">Quick Start</a></li><li class="chapter-item expanded affix "><a href="concepts.html">Concepts</a></li><li class="chapter-item expanded "><a href="topics.html"><strong aria-hidden="true">1.</strong> Topics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="topics/labels-and-annotations.html"><strong aria-hidden="true">1.1.</strong> Labels And Annotations</a></li><li class="chapter-item expanded "><a href="topics/key-rotation-for-self-managed-clusters.html"><strong aria-hidden="true">1.2.</strong> Key Rotation For Self-Managed Clusters</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Troubleshooting</div></li><li class="chapter-item expanded "><a href="known-issues.html"><strong aria-hidden="true">3.</strong> Known Issues</a></li><li class="chapter-item expanded "><a href="development.html"><strong aria-hidden="true">4.</strong> Development</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="development/releasing.html"><strong aria-hidden="true">4.1.</strong> Releasing</a></li></ol></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="code-of-conduct.html"><strong aria-hidden="true">6.</strong> Code of Conduct</a></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -163,8 +163,13 @@ export LOCATION=&quot;westus2&quot;
 az group create --name &quot;${RESOURCE_GROUP}&quot; --location &quot;${LOCATION}&quot;
 </code></pre>
 <h2 id="1-create-and-upload-oidc-discovery-document-and-jwks"><a class="header" href="#1-create-and-upload-oidc-discovery-document-and-jwks">1. Create and upload OIDC discovery document and JWKS</a></h2>
+<p>A private key is used to cryptographically sign all the projected service account tokens. The relying party (Azure AD in this case) can utilize our OpenID Connect (OIDC) provider to obtain the public key information to ensure the integrity of the projected service account tokens. In this step, we will create and publish two JSON files to a public storage account:</p>
+<ol>
+<li><a href="https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfig">OpenID Provider Configuration Information</a> - <code>.well-known/openid-configuration</code></li>
+<li><a href="https://openid.net/specs/openid-connect-discovery-1_0-21.html#ProviderMetadata">JSON Web Key Set (JWKS)</a> - <code>openid/v1/jwks</code></li>
+</ol>
 <blockquote>
-<p>Skip this step if you are planning to bring your own keys.</p>
+<p>Skip the following command if you are planning to bring your own keys.</p>
 </blockquote>
 <p>Generate a public/private key pair:</p>
 <pre><code class="language-bash">openssl genrsa -out sa.key 2048
@@ -210,14 +215,20 @@ az storage blob upload \
   --file openid-configuration.json \
   --name .well-known/openid-configuration
 </code></pre>
-<p>Generate and upload the JWKS:</p>
+<p>Install the <code>generate-jwks</code> tool:</p>
+<blockquote>
+<p>Make sure the environment variable <code>GOBIN</code> is defined and it is part of your <code>PATH</code>.</p>
+</blockquote>
 <pre><code class="language-bash">pushd hack/generate-jwks
-go run main.go --public-keys ../../sa.pub | jq &gt; jwks.json
+go install .
+popd
+</code></pre>
+<p>Generate and upload the JWKS:</p>
+<pre><code class="language-bash">generate-jwks --public-keys sa.pub &gt; jwks.json
 az storage blob upload \
   --container-name &quot;${AZURE_STORAGE_CONTAINER}&quot; \
   --file jwks.json \
   --name openid/v1/jwks
-popd
 </code></pre>
 <p>Verify that the OIDC discovery document is publicly accessible:</p>
 <pre><code class="language-bash">curl -s &quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/.well-known/openid-configuration&quot;
