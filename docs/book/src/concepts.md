@@ -53,6 +53,8 @@ Proxy Init is an [init container][9] that establishes an iptables rule to redire
 
 ## Proxy
 
+![Proxy][17]
+
 Proxy is a [sidecar container][11] that obtains an AAD token using MSAL on behalf of applications that are still relying on the AAD Authentication Library (ADAL), for example, [AAD Pod Identity][3].
 
 > "Starting June 30th, 2020, we will no longer add new features to ADAL. We'll continue adding critical security fixes to ADAL until June 30th, 2022. After this date, your apps using ADAL will continue to work, but we recommend upgrading to MSAL to take advantage of the latest features and to stay secure." - [source][12]
@@ -123,3 +125,5 @@ az rest --method POST --uri "https://graph.microsoft.com/beta/applications/${APP
 [15]: ../topics/labels-and-annotations.html#annotations
 
 [16]: https://portal.azure.com/#cloudshell/
+
+[17]: ./images/proxy-diagram.png
