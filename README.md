@@ -11,7 +11,7 @@ Check out the Azure AD Workload Identity [Quick Start][4] to create your first a
 The repository contains the following components:
 
 1.  [Mutating Webhook][5]
-    > The webhook is for mutating pods that reference an annotated service account. The webhook will inject the environment variables and the projected service account token volume.
+    > The webhook is for mutating pods that reference an annotated service account. The webhook will inject the environment variables and the [projected service account token volume][11]. Your application/SDK will consume them to authenticate itself to Azure resources.
 
 2.  [Proxy Init][6] and [Proxy][7]
     > The proxy init container and proxy sidecar container will be used for applications that are still using [AAD Pod Identity][1].
@@ -51,3 +51,5 @@ The repository contains the following components:
 [9]: https://docs.microsoft.com/en-us/azure/virtual-machines/windows/instance-metadata-service?tabs=windows
 
 [10]: https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/#customresourcedefinitions
+
+[11]: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-token-volume-projection

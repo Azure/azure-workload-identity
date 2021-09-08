@@ -49,7 +49,7 @@ func main() {
 	if err != nil {
 		klog.Fatalf("failed to generate jwks: %v", err)
 	}
-	keysetJSON, err := json.Marshal(keyset)
+	keysetJSON, err := json.MarshalIndent(keyset, "", "  ")
 	if err != nil {
 		klog.Fatalf("failed to marshal service account issuer JWKS: %v", err)
 	}

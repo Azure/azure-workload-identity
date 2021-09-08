@@ -23,7 +23,12 @@ az group create --name "${RESOURCE_GROUP}" --location "${LOCATION}"
 
 ## 1. Create and upload OIDC discovery document and JWKS
 
-> Skip this step if you are planning to bring your own keys.
+A private key is used to cryptographically sign all the projected service account tokens. The relying party (Azure AD in this case) can utilize our OpenID Connect (OIDC) provider to obtain the public key information to ensure the integrity of the projected service account tokens. In this step, we will create and publish two JSON files to a public storage account:
+
+1. [OpenID Provider Configuration Information](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfig) - `.well-known/openid-configuration`
+2. [JSON Web Key Set (JWKS)](https://openid.net/specs/openid-connect-discovery-1_0-21.html#ProviderMetadata) - `openid/v1/jwks`
+
+> Skip the following command if you are planning to bring your own keys.
 
 Generate a public/private key pair:
 
@@ -81,16 +86,24 @@ az storage blob upload \
   --name .well-known/openid-configuration
 ```
 
-Generate and upload the JWKS:
+Install the `generate-jwks` tool:
+
+> Make sure the environment variable `GOBIN` is defined and it is part of your `PATH`.
 
 ```bash
 pushd hack/generate-jwks
-go run main.go --public-keys ../../sa.pub | jq > jwks.json
+go install .
+popd
+```
+
+Generate and upload the JWKS:
+
+```bash
+generate-jwks --public-keys sa.pub > jwks.json
 az storage blob upload \
   --container-name "${AZURE_STORAGE_CONTAINER}" \
   --file jwks.json \
   --name openid/v1/jwks
-popd
 ```
 
 Verify that the OIDC discovery document is publicly accessible:
