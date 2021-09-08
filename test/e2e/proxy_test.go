@@ -36,7 +36,7 @@ var _ = ginkgo.Describe("Proxy [KindOnly][LinuxOnly]", func() {
 			serviceAccount,
 			"mcr.microsoft.com/azure-cli",
 			nil,
-			[]string{"/bin/sh", "-c", fmt.Sprintf("az login -i -u %s --allow-no-subscriptions; sleep 3600", clientID)},
+			[]string{"/bin/sh", "-c", fmt.Sprintf("az login -i -u %s --allow-no-subscriptions --debug; sleep 3600", clientID)},
 			nil,
 			nil,
 		)
@@ -74,6 +74,14 @@ var _ = ginkgo.Describe("Proxy [KindOnly][LinuxOnly]", func() {
 		pod, err := createPod(f.ClientSet, pod)
 		framework.ExpectNoError(err, "failed to create pod %s in %s", pod.Name, namespace)
 		defer f.ClientSet.CoreV1().Pods(namespace).Delete(context.TODO(), pod.Name, metav1.DeleteOptions{})
+
+		// output proxy and proxy init logs for debugging
+		defer func() {
+			for _, container := range []string{proxy, proxyInit} {
+				stdout, _ := e2epod.GetPodLogs(f.ClientSet, namespace, pod.Name, container)
+				framework.Logf("%s logs: %s", container, stdout)
+			}
+		}()
 
 		for _, container := range []string{busybox1, busybox2} {
 			framework.Logf("validating that %s in %s has acquired a valid AAD token via the proxy", container, pod.Name)
