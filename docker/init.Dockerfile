@@ -1,7 +1,6 @@
-FROM k8s.gcr.io/build-image/debian-iptables:buster-v1.6.6
+FROM k8s.gcr.io/build-image/debian-iptables:buster-v1.6.7
 
-# upgrading libssl1.1 due to CVE-2021-33910 and CVE-2021-3712
-RUN clean-install ca-certificates libssl1.1
+RUN clean-install ca-certificates
 COPY ./init/init-iptables.sh /bin/
 RUN chmod +x /bin/init-iptables.sh
 
