@@ -11,15 +11,16 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+	"k8s.io/klog/v2"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
+	"github.com/Azure/azure-workload-identity/pkg/logger"
 	"github.com/Azure/azure-workload-identity/pkg/util"
 	"github.com/Azure/azure-workload-identity/pkg/version"
 	wh "github.com/Azure/azure-workload-identity/pkg/webhook"
@@ -55,12 +56,15 @@ var (
 )
 
 func init() {
-	log.SetLogger(zap.New())
+	klog.InitFlags(nil)
 
 	_ = clientgoscheme.AddToScheme(scheme)
 }
 
 func main() {
+	logger := logger.New()
+	logger.AddFlags()
+
 	// TODO (aramase) once webhook is added as an arc extension, use extension
 	// util to check if running in arc cluster.
 	flag.BoolVar(&arcCluster, "arc-cluster", false, "Running on arc cluster")
@@ -71,13 +75,12 @@ func main() {
 	flag.StringVar(&healthAddr, "health-addr", ":9440", "The address the health endpoint binds to")
 	flag.Parse()
 
-	// Setup a manager
-	entryLog.Info("setting up manager")
+	log.SetLogger(logger.Get())
 	config := ctrl.GetConfigOrDie()
 	config.UserAgent = version.GetUserAgent("webhook")
 
 	// log the user agent as it makes it easier to debug issues
-	entryLog.Info(config.UserAgent)
+	entryLog.Info("setting up manager", "userAgent", config.UserAgent)
 
 	mgr, err := ctrl.NewManager(config, ctrl.Options{
 		Scheme:                 scheme,

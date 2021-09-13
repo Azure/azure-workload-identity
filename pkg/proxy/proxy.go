@@ -16,9 +16,9 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/AzureAD/microsoft-authentication-library-for-go/apps/confidential"
+	"github.com/go-logr/logr"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
-	"k8s.io/klog/v2"
 )
 
 const (
@@ -44,10 +44,11 @@ type proxy struct {
 	port          int
 	tenantID      string
 	authorityHost string
+	logger        logr.Logger
 }
 
 // NewProxy returns a proxy instance
-func NewProxy(port int) (Proxy, error) {
+func NewProxy(port int, logger logr.Logger) (Proxy, error) {
 	// tenantID is required for fetching a token using client assertions
 	// the mutating webhook will inject the tenantID for the cluster
 	tenantID := os.Getenv(webhook.AzureTenantIDEnvVar)
@@ -59,10 +60,14 @@ func NewProxy(port int) (Proxy, error) {
 	if authorityHost == "" {
 		return nil, errors.Errorf("%s not set", webhook.AzureAuthorityHostEnvVar)
 	}
+	if logger == nil {
+		return nil, errors.New("logger not set")
+	}
 	return &proxy{
 		port:          port,
 		tenantID:      tenantID,
 		authorityHost: authorityHost,
+		logger:        logger,
 	}, nil
 }
 
@@ -72,12 +77,12 @@ func (p *proxy) Run() error {
 	rtr.PathPrefix(tokenPathPrefix).HandlerFunc(p.msiHandler)
 	rtr.PathPrefix("/").HandlerFunc(p.defaultPathHandler)
 
-	klog.InfoS("starting the proxy server", "port", p.port)
+	p.logger.Info("starting the proxy server", "port", p.port)
 	return http.ListenAndServe(fmt.Sprintf("localhost:%d", p.port), rtr)
 }
 
 func (p *proxy) msiHandler(w http.ResponseWriter, r *http.Request) {
-	klog.InfoS("received token request", "method", r.Method, "uri", r.RequestURI)
+	p.logger.Info("received token request", "method", r.Method, "uri", r.RequestURI)
 	w.Header().Set("Server", version.GetUserAgent("proxy"))
 	clientID, resource := parseTokenRequest(r)
 	// TODO (aramase) should we fallback to the clientID in the annotated service account
@@ -95,15 +100,15 @@ func (p *proxy) msiHandler(w http.ResponseWriter, r *http.Request) {
 	// get the token using the msal
 	token, err := doTokenRequest(r.Context(), clientID, resource, p.tenantID, p.authorityHost)
 	if err != nil {
-		klog.ErrorS(err, "failed to get token")
+		p.logger.Error(err, "failed to get token")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	klog.InfoS("successfully acquired token", "method", r.Method, "uri", r.RequestURI)
+	p.logger.Info("successfully acquired token", "method", r.Method, "uri", r.RequestURI)
 	// write the token to the response
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(token); err != nil {
-		klog.Errorf("failed to encode token: %v", err)
+		p.logger.Error(err, "failed to encode token")
 	}
 }
 
@@ -111,7 +116,7 @@ func (p *proxy) defaultPathHandler(w http.ResponseWriter, r *http.Request) {
 	client := &http.Client{}
 	req, err := http.NewRequest(r.Method, r.URL.String(), r.Body)
 	if err != nil || req == nil {
-		klog.ErrorS(err, "failed to create new request")
+		p.logger.Error(err, "failed to create new request")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -124,7 +129,7 @@ func (p *proxy) defaultPathHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		klog.ErrorS(err, "failed executing request", "url", req.URL.String())
+		p.logger.Error(err, "failed executing request", "url", req.URL.String())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -132,9 +137,11 @@ func (p *proxy) defaultPathHandler(w http.ResponseWriter, r *http.Request) {
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		klog.ErrorS(err, "failed to read response body", "url", req.URL.String())
+		p.logger.Error(err, "failed to read response body", "url", req.URL.String())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+	p.logger.Info("received response from IMDS", "method", r.Method, "uri", r.RequestURI, "status", resp.StatusCode)
+
 	copyHeader(w.Header(), resp.Header)
 	w.WriteHeader(resp.StatusCode)
 	_, _ = w.Write(body)
@@ -149,7 +156,7 @@ func doTokenRequest(ctx context.Context, clientID, resource, tenantID, authority
 
 	cred, err := confidential.NewCredFromAssertion(signedAssertion)
 	if err != nil {
-		klog.Fatalf("failed to create confidential creds: %v", err)
+		return nil, errors.Wrap(err, "failed to create confidential creds")
 	}
 
 	confidentialClientApp, err := confidential.New(clientID, cred,

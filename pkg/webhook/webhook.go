@@ -80,7 +80,7 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) admissio
 	// explicitly set the namespace to request namespace
 	pod.Namespace = req.Namespace
 
-	logger := log.Log.WithName("handler").WithValues("pod", pod.Name, "namespace", pod.Namespace, "serviceAccount", pod.Spec.ServiceAccountName)
+	logger := log.Log.WithName("handler").WithValues("pod", pod.Name, "namespace", pod.Namespace, "service-account", pod.Spec.ServiceAccountName)
 	// get service account associated with the pod
 	serviceAccount := &corev1.ServiceAccount{}
 	if err = m.client.Get(ctx, types.NamespacedName{Name: pod.Spec.ServiceAccountName, Namespace: pod.Namespace}, serviceAccount); err != nil {

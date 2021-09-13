@@ -2,7 +2,7 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-labels: 
+labels:
   azure-workload-identity.io/system: "true"
 replicaCount: 2
 image:
@@ -28,3 +28,4 @@ service:
   targetPort: 9443
 azureEnvironment: AzurePublicCloud
 azureTenantID:
+logEncoder: console

@@ -1,4 +1,4 @@
-// +build e2e
+//go:build e2e
 
 package e2e
 
@@ -19,7 +19,7 @@ import (
 
 // Only kind cluster supports custom service account issuer for now.
 // The proxy implementation is only for Linux.
-var _ = ginkgo.Describe("Proxy [KindOnly][LinuxOnly]", func() {
+var _ = ginkgo.Describe("Proxy [KindOnly] [LinuxOnly]", func() {
 	f := framework.NewDefaultFramework("proxy")
 
 	ginkgo.It("should get a valid AAD token with the proxy sidecar", func() {
@@ -68,6 +68,7 @@ var _ = ginkgo.Describe("Proxy [KindOnly][LinuxOnly]", func() {
 					Name:            proxy,
 					Image:           proxyImage,
 					ImagePullPolicy: corev1.PullIfNotPresent,
+					Args:            []string{"--log-encoder=json"},
 					Ports: []corev1.ContainerPort{
 						{
 							Name:          "http",

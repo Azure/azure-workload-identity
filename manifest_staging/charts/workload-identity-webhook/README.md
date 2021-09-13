@@ -46,6 +46,7 @@ helm upgrade -n azure-workload-identity-system [RELEASE_NAME] azure-workload-ide
 | service.targetPort | Service target port                                                      | `9443`                                                  |
 | azureTenantID      | [**REQUIRED**] Azure tenant ID                                           | ``                                                      |
 | azureEnvironment   | Azure Environment                                                        | `AzurePublicCloud`                                      |
+| logEncoder         | The log encoder to use for the webhook manager (`json`, `console`)       | `console`                                               |
 
 ## Contributing Changes
 

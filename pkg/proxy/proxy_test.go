@@ -14,6 +14,7 @@ import (
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
 
 	"github.com/gorilla/mux"
+	"k8s.io/klog/v2/klogr"
 )
 
 var (
@@ -62,7 +63,7 @@ func TestProxy_MSIHandler(t *testing.T) {
 			setup()
 			defer teardown()
 
-			p := &proxy{}
+			p := &proxy{logger: klogr.New()}
 			rtr.PathPrefix(tokenPathPrefix).HandlerFunc(p.msiHandler)
 			rtr.PathPrefix("/").HandlerFunc(p.defaultPathHandler)
 
