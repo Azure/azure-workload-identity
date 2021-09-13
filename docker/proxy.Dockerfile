@@ -25,4 +25,3 @@ COPY --from=builder /workspace/proxy .
 USER nonroot:nonroot
 
 ENTRYPOINT [ "/proxy" ]
-EXPOSE 8000

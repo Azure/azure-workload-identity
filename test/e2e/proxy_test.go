@@ -53,6 +53,12 @@ var _ = ginkgo.Describe("Proxy [KindOnly][LinuxOnly]", func() {
 						Add: []corev1.Capability{"NET_ADMIN"},
 					},
 				},
+				Env: []corev1.EnvVar{
+					{
+						Name:  "PROXY_PORT",
+						Value: "8000",
+					},
+				},
 			},
 		}
 
@@ -65,7 +71,7 @@ var _ = ginkgo.Describe("Proxy [KindOnly][LinuxOnly]", func() {
 					Ports: []corev1.ContainerPort{
 						{
 							Name:          "http",
-							ContainerPort: 8080,
+							ContainerPort: 8000,
 						},
 					},
 				},

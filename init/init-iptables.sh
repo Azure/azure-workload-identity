@@ -1,7 +1,11 @@
 #!/bin/sh
 
-# Forward outbound traffic for 169.254.169.254:80 to proxy
-iptables -t nat -A OUTPUT -p tcp -d 169.254.169.254 --dport 80 -j REDIRECT --to-port 8000
+PROXY_PORT=${PROXY_PORT:-8000}
+METADATA_IP=${METADATA_IP:-169.254.169.254}
+METADATA_PORT=${METADATA_PORT:-80}
 
-# List all iptables rules.
+# Forward outbound traffic for metadata endpoint to proxy
+iptables -t nat -A OUTPUT -p tcp -d "${METADATA_IP}" --dport "${METADATA_PORT}" -j REDIRECT --to-port "${PROXY_PORT}"
+
+# List all iptables rules
 iptables -t nat --list

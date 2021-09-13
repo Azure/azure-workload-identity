@@ -15,6 +15,9 @@ spec:
         add:
         - NET_ADMIN
       privileged: true
+    env:
+    - name: PROXY_PORT
+      value: "8000"
   containers:
   - name: nginx
     image: nginx:alpine
