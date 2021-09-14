@@ -27,6 +27,7 @@ spec:
       containers:
       - args:
         - --arc-cluster={{ .Values.arcCluster }}
+        - --log-encoder={{ .Values.logEncoder }}
         command:
         - /manager
         env:

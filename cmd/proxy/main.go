@@ -2,7 +2,9 @@ package main
 
 import (
 	"flag"
+	"os"
 
+	"github.com/Azure/azure-workload-identity/pkg/logger"
 	"github.com/Azure/azure-workload-identity/pkg/proxy"
 
 	"k8s.io/klog/v2"
@@ -12,18 +14,25 @@ var (
 	proxyPort int
 )
 
-func main() {
+func init() {
 	klog.InitFlags(nil)
-	defer klog.Flush()
+}
+
+func main() {
+	logger := logger.New()
+	logger.AddFlags()
 
 	flag.IntVar(&proxyPort, "proxy-port", 8000, "Port for the proxy to listen on")
 	flag.Parse()
 
-	p, err := proxy.NewProxy(proxyPort)
+	setupLog := logger.Get().WithName("setup")
+	p, err := proxy.NewProxy(proxyPort, logger.Get().WithName("proxy"))
 	if err != nil {
-		klog.Fatalf("failed to get proxy, error: %+v", err)
+		setupLog.Error(err, "failed to create proxy")
+		os.Exit(1)
 	}
-	if err = p.Run(); err != nil {
-		klog.Fatalf("failed to run proxy, error: %+v", err)
+	if err := p.Run(); err != nil {
+		setupLog.Error(err, "failed to run proxy")
+		os.Exit(1)
 	}
 }

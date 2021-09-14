@@ -39,11 +39,11 @@ func clientAssertionBearerAuthorizerCallback(tenantID, resource string) (*autore
 	// read the service account token from the filesystem
 	signedAssertion, err := readJWTFromFS(tokenFilePath)
 	if err != nil {
-		return nil, errors.Errorf("failed to read service account token: %v", err)
+		return nil, errors.Wrap(err, "failed to read service account token")
 	}
 	cred, err := confidential.NewCredFromAssertion(signedAssertion)
 	if err != nil {
-		return nil, errors.Errorf("failed to create confidential creds: %v", err)
+		return nil, errors.Wrap(err, "failed to create confidential creds")
 	}
 	// create the confidential client to request an AAD token
 	confidentialClientApp, err := confidential.New(
@@ -51,7 +51,7 @@ func clientAssertionBearerAuthorizerCallback(tenantID, resource string) (*autore
 		cred,
 		confidential.WithAuthority(fmt.Sprintf("%s%s/oauth2/token", authorityHost, tenantID)))
 	if err != nil {
-		return nil, errors.Errorf("failed to create confidential client app: %v", err)
+		return nil, errors.Wrap(err, "failed to create confidential client app")
 	}
 
 	// trim the suffix / if exists
@@ -63,7 +63,7 @@ func clientAssertionBearerAuthorizerCallback(tenantID, resource string) (*autore
 
 	result, err := confidentialClientApp.AcquireTokenByCredential(context.Background(), []string{resource})
 	if err != nil {
-		return nil, errors.Errorf("failed to get token: %v", err)
+		return nil, errors.Wrap(err, "failed to get token")
 	}
 
 	return autorest.NewBearerAuthorizer(authResult{
