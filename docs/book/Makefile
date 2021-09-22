@@ -1,4 +1,4 @@
-TOOLS_BIN_DIR := $(PWD)/bin
+TOOLS_BIN_DIR ?= $(PWD)/bin
 CRATE_INSTALL := $(realpath ../../third_party/japaric/trust/crate_install.sh)
 
 MDBOOK := $(TOOLS_BIN_DIR)/mdbook
