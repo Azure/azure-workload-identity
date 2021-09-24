@@ -186,7 +186,19 @@
 </ul>
 <!-- - Ensure backward compatibility when upgrading from [AAD Pod Identity](https://github.com/Azure/aad-pod-identity). -->
 <div style="break-before: page; page-break-before: always;"></div><h1 id="quick-start-1"><a class="header" href="#quick-start-1">Quick Start</a></h1>
-<!-- toc -->
+<ul>
+<li><a href="quick-start.html#prerequisites">Prerequisites</a></li>
+<li><a href="quick-start.html#0-export-environment-variables-and-create-resource-group">0. Export environment variables and create resource group</a></li>
+<li><a href="quick-start.html#1-create-and-upload-oidc-discovery-document-and-jwks">1. Create and upload OIDC discovery document and JWKS</a></li>
+<li><a href="quick-start.html#2-create-a-kind-cluster">2. Create a kind cluster</a></li>
+<li><a href="quick-start.html#3-install-the-azure-ad-workload-identity-webhook">3. Install the Azure AD Workload Identity webhook</a></li>
+<li><a href="quick-start.html#4-create-an-azure-key-vault-and-secret">4. Create an Azure Key Vault and secret</a></li>
+<li><a href="quick-start.html#5-create-an-aad-application-and-grant-permissions-to-access-the-secret">5. Create an AAD application and grant permissions to access the secret</a></li>
+<li><a href="quick-start.html#6-create-a-kubernetes-service-account">6. Create a Kubernetes service account</a></li>
+<li><a href="quick-start.html#7-establish-trust-between-the-aad-application-and-the-service-account-issuer--subject">7. Establish trust between the AAD application and the service account issuer &amp; subject</a></li>
+<li><a href="quick-start.html#8-deploy-workload">8. Deploy workload</a></li>
+<li><a href="quick-start.html#9-cleanup">9. Cleanup</a></li>
+</ul>
 <p>In this tutorial, we will cover the basics of how to use the Azure AD Workload Identity webhook to acquire a token to access a secret in an <a href="https://azure.microsoft.com/en-us/services/key-vault/">Azure Key Vault</a>. If you are using an AKS cluster with OIDC enabled, you may skip step 0 to step 4.</p>
 <h2 id="prerequisites"><a class="header" href="#prerequisites">Prerequisites</a></h2>
 <ul>
@@ -651,8 +663,8 @@ az ad sp delete --id &quot;${APPLICATION_CLIENT_ID}&quot;
 <p>With these properties injected, the webhook allows pods to use a <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-token-volume-projection">service account token</a> projected to its volume to exchange for a valid AAD token using the <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-overview">Microsoft Authentication Library</a> (MSAL).</p>
 <h2 id="proxy-init"><a class="header" href="#proxy-init">Proxy Init</a></h2>
 <p>Proxy Init is an <a href="https://kubernetes.io/docs/concepts/workloads/pods/init-containers/">init container</a> that establishes an iptables rule to redirect all IMDS requests from <code>169.254.169.254</code> to the <a href="concepts.html#proxy">proxy</a> server by running the following command:</p>
-<pre><code class="language-sh"># Forward outbound traffic for 169.254.169.254:80 to proxy
-iptables -t nat -A OUTPUT -p tcp -d 169.254.169.254 --dport 80 -j REDIRECT --to-port 8000
+<pre><code class="language-sh">PROXY_PORT=${PROXY_PORT:-8000}
+METADATA_IP=${METADATA_IP:-169.254.169.254}
 </code></pre>
 <h2 id="proxy"><a class="header" href="#proxy">Proxy</a></h2>
 <p><img src="./images/proxy-diagram.png" alt="Proxy" /></p>
@@ -708,19 +720,43 @@ az rest --method POST --uri &quot;https://graph.microsoft.com/beta/applications/
 <tr><td><code>azure.workload.identity/skip-containers</code></td><td>Represents a semi-colon-separated list of containers (e.g. <code>container1;container2</code>) to skip adding projected service account token volume. By default, the projected service account token volume will be added to all containers if the service account is labeled with <code>azure.workload.identity/use: true</code>.</td><td></td></tr>
 </tbody></table>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="key-rotation-for-self-managed-clusters"><a class="header" href="#key-rotation-for-self-managed-clusters">Key Rotation For Self-Managed Clusters</a></h1>
-<!-- toc -->
-<p>A security best practice is to routinely rotate your key pair used to sign the service account tokens. This page explains how to generate and rotate it in the case of self-managed Kubernetes clusters where you have access to the control plane.</p>
+<ul>
+<li><a href="topics/key-rotation-for-self-managed-clusters.html#best-practices">Best Practices</a>
+<ul>
+<li><a href="topics/key-rotation-for-self-managed-clusters.html#key-rotation">Key rotation</a></li>
+<li><a href="topics/key-rotation-for-self-managed-clusters.html#key-retirement">Key retirement</a></li>
+</ul>
+</li>
+<li><a href="topics/key-rotation-for-self-managed-clusters.html#steps-to-manually-generate-and-rotate-keys">Steps to manually generate and rotate keys</a>
+<ul>
+<li><a href="topics/key-rotation-for-self-managed-clusters.html#1-generate-a-new-key-pair">1. Generate a new key pair</a></li>
+<li><a href="topics/key-rotation-for-self-managed-clusters.html#2-backup-the-old-key-pair-and-distribute-the-new-key-pair">2. Backup the old key pair and distribute the new key pair</a></li>
+<li><a href="topics/key-rotation-for-self-managed-clusters.html#3-update-the-jwks">3. Update the JWKS</a></li>
+<li><a href="topics/key-rotation-for-self-managed-clusters.html#4-key-rotation">4. Key Rotation</a></li>
+<li><a href="topics/key-rotation-for-self-managed-clusters.html#5-verification">5. Verification</a></li>
+<li><a href="topics/key-rotation-for-self-managed-clusters.html#6-cleanup">6. Cleanup</a></li>
+<li><a href="topics/key-rotation-for-self-managed-clusters.html#7-remove-old-jwk-after-maximum-token-expiration">7. Remove old JWK after maximum token expiration</a></li>
+</ul>
+</li>
+</ul>
+<p>A security best practice is to routinely rotate your key pair used to sign the service account tokens. This page explains the best practices, guidelines, as well as how to generate and rotate it in the case of self-managed Kubernetes clusters where you have access to the control plane.</p>
 <blockquote>
 <p>This technique requires that the Kubernetes control plane is running in a high-availability (HA) setup with multiple API servers. Clusters that use a single API server will become unavailable while the API server is restarted.</p>
 </blockquote>
-<h2 id="1-generate-a-new-key-pair"><a class="header" href="#1-generate-a-new-key-pair">1. Generate a new key pair</a></h2>
+<h2 id="best-practices"><a class="header" href="#best-practices">Best Practices</a></h2>
+<h3 id="key-rotation"><a class="header" href="#key-rotation">Key rotation</a></h3>
+<p>Key pair should be rotated on a regular basis. For references, AKS clusters rotate their service account signing key pairs <strong>every three months</strong>.</p>
+<h3 id="key-retirement"><a class="header" href="#key-retirement">Key retirement</a></h3>
+<p>Key pair should be retired when they are no longer needed. In most cases, this means permanently removing them to guarantee that it poses no more risk and to minimize the number of active key pairs that are being handled.</p>
+<h2 id="steps-to-manually-generate-and-rotate-keys"><a class="header" href="#steps-to-manually-generate-and-rotate-keys">Steps to manually generate and rotate keys</a></h2>
+<h3 id="1-generate-a-new-key-pair"><a class="header" href="#1-generate-a-new-key-pair">1. Generate a new key pair</a></h3>
 <blockquote>
 <p>Skip this step if you are planning to bring your own keys.</p>
 </blockquote>
 <pre><code class="language-bash">openssl genrsa -out sa-new.key 2048
 openssl rsa -in sa-new.key -pubout -out sa-new.pub
 </code></pre>
-<h2 id="2-backup-the-old-key-pair-and-distribute-the-new-key-pair"><a class="header" href="#2-backup-the-old-key-pair-and-distribute-the-new-key-pair">2. Backup the old key pair and distribute the new key pair</a></h2>
+<h3 id="2-backup-the-old-key-pair-and-distribute-the-new-key-pair"><a class="header" href="#2-backup-the-old-key-pair-and-distribute-the-new-key-pair">2. Backup the old key pair and distribute the new key pair</a></h3>
 <p>Schedule a jump pod to each control plane node, which mounts the <code>/etc/kubernetes/pki</code> folder:</p>
 <blockquote>
 <p><code>/etc/kubernetes/pki/sa.pub</code> and <code>/etc/kubernetes/pki/sa.key</code> are the paths of the service account key pair for a kind cluster. The paths can vary depending on your provider.</p>
@@ -771,7 +807,7 @@ kubectl cp default/${POD_NAME}:/etc/kubernetes/pki/sa.key sa-old.key
   kubectl cp sa-new.key default/${POD_NAME}:/etc/kubernetes/pki/sa-new.key
 done
 </code></pre>
-<h2 id="3-update-the-jwks"><a class="header" href="#3-update-the-jwks">3. Update the JWKS</a></h2>
+<h3 id="3-update-the-jwks"><a class="header" href="#3-update-the-jwks">3. Update the JWKS</a></h3>
 <p>In the case of service account tokens generated before you initiated the key rotation, you would need a time period where the old and new public keys exist in the JWKS. The relying party can then validate service account tokens signed by both the old and new private key.</p>
 <p>Install the <code>generate-jwks</code> tool:</p>
 <blockquote>
@@ -792,7 +828,7 @@ az storage blob upload \
   --file jwks.json \
   --name openid/v1/jwks
 </code></pre>
-<h2 id="4-key-rotation"><a class="header" href="#4-key-rotation">4. Key Rotation</a></h2>
+<h3 id="4-key-rotation"><a class="header" href="#4-key-rotation">4. Key Rotation</a></h3>
 <p>With the new key pair distributed, you can utilize <a href="https://github.com/kvaps/kubectl-node-shell">kubectl-node-shell</a> to update the following core components arguments by spawning a root shell to each control plane node:</p>
 <pre><code class="language-bash">kubectl node-shell &lt;NodeName&gt;
 
@@ -809,7 +845,7 @@ sed -i 's|--service-account-signing-key-file=.*|--service-account-signing-key-fi
 sed -i 's|--service-account-private-key-file=.*|--service-account-private-key-file=/etc/kubernetes/pki/sa-new.key|' /etc/kubernetes/manifests/kube-controller-manager.yaml
 </code></pre>
 <p>The commands above should trigger a restart for kube-apiserver and kube-controller-manager pod.</p>
-<h2 id="5-verification"><a class="header" href="#5-verification">5. Verification</a></h2>
+<h3 id="5-verification"><a class="header" href="#5-verification">5. Verification</a></h3>
 <p>Create a dummy pod that uses an annotated service account.</p>
 <pre><code class="language-bash">cat &lt;&lt; EOF | kubectl apply -f -
 apiVersion: v1
@@ -839,13 +875,13 @@ EOF
 <pre><code class="language-bash">kubectl exec dummy-pod -- cat /var/run/secrets/tokens/azure-identity-token
 </code></pre>
 <p>Decode your token using <a href="https://jwt.io/">jwt.io</a>. The <code>kid</code> field in the token header should be the same as the <code>kid</code> of <code>generate-jwks --public-keys sa-new.pub | jq -r '.keys[0].kid'</code>. This means that the service account token is signed by the new private key.</p>
-<h2 id="6-cleanup"><a class="header" href="#6-cleanup">6. Cleanup</a></h2>
+<h3 id="6-cleanup"><a class="header" href="#6-cleanup">6. Cleanup</a></h3>
 <p>Delete the dangling resources created above:</p>
 <pre><code class="language-bash">kubectl delete ds jump
 kubectl delete pod dummy-pod
 kubectl delete sa workload-identity-sa
 </code></pre>
-<h2 id="7-remove-old-jwk-after-maximum-token-expiration"><a class="header" href="#7-remove-old-jwk-after-maximum-token-expiration">7. Remove old JWK after maximum token expiration</a></h2>
+<h3 id="7-remove-old-jwk-after-maximum-token-expiration"><a class="header" href="#7-remove-old-jwk-after-maximum-token-expiration">7. Remove old JWK after maximum token expiration</a></h3>
 <p>After the maximum token expiration (the default expiration is 24 hours) has passed, projected service account tokens signed by the old private key will be rotated by kubelet and signed with the new signing key. The kubelet proactively rotates the token if it is older than 80% of its total TTL, or if the token is older than 24 hours. You should update the JWKS accordingly to only include the new public key:</p>
 <pre><code class="language-bash">generate-jwks --public-keys sa-new.pub | jq &gt; jwks.json
 az storage blob upload \
@@ -862,6 +898,9 @@ INDEX=&quot;$(expr ${INDEX} - 1)&quot;
 
 # remove the old public key argument using yq
 yq eval -i &quot;del(.spec.containers[0].command[${INDEX}])&quot; /etc/kubernetes/manifests/kube-apiserver.yaml
+
+# remove the old key pair from disk
+rm sa.*
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="known-issues"><a class="header" href="#known-issues">Known Issues</a></h1>
 <h2 id="permission-denied-when-reading-the-projected-service-account-token-file"><a class="header" href="#permission-denied-when-reading-the-projected-service-account-token-file">Permission denied when reading the projected service account token file</a></h2>
@@ -883,7 +922,24 @@ yq eval -i &quot;del(.spec.containers[0].command[${INDEX}])&quot; /etc/kubernete
     fsGroup: 65534
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="development"><a class="header" href="#development">Development</a></h1>
-<!-- toc -->
+<ul>
+<li><a href="development.html#setting-up">Setting up</a>
+<ul>
+<li><a href="development.html#base-requirements">Base requirements</a></li>
+<li><a href="development.html#clone-the-repository">Clone the repository</a></li>
+</ul>
+</li>
+<li><a href="development.html#create-a-test-cluster">Create a test cluster</a>
+<ul>
+<li><a href="development.html#generate-a-custom-publicprivate-key-pair">Generate a custom public/private key pair</a></li>
+<li><a href="development.html#setup-the-oidc-discovery-document-and-jwks">Setup the OIDC discovery document and JWKS</a></li>
+<li><a href="development.html#create-a-kind-cluster">Create a kind cluster</a></li>
+</ul>
+</li>
+<li><a href="development.html#build-and-deploy-the-webhook">Build and deploy the webhook</a></li>
+<li><a href="development.html#unit-test">Unit Test</a></li>
+<li><a href="development.html#e2e-test">E2E Test</a></li>
+</ul>
 <h2 id="setting-up"><a class="header" href="#setting-up">Setting up</a></h2>
 <h3 id="base-requirements"><a class="header" href="#base-requirements">Base requirements</a></h3>
 <ol>
@@ -1075,7 +1131,12 @@ make docker-build-webhook deploy
 <tr><td><code>E2E_EXTRA_ARGS</code></td><td>Allow you to insert extra arguments when executing the test suite.</td><td></td></tr>
 </tbody></table>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="releasing"><a class="header" href="#releasing">Releasing</a></h1>
-<!-- toc -->
+<ul>
+<li><a href="development/releasing.html#1-create-a-release-pull-request">1. Create a release pull request</a></li>
+<li><a href="development/releasing.html#2-review-and-approve-the-release-pull-request">2. Review and approve the release pull request</a></li>
+<li><a href="development/releasing.html#3-verify-that-the-create_tag-action-is-triggered-after-the-release-pull-request-is-merged">3. Verify that the create_tag action is triggered after the release pull request is merged</a></li>
+<li><a href="development/releasing.html#4-verify-that-the-tag-is-successfully-created">4. Verify that the tag is successfully created</a></li>
+</ul>
 <p>We use GitHub Actions to automate our release process.</p>
 <h2 id="1-create-a-release-pull-request"><a class="header" href="#1-create-a-release-pull-request">1. Create a release pull request</a></h2>
 <p><img src="development/../images/release-step-1.png" alt="Create a release pull request" /></p>

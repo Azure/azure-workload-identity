@@ -182,8 +182,8 @@
 <p>With these properties injected, the webhook allows pods to use a <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-token-volume-projection">service account token</a> projected to its volume to exchange for a valid AAD token using the <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-overview">Microsoft Authentication Library</a> (MSAL).</p>
 <h2 id="proxy-init"><a class="header" href="#proxy-init">Proxy Init</a></h2>
 <p>Proxy Init is an <a href="https://kubernetes.io/docs/concepts/workloads/pods/init-containers/">init container</a> that establishes an iptables rule to redirect all IMDS requests from <code>169.254.169.254</code> to the <a href="#proxy">proxy</a> server by running the following command:</p>
-<pre><code class="language-sh"># Forward outbound traffic for 169.254.169.254:80 to proxy
-iptables -t nat -A OUTPUT -p tcp -d 169.254.169.254 --dport 80 -j REDIRECT --to-port 8000
+<pre><code class="language-sh">PROXY_PORT=${PROXY_PORT:-8000}
+METADATA_IP=${METADATA_IP:-169.254.169.254}
 </code></pre>
 <h2 id="proxy"><a class="header" href="#proxy">Proxy</a></h2>
 <p><img src="./images/proxy-diagram.png" alt="Proxy" /></p>

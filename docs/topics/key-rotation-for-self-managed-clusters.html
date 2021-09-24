@@ -147,19 +147,43 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="key-rotation-for-self-managed-clusters"><a class="header" href="#key-rotation-for-self-managed-clusters">Key Rotation For Self-Managed Clusters</a></h1>
-<!-- toc -->
-<p>A security best practice is to routinely rotate your key pair used to sign the service account tokens. This page explains how to generate and rotate it in the case of self-managed Kubernetes clusters where you have access to the control plane.</p>
+<ul>
+<li><a href="#best-practices">Best Practices</a>
+<ul>
+<li><a href="#key-rotation">Key rotation</a></li>
+<li><a href="#key-retirement">Key retirement</a></li>
+</ul>
+</li>
+<li><a href="#steps-to-manually-generate-and-rotate-keys">Steps to manually generate and rotate keys</a>
+<ul>
+<li><a href="#1-generate-a-new-key-pair">1. Generate a new key pair</a></li>
+<li><a href="#2-backup-the-old-key-pair-and-distribute-the-new-key-pair">2. Backup the old key pair and distribute the new key pair</a></li>
+<li><a href="#3-update-the-jwks">3. Update the JWKS</a></li>
+<li><a href="#4-key-rotation">4. Key Rotation</a></li>
+<li><a href="#5-verification">5. Verification</a></li>
+<li><a href="#6-cleanup">6. Cleanup</a></li>
+<li><a href="#7-remove-old-jwk-after-maximum-token-expiration">7. Remove old JWK after maximum token expiration</a></li>
+</ul>
+</li>
+</ul>
+<p>A security best practice is to routinely rotate your key pair used to sign the service account tokens. This page explains the best practices, guidelines, as well as how to generate and rotate it in the case of self-managed Kubernetes clusters where you have access to the control plane.</p>
 <blockquote>
 <p>This technique requires that the Kubernetes control plane is running in a high-availability (HA) setup with multiple API servers. Clusters that use a single API server will become unavailable while the API server is restarted.</p>
 </blockquote>
-<h2 id="1-generate-a-new-key-pair"><a class="header" href="#1-generate-a-new-key-pair">1. Generate a new key pair</a></h2>
+<h2 id="best-practices"><a class="header" href="#best-practices">Best Practices</a></h2>
+<h3 id="key-rotation"><a class="header" href="#key-rotation">Key rotation</a></h3>
+<p>Key pair should be rotated on a regular basis. For references, AKS clusters rotate their service account signing key pairs <strong>every three months</strong>.</p>
+<h3 id="key-retirement"><a class="header" href="#key-retirement">Key retirement</a></h3>
+<p>Key pair should be retired when they are no longer needed. In most cases, this means permanently removing them to guarantee that it poses no more risk and to minimize the number of active key pairs that are being handled.</p>
+<h2 id="steps-to-manually-generate-and-rotate-keys"><a class="header" href="#steps-to-manually-generate-and-rotate-keys">Steps to manually generate and rotate keys</a></h2>
+<h3 id="1-generate-a-new-key-pair"><a class="header" href="#1-generate-a-new-key-pair">1. Generate a new key pair</a></h3>
 <blockquote>
 <p>Skip this step if you are planning to bring your own keys.</p>
 </blockquote>
 <pre><code class="language-bash">openssl genrsa -out sa-new.key 2048
 openssl rsa -in sa-new.key -pubout -out sa-new.pub
 </code></pre>
-<h2 id="2-backup-the-old-key-pair-and-distribute-the-new-key-pair"><a class="header" href="#2-backup-the-old-key-pair-and-distribute-the-new-key-pair">2. Backup the old key pair and distribute the new key pair</a></h2>
+<h3 id="2-backup-the-old-key-pair-and-distribute-the-new-key-pair"><a class="header" href="#2-backup-the-old-key-pair-and-distribute-the-new-key-pair">2. Backup the old key pair and distribute the new key pair</a></h3>
 <p>Schedule a jump pod to each control plane node, which mounts the <code>/etc/kubernetes/pki</code> folder:</p>
 <blockquote>
 <p><code>/etc/kubernetes/pki/sa.pub</code> and <code>/etc/kubernetes/pki/sa.key</code> are the paths of the service account key pair for a kind cluster. The paths can vary depending on your provider.</p>
@@ -210,7 +234,7 @@ kubectl cp default/${POD_NAME}:/etc/kubernetes/pki/sa.key sa-old.key
   kubectl cp sa-new.key default/${POD_NAME}:/etc/kubernetes/pki/sa-new.key
 done
 </code></pre>
-<h2 id="3-update-the-jwks"><a class="header" href="#3-update-the-jwks">3. Update the JWKS</a></h2>
+<h3 id="3-update-the-jwks"><a class="header" href="#3-update-the-jwks">3. Update the JWKS</a></h3>
 <p>In the case of service account tokens generated before you initiated the key rotation, you would need a time period where the old and new public keys exist in the JWKS. The relying party can then validate service account tokens signed by both the old and new private key.</p>
 <p>Install the <code>generate-jwks</code> tool:</p>
 <blockquote>
@@ -231,7 +255,7 @@ az storage blob upload \
   --file jwks.json \
   --name openid/v1/jwks
 </code></pre>
-<h2 id="4-key-rotation"><a class="header" href="#4-key-rotation">4. Key Rotation</a></h2>
+<h3 id="4-key-rotation"><a class="header" href="#4-key-rotation">4. Key Rotation</a></h3>
 <p>With the new key pair distributed, you can utilize <a href="https://github.com/kvaps/kubectl-node-shell">kubectl-node-shell</a> to update the following core components arguments by spawning a root shell to each control plane node:</p>
 <pre><code class="language-bash">kubectl node-shell &lt;NodeName&gt;
 
@@ -248,7 +272,7 @@ sed -i 's|--service-account-signing-key-file=.*|--service-account-signing-key-fi
 sed -i 's|--service-account-private-key-file=.*|--service-account-private-key-file=/etc/kubernetes/pki/sa-new.key|' /etc/kubernetes/manifests/kube-controller-manager.yaml
 </code></pre>
 <p>The commands above should trigger a restart for kube-apiserver and kube-controller-manager pod.</p>
-<h2 id="5-verification"><a class="header" href="#5-verification">5. Verification</a></h2>
+<h3 id="5-verification"><a class="header" href="#5-verification">5. Verification</a></h3>
 <p>Create a dummy pod that uses an annotated service account.</p>
 <pre><code class="language-bash">cat &lt;&lt; EOF | kubectl apply -f -
 apiVersion: v1
@@ -278,13 +302,13 @@ EOF
 <pre><code class="language-bash">kubectl exec dummy-pod -- cat /var/run/secrets/tokens/azure-identity-token
 </code></pre>
 <p>Decode your token using <a href="https://jwt.io/">jwt.io</a>. The <code>kid</code> field in the token header should be the same as the <code>kid</code> of <code>generate-jwks --public-keys sa-new.pub | jq -r '.keys[0].kid'</code>. This means that the service account token is signed by the new private key.</p>
-<h2 id="6-cleanup"><a class="header" href="#6-cleanup">6. Cleanup</a></h2>
+<h3 id="6-cleanup"><a class="header" href="#6-cleanup">6. Cleanup</a></h3>
 <p>Delete the dangling resources created above:</p>
 <pre><code class="language-bash">kubectl delete ds jump
 kubectl delete pod dummy-pod
 kubectl delete sa workload-identity-sa
 </code></pre>
-<h2 id="7-remove-old-jwk-after-maximum-token-expiration"><a class="header" href="#7-remove-old-jwk-after-maximum-token-expiration">7. Remove old JWK after maximum token expiration</a></h2>
+<h3 id="7-remove-old-jwk-after-maximum-token-expiration"><a class="header" href="#7-remove-old-jwk-after-maximum-token-expiration">7. Remove old JWK after maximum token expiration</a></h3>
 <p>After the maximum token expiration (the default expiration is 24 hours) has passed, projected service account tokens signed by the old private key will be rotated by kubelet and signed with the new signing key. The kubelet proactively rotates the token if it is older than 80% of its total TTL, or if the token is older than 24 hours. You should update the JWKS accordingly to only include the new public key:</p>
 <pre><code class="language-bash">generate-jwks --public-keys sa-new.pub | jq &gt; jwks.json
 az storage blob upload \
@@ -301,6 +325,9 @@ INDEX=&quot;$(expr ${INDEX} - 1)&quot;
 
 # remove the old public key argument using yq
 yq eval -i &quot;del(.spec.containers[0].command[${INDEX}])&quot; /etc/kubernetes/manifests/kube-apiserver.yaml
+
+# remove the old key pair from disk
+rm sa.*
 </code></pre>
 
                     </main>

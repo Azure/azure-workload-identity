@@ -147,7 +147,19 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="quick-start"><a class="header" href="#quick-start">Quick Start</a></h1>
-<!-- toc -->
+<ul>
+<li><a href="#prerequisites">Prerequisites</a></li>
+<li><a href="#0-export-environment-variables-and-create-resource-group">0. Export environment variables and create resource group</a></li>
+<li><a href="#1-create-and-upload-oidc-discovery-document-and-jwks">1. Create and upload OIDC discovery document and JWKS</a></li>
+<li><a href="#2-create-a-kind-cluster">2. Create a kind cluster</a></li>
+<li><a href="#3-install-the-azure-ad-workload-identity-webhook">3. Install the Azure AD Workload Identity webhook</a></li>
+<li><a href="#4-create-an-azure-key-vault-and-secret">4. Create an Azure Key Vault and secret</a></li>
+<li><a href="#5-create-an-aad-application-and-grant-permissions-to-access-the-secret">5. Create an AAD application and grant permissions to access the secret</a></li>
+<li><a href="#6-create-a-kubernetes-service-account">6. Create a Kubernetes service account</a></li>
+<li><a href="#7-establish-trust-between-the-aad-application-and-the-service-account-issuer--subject">7. Establish trust between the AAD application and the service account issuer &amp; subject</a></li>
+<li><a href="#8-deploy-workload">8. Deploy workload</a></li>
+<li><a href="#9-cleanup">9. Cleanup</a></li>
+</ul>
 <p>In this tutorial, we will cover the basics of how to use the Azure AD Workload Identity webhook to acquire a token to access a secret in an <a href="https://azure.microsoft.com/en-us/services/key-vault/">Azure Key Vault</a>. If you are using an AKS cluster with OIDC enabled, you may skip step 0 to step 4.</p>
 <h2 id="prerequisites"><a class="header" href="#prerequisites">Prerequisites</a></h2>
 <ul>
