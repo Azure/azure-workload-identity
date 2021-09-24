@@ -2,11 +2,23 @@
 
 <!-- toc -->
 
-A security best practice is to routinely rotate your key pair used to sign the service account tokens. This page explains how to generate and rotate it in the case of self-managed Kubernetes clusters where you have access to the control plane.
+A security best practice is to routinely rotate your key pair used to sign the service account tokens. This page explains the best practices, guidelines, as well as how to generate and rotate it in the case of self-managed Kubernetes clusters where you have access to the control plane.
 
 > This technique requires that the Kubernetes control plane is running in a high-availability (HA) setup with multiple API servers. Clusters that use a single API server will become unavailable while the API server is restarted.
 
-## 1. Generate a new key pair
+## Best Practices
+
+### Key rotation
+
+Key pair should be rotated on a regular basis. For references, AKS clusters rotate their service account signing key pairs **every three months**.
+
+### Key retirement
+
+Key pair should be retired when they are no longer needed. In most cases, this means permanently removing them to guarantee that it poses no more risk and to minimize the number of active key pairs that are being handled.
+
+## Steps to manually generate and rotate keys
+
+### 1. Generate a new key pair
 
 > Skip this step if you are planning to bring your own keys.
 
@@ -15,7 +27,7 @@ openssl genrsa -out sa-new.key 2048
 openssl rsa -in sa-new.key -pubout -out sa-new.pub
 ```
 
-## 2. Backup the old key pair and distribute the new key pair
+### 2. Backup the old key pair and distribute the new key pair
 
 Schedule a jump pod to each control plane node, which mounts the `/etc/kubernetes/pki` folder:
 
@@ -75,7 +87,7 @@ for POD_NAME in "$(kubectl get po -l name=jump -ojson | jq -r '.items[].metadata
 done
 ```
 
-## 3. Update the JWKS
+### 3. Update the JWKS
 
 In the case of service account tokens generated before you initiated the key rotation, you would need a time period where the old and new public keys exist in the JWKS. The relying party can then validate service account tokens signed by both the old and new private key.
 
@@ -102,7 +114,7 @@ az storage blob upload \
   --name openid/v1/jwks
 ```
 
-## 4. Key Rotation
+### 4. Key Rotation
 
 With the new key pair distributed, you can utilize [kubectl-node-shell][1] to update the following core components arguments by spawning a root shell to each control plane node:
 
@@ -124,7 +136,7 @@ sed -i 's|--service-account-private-key-file=.*|--service-account-private-key-fi
 
 The commands above should trigger a restart for kube-apiserver and kube-controller-manager pod.
 
-## 5. Verification
+### 5. Verification
 
 Create a dummy pod that uses an annotated service account.
 
@@ -162,7 +174,7 @@ kubectl exec dummy-pod -- cat /var/run/secrets/tokens/azure-identity-token
 
 Decode your token using [jwt.io][3]. The `kid` field in the token header should be the same as the `kid` of `generate-jwks --public-keys sa-new.pub | jq -r '.keys[0].kid'`. This means that the service account token is signed by the new private key.
 
-## 6. Cleanup
+### 6. Cleanup
 
 Delete the dangling resources created above:
 
@@ -172,7 +184,7 @@ kubectl delete pod dummy-pod
 kubectl delete sa workload-identity-sa
 ```
 
-## 7. Remove old JWK after maximum token expiration
+### 7. Remove old JWK after maximum token expiration
 
 After the maximum token expiration (the default expiration is 24 hours) has passed, projected service account tokens signed by the old private key will be rotated by kubelet and signed with the new signing key. The kubelet proactively rotates the token if it is older than 80% of its total TTL, or if the token is older than 24 hours. You should update the JWKS accordingly to only include the new public key:
 
@@ -195,6 +207,9 @@ INDEX="$(expr ${INDEX} - 1)"
 
 # remove the old public key argument using yq
 yq eval -i "del(.spec.containers[0].command[${INDEX}])" /etc/kubernetes/manifests/kube-apiserver.yaml
+
+# remove the old key pair from disk
+rm sa.*
 ```
 
 [1]: https://github.com/kvaps/kubectl-node-shell

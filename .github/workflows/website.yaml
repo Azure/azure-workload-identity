@@ -16,9 +16,13 @@ jobs:
         with:
           submodules: true
           fetch-depth: 0
-      - name: Build
+      - name: Set TOOLS_BIN_DIR and add to PATH
         run: |
-          make -C docs/book build
+          TOOLS_BIN_DIR="${HOME}/.cargo/bin"
+          echo "TOOLS_BIN_DIR=${TOOLS_BIN_DIR}" >> ${GITHUB_ENV}
+          echo "${TOOLS_BIN_DIR}" >> ${GITHUB_PATH}
+      - name: Build
+        run: make -C docs/book build
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
