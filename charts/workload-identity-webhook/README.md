@@ -32,10 +32,10 @@ helm upgrade -n azure-workload-identity-system [RELEASE_NAME] azure-workload-ide
 | Parameter          | Description                                                              | Default                                                 |
 | :----------------- | :----------------------------------------------------------------------- | :------------------------------------------------------ |
 | labels             | The labels to add to the azure-workload-identity webhook pods            | `azure-workload-identity.io/system: "true"`             |
-| replicaCount       | The number of azure-workload-identity replicas to deploy for the webhook | `1`                                                     |
+| replicaCount       | The number of azure-workload-identity replicas to deploy for the webhook | `2`                                                     |
 | image.repository   | Image repository                                                         | `mcr.microsoft.com/oss/azure/workload-identity/webhook` |
 | image.pullPolicy   | Image pullPolicy                                                         | `IfNotPresent`                                          |
-| image.release      | The image release tag to use                                             | Current release version: `v0.4.0`                       |
+| image.release      | The image release tag to use                                             | Current release version: `v0.5.0`                       |
 | nodeSelector       | The node selector to use for pod scheduling                              | `kubernetes.io/os: linux`                               |
 | arcCluster         | Specify if it runs on Arc cluster                                        | `false`                                                 |
 | resources          | The resource request/limits for the container image                      | limits: 100m CPU, 30Mi, requests: 100m CPU, 20Mi        |
@@ -46,6 +46,7 @@ helm upgrade -n azure-workload-identity-system [RELEASE_NAME] azure-workload-ide
 | service.targetPort | Service target port                                                      | `9443`                                                  |
 | azureTenantID      | [**REQUIRED**] Azure tenant ID                                           | ``                                                      |
 | azureEnvironment   | Azure Environment                                                        | `AzurePublicCloud`                                      |
+| logEncoder         | The log encoder to use for the webhook manager (`json`, `console`)       | `console`                                               |
 
 ## Contributing Changes
 
