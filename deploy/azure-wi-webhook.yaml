@@ -139,7 +139,7 @@ metadata:
   name: azure-wi-webhook-controller-manager
   namespace: azure-workload-identity-system
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       azure-workload-identity.io/system: "true"
@@ -162,7 +162,7 @@ spec:
         envFrom:
         - configMapRef:
             name: azure-wi-webhook-config
-        image: mcr.microsoft.com/oss/azure/workload-identity/webhook:v0.4.0
+        image: mcr.microsoft.com/oss/azure/workload-identity/webhook:v0.5.0
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
