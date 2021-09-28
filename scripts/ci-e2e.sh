@@ -98,13 +98,16 @@ main() {
 
 test_helm_chart() {
   readonly HELM="${REPO_ROOT}/hack/tools/bin/helm"
-  ${KUBECTL} create namespace azure-workload-identity-system
 
-  # test helm upgrade from chart to manifest_staging/chart
-
-  ${HELM} install workload-identity-webhook "${REPO_ROOT}/charts/workload-identity-webhook" \
+  # test helm upgrade from the latest released chart to manifest_staging/chart
+  # TODO(chewong) switch to https://azure.github.io/azure-workload-identity/charts once it is available
+  git checkout origin/gh-pages -- "${REPO_ROOT}/charts/"
+  # shellcheck disable=SC2086
+  LATEST_CHART_TARBALL="$(find ${REPO_ROOT}/charts/workload-identity-webhook-*.tgz | sort | tail -n 1)"
+  ${HELM} install workload-identity-webhook "${LATEST_CHART_TARBALL}" \
     --set azureTenantID="${AZURE_TENANT_ID}" \
     --namespace azure-workload-identity-system \
+    --create-namespace \
     --wait
   poll_webhook_readiness
   # TODO(chewong): enable init containers test once v0.5.0 is released
