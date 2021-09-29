@@ -3,10 +3,10 @@ package main
 import (
 	"os"
 
+	"github.com/Azure/azure-workload-identity/pkg/cmd"
+
 	colorable "github.com/mattn/go-colorable"
 	log "github.com/sirupsen/logrus"
-
-	"github.com/Azure/azure-workload-identity/pkg/cmd"
 )
 
 func main() {

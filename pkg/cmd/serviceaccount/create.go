@@ -2,17 +2,15 @@ package serviceaccount
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"strings"
 
-	fic "github.com/Azure/azure-workload-identity/pkg/cloud/federatedcredentials"
-	"github.com/Azure/azure-workload-identity/pkg/cloud/graph"
-	"github.com/Azure/azure-workload-identity/pkg/cloud/roleassignments"
+	"github.com/Azure/azure-workload-identity/pkg/cloud"
 	"github.com/Azure/azure-workload-identity/pkg/kuberneteshelper"
 	"github.com/Azure/azure-workload-identity/pkg/version"
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/kubernetes"
@@ -27,10 +25,8 @@ type createCmd struct {
 	azureRole  string
 	azureScope string
 
-	graphClient                graph.Interface
-	federatedCredentialsClient fic.Interface
-	kubeClient                 kubernetes.Interface
-	roleAssignmentsClient      roleassignments.Interface
+	azureClient cloud.Interface
+	kubeClient  kubernetes.Interface
 }
 
 func newCreateCmd() *cobra.Command {
@@ -41,29 +37,16 @@ func newCreateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create a workload identity",
-		Long:  "This command provides the ability to create an app registration, add federated identity credential, create the Kubernetes service account and perform role assignment",
+		Long:  "This command provides the ability to create an app, add federated identity credential, create the Kubernetes service account and perform role assignment",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if err := cc.validate(); err != nil {
-				return err
-			}
 			return cc.getAuthArgs().validate()
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
-			if cc.graphClient, err = graph.NewGraphClient(cc.getAuthArgs().azureClientID, cc.getAuthArgs().azureClientSecret, cc.getAuthArgs().azureTenantID); err != nil {
-				return err
-			}
-			if cc.federatedCredentialsClient, err = fic.NewFederatedCredentialsClient(cc.getAuthArgs().azureClientID, cc.getAuthArgs().azureClientSecret, cc.getAuthArgs().azureTenantID); err != nil {
+			if cc.azureClient, err = cc.getClient(); err != nil {
 				return err
 			}
 			if cc.kubeClient, err = kuberneteshelper.GetKubeClient(); err != nil {
-				return err
-			}
-			if cc.roleAssignmentsClient, err = roleassignments.NewRoleAssignmentsClient(
-				cc.getAuthArgs().azureSubscriptionID,
-				cc.getAuthArgs().azureClientID,
-				cc.getAuthArgs().azureClientSecret,
-				cc.getAuthArgs().azureTenantID); err != nil {
 				return err
 			}
 			return cc.run()
@@ -71,103 +54,88 @@ func newCreateCmd() *cobra.Command {
 	}
 
 	f := cmd.Flags()
-	f.StringVarP(&cc.name, "name", "", "", "Name of the service account")
-	f.StringVarP(&cc.namespace, "namespace", "", "", "Namespace of the service account")
-	f.StringVarP(&cc.issuer, "issuer", "", "", "OpenID Connect (OIDC) issuer URL")
-	f.StringVarP(&cc.azureRole, "azure-role", "", "", "Azure Role")
-	f.StringVarP(&cc.azureScope, "azure-scope", "", "", "Azure Scope")
+	f.StringVar(&cc.name, "name", "", "Name of the service account")
+	f.StringVar(&cc.namespace, "namespace", "default", "Namespace of the service account")
+	f.StringVar(&cc.issuer, "issuer", "", "OpenID Connect (OIDC) issuer URL")
+	f.StringVar(&cc.azureRole, "azure-role", "", "Azure Role name (see all available roles at https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles)")
+	f.StringVar(&cc.azureScope, "azure-scope", "", "Scope at which the role assignment or definition applies to")
 
 	addAuthFlags(cc.getAuthArgs(), f)
 
+	_ = cmd.MarkFlagRequired("name")
+	_ = cmd.MarkFlagRequired("issuer")
+	_ = cmd.MarkFlagRequired("azure-role")
+	_ = cmd.MarkFlagRequired("azure-scope")
+
 	return cmd
-}
-
-func (cc *createCmd) validate() error {
-	if cc.name == "" {
-		return errors.New("--name must be specified")
-	}
-
-	if cc.namespace == "" {
-		return errors.New("--namespace must be specified")
-	}
-
-	if cc.issuer == "" {
-		return errors.New("--issuer must be specified")
-	}
-
-	if cc.azureRole == "" {
-		return errors.New("--azure-role must be specified")
-	}
-
-	if cc.azureScope == "" {
-		return errors.New("--azure-scope must be specified")
-	}
-
-	return nil
 }
 
 func (cc *createCmd) run() error {
 	ctx := context.Background()
 
 	// the name of the app registration is of the format <service account namespace>-<service account name>-<issuer hash>
-	refName := fmt.Sprintf("%s-%s-%s", cc.namespace, cc.name, getIssuerHash(cc.issuer))
+	appName := fmt.Sprintf("%s-%s-%s", cc.namespace, cc.name, getIssuerHash(cc.issuer))
 	tags := []string{
 		fmt.Sprintf("serviceAccount: %s-%s", cc.name, cc.namespace),
 		fmt.Sprintf("azwi version: %s, commit: %s", version.BuildVersion, version.Vcs),
 	}
+
 	// Check if the application with the same name already exists
-	app, err := cc.graphClient.GetApplication(ctx, refName, cc.getAuthArgs().azureTenantID)
+	app, err := cc.azureClient.GetApplication(ctx, appName)
 	if err != nil {
-		if !strings.Contains(err.Error(), "not found") {
-			return err
+		if !cloud.IsNotFound(err) {
+			return errors.Wrap(err, "failed to get application")
 		}
 		// create the application as it doesn't exist
-		app, err = cc.graphClient.CreateApplication(ctx, refName, cc.getAuthArgs().azureTenantID)
+		app, err = cc.azureClient.CreateApplication(ctx, appName)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "failed to create application")
 		}
-		log.Debugf("created app registration with name: '%s', objectID: '%s'", refName, *app.ObjectID)
 	}
+	log.Infof("created application with name: '%s', objectID: '%s'", appName, *app.ObjectID)
 
 	// Check if the service principal with the same name already exists
-	servicePrincipal, err := cc.graphClient.GetServicePrincipal(ctx, refName, cc.getAuthArgs().azureTenantID)
+	servicePrincipal, err := cc.azureClient.GetServicePrincipal(ctx, appName)
 	if err != nil {
-		if !strings.Contains(err.Error(), "not found") {
-			return err
+		if !cloud.IsNotFound(err) {
+			return errors.Wrap(err, "failed to get service principal")
 		}
 		// create the service principal as it doesn't exist
-		servicePrincipal, err = cc.graphClient.CreateServicePrincipal(ctx, *app.AppID, cc.getAuthArgs().azureTenantID, tags)
+		servicePrincipal, err = cc.azureClient.CreateServicePrincipal(ctx, *app.AppID, tags)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "failed to create service principal")
 		}
-		log.Debugf("created service principal with name: '%s', objectID: '%s'", *servicePrincipal.DisplayName, *servicePrincipal.ObjectID)
 	}
+	log.Infof("created service principal with name: '%s', objectID: '%s'", *servicePrincipal.DisplayName, *servicePrincipal.ObjectID)
 
-	err = kuberneteshelper.CreateServiceAccount(cc.kubeClient, cc.namespace, cc.name, *app.AppID, cc.getAuthArgs().azureTenantID)
+	// TODO(aramase) make the update behavior configurable. If the service account already exists, fail if --overwrite is not specified
+	err = kuberneteshelper.CreateOrUpdateServiceAccount(ctx, cc.kubeClient, cc.namespace, cc.name, *app.AppID, cc.getAuthArgs().tenantID)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to create service account")
 	}
 	log.Debugf("created kubernetes service account: %s/%s", cc.namespace, cc.name)
 
 	// add the federated credential
 	subject := getSubject(cc.namespace, cc.name)
-	description := fmt.Sprintf(`Federated Service Account for %s/%s`, cc.namespace, cc.name)
+	description := fmt.Sprintf("Federated Service Account for %s/%s", cc.namespace, cc.name)
 	audiences := []string{webhook.DefaultAudience}
 
-	fc := fic.NewFederatedCredential(*app.ObjectID, cc.issuer, subject, description, audiences)
-	err = cc.federatedCredentialsClient.AddFederatedCredential(ctx, *app.ObjectID, fc)
-	if err != nil {
-		return err
+	fc := cloud.NewFederatedCredential(*app.ObjectID, cc.issuer, subject, description, audiences)
+	err = cc.azureClient.AddFederatedCredential(ctx, *app.ObjectID, fc)
+	if err != nil && !cloud.IsAlreadyExists(err) {
+		return errors.Wrap(err, "failed to add federated credential")
 	}
+	log.Infof("added federated credential for %s", subject)
 
-	log.Debugf("added federated credential for %s", subject)
-
+	var ra authorization.RoleAssignment
 	// create the role assignment using object id of the service principal
-	assignmentID, err := cc.roleAssignmentsClient.Create(context.Background(), cc.azureScope, cc.azureRole, *servicePrincipal.ObjectID)
-	if err != nil {
-		return err
+	if ra, err = cc.azureClient.CreateRoleAssignment(ctx, cc.azureScope, cc.azureRole, *servicePrincipal.ObjectID); err == nil {
+		log.Infof("Created role assignment for scope=%s, role=%s, principal=%s, roleAssignmentID=%s", cc.azureScope, cc.azureRole, *servicePrincipal.ObjectID, *ra.ID)
+		return nil
 	}
-	log.Debugf("created role assignment with id: '%s'", assignmentID)
+	if err != nil && !cloud.IsAlreadyExists(err) {
+		return errors.Wrap(err, "failed to create role assignment")
+	}
 
 	return nil
 }

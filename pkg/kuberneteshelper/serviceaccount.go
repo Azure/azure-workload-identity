@@ -30,7 +30,7 @@ func GetKubeClient() (kubernetes.Interface, error) {
 
 // Create ServiceAccount in the cluster
 // If the ServiceAccount already exists, error is returned
-func CreateServiceAccount(kubeClient kubernetes.Interface, namespace, name, clientID, tenantID string) error {
+func CreateOrUpdateServiceAccount(ctx context.Context, kubeClient kubernetes.Interface, namespace, name, clientID, tenantID string) error {
 	sa := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -45,16 +45,16 @@ func CreateServiceAccount(kubeClient kubernetes.Interface, namespace, name, clie
 		},
 	}
 
-	_, err := kubeClient.CoreV1().ServiceAccounts(namespace).Create(context.TODO(), sa, metav1.CreateOptions{})
+	serviceAccount, err := kubeClient.CoreV1().ServiceAccounts(namespace).Create(ctx, sa, metav1.CreateOptions{})
+	if apierrors.IsAlreadyExists(err) {
+		// Update the existing service account
+		sa.ObjectMeta.ResourceVersion = serviceAccount.ObjectMeta.ResourceVersion
+		_, err = kubeClient.CoreV1().ServiceAccounts(namespace).Update(ctx, sa, metav1.UpdateOptions{})
+	}
 	return err
 }
 
 // Delete ServiceAccount in the cluster
-// If the ServiceAccount does not exist, no error is returned
-func DeleteServiceAccount(kubeClient kubernetes.Interface, namespace, name string) error {
-	err := kubeClient.CoreV1().ServiceAccounts(namespace).Delete(context.TODO(), name, metav1.DeleteOptions{})
-	if err != nil && !apierrors.IsNotFound(err) {
-		return err
-	}
-	return nil
+func DeleteServiceAccount(ctx context.Context, kubeClient kubernetes.Interface, namespace, name string) error {
+	return kubeClient.CoreV1().ServiceAccounts(namespace).Delete(ctx, name, metav1.DeleteOptions{})
 }

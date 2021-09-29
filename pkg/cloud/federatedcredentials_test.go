@@ -1,4 +1,4 @@
-package federatedcredentials
+package cloud
 
 import (
 	"reflect"
@@ -6,7 +6,7 @@ import (
 )
 
 func TestNewFederatedCredential(t *testing.T) {
-	want := Federatedcredential{
+	want := FederatedCredential{
 		Name:        "federatedcredential-from-cli",
 		Issuer:      "https://kubernetes.svc.local/",
 		Audiences:   []string{"api://AzureADTokenExchange"},

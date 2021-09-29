@@ -3,12 +3,12 @@ package version
 import (
 	"fmt"
 
-	"github.com/spf13/cobra"
-
 	"github.com/Azure/azure-workload-identity/pkg/version"
+
+	"github.com/spf13/cobra"
 )
 
-// NewVersionCommand returns a new version command
+// NewVersionCmd returns a new version command
 func NewVersionCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "version",

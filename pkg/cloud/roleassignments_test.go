@@ -1,4 +1,4 @@
-package roleassignments
+package cloud
 
 import "testing"
 
