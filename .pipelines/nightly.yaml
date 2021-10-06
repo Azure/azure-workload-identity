@@ -46,10 +46,14 @@ jobs:
           SKIP_PREFLIGHT: "true"
           SERVICE_ACCOUNT_ISSUER: $(SERVICE_ACCOUNT_ISSUER)
       - script: |
-          make docker-build-webhook
+          make docker-build
           KIND=$(pwd)/hack/tools/bin/kind
           ${KIND} load docker-image ${REGISTRY}/webhook:${IMAGE_VERSION} --name azure-workload-identity
         displayName: Build the webhook image
+        env:
+          ALL_IMAGES: webhook
+          ALL_LINUX_ARCH: amd64
+          OUTPUT_TYPE: type=docker
       - script: |
           set -o errexit
           sed -i "s/AZURE_TENANT_ID: .*/AZURE_TENANT_ID: ${AZURE_TENANT_ID}/" manifest_staging/deploy/azure-wi-webhook.yaml

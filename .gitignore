@@ -30,3 +30,6 @@ docs/book/book/
 
 # logs
 _artifacts/
+
+# Makefile output
+.image-*

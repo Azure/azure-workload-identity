@@ -77,36 +77,49 @@ GO_INSTALL := ./hack/go-install.sh
 ## --------------------------------------
 
 OUTPUT_TYPE ?= type=registry
+ALL_IMAGES ?= $(PROXY_IMAGE_NAME) $(INIT_IMAGE_NAME) $(WEBHOOK_IMAGE_NAME)
+ALL_LINUX_ARCH ?= amd64 arm64
+
+# split words on hyphen, access by 1-index
+split-by-hyphen = $(word $2,$(subst -, ,$1))
+
+BUILDX_BUILDER_NAME ?= img-builder
+QEMU_VERSION ?= 5.2.0-2
 
 .PHONY: docker-build
-docker-build: docker-build-init docker-build-proxy docker-build-webhook
+docker-build:
+	@if ! docker buildx ls | grep $(BUILDX_BUILDER_NAME); then \
+		docker run --rm --privileged multiarch/qemu-user-static:$(QEMU_VERSION) --reset -p yes; \
+		docker buildx create --name $(BUILDX_BUILDER_NAME) --use; \
+		docker buildx inspect $(BUILDX_BUILDER_NAME) --bootstrap; \
+	fi
+	for img in $(ALL_IMAGES); do \
+		for arch in $(ALL_LINUX_ARCH); do \
+			IMAGE_NAME=$${img} ARCH=$${arch} $(MAKE) .image-$${img}-$${arch}; \
+		done; \
+	done
 
-.PHONY: docker-build-init
-docker-build-init:
-	docker buildx build --no-cache -t $(INIT_IMAGE) -f docker/init.Dockerfile --platform="linux/amd64" --output=$(OUTPUT_TYPE) .
+.image-%:
+	docker buildx build \
+		--build-arg GOARCH=$(ARCH) \
+		--build-arg LDFLAGS=$(LDFLAGS) \
+		--file docker/$(IMAGE_NAME).Dockerfile \
+		--output=$(OUTPUT_TYPE) \
+		--platform="linux/$(ARCH)" \
+		--pull \
+		--tag $(REGISTRY)/$(IMAGE_NAME):$(IMAGE_VERSION)-linux-$(ARCH) .
+	@if [ "$(ARCH)" = "amd64" ] && [ "$(OUTPUT_TYPE)" = "type=docker" ]; then \
+		docker tag $(REGISTRY)/$(IMAGE_NAME):$(IMAGE_VERSION)-linux-$(ARCH) $(REGISTRY)/$(IMAGE_NAME):$(IMAGE_VERSION); \
+	fi
+	touch $@
 
-.PHONY: docker-build-proxy
-docker-build-proxy:
-	docker buildx build --no-cache -t $(PROXY_IMAGE) -f docker/proxy.Dockerfile --platform="linux/amd64" --output=$(OUTPUT_TYPE) .
-
-.PHONY: docker-build-webhook
-docker-build-webhook:
-	docker buildx build --no-cache --build-arg LDFLAGS=${LDFLAGS} -t $(WEBHOOK_IMAGE) -f docker/webhook.Dockerfile --platform="linux/amd64" --output=$(OUTPUT_TYPE) .
-
-.PHONY: docker-push
-docker-push: docker-push-init docker-push-proxy docker-push-webhook
-
-.PHONY: docker-push-init
-docker-push-init:
-	docker push $(INIT_IMAGE)
-
-.PHONY: docker-push-proxy
-docker-push-proxy:
-	docker push $(PROXY_IMAGE)
-
-.PHONY: docker-push-webhook
-docker-push-webhook:
-	docker push $(WEBHOOK_IMAGE)
+.PHONY: docker-push-manifest
+docker-push-manifest:
+	for img in $(ALL_IMAGES); do \
+		docker manifest create --amend $(REGISTRY)/$${img}:$(IMAGE_VERSION) $(foreach arch,$(ALL_LINUX_ARCH),$(REGISTRY)/$${img}:$(IMAGE_VERSION)-linux-$(arch)); \
+		for arch in $(ALL_LINUX_ARCH); do docker manifest annotate --os linux --arch $${arch} $(REGISTRY)/$${img}:$(IMAGE_VERSION) $(REGISTRY)/$${img}:$(IMAGE_VERSION)-linux-$${arch}; done; \
+		docker manifest push --purge $(REGISTRY)/$${img}:$(IMAGE_VERSION); \
+	done
 
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
@@ -203,8 +216,8 @@ $(KUBECTL):
 $(GOLANGCI_LINT):
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/golangci/golangci-lint/cmd/golangci-lint $(GOLANGCI_LINT_BIN) $(GOLANGCI_LINT_VER)
 
-OS := $(shell uname | tr '[:upper:]' '[:lower:]')
-ARCH := $(shell uname -m)
+$(SHELLCHECK): OS := $(shell uname | tr '[:upper:]' '[:lower:]')
+$(SHELLCHECK): ARCH := $(shell uname -m)
 $(SHELLCHECK):
 	mkdir -p $(TOOLS_BIN_DIR)
 	rm -rf "$(SHELLCHECK)*"
@@ -218,6 +231,7 @@ $(SHELLCHECK):
 $(ENVSUBST):
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/a8m/envsubst/cmd/envsubst $(ENVSUBST_BIN) $(ENVSUBST_VER)
 
+$(HELM): OS := $(shell uname | tr '[:upper:]' '[:lower:]')
 $(HELM):
 	curl -sfOL "https://get.helm.sh/helm-$(HELM_VER)-$(GOOS)-$(GOARCH).tar.gz"
 	tar -zxvf helm-$(HELM_VER)-$(GOOS)-$(GOARCH).tar.gz
@@ -311,6 +325,7 @@ kind-delete: $(KIND)
 .PHONY: clean
 clean:
 	@rm -rf $(BIN_DIR)
+	@rm -rf .image-*
 
 ## --------------------------------------
 ## Linting
