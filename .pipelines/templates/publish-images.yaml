@@ -20,14 +20,17 @@ steps:
     displayName: export environment variables
   - script: make docker-build
     displayName: make docker-build
+    env:
+      ALL_LINUX_ARCH: amd64 # build amd64 only to speed up PR gate
+      OUTPUT_TYPE: type=docker
   - script: |
       wget https://github.com/aquasecurity/trivy/releases/download/v0.18.3/trivy_0.18.3_Linux-64bit.tar.gz
       tar zxvf trivy_0.18.3_Linux-64bit.tar.gz
       # show all vulnerabilities in the logs
       ./trivy image --reset
       for IMAGE_NAME in "proxy" "proxy-init" "webhook"; do
-        ./trivy "${REGISTRY}/${IMAGE_NAME}:${IMAGE_VERSION}"
-        ./trivy --exit-code 1 --ignore-unfixed --severity MEDIUM,HIGH,CRITICAL "${REGISTRY}/${IMAGE_NAME}:${IMAGE_VERSION}" || exit 1
+        ./trivy "${REGISTRY}/${IMAGE_NAME}:${IMAGE_VERSION}-linux-amd64"
+        ./trivy --exit-code 1 --ignore-unfixed --severity MEDIUM,HIGH,CRITICAL "${REGISTRY}/${IMAGE_NAME}:${IMAGE_VERSION}-linux-amd64" || exit 1
       done
     displayName: Scan images
   - script: |
@@ -38,6 +41,14 @@ steps:
       DOCKER_PASSWORD: $(DOCKER_PASSWORD)
     condition: and(succeeded(), eq(${{ parameters.publish }}, true))
     displayName: docker login
-  - script: make docker-push
+  - script: |
+      # build arm64 before building the manifest
+      OUTPUT_TYPE=type=docker ALL_LINUX_ARCH=arm64 make docker-build
+      for IMAGE_NAME in "proxy" "proxy-init" "webhook"; do
+        for OS_ARCH in "linux-amd64" "linux-arm64"; do
+          docker push "${REGISTRY}/${IMAGE_NAME}:${IMAGE_VERSION}-${OS_ARCH}"
+        done
+      done
+      make docker-push-manifest
     condition: and(succeeded(), eq(${{ parameters.publish }}, true))
-    displayName: make docker-push
+    displayName: make docker-push-manifest

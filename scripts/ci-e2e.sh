@@ -20,7 +20,8 @@ create_cluster() {
     download_service_account_keys
     # create a kind cluster, then build and load the webhook manager image to the kind cluster
     make kind-create
-    [[ "${SKIP_IMAGE_BUILD:-}" == "true" ]] || OUTPUT_TYPE="type=docker" make docker-build-webhook docker-build-e2e-msal-go docker-build-proxy docker-build-init
+    # only build amd64 images for now
+    OUTPUT_TYPE="type=docker" ALL_LINUX_ARCH="amd64" make docker-build docker-build-e2e-msal-go
     make kind-load-image
   else
     : "${REGISTRY:?Environment variable empty or not defined.}"
@@ -48,7 +49,8 @@ create_cluster() {
     fi
 
     echo "Building controller and deploying webhook to the cluster"
-    [[ "${SKIP_IMAGE_BUILD:-}" == "true" ]] || make docker-build-webhook
+    # only build webhook since AKS clusters don't have support for proxy and proxy init
+    ALL_IMAGES=webhook make docker-build docker-push-manifest
   fi
   ${KUBECTL} get nodes -owide
 }
