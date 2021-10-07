@@ -7,7 +7,7 @@ pool: staging-pool
 
 jobs:
   - job: publish
-    timeoutInMinutes: 10
+    timeoutInMinutes: 30
     workspace:
       clean: all
     steps:

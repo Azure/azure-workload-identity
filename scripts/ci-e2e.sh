@@ -22,7 +22,7 @@ create_cluster() {
     make kind-create
     # only build amd64 images for now
     OUTPUT_TYPE="type=docker" ALL_LINUX_ARCH="amd64" make docker-build docker-build-e2e-msal-go
-    make kind-load-image
+    make kind-load-images
   else
     : "${REGISTRY:?Environment variable empty or not defined.}"
 
@@ -82,7 +82,7 @@ main() {
   az login -i > /dev/null && echo "Using machine identity for az commands" || echo "Using pre-existing credential for az commands"
 
   create_cluster
-  make clean deploy
+  make deploy
   poll_webhook_readiness
 
   if [[ -n "${WINDOWS_NODE_NAME:-}" ]]; then

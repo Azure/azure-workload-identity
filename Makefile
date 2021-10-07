@@ -243,11 +243,13 @@ $(HELM):
 ## --------------------------------------
 ## E2E images
 ## --------------------------------------
-MSAL_GO_E2E_IMAGE := $(REGISTRY)/msal-go-e2e:$(IMAGE_VERSION)
+MSAL_GO_E2E_IMAGE_NAME := msal-go-e2e
+MSAL_GO_E2E_IMAGE := $(REGISTRY)/$(MSAL_GO_E2E_IMAGE_NAME):$(IMAGE_VERSION)
 
 .PHONY: docker-build-e2e-msal-go
 docker-build-e2e-msal-go:
 	docker buildx build --no-cache -t $(MSAL_GO_E2E_IMAGE) -f examples/msal-go/Dockerfile --platform="linux/amd64" --output=$(OUTPUT_TYPE) examples/msal-go
+	touch .image-$(MSAL_GO_E2E_IMAGE_NAME)-amd64
 
 ## --------------------------------------
 ## Testing
@@ -307,12 +309,12 @@ KIND_CLUSTER_NAME ?= azure-workload-identity
 kind-create: $(KIND) $(KUBECTL)
 	./scripts/create-kind-cluster.sh
 
-.PHONY: kind-load-image
-kind-load-image:
-	$(KIND) load docker-image $(WEBHOOK_IMAGE) --name $(KIND_CLUSTER_NAME)
-	$(KIND) load docker-image $(MSAL_GO_E2E_IMAGE) --name $(KIND_CLUSTER_NAME)
-	$(KIND) load docker-image $(PROXY_IMAGE) --name $(KIND_CLUSTER_NAME)
-	$(KIND) load docker-image $(INIT_IMAGE) --name $(KIND_CLUSTER_NAME)
+.PHONY: kind-load-images
+kind-load-images:
+	-[ -f .image-$(WEBHOOK_IMAGE_NAME)-amd64 ] && $(KIND) load docker-image $(WEBHOOK_IMAGE) --name $(KIND_CLUSTER_NAME)
+	-[ -f .image-$(PROXY_IMAGE_NAME)-amd64 ] && $(KIND) load docker-image $(PROXY_IMAGE) --name $(KIND_CLUSTER_NAME)
+	-[ -f .image-$(INIT_IMAGE_NAME)-amd64 ] && $(KIND) load docker-image $(INIT_IMAGE) --name $(KIND_CLUSTER_NAME)
+	-[ -f .image-$(MSAL_GO_E2E_IMAGE_NAME)-amd64 ] && $(KIND) load docker-image $(MSAL_GO_E2E_IMAGE) --name $(KIND_CLUSTER_NAME)
 
 .PHONY: kind-delete
 kind-delete: $(KIND)

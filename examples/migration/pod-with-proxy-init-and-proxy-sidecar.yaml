@@ -5,16 +5,18 @@ metadata:
   labels:
     app: httpbin
 spec:
-  serviceAccountName: old-sa
+  serviceAccountName: workload-identity-sa
   initContainers:
   - name: init-networking
-    image: mcr.microsoft.com/oss/azure/workload-identity/proxy-init:v0.4.0
-    imagePullPolicy: Always
+    image: mcr.microsoft.com/oss/azure/workload-identity/proxy-init:v0.5.0
     securityContext:
       capabilities:
         add:
         - NET_ADMIN
+        drop:
+        - ALL
       privileged: true
+      runAsUser: 0
     env:
     - name: PROXY_PORT
       value: "8000"
@@ -24,7 +26,6 @@ spec:
     ports:
     - containerPort: 80
   - name: proxy
-    image: mcr.microsoft.com/oss/azure/workload-identity/proxy:v0.4.0
-    imagePullPolicy: Always
+    image: mcr.microsoft.com/oss/azure/workload-identity/proxy:v0.5.0
     ports:
     - containerPort: 8000
