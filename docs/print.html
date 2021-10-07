@@ -1112,7 +1112,7 @@ azure-workload-identity-control-plane   Ready    control-plane,master   2m28s   
 <pre><code class="language-bash">export REGISTRY=&lt;YourPublicRegistry&gt;
 export IMAGE_VERSION=&quot;$(git describe --tags --always)&quot;
 export AZURE_TENANT_ID=&quot;...&quot;
-make docker-build-webhook deploy
+ALL_IMAGES=webhook make clean docker-build docker-push-manifest deploy
 </code></pre>
 <h2 id="unit-test"><a class="header" href="#unit-test">Unit Test</a></h2>
 <pre><code class="language-bash">make test
