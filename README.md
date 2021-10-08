@@ -2,9 +2,13 @@
 
 Azure AD Workload Identity is the next iteration of [AAD Pod Identity][1] that enables Kubernetes applications to access Azure cloud resources securely with [Azure Active Directory][2] based on annotated [service accounts][3].
 
+## Installation
+
+Check out the [installation guide][12] on how to deploy the Azure AD Workload Identity webhook.
+
 ## Quick Start
 
-Check out the Azure AD Workload Identity [Quick Start][4] to create your first application with .
+Check out the Azure AD Workload Identity [Quick Start][4] on how to securely access Azure cloud resources from your application using the webhook and MSAL SDK.
 
 ## Overview
 
@@ -53,3 +57,5 @@ The repository contains the following components:
 [10]: https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/#customresourcedefinitions
 
 [11]: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-token-volume-projection
+
+[12]: https://azure.github.io/azure-workload-identity/installation.html

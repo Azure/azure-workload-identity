@@ -6,14 +6,14 @@
 
 ### Base requirements
 
-1. Prerequisites from [Quick Start](https://azure.github.io/azure-workload-identity/quick-start.html#prerequisites)
-2. Install [go](https://golang.org/dl/)
-   - Get the latest patch version for go 1.17.
-3. Install [jq](https://stedolan.github.io/jq/)
-   - `brew install jq` on macOS.
-   - `chocolatey install jq` on Windows.
-   - `sudo apt install jq` on Ubuntu Linux.
-4. Install make.
+1.  Prerequisites from [Quick Start][1]
+2.  Install [go][2]
+    *   Get the latest patch version for go 1.17.
+3.  Install [jq][3]
+    *   `brew install jq` on macOS.
+    *   `chocolatey install jq` on Windows.
+    *   `sudo apt install jq` on Ubuntu Linux.
+4.  Install make.
 
 ### Clone the repository
 
@@ -47,7 +47,7 @@ writing RSA key
 
 ### Setup the OIDC discovery document and JWKS
 
->  Skip this step if you already set up the OIDC discovery document and JWKS.
+> Skip this step if you already set up the OIDC discovery document and JWKS.
 
 Azure blob storage will be used to host the OIDC discovery document and JWKS. However, you can host them in anywhere, as long as they are publicly available.
 
@@ -133,7 +133,6 @@ curl -s "https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_
 
 ### Create a kind cluster
 
-
 Export the following environment variables:
 
 ```bash
@@ -211,7 +210,6 @@ azure-workload-identity-control-plane   Ready    control-plane,master   2m28s   
 
 </details>
 
-
 ## Build and deploy the webhook
 
 ```bash
@@ -244,3 +242,9 @@ Optional settings are:
 | `GINKGO_TIMEOUT`      | The test suite timeout duration.                                   | `5m`                   |
 | `KUBECONFIG`          | The cluster KUBECONFIG you want to run the e2e test against.       | `${HOME}/.kube/config` |
 | `E2E_EXTRA_ARGS`      | Allow you to insert extra arguments when executing the test suite. |                        |
+
+[1]: ./quick-start.html#prerequisites
+
+[2]: https://golang.org/dl/
+
+[3]: https://stedolan.github.io/jq/
