@@ -69,8 +69,20 @@ HELM_VER := v3.6.2
 HELM_BIN := helm
 HELM := $(TOOLS_BIN_DIR)/$(HELM_BIN)-$(HELM_VER)
 
+MOCKGEN_VER := v1.6.0
+MOCKGEN_BIN := mockgen
+MOCKGEN := $(TOOLS_BIN_DIR)/$(MOCKGEN_BIN)-$(MOCKGEN_VER)
+
 # Scripts
 GO_INSTALL := ./hack/go-install.sh
+
+## --------------------------------------
+## Binaries
+## --------------------------------------
+
+.PHONY: azwi
+azwi:
+	go build -o $(BIN_DIR)/azwi -ldflags $(LDFLAGS) ./cmd/azwi
 
 ## --------------------------------------
 ## Images
@@ -180,8 +192,9 @@ manifests: $(CONTROLLER_GEN) $(KUSTOMIZE)
 
 # Generate code
 .PHONY: generate
-generate: $(CONTROLLER_GEN)
+generate: $(CONTROLLER_GEN) $(MOCKGEN) ## Runs Go related generate targets
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+	go generate ./...
 
 ## --------------------------------------
 ## Tooling Binaries and Manifests
@@ -239,6 +252,9 @@ $(HELM):
 	ln -sf "$(HELM)" "$(TOOLS_BIN_DIR)/$(HELM_BIN)"
 	chmod +x "$(TOOLS_BIN_DIR)/$(HELM_BIN)" "$(HELM)"
 	rm -rf helm* $(OS)-$(GOARCH)
+
+$(MOCKGEN): ## Build mockgen from tools folder.
+	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/golang/mock/mockgen $(MOCKGEN_BIN) $(MOCKGEN_VER)
 
 ## --------------------------------------
 ## E2E images
