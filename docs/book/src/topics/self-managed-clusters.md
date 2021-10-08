@@ -13,7 +13,7 @@ When compared to using managed Kubernetes services like AKS, managing your own K
 | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [Cluster API Provider Azure][1] (CAPZ) | Cluster API implementation for Microsoft Azure.                                                                                                      |
 | [Amazon EKS Anywhere][2]     | Run Amazon EKS on your own infrastructure.                                                                                                           |
-| [Kubernetes in Docker][3] (kind)       | Run local Kubernetes clusters using Docker container. A fast way to create a conformant Kubenretes cluster. Great for local testing and development. |
+| [Kubernetes in Docker][3] (kind)       | Run local Kubernetes clusters using Docker container. A fast way to create a conformant Kubernetes cluster. Great for local testing and development. |
 
 [1]: https://capz.sigs.k8s.io/
 
