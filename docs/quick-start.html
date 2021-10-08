@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><a href="quick-start.html" class="active">Quick Start</a></li><li class="chapter-item expanded affix "><a href="concepts.html">Concepts</a></li><li class="chapter-item expanded "><a href="topics.html"><strong aria-hidden="true">1.</strong> Topics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="topics/labels-and-annotations.html"><strong aria-hidden="true">1.1.</strong> Labels And Annotations</a></li><li class="chapter-item expanded "><a href="topics/key-rotation-for-self-managed-clusters.html"><strong aria-hidden="true">1.2.</strong> Key Rotation For Self-Managed Clusters</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Troubleshooting</div></li><li class="chapter-item expanded "><a href="known-issues.html"><strong aria-hidden="true">3.</strong> Known Issues</a></li><li class="chapter-item expanded "><a href="development.html"><strong aria-hidden="true">4.</strong> Development</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="development/releasing.html"><strong aria-hidden="true">4.1.</strong> Releasing</a></li></ol></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="code-of-conduct.html"><strong aria-hidden="true">6.</strong> Code of Conduct</a></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><a href="installation.html">Installation</a></li><li class="chapter-item expanded affix "><a href="quick-start.html" class="active">Quick Start</a></li><li class="chapter-item expanded affix "><a href="concepts.html">Concepts</a></li><li class="chapter-item expanded "><a href="topics.html"><strong aria-hidden="true">1.</strong> Topics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="topics/managed-clusters.html"><strong aria-hidden="true">1.1.</strong> Managed Clusters</a></li><li class="chapter-item expanded "><a href="topics/self-managed-clusters.html"><strong aria-hidden="true">1.2.</strong> Self-Managed Clusters</a></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">1.2.1.</strong> Service Account Key Generation</div></li><li class="chapter-item expanded "><a href="topics/self-managed-clusters/service-account-key-rotation.html"><strong aria-hidden="true">1.2.2.</strong> Service Account Key Rotation</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.2.3.</strong> OIDC Endpoints</div></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">1.2.3.1.</strong> Discovery Endpoint</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.2.3.2.</strong> JSON Web Key (JWK) Endpoint</div></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.2.4.</strong> Configurations</div></li></ol></li><li class="chapter-item expanded "><a href="topics/service-account-labels-and-annotations.html"><strong aria-hidden="true">1.3.</strong> Service Account Labels And Annotations</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.4.</strong> Lanauage-Specific Examples</div></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Troubleshooting</div></li><li class="chapter-item expanded "><a href="known-issues.html"><strong aria-hidden="true">3.</strong> Known Issues</a></li><li class="chapter-item expanded "><a href="development.html"><strong aria-hidden="true">4.</strong> Development</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="development/releasing.html"><strong aria-hidden="true">4.1.</strong> Releasing</a></li></ol></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="code-of-conduct.html"><strong aria-hidden="true">6.</strong> Code of Conduct</a></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -149,261 +149,42 @@
                         <h1 id="quick-start"><a class="header" href="#quick-start">Quick Start</a></h1>
 <ul>
 <li><a href="#prerequisites">Prerequisites</a></li>
-<li><a href="#0-export-environment-variables-and-create-resource-group">0. Export environment variables and create resource group</a></li>
-<li><a href="#1-create-and-upload-oidc-discovery-document-and-jwks">1. Create and upload OIDC discovery document and JWKS</a></li>
-<li><a href="#2-create-a-kind-cluster">2. Create a kind cluster</a></li>
-<li><a href="#3-install-the-azure-ad-workload-identity-webhook">3. Install the Azure AD Workload Identity webhook</a></li>
-<li><a href="#4-create-an-azure-key-vault-and-secret">4. Create an Azure Key Vault and secret</a></li>
-<li><a href="#5-create-an-aad-application-and-grant-permissions-to-access-the-secret">5. Create an AAD application and grant permissions to access the secret</a></li>
-<li><a href="#6-create-a-kubernetes-service-account">6. Create a Kubernetes service account</a></li>
-<li><a href="#7-establish-trust-between-the-aad-application-and-the-service-account-issuer--subject">7. Establish trust between the AAD application and the service account issuer &amp; subject</a></li>
-<li><a href="#8-deploy-workload">8. Deploy workload</a></li>
-<li><a href="#9-cleanup">9. Cleanup</a></li>
+<li><a href="#1-install-the-azure-ad-workload-identity-webhook">1. Install the Azure AD Workload Identity webhook</a></li>
+<li><a href="#2-create-an-azure-key-vault-and-secret">2. Create an Azure Key Vault and secret</a></li>
+<li><a href="#3-create-an-aad-application-and-grant-permissions-to-access-the-secret">3. Create an AAD application and grant permissions to access the secret</a></li>
+<li><a href="#4-create-a-kubernetes-service-account">4. Create a Kubernetes service account</a></li>
+<li><a href="#5-establish-trust-between-the-aad-application-and-the-service-account-issuer--subject">5. Establish trust between the AAD application and the service account issuer &amp; subject</a></li>
+<li><a href="#6-deploy-workload">6. Deploy workload</a></li>
+<li><a href="#6-cleanup">6. Cleanup</a></li>
 </ul>
-<p>In this tutorial, we will cover the basics of how to use the Azure AD Workload Identity webhook to acquire a token to access a secret in an <a href="https://azure.microsoft.com/en-us/services/key-vault/">Azure Key Vault</a>. If you are using an AKS cluster with OIDC enabled, you may skip step 0 to step 4.</p>
+<p>In this tutorial, we will cover the basics of how to use the Azure AD Workload Identity webhook to acquire a token to access a secret in an <a href="https://azure.microsoft.com/en-us/services/key-vault/">Azure Key Vault</a>.</p>
 <h2 id="prerequisites"><a class="header" href="#prerequisites">Prerequisites</a></h2>
 <ul>
 <li><a href="https://kubernetes.io/docs/tasks/tools/">kubectl</a></li>
-<li><a href="https://kind.sigs.k8s.io/docs/user/quick-start/#installation">kind</a> and <a href="https://www.docker.com/">Docker</a></li>
 <li><a href="https://azure.microsoft.com/en-us/">Microsoft Azure</a> account</li>
 <li><a href="https://docs.microsoft.com/en-us/cli/azure/install-azure-cli">Azure CLI</a></li>
+<li>A Kubernetes cluster, with service account issuer URL and signing key pair set up
+<ul>
+<li>Check out <a href="./topics/managed-clusters.html">this section</a> if you are planning to use a managed Kubernetes cluster</li>
+<li>Check out <a href="./topics/self-managed-clusters.html">this section</a> if you are planning to use a self-managed Kubernetes cluster</li>
 </ul>
-<h2 id="0-export-environment-variables-and-create-resource-group"><a class="header" href="#0-export-environment-variables-and-create-resource-group">0. Export environment variables and create resource group</a></h2>
-<p>Export the following environment variables:</p>
+</li>
+</ul>
+<h2 id="1-install-the-azure-ad-workload-identity-webhook"><a class="header" href="#1-install-the-azure-ad-workload-identity-webhook">1. Install the Azure AD Workload Identity webhook</a></h2>
+<ul>
+<li><a href="../installation.html#helm">Helm</a></li>
+<li><a href="../installation.html#deployment-yaml">Deployment YAML</a></li>
+</ul>
+<h2 id="2-create-an-azure-key-vault-and-secret"><a class="header" href="#2-create-an-azure-key-vault-and-secret">2. Create an Azure Key Vault and secret</a></h2>
+<p>Create an Azure resource group:</p>
 <pre><code class="language-bash">export RESOURCE_GROUP=&quot;azure-wi-webhook-test&quot;
 export LOCATION=&quot;westus2&quot;
 az group create --name &quot;${RESOURCE_GROUP}&quot; --location &quot;${LOCATION}&quot;
 </code></pre>
-<h2 id="1-create-and-upload-oidc-discovery-document-and-jwks"><a class="header" href="#1-create-and-upload-oidc-discovery-document-and-jwks">1. Create and upload OIDC discovery document and JWKS</a></h2>
-<p>A private key is used to cryptographically sign all the projected service account tokens. The relying party (Azure AD in this case) can utilize our OpenID Connect (OIDC) provider to obtain the public key information to ensure the integrity of the projected service account tokens. In this step, we will create and publish two JSON files to a public storage account:</p>
-<ol>
-<li><a href="https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfig">OpenID Provider Configuration Information</a> - <code>.well-known/openid-configuration</code></li>
-<li><a href="https://openid.net/specs/openid-connect-discovery-1_0-21.html#ProviderMetadata">JSON Web Key Set (JWKS)</a> - <code>openid/v1/jwks</code></li>
-</ol>
-<blockquote>
-<p>Skip the following command if you are planning to bring your own keys.</p>
-</blockquote>
-<p>Generate a public/private key pair:</p>
-<pre><code class="language-bash">openssl genrsa -out sa.key 2048
-openssl rsa -in sa.key -pubout -out sa.pub
-</code></pre>
-<details>
-<summary>Output</summary>
-<pre><code class="language-bash">Generating RSA private key, 2048 bit long modulus
-..............+++
-......+++
-e is 65537 (0x10001)
-writing RSA key
-</code></pre>
-</details>
-<blockquote>
-<p>Skip this step if you already set up the OIDC discovery document and JWKS.</p>
-</blockquote>
-<p>Azure blob storage will be used to host the OIDC discovery document and JWKS. However, you can host them in anywhere, as long as they are publicly available.</p>
-<pre><code class="language-bash">export AZURE_STORAGE_ACCOUNT=&quot;pmi$(openssl rand -hex 4)&quot;
-export AZURE_STORAGE_CONTAINER=&quot;oidc-test&quot;
-az storage account create --resource-group &quot;${RESOURCE_GROUP}&quot; --name &quot;${AZURE_STORAGE_ACCOUNT}&quot;
-az storage container create --name &quot;${AZURE_STORAGE_CONTAINER}&quot; --public-access container
-</code></pre>
-<p>Generate and upload the OIDC discovery document:</p>
-<pre><code class="language-bash">cat &lt;&lt;EOF &gt; openid-configuration.json
-{
-  &quot;issuer&quot;: &quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/&quot;,
-  &quot;authorization_endpoint&quot;: &quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/connect/authorize&quot;,
-  &quot;jwks_uri&quot;: &quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/openid/v1/jwks&quot;,
-  &quot;response_types_supported&quot;: [
-    &quot;id_token&quot;
-  ],
-  &quot;subject_types_supported&quot;: [
-    &quot;public&quot;
-  ],
-  &quot;id_token_signing_alg_values_supported&quot;: [
-    &quot;RS256&quot;
-  ]
-}
-EOF
-az storage blob upload \
-  --container-name &quot;${AZURE_STORAGE_CONTAINER}&quot; \
-  --file openid-configuration.json \
-  --name .well-known/openid-configuration
-</code></pre>
-<p>Install the <code>generate-jwks</code> tool:</p>
-<blockquote>
-<p>Make sure the environment variable <code>GOBIN</code> is defined and it is part of your <code>PATH</code>.</p>
-</blockquote>
-<pre><code class="language-bash">pushd hack/generate-jwks
-go install .
-popd
-</code></pre>
-<p>Generate and upload the JWKS:</p>
-<pre><code class="language-bash">generate-jwks --public-keys sa.pub &gt; jwks.json
-az storage blob upload \
-  --container-name &quot;${AZURE_STORAGE_CONTAINER}&quot; \
-  --file jwks.json \
-  --name openid/v1/jwks
-</code></pre>
-<p>Verify that the OIDC discovery document is publicly accessible:</p>
-<pre><code class="language-bash">curl -s &quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/.well-known/openid-configuration&quot;
-</code></pre>
-<details>
-<summary>Output</summary>
-<pre><code class="language-json">{
-  &quot;issuer&quot;: &quot;https://&lt;REDACTED&gt;.blob.core.windows.net/oidc-test/&quot;,
-  &quot;authorization_endpoint&quot;: &quot;https://&lt;REDACTED&gt;.blob.core.windows.net/oidc-test/connect/authorize&quot;,
-  &quot;jwks_uri&quot;: &quot;https://&lt;REDACTED&gt;.blob.core.windows.net/oidc-test/openid/v1/jwks&quot;,
-  &quot;response_types_supported&quot;: [
-    &quot;id_token&quot;
-  ],
-  &quot;subject_types_supported&quot;: [
-    &quot;public&quot;
-  ],
-  &quot;id_token_signing_alg_values_supported&quot;: [
-    &quot;RS256&quot;
-  ]
-}
-</code></pre>
-</details>
-<p>Verify that the JWKS is publicly accessible:</p>
-<pre><code class="language-bash">curl -s &quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/openid/v1/jwks&quot;
-</code></pre>
-<details>
-<summary>Output</summary>
-<pre><code class="language-json">{
-  &quot;keys&quot;: [
-    {
-      &quot;use&quot;: &quot;sig&quot;,
-      &quot;kty&quot;: &quot;RSA&quot;,
-      &quot;kid&quot;: &quot;Me5VC6i4_4mymFj7T5rcUftFjYX70YoCfSnZB6-nBY4&quot;,
-      &quot;alg&quot;: &quot;RS256&quot;,
-      &quot;n&quot;: &quot;ywg7HeKIFX3vleVKZHeYoNpuLHIDisnczYXrUdIGCNilCJFA1ymjG2UAADnt_FpYUsCVyKYJTqcxNbK4boNg_P3uK39OAqXabwYrilEZvsVJQKhzn8dXLeqAnM98L8eBpySU208KTsfMkS3Q6lqwurUP7c_a3g_1XRJukz_EmQxg9jLD_fQd5VwPTEo8HJQIFqIxFWzjTkkK5hbcL9Cclkf6RpeRyjh7Vem57Fu-jAlxDUiYiqyieM4OBNm4CQjiqDE8_xOC8viNpHNw542MYVDKSRnYui31lCOj32wBDphczR8BbnrZgbqN3K_zzB3gIjcGbWbbGA5xKJYqSu5uRwN89_CWrT3vGw5RN3XQPSbhGC4smgZkOCw3N9i1b-x-rrd-mRse6F95ONaoslCJUbJvxvDdb5X0P4_CVZRwJvUyP3OJ44ZvwzshA-zilG-QC9E1j2R9DTSMqOJzUuOxS0JIvoboteI1FAByV9KyU948zQRM7r7MMZYBKWIsu6h7&quot;,
-      &quot;e&quot;: &quot;AQAB&quot;
-    }
-  ]
-}
-</code></pre>
-</details>
-<h2 id="2-create-a-kind-cluster"><a class="header" href="#2-create-a-kind-cluster">2. Create a kind cluster</a></h2>
-<p>Export the following environment variables:</p>
-<pre><code class="language-bash">export SERVICE_ACCOUNT_ISSUER=&quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/&quot;
-export SERVICE_ACCOUNT_KEY_FILE=&quot;$(pwd)/sa.pub&quot;
-export SERVICE_ACCOUNT_SIGNING_KEY_FILE=&quot;$(pwd)/sa.key&quot;
-</code></pre>
-<p>Create a kind cluster with one control plane node and customize various service account-related flags for the API server:</p>
-<blockquote>
-<p>The minimum supported Kubernetes version for the webhook is v1.18.0, however, we recommend using Kubernetes version v1.20.0+.</p>
-</blockquote>
-<pre><code class="language-bash">cat &lt;&lt;EOF | kind create cluster --name azure-workload-identity --image kindest/node:v1.21.1 --config=-
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-nodes:
-- role: control-plane
-  extraMounts:
-    - hostPath: ${SERVICE_ACCOUNT_KEY_FILE}
-      containerPath: /etc/kubernetes/pki/sa.pub
-    - hostPath: ${SERVICE_ACCOUNT_SIGNING_KEY_FILE}
-      containerPath: /etc/kubernetes/pki/sa.key
-  kubeadmConfigPatches:
-  - |
-    kind: ClusterConfiguration
-    apiServer:
-      extraArgs:
-        service-account-issuer: ${SERVICE_ACCOUNT_ISSUER}
-        service-account-key-file: /etc/kubernetes/pki/sa.pub
-        service-account-signing-key-file: /etc/kubernetes/pki/sa.key
-EOF
-</code></pre>
-<details>
-<summary>Output</summary>
-<pre><code class="language-bash">Creating cluster &quot;azure-workload-identity&quot; ...
- • Ensuring node image (kindest/node:v1.21.1) 🖼  ...
- ✓ Ensuring node image (kindest/node:v1.21.1) 🖼
- • Preparing nodes 📦   ...
- ✓ Preparing nodes 📦
- • Writing configuration 📜  ...
- ✓ Writing configuration 📜
- • Starting control-plane 🕹️  ...
- ✓ Starting control-plane 🕹️
- • Installing CNI 🔌  ...
- ✓ Installing CNI 🔌
- • Installing StorageClass 💾  ...
- ✓ Installing StorageClass 💾
-Set kubectl context to &quot;kind-azure-workload-identity&quot;
-You can now use your cluster with:
-
-kubectl cluster-info --context kind-azure-workload-identity
-
-Have a question, bug, or feature request? Let us know! https://kind.sigs.k8s.io/#community 🙂
-</code></pre>
-</details>
-<p>Run the following command to verify that the kind cluster is online:</p>
-<pre><code class="language-bash">kubectl get nodes
-</code></pre>
-<details>
-<summary>Output</summary>
-<pre><code class="language-bash">NAME                                     STATUS   ROLES                  AGE     VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE       KERNEL-VERSION     CONTAINER-RUNTIME
-azure-workload-identity-control-plane   Ready    control-plane,master   2m28s   v1.21.1   172.18.0.2    &lt;none&gt;        Ubuntu 21.04   5.4.0-1047-azure   containerd://1.5.2
-</code></pre>
-</details>
-<h2 id="3-install-the-azure-ad-workload-identity-webhook"><a class="header" href="#3-install-the-azure-ad-workload-identity-webhook">3. Install the Azure AD Workload Identity webhook</a></h2>
-<p>Obtain your Azure tenant ID by running the following command:</p>
-<pre><code class="language-bash">export AZURE_TENANT_ID=&quot;$(az account show -s &lt;AzureSubscriptionID&gt; --query tenantId -otsv)&quot;
-# TODO: account for different environments
-export AZURE_ENVIRONMENT=&quot;AzurePublicCloud&quot;
-</code></pre>
-<p>To install the webhook, choose one of the following options below:</p>
-<ol>
-<li>
-<p>Deployment YAML</p>
-<blockquote>
-<p>Replace the Azure tenant ID and cloud environment name in <a href="https://github.com/Azure/azure-workload-identity/blob/1cb9d78159458b0c820c9c08fadf967833c8cdb4/deploy/azure-wi-webhook.yaml#L103-L104">here</a> before executing</p>
-</blockquote>
-<pre><code class="language-bash">sed -i &quot;s/AZURE_TENANT_ID: .*/AZURE_TENANT_ID: ${AZURE_TENANT_ID}/&quot; deploy/azure-wi-webhook.yaml
-sed -i &quot;s/AZURE_ENVIRONMENT: .*/AZURE_ENVIRONMENT: ${AZURE_ENVIRONMENT}/&quot; deploy/azure-wi-webhook.yaml
-kubectl apply -f deploy/azure-wi-webhook.yaml
-</code></pre>
-<details>
-<summary>Output</summary>
-<pre><code class="language-bash">namespace/azure-workload-identity-system created
-serviceaccount/azure-wi-webhook-admin created
-role.rbac.authorization.k8s.io/azure-wi-webhook-manager-role created
-clusterrole.rbac.authorization.k8s.io/azure-wi-webhook-manager-role created
-rolebinding.rbac.authorization.k8s.io/azure-wi-webhook-manager-rolebinding created
-clusterrolebinding.rbac.authorization.k8s.io/azure-wi-webhook-manager-rolebinding created
-configmap/azure-wi-webhook-config created
-secret/azure-wi-webhook-server-cert created
-service/azure-wi-webhook-webhook-service created
-deployment.apps/azure-wi-webhook-controller-manager created
-mutatingwebhookconfiguration.admissionregistration.k8s.io/azure-wi-webhook-mutating-webhook-configuration created
-</code></pre>
-</details>
-</li>
-<li>
-<p>Helm</p>
-<pre><code class="language-bash">kubectl create namespace azure-workload-identity-system
-helm install workload-identity-webhook manifest_staging/charts/workload-identity-webhook \
-   --namespace azure-workload-identity-system \
-   --set azureTenantID=&quot;${AZURE_TENANT_ID}&quot;
-</code></pre>
-<details>
-<summary>Output</summary>
-<pre><code class="language-bash">namespace/azure-workload-identity-system created
-NAME: workload-identity-webhook
-LAST DEPLOYED: Wed Aug  4 10:49:20 2021
-NAMESPACE: azure-workload-identity-system
-STATUS: deployed
-REVISION: 1
-TEST SUITE: None
-</code></pre>
-</details>
-</li>
-</ol>
-<h2 id="4-create-an-azure-key-vault-and-secret"><a class="header" href="#4-create-an-azure-key-vault-and-secret">4. Create an Azure Key Vault and secret</a></h2>
-<p>Export the following environment variables:</p>
+<p>Create an Azure Key Vault:</p>
 <pre><code class="language-bash">export KEYVAULT_NAME=&quot;azure-wi-webhook-test-$(openssl rand -hex 2)&quot;
 export KEYVAULT_SECRET_NAME=&quot;my-secret&quot;
-</code></pre>
-<p>Create an Azure Key Vault:</p>
-<pre><code class="language-bash">az keyvault create --resource-group &quot;${RESOURCE_GROUP}&quot; \
+az keyvault create --resource-group &quot;${RESOURCE_GROUP}&quot; \
    --location &quot;${LOCATION}&quot; \
    --name &quot;${KEYVAULT_NAME}&quot;
 </code></pre>
@@ -412,7 +193,7 @@ export KEYVAULT_SECRET_NAME=&quot;my-secret&quot;
    --name &quot;${KEYVAULT_SECRET_NAME}&quot; \
    --value &quot;Hello!&quot;
 </code></pre>
-<h2 id="5-create-an-aad-application-and-grant-permissions-to-access-the-secret"><a class="header" href="#5-create-an-aad-application-and-grant-permissions-to-access-the-secret">5. Create an AAD application and grant permissions to access the secret</a></h2>
+<h2 id="3-create-an-aad-application-and-grant-permissions-to-access-the-secret"><a class="header" href="#3-create-an-aad-application-and-grant-permissions-to-access-the-secret">3. Create an AAD application and grant permissions to access the secret</a></h2>
 <pre><code class="language-bash">export APPLICATION_CLIENT_ID=&quot;$(az ad sp create-for-rbac --skip-assignment --name https://test-sp --query appId -otsv)&quot;
 </code></pre>
 <p>Set access policy for the AAD application to access the keyvault secret:</p>
@@ -421,9 +202,12 @@ export KEYVAULT_SECRET_NAME=&quot;my-secret&quot;
   --spn &quot;${APPLICATION_CLIENT_ID}&quot;
 </code></pre>
 </details>
-<h2 id="6-create-a-kubernetes-service-account"><a class="header" href="#6-create-a-kubernetes-service-account">6. Create a Kubernetes service account</a></h2>
-<p>Create a Kubernetes service account with the required labels and annotations.</p>
-<pre><code class="language-bash">cat &lt;&lt;EOF | kubectl apply -f -
+<h2 id="4-create-a-kubernetes-service-account"><a class="header" href="#4-create-a-kubernetes-service-account">4. Create a Kubernetes service account</a></h2>
+<p>Create a Kubernetes service account and associate it with the AAD application we created in step 3:</p>
+<pre><code class="language-bash">export SERVICE_ACCOUNT_NAMESPACE=&quot;default&quot;
+export SERVICE_ACCOUNT_NAME=&quot;workload-identity-sa&quot;
+
+cat &lt;&lt;EOF | kubectl apply -f -
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -431,7 +215,8 @@ metadata:
     azure.workload.identity/client-id: ${APPLICATION_CLIENT_ID}
   labels:
     azure.workload.identity/use: &quot;true&quot;
-  name: workload-identity-sa
+  name: ${SERVICE_ACCOUNT_NAME}
+  namespace: ${SERVICE_ACCOUNT_NAMESPACE}
 EOF
 </code></pre>
 <details>
@@ -442,19 +227,18 @@ EOF
 <p>If the AAD application is not in the same tenant as the Kubernetes cluster, then annotate the service account with the application tenant ID.</p>
 <pre><code class="language-bash">kubectl annotate sa workload-identity-sa azure.workload.identity/tenant-id=&quot;${APPLICATION_TENANT_ID}&quot; --overwrite
 </code></pre>
-<h2 id="7-establish-trust-between-the-aad-application-and-the-service-account-issuer--subject"><a class="header" href="#7-establish-trust-between-the-aad-application-and-the-service-account-issuer--subject">7. Establish trust between the AAD application and the service account issuer &amp; subject</a></h2>
+<h2 id="5-establish-trust-between-the-aad-application-and-the-service-account-issuer--subject"><a class="header" href="#5-establish-trust-between-the-aad-application-and-the-service-account-issuer--subject">5. Establish trust between the AAD application and the service account issuer &amp; subject</a></h2>
 <p>Login to <a href="https://portal.azure.com/#cloudshell/">Azure Cloud Shell</a> and run the following commands:</p>
 <pre><code class="language-bash"># Get the object ID of the AAD application
 export APPLICATION_OBJECT_ID=&quot;$(az ad app show --id ${APPLICATION_CLIENT_ID} --query objectId -otsv)&quot;
-# If you skip step 2
-export SERVICE_ACCOUNT_ISSUER=&quot;...&quot;
+export SERVICE_ACCOUNT_ISSUER=&quot;&lt;Your Service Account Issuer URL&gt;&quot;
 </code></pre>
 <p>Add the federated identity credential:</p>
 <pre><code class="language-bash">cat &lt;&lt;EOF &gt; body.json
 {
   &quot;name&quot;: &quot;kubernetes-federated-credential&quot;,
   &quot;issuer&quot;: &quot;${SERVICE_ACCOUNT_ISSUER}&quot;,
-  &quot;subject&quot;: &quot;system:serviceaccount:default:workload-identity-sa&quot;,
+  &quot;subject&quot;: &quot;system:serviceaccount:${SERVICE_ACCOUNT_NAMESPACE}:${SERVICE_ACCOUNT_NAME}&quot;,
   &quot;description&quot;: &quot;Kubernetes service account federated credential&quot;,
   &quot;audiences&quot;: [
     &quot;api://AzureADTokenExchange&quot;
@@ -464,15 +248,16 @@ EOF
 
 az rest --method POST --uri &quot;https://graph.microsoft.com/beta/applications/${APPLICATION_OBJECT_ID}/federatedIdentityCredentials&quot; --body @body.json
 </code></pre>
-<h2 id="8-deploy-workload"><a class="header" href="#8-deploy-workload">8. Deploy workload</a></h2>
-<p>Deploy a pod referencing the service account created in the last step:</p>
+<h2 id="6-deploy-workload"><a class="header" href="#6-deploy-workload">6. Deploy workload</a></h2>
+<p>Deploy a pod that references the service account created in the last step:</p>
 <pre><code class="language-bash">cat &lt;&lt;EOF | kubectl apply -f -
 apiVersion: v1
 kind: Pod
 metadata:
   name: quick-start
+  namespace: ${SERVICE_ACCOUNT_NAMESPACE}
 spec:
-  serviceAccountName: workload-identity-sa
+  serviceAccountName: ${SERVICE_ACCOUNT_NAME}
   containers:
     - image: aramase/dotnet:v0.4
       imagePullPolicy: IfNotPresent
@@ -581,11 +366,11 @@ Events:
 Your secret is Hello!
 </code></pre>
 </details>
-<h2 id="9-cleanup"><a class="header" href="#9-cleanup">9. Cleanup</a></h2>
+<h2 id="6-cleanup"><a class="header" href="#6-cleanup">6. Cleanup</a></h2>
 <pre><code class="language-bash">kubectl delete pod quick-start
 kubectl delete sa workload-identity-sa
 
-az keyvault delete --name &quot;${KEYVAULT_NAME}&quot; --resource-group &quot;${RESOURCE_GROUP}&quot;
+az group delete --name &quot;${RESOURCE_GROUP}&quot;
 az ad sp delete --id &quot;${APPLICATION_CLIENT_ID}&quot;
 </code></pre>
 
@@ -593,7 +378,7 @@ az ad sp delete --id &quot;${APPLICATION_CLIENT_ID}&quot;
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                                                    <a rel="prev" href="introduction.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                                    <a rel="prev" href="installation.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
@@ -607,7 +392,7 @@ az ad sp delete --id &quot;${APPLICATION_CLIENT_ID}&quot;
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                                    <a rel="prev" href="introduction.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                    <a rel="prev" href="installation.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
