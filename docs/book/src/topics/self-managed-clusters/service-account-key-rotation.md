@@ -1,4 +1,4 @@
-# Key Rotation For Self-Managed Clusters
+# Service Account Key Rotation
 
 <!-- toc -->
 

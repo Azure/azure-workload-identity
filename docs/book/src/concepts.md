@@ -8,9 +8,9 @@
 
 Azure AD Workload Identity supports the following mappings:
 
-* one-to-one (a service account referencing an AAD object)
-* many-to-one (multiple service accounts referencing the same AAD object).
-* one-to-many (a service account referencing multiple AAD objects by changing the [client ID annotation][15]).
+*   one-to-one (a service account referencing an AAD object)
+*   many-to-one (multiple service accounts referencing the same AAD object).
+*   one-to-many (a service account referencing multiple AAD objects by changing the [client ID annotation][15]).
 
 > Note: if the service account annotations are updated, you need to restart the pod for the changes to take effect.
 
@@ -48,7 +48,7 @@ With these properties injected, the webhook allows pods to use a [service accoun
 Proxy Init is an [init container][9] that establishes an iptables rule to redirect all IMDS requests from `169.254.169.254` to the [proxy][10] server by running the following command:
 
 ```sh
-{{#include ../../../init/init-iptables.sh:3:4}}
+{{#include ../../../init/init-iptables.sh:3:8}}
 ```
 
 ## Proxy
@@ -122,7 +122,7 @@ az rest --method POST --uri "https://graph.microsoft.com/beta/applications/${APP
 
 [14]: https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview
 
-[15]: ../topics/labels-and-annotations.html#annotations
+[15]: ../topics/service-account-labels-and-annotations.html#annotations
 
 [16]: https://portal.azure.com/#cloudshell/
 
