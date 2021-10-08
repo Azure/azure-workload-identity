@@ -42,6 +42,8 @@ var _ = ginkgo.Describe("Proxy [KindOnly] [LinuxOnly]", func() {
 		)
 
 		trueVal := true
+		// proxy-init needs to be run as root
+		runAsRoot := int64(0)
 		pod.Spec.InitContainers = []corev1.Container{
 			{
 				Name:            proxyInit,
@@ -49,8 +51,10 @@ var _ = ginkgo.Describe("Proxy [KindOnly] [LinuxOnly]", func() {
 				ImagePullPolicy: corev1.PullIfNotPresent,
 				SecurityContext: &corev1.SecurityContext{
 					Privileged: &trueVal,
+					RunAsUser:  &runAsRoot,
 					Capabilities: &corev1.Capabilities{
-						Add: []corev1.Capability{"NET_ADMIN"},
+						Add:  []corev1.Capability{"NET_ADMIN"},
+						Drop: []corev1.Capability{"ALL"},
 					},
 				},
 				Env: []corev1.EnvVar{

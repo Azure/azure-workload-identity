@@ -23,6 +23,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=${GOARCH} GO111MODULE=on go build -a -ldflag
 FROM --platform=${TARGETPLATFORM:-linux/amd64} gcr.io/distroless/static:nonroot
 WORKDIR /
 COPY --from=builder /workspace/proxy .
-USER nonroot:nonroot
+# Kubernetes runAsNonRoot requires USER to be numeric
+USER 65532:65532
 
 ENTRYPOINT [ "/proxy" ]

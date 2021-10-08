@@ -24,8 +24,8 @@ steps:
       ALL_LINUX_ARCH: amd64 # build amd64 only to speed up PR gate
       OUTPUT_TYPE: type=docker
   - script: |
-      wget https://github.com/aquasecurity/trivy/releases/download/v0.18.3/trivy_0.18.3_Linux-64bit.tar.gz
-      tar zxvf trivy_0.18.3_Linux-64bit.tar.gz
+      wget https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION:-0.20.0}/trivy_${TRIVY_VERSION:-0.20.0}_Linux-64bit.tar.gz
+      tar zxvf trivy_${TRIVY_VERSION:-0.20.0}_Linux-64bit.tar.gz
       # show all vulnerabilities in the logs
       ./trivy image --reset
       for IMAGE_NAME in "proxy" "proxy-init" "webhook"; do
@@ -33,6 +33,8 @@ steps:
         ./trivy --exit-code 1 --ignore-unfixed --severity MEDIUM,HIGH,CRITICAL "${REGISTRY}/${IMAGE_NAME}:${IMAGE_VERSION}-linux-amd64" || exit 1
       done
     displayName: Scan images
+    env:
+      TRIVY_VERSION: $(TRIVY_VERSION)
   - script: |
       if [[ "${REGISTRY}" =~ ghcr.io.* ]]; then
         echo "${DOCKER_PASSWORD}" | docker login ghcr.io -u azure --password-stdin
