@@ -14,7 +14,7 @@
       - [JSON Web Key (JWK) Endpoint]()
     - [Configurations]()
   - [Service Account Labels And Annotations](./topics/service-account-labels-and-annotations.md)
-  - [Lanauage-Specific Examples]()
+  - [Language-Specific Examples]()
 - [Troubleshooting]()
 - [Known Issues](./known-issues.md)
 - [Development](./development.md)
