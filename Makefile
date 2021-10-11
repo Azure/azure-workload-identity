@@ -7,7 +7,7 @@ IMAGE_VERSION ?= v0.5.0
 ORG_PATH := github.com/Azure
 PROJECT_NAME := azure-workload-identity
 BUILD_COMMIT := $(shell git rev-parse --short HEAD)
-REPO_PATH := "$(ORG_PATH)/$(PROJECT_NAME)"
+REPO_PATH := $(ORG_PATH)/$(PROJECT_NAME)
 
 # build variables
 BUILD_TIMESTAMP := $$(date +%Y-%m-%d-%H:%M)
@@ -20,8 +20,8 @@ PROXY_IMAGE := $(REGISTRY)/$(PROXY_IMAGE_NAME):$(IMAGE_VERSION)
 INIT_IMAGE := $(REGISTRY)/$(INIT_IMAGE_NAME):$(IMAGE_VERSION)
 WEBHOOK_IMAGE := $(REGISTRY)/$(WEBHOOK_IMAGE_NAME):$(IMAGE_VERSION)
 
-GOOS := $(shell go env GOOS)
-GOARCH :=$(shell go env GOARCH)
+GOOS ?= $(shell go env GOOS)
+GOARCH ?= $(shell go env GOARCH)
 
 # Directories
 ROOT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
@@ -81,8 +81,20 @@ GO_INSTALL := ./hack/go-install.sh
 ## --------------------------------------
 
 .PHONY: azwi
-azwi:
-	go build -o $(BIN_DIR)/azwi -ldflags $(LDFLAGS) ./cmd/azwi
+azwi: bin/azwi-$(GOOS)-$(GOARCH)$(EXTENSION)
+	mv bin/azwi-$(GOOS)-$(GOARCH)$(EXTENSION) bin/azwi
+
+## --------------------------------------
+## Release Binaries
+## --------------------------------------
+
+EXTENSION.linux :=
+EXTENSION.darwin :=
+EXTENSION.windows := .exe
+EXTENSION := $(EXTENSION.$(GOOS))
+
+bin/azwi-$(GOOS)-$(GOARCH)$(EXTENSION):
+	GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o $(BIN_DIR)/azwi-$(GOOS)-$(GOARCH)$(EXTENSION) -ldflags $(LDFLAGS) ./cmd/azwi
 
 ## --------------------------------------
 ## Images

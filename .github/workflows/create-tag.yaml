@@ -27,9 +27,18 @@ jobs:
           git tag ${{ steps.get-tag.outputs.tag }}
           go install github.com/git-chglog/git-chglog/cmd/git-chglog@v0.15.0
           git-chglog ${{ steps.get-tag.outputs.tag }} > CHANGELOG.md
+      - name: Build azwi-cli
+        run: |
+          make clean
+          for os_arch_extension in linux-amd64 linux-arm64 darwin-amd64 windows-amd64-exe; do
+            GOOS="$(echo ${os_arch_extension} | cut -d '-' -f 1)" \
+            GOARCH="$(echo ${os_arch_extension} | cut -d '-' -f 2)" \
+              make bin/azwi-${os_arch_extension/-exe/.exe}
+          done
+          find ./bin -type f -name 'azwi-*' | sort | xargs sha256sum >> ./bin/sha256sums.txt
       - uses: ncipollo/release-action@v1
         with:
           tag: ${{ steps.get-tag.outputs.tag }}
           bodyFile: CHANGELOG.md
           token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: "deploy/*.yaml"
+          artifacts: "deploy/*.yaml,bin/*"
