@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/Azure/azure-workload-identity/pkg/cloud/mock_cloud"
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
@@ -23,6 +24,54 @@ const (
 
 	trueValue = "true"
 )
+
+func TestCreateCmdCalidate(t *testing.T) {
+	tests := []struct {
+		name      string
+		createCmd createCmd
+		wantErr   bool
+	}{
+		{
+			name: "token expiration >= minimum token expiration",
+			createCmd: createCmd{
+				authProvider: &mockAuthProvider{
+					authArgs: &authArgs{},
+				},
+				tokenExpiration: 1 * time.Hour,
+			},
+			wantErr: false,
+		},
+		{
+			name: "token expiration < minimum token expiration",
+			createCmd: createCmd{
+				authProvider: &mockAuthProvider{
+					authArgs: &authArgs{},
+				},
+				tokenExpiration: 1 * time.Minute,
+			},
+			wantErr: true,
+		},
+		{
+			name: "token expiration > maximum token expiration",
+			createCmd: createCmd{
+				authProvider: &mockAuthProvider{
+					authArgs: &authArgs{},
+				},
+				tokenExpiration: 25 * time.Hour,
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.createCmd.validate()
+			if (err == nil && tt.wantErr) || (err != nil && !tt.wantErr) {
+				t.Errorf("validate() got err = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
 
 func TestCreateCmdRun(t *testing.T) {
 	tests := []struct {

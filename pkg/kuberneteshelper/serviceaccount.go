@@ -2,6 +2,8 @@ package kuberneteshelper
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
 
@@ -30,7 +32,7 @@ func GetKubeClient() (kubernetes.Interface, error) {
 
 // Create ServiceAccount in the cluster
 // If the ServiceAccount already exists, error is returned
-func CreateOrUpdateServiceAccount(ctx context.Context, kubeClient kubernetes.Interface, namespace, name, clientID, tenantID string) error {
+func CreateOrUpdateServiceAccount(ctx context.Context, kubeClient kubernetes.Interface, namespace, name, clientID, tenantID string, tokenExpiration time.Duration) error {
 	sa := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -43,6 +45,11 @@ func CreateOrUpdateServiceAccount(ctx context.Context, kubeClient kubernetes.Int
 				webhook.TenantIDAnnotation: tenantID,
 			},
 		},
+	}
+
+	if tokenExpiration != time.Duration(webhook.DefaultServiceAccountTokenExpiration)*time.Second {
+		// Round to the nearest second before converting to a string
+		sa.ObjectMeta.Annotations[webhook.ServiceAccountTokenExpiryAnnotation] = fmt.Sprintf("%.0f", tokenExpiration.Round(time.Second).Seconds())
 	}
 
 	serviceAccount, err := kubeClient.CoreV1().ServiceAccounts(namespace).Create(ctx, sa, metav1.CreateOptions{})
