@@ -1,5 +1,7 @@
 # Service Account Labels and Annotations
 
+<!-- toc -->
+
 The following is a list of available labels and annotations that can be used to configure the behavior when obtaining an AAD token via MSAL.
 
 ## Service Account

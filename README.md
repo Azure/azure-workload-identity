@@ -8,7 +8,7 @@ Check out the [installation guide][12] on how to deploy the Azure AD Workload Id
 
 ## Quick Start
 
-Check out the Azure AD Workload Identity [Quick Start][4] on how to securely access Azure cloud resources from your application using the webhook and MSAL SDK.
+Check out the Azure AD Workload Identity [Quick Start][4] on how to securely access Azure cloud resources from your application using the webhook and MSAL.
 
 ## Overview
 
@@ -44,7 +44,7 @@ The repository contains the following components:
 
 [4]: https://azure.github.io/azure-workload-identity/quick-start.html
 
-[5]: https://azure.github.io/azure-workload-identity/concepts.html#mutating-webhook
+[5]: https://azure.github.io/azure-workload-identity/topics/mutating-admission-webhook.html
 
 [6]: https://azure.github.io/azure-workload-identity/concepts.html#proxy-init
 
