@@ -3,6 +3,7 @@ package serviceaccount
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
 	"github.com/Azure/azure-workload-identity/pkg/kuberneteshelper"
@@ -19,11 +20,12 @@ import (
 type createCmd struct {
 	authProvider
 
-	name       string
-	namespace  string
-	issuer     string
-	azureRole  string
-	azureScope string
+	name            string
+	namespace       string
+	issuer          string
+	azureRole       string
+	azureScope      string
+	tokenExpiration time.Duration
 
 	azureClient cloud.Interface
 	kubeClient  kubernetes.Interface
@@ -39,6 +41,9 @@ func newCreateCmd() *cobra.Command {
 		Short: "Create a workload identity",
 		Long:  "This command provides the ability to create an app, add federated identity credential, create the Kubernetes service account and perform role assignment",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if err := cc.validate(); err != nil {
+				return err
+			}
 			return cc.getAuthArgs().validate()
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -59,7 +64,7 @@ func newCreateCmd() *cobra.Command {
 	f.StringVar(&cc.issuer, "issuer", "", "OpenID Connect (OIDC) issuer URL")
 	f.StringVar(&cc.azureRole, "azure-role", "", "Azure Role name (see all available roles at https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles)")
 	f.StringVar(&cc.azureScope, "azure-scope", "", "Scope at which the role assignment or definition applies to")
-
+	f.DurationVar(&cc.tokenExpiration, "token-expiration", time.Duration(webhook.DefaultServiceAccountTokenExpiration)*time.Second, "Expiration time of the service account token. Must be between 1 hour and 24 hours")
 	addAuthFlags(cc.getAuthArgs(), f)
 
 	_ = cmd.MarkFlagRequired("name")
@@ -68,6 +73,17 @@ func newCreateCmd() *cobra.Command {
 	_ = cmd.MarkFlagRequired("azure-scope")
 
 	return cmd
+}
+
+func (cc *createCmd) validate() error {
+	minTokenExpirationDuration := time.Duration(webhook.MinServiceAccountTokenExpiration) * time.Second
+	if cc.tokenExpiration < minTokenExpirationDuration {
+		return errors.Errorf("--token-expiration must be greater than or equal to %s", minTokenExpirationDuration.String())
+	}
+	if cc.tokenExpiration > 24*time.Hour {
+		return errors.Errorf("--token-expiration must be less than or equal to 24h")
+	}
+	return nil
 }
 
 func (cc *createCmd) run() error {
@@ -109,7 +125,7 @@ func (cc *createCmd) run() error {
 	log.Infof("created service principal with name: '%s', objectID: '%s'", *servicePrincipal.DisplayName, *servicePrincipal.ObjectID)
 
 	// TODO(aramase) make the update behavior configurable. If the service account already exists, fail if --overwrite is not specified
-	err = kuberneteshelper.CreateOrUpdateServiceAccount(ctx, cc.kubeClient, cc.namespace, cc.name, *app.AppID, cc.getAuthArgs().tenantID)
+	err = kuberneteshelper.CreateOrUpdateServiceAccount(ctx, cc.kubeClient, cc.namespace, cc.name, *app.AppID, cc.getAuthArgs().tenantID, cc.tokenExpiration)
 	if err != nil {
 		return errors.Wrap(err, "failed to create service account")
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
 
@@ -13,14 +14,16 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
-func TestCreateOrUpdateServiceAccount(t *testing.T) {
-	testNamespace := "test-namespace"
-	testServiceAccountName := "test-service-account"
+const (
+	testNamespace          = "test-namespace"
+	testServiceAccountName = "test-service-account"
+)
 
+func TestCreateOrUpdateServiceAccount(t *testing.T) {
 	// create fake client
 	k8sClient := fake.NewSimpleClientset()
 
-	if err := CreateOrUpdateServiceAccount(context.TODO(), k8sClient, testNamespace, testServiceAccountName, "client-id", "tenant-id"); err != nil {
+	if err := CreateOrUpdateServiceAccount(context.TODO(), k8sClient, testNamespace, testServiceAccountName, "client-id", "tenant-id", 3600*time.Second+500*time.Millisecond); err != nil {
 		t.Errorf("CreateServiceAccount() error = %v, wantErr %v", err, false)
 	}
 	// check if service account was created and has correct annotations
@@ -35,15 +38,43 @@ func TestCreateOrUpdateServiceAccount(t *testing.T) {
 	if sa.Annotations[webhook.TenantIDAnnotation] != "tenant-id" {
 		t.Errorf("CreateServiceAccount() tenantID annotation = %v, want %v", sa.Annotations[webhook.TenantIDAnnotation], "tenant-id")
 	}
+	// also test for rounding (i.e. 3600.5s -> 3601s)
+	if sa.Annotations[webhook.ServiceAccountTokenExpiryAnnotation] != "3601" {
+		t.Errorf("CreateServiceAccount() token expiry annotation = %v, want %v", sa.Annotations[webhook.ServiceAccountTokenExpiryAnnotation], "3601")
+	}
+	if sa.Labels[webhook.UsePodIdentityLabel] != "true" {
+		t.Errorf("CreateServiceAccount() usePodIdentity label = %v, want %v", sa.Labels[webhook.UsePodIdentityLabel], "true")
+	}
+}
+
+func TestCreateOrUpdateServiceAccountDefaultTokenExpiration(t *testing.T) {
+	// create fake client
+	k8sClient := fake.NewSimpleClientset()
+
+	if err := CreateOrUpdateServiceAccount(context.TODO(), k8sClient, testNamespace, testServiceAccountName, "client-id", "tenant-id", time.Duration(webhook.DefaultServiceAccountTokenExpiration)*time.Second); err != nil {
+		t.Errorf("CreateServiceAccount() error = %v, wantErr %v", err, false)
+	}
+	// check if service account was created and has correct annotations
+	sa, err := k8sClient.CoreV1().ServiceAccounts(testNamespace).Get(context.TODO(), testServiceAccountName, metav1.GetOptions{})
+	fmt.Printf("sa %+v\n", sa)
+	if err != nil {
+		t.Errorf("CreateServiceAccount() error = %v, wantErr %v", err, false)
+	}
+	if sa.Annotations[webhook.ClientIDAnnotation] != "client-id" {
+		t.Errorf("CreateServiceAccount() clientID annotation = %v, want %v", sa.Annotations[webhook.ClientIDAnnotation], "client-id")
+	}
+	if sa.Annotations[webhook.TenantIDAnnotation] != "tenant-id" {
+		t.Errorf("CreateServiceAccount() tenantID annotation = %v, want %v", sa.Annotations[webhook.TenantIDAnnotation], "tenant-id")
+	}
+	if _, ok := sa.Annotations[webhook.ServiceAccountTokenExpiryAnnotation]; ok {
+		t.Errorf("CreateServiceAccount() token expiry annotation should not be set")
+	}
 	if sa.Labels[webhook.UsePodIdentityLabel] != "true" {
 		t.Errorf("CreateServiceAccount() usePodIdentity label = %v, want %v", sa.Labels[webhook.UsePodIdentityLabel], "true")
 	}
 }
 
 func TestDeleteServiceAccount(t *testing.T) {
-	testNamespace := "test-namespace"
-	testServiceAccountName := "test-service-account"
-
 	tests := []struct {
 		name        string
 		initObjects []runtime.Object
