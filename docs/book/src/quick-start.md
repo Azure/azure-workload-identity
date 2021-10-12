@@ -273,7 +273,7 @@ Your secret is Hello!
 
 </details>
 
-## 6. Cleanup
+## 7. Cleanup
 
 ```bash
 kubectl delete pod quick-start
