@@ -29,16 +29,41 @@ jobs:
           git-chglog ${{ steps.get-tag.outputs.tag }} > CHANGELOG.md
       - name: Build azwi-cli
         run: |
+          build() {
+            export GOOS="$(echo ${1} | cut -d '-' -f 1)"
+            export GOARCH="$(echo ${1} | cut -d '-' -f 2)"
+
+            # in case of windows, we need to append .exe to the file name
+            EXTENSION="$(echo ${1} | cut -d '-' -f 3)"
+            EXTENSION=${EXTENSION/exe/.exe}
+
+            # build the binary
+            make bin/azwi-${GOOS}-${GOARCH}${EXTENSION}
+
+            # rename the binary to azwi
+            tmp_dir=$(mktemp -d)
+            cp bin/azwi-${GOOS}-${GOARCH}${EXTENSION} ${tmp_dir}/azwi${EXTENSION}
+
+            pushd ${tmp_dir}
+            tar -czf ${GITHUB_WORKSPACE}/_dist/azwi-${{ steps.get-tag.outputs.tag }}-${GOOS}-${GOARCH}.tar.gz azwi*
+            popd
+            rm -rf ${tmp_dir}
+          }
+
+          mkdir -p _dist
           make clean
-          for os_arch_extension in linux-amd64 linux-arm64 darwin-amd64 windows-amd64-exe; do
-            GOOS="$(echo ${os_arch_extension} | cut -d '-' -f 1)" \
-            GOARCH="$(echo ${os_arch_extension} | cut -d '-' -f 2)" \
-              make bin/azwi-${os_arch_extension/-exe/.exe}
+          for os_arch_extension in linux-amd64 linux-arm64 darwin-amd64 darwin-arm64 windows-amd64-exe; do
+            build ${os_arch_extension} &
           done
-          find ./bin -type f -name 'azwi-*' | sort | xargs sha256sum >> ./bin/sha256sums.txt
+          wait
+
+          pushd _dist
+          # consolidate tar and zip's sha256sum into a single file
+          find . -type f -name '*.tar.gz' | sort | xargs sha256sum >> sha256sums.txt
+          popd
       - uses: ncipollo/release-action@v1
         with:
           tag: ${{ steps.get-tag.outputs.tag }}
           bodyFile: CHANGELOG.md
           token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: "deploy/*.yaml,bin/*"
+          artifacts: "deploy/*.yaml,_dist/*"

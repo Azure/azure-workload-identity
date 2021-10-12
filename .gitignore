@@ -22,6 +22,7 @@
 bin/
 hack/tools/bin/
 obj/
+_dist/
 sa.key
 sa.pub
 
