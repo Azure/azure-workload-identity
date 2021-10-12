@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/Azure/azure-workload-identity/pkg/cmd/jwks"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/version"
 
@@ -39,6 +40,7 @@ func NewRootCmd() *cobra.Command {
 
 	cmd.AddCommand(version.NewVersionCmd())
 	cmd.AddCommand(serviceaccount.NewServiceAccountCmd())
+	cmd.AddCommand(jwks.NewJWKSCmd())
 
 	return cmd
 }
