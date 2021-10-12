@@ -1,0 +1,9 @@
+Kubernetes Workload->Azure Active Directory:Projected, signed service\naccount token
+Azure Active Directory->Azure Active Directory:Extract the issuer URL\nfrom the token request
+Azure Active Directory->Open ID Connect Issuer:{IssuerURL}/.well-known/openid-configuration
+Open ID Connect Issuer->Azure Active Directory:Return the discovery document
+Azure Active Directory->Azure Active Directory:Extract the JWKS URL from\nthe discovery document
+Azure Active Directory->Open ID Connect Issuer:{IssuerURL}/openid/v1/jwks
+Open ID Connect Issuer->Azure Active Directory:Return the JWKS document
+Azure Active Directory->Azure Active Directory:Validate the authenticity\nof the service account token
+Kubernetes Workload<-Azure Active Directory:Return an AAD token

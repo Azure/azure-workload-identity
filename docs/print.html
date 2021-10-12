@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><a href="installation.html">Installation</a></li><li class="chapter-item expanded affix "><a href="quick-start.html">Quick Start</a></li><li class="chapter-item expanded affix "><a href="concepts.html">Concepts</a></li><li class="chapter-item expanded "><a href="topics.html"><strong aria-hidden="true">1.</strong> Topics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="topics/managed-clusters.html"><strong aria-hidden="true">1.1.</strong> Managed Clusters</a></li><li class="chapter-item expanded "><a href="topics/self-managed-clusters.html"><strong aria-hidden="true">1.2.</strong> Self-Managed Clusters</a></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">1.2.1.</strong> Service Account Key Generation</div></li><li class="chapter-item expanded "><a href="topics/self-managed-clusters/service-account-key-rotation.html"><strong aria-hidden="true">1.2.2.</strong> Service Account Key Rotation</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.2.3.</strong> OIDC Endpoints</div></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">1.2.3.1.</strong> Discovery Endpoint</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.2.3.2.</strong> JSON Web Key (JWK) Endpoint</div></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.2.4.</strong> Configurations</div></li></ol></li><li class="chapter-item expanded "><a href="topics/service-account-labels-and-annotations.html"><strong aria-hidden="true">1.3.</strong> Service Account Labels And Annotations</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.4.</strong> Language-Specific Examples</div></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Troubleshooting</div></li><li class="chapter-item expanded "><a href="known-issues.html"><strong aria-hidden="true">3.</strong> Known Issues</a></li><li class="chapter-item expanded "><a href="development.html"><strong aria-hidden="true">4.</strong> Development</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="development/releasing.html"><strong aria-hidden="true">4.1.</strong> Releasing</a></li></ol></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="code-of-conduct.html"><strong aria-hidden="true">6.</strong> Code of Conduct</a></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><a href="installation.html">Installation</a></li><li class="chapter-item expanded affix "><a href="quick-start.html">Quick Start</a></li><li class="chapter-item expanded affix "><a href="concepts.html">Concepts</a></li><li class="chapter-item expanded "><a href="topics.html"><strong aria-hidden="true">1.</strong> Topics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="topics/mutating-admission-webhook.html"><strong aria-hidden="true">1.1.</strong> Mutating Admission Webhook</a></li><li class="chapter-item expanded "><a href="topics/service-account-labels-and-annotations.html"><strong aria-hidden="true">1.2.</strong> Service Account Labels And Annotations</a></li><li class="chapter-item expanded "><a href="topics/federated-identity.html"><strong aria-hidden="true">1.3.</strong> Federated Identity</a></li><li class="chapter-item expanded "><a href="topics/managed-clusters.html"><strong aria-hidden="true">1.4.</strong> Managed Clusters</a></li><li class="chapter-item expanded "><a href="topics/self-managed-clusters.html"><strong aria-hidden="true">1.5.</strong> Self-Managed Clusters</a></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">1.5.1.</strong> Service Account Key Generation</div></li><li class="chapter-item expanded "><a href="topics/self-managed-clusters/oidc-issuer.html"><strong aria-hidden="true">1.5.2.</strong> OpenID Connect Issuer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="topics/self-managed-clusters/oidc-issuer/discovery-document.html"><strong aria-hidden="true">1.5.2.1.</strong> Discovery Document</a></li><li class="chapter-item expanded "><a href="topics/self-managed-clusters/oidc-issuer/json-web-key-sets-jwks.html"><strong aria-hidden="true">1.5.2.2.</strong> JSON Web Key Sets (JWKS)</a></li></ol></li><li class="chapter-item expanded "><a href="topics/self-managed-clusters/service-account-key-rotation.html"><strong aria-hidden="true">1.5.3.</strong> Service Account Key Rotation</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.5.4.</strong> Configurations</div></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.6.</strong> Language-Specific Examples</div></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Troubleshooting</div></li><li class="chapter-item expanded "><a href="known-issues.html"><strong aria-hidden="true">3.</strong> Known Issues</a></li><li class="chapter-item expanded "><a href="development.html"><strong aria-hidden="true">4.</strong> Development</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="development/releasing.html"><strong aria-hidden="true">4.1.</strong> Releasing</a></li></ol></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="code-of-conduct.html"><strong aria-hidden="true">6.</strong> Code of Conduct</a></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -152,12 +152,12 @@
 <h2 id="installation"><a class="header" href="#installation">Installation</a></h2>
 <p>Check out the <a href="https://azure.github.io/azure-workload-identity/installation.html">installation guide</a> on how to deploy the Azure AD Workload Identity webhook.</p>
 <h2 id="quick-start"><a class="header" href="#quick-start">Quick Start</a></h2>
-<p>Check out the Azure AD Workload Identity <a href="https://azure.github.io/azure-workload-identity/quick-start.html">Quick Start</a> on how to securely access Azure cloud resources from your application using the webhook and MSAL SDK.</p>
+<p>Check out the Azure AD Workload Identity <a href="https://azure.github.io/azure-workload-identity/quick-start.html">Quick Start</a> on how to securely access Azure cloud resources from your application using the webhook and MSAL.</p>
 <h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
 <p>The repository contains the following components:</p>
 <ol>
 <li>
-<p><a href="https://azure.github.io/azure-workload-identity/concepts.html#mutating-webhook">Mutating Webhook</a></p>
+<p><a href="https://azure.github.io/azure-workload-identity/topics/mutating-admission-webhook.html">Mutating Webhook</a></p>
 <blockquote>
 <p>The webhook is for mutating pods that reference an annotated service account. The webhook will inject the environment variables and the <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-token-volume-projection">projected service account token volume</a>. Your application/SDK will consume them to authenticate itself to Azure resources.</p>
 </blockquote>
@@ -244,7 +244,7 @@ mutatingwebhookconfiguration.admissionregistration.k8s.io/azure-wi-webhook-mutat
 <li><a href="quick-start.html#4-create-a-kubernetes-service-account">4. Create a Kubernetes service account</a></li>
 <li><a href="quick-start.html#5-establish-trust-between-the-aad-application-and-the-service-account-issuer--subject">5. Establish trust between the AAD application and the service account issuer &amp; subject</a></li>
 <li><a href="quick-start.html#6-deploy-workload">6. Deploy workload</a></li>
-<li><a href="quick-start.html#6-cleanup">6. Cleanup</a></li>
+<li><a href="quick-start.html#7-cleanup">7. Cleanup</a></li>
 </ul>
 <p>In this tutorial, we will cover the basics of how to use the Azure AD Workload Identity webhook to acquire a token to access a secret in an <a href="https://azure.microsoft.com/en-us/services/key-vault/">Azure Key Vault</a>.</p>
 <h2 id="prerequisites"><a class="header" href="#prerequisites">Prerequisites</a></h2>
@@ -455,7 +455,7 @@ Events:
 Your secret is Hello!
 </code></pre>
 </details>
-<h2 id="6-cleanup"><a class="header" href="#6-cleanup">6. Cleanup</a></h2>
+<h2 id="7-cleanup"><a class="header" href="#7-cleanup">7. Cleanup</a></h2>
 <pre><code class="language-bash">kubectl delete pod quick-start
 kubectl delete sa workload-identity-sa
 
@@ -478,24 +478,6 @@ az ad sp delete --id &quot;${APPLICATION_CLIENT_ID}&quot;
 <p>Note: if the service account annotations are updated, you need to restart the pod for the changes to take effect.</p>
 </blockquote>
 <p>Users who used <a href="https://github.com/Azure/aad-pod-identity">aad-pod-identity</a> can think of a service account as an <a href="https://azure.github.io/aad-pod-identity/docs/concepts/azureidentity/">AzureIdentity</a>, except service account is part of the core Kubernetes API, rather than a CRD. This <a href="../topics/service-account-labels-and-annotations.html">doc</a> describes a list of available labels and annotations to configure.</p>
-<h2 id="mutating-webhook"><a class="header" href="#mutating-webhook">Mutating Webhook</a></h2>
-<p>Azure AD Workload Identity uses a <a href="https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/">mutating admission webhook</a> to inject the following properties to pods with a service account that is configured to use Azure AD Workload Identity:</p>
-<h3 id="environment-variables"><a class="header" href="#environment-variables">Environment Variables</a></h3>
-<table><thead><tr><th>Environment variable</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>AZURE_AUTHORITY_HOST</code></td><td>The Azure Active Directory (AAD) endpoint.</td></tr>
-<tr><td><code>AZURE_CLIENT_ID</code></td><td>The client ID of the identity.</td></tr>
-<tr><td><code>AZURE_TENANT_ID</code></td><td>The tenant ID of the Azure account.</td></tr>
-<tr><td><code>AZURE_FEDERATED_TOKEN_FILE</code></td><td>The path of the projected service account token file.</td></tr>
-</tbody></table>
-<h3 id="volumes"><a class="header" href="#volumes">Volumes</a></h3>
-<table><thead><tr><th>Volume</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>azure-identity-token</code></td><td>The projected service account volume.</td></tr>
-</tbody></table>
-<h3 id="volume-mounts"><a class="header" href="#volume-mounts">Volume Mounts</a></h3>
-<table><thead><tr><th>Volume mount</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>/var/run/secrets/tokens/azure-identity-token</code></td><td>The path of the projected service account token file.</td></tr>
-</tbody></table>
-<p>With these properties injected, the webhook allows pods to use a <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-token-volume-projection">service account token</a> projected to its volume to exchange for a valid AAD token using the <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-overview">Microsoft Authentication Library</a> (MSAL).</p>
 <h2 id="proxy-init"><a class="header" href="#proxy-init">Proxy Init</a></h2>
 <p>Proxy Init is an <a href="https://kubernetes.io/docs/concepts/workloads/pods/init-containers/">init container</a> that establishes an iptables rule to redirect all IMDS requests from <code>169.254.169.254</code> to the <a href="concepts.html#proxy">proxy</a> server by running the following command:</p>
 <pre><code class="language-sh">PROXY_PORT=${PROXY_PORT:-8000}
@@ -512,9 +494,75 @@ iptables -t nat -A OUTPUT -p tcp -d &quot;${METADATA_IP}&quot; --dport &quot;${M
 <p>“Starting June 30th, 2020, we will no longer add new features to ADAL. We’ll continue adding critical security fixes to ADAL until June 30th, 2022. After this date, your apps using ADAL will continue to work, but we recommend upgrading to MSAL to take advantage of the latest features and to stay secure.” - <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-migration#frequently-asked-questions-faq">source</a></p>
 </blockquote>
 <p>All IMDS requests from the container are routed to this proxy server due to an existing iptables rule created by <a href="concepts.html#proxy-init">Proxy Init</a>.</p>
-<h2 id="trust"><a class="header" href="#trust">Trust</a></h2>
-<p>Not all service account tokens can be exchanged for a valid AAD token. Trust between an existing service account and an AAD application has to be established in advance.</p>
-<p>To establish trust, login to <a href="https://portal.azure.com/#cloudshell/">Azure Cloud Shell</a> and export the following environment variables:</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="topics"><a class="header" href="#topics">Topics</a></h1>
+<p>This section contains information about enabling and configuring various features with Azure AD Workload Identity. We strongly recommend users to go through each applicable topic in order, from setting up your Kubernetes clusters, performing various tasks for self-managed clusters, to leveraging the webhook in your application to securely access Azure cloud resources.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="mutating-admission-webhook"><a class="header" href="#mutating-admission-webhook">Mutating Admission Webhook</a></h1>
+<ul>
+<li><a href="topics/mutating-admission-webhook.html#environment-variables">Environment Variables</a></li>
+<li><a href="topics/mutating-admission-webhook.html#volumes">Volumes</a></li>
+<li><a href="topics/mutating-admission-webhook.html#volume-mounts">Volume Mounts</a></li>
+</ul>
+<p>Azure AD Workload Identity uses a <a href="https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#mutatingadmissionwebhook">mutating admission webhook</a> to inject the following properties to pods with a service account that is configured to use Azure AD Workload Identity:</p>
+<h2 id="environment-variables"><a class="header" href="#environment-variables">Environment Variables</a></h2>
+<table><thead><tr><th>Environment variable</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>AZURE_AUTHORITY_HOST</code></td><td>The Azure Active Directory (AAD) endpoint.</td></tr>
+<tr><td><code>AZURE_CLIENT_ID</code></td><td>The client ID of the identity.</td></tr>
+<tr><td><code>AZURE_TENANT_ID</code></td><td>The tenant ID of the Azure account.</td></tr>
+<tr><td><code>AZURE_FEDERATED_TOKEN_FILE</code></td><td>The path of the projected service account token file.</td></tr>
+</tbody></table>
+<h2 id="volumes"><a class="header" href="#volumes">Volumes</a></h2>
+<table><thead><tr><th>Volume</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>azure-identity-token</code></td><td>The projected service account volume.</td></tr>
+</tbody></table>
+<h2 id="volume-mounts"><a class="header" href="#volume-mounts">Volume Mounts</a></h2>
+<table><thead><tr><th>Volume mount</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>/var/run/secrets/tokens/azure-identity-token</code></td><td>The path of the projected service account token file.</td></tr>
+</tbody></table>
+<p>With these properties injected, the webhook allows pods to use a <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-token-volume-projection">service account token</a> projected to its volume to exchange for a valid AAD token using the Azure SDK or <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-overview">Microsoft Authentication Library</a> (MSAL).</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="service-account-labels-and-annotations"><a class="header" href="#service-account-labels-and-annotations">Service Account Labels and Annotations</a></h1>
+<ul>
+<li><a href="topics/service-account-labels-and-annotations.html#service-account">Service Account</a>
+<ul>
+<li><a href="topics/service-account-labels-and-annotations.html#labels">Labels</a></li>
+<li><a href="topics/service-account-labels-and-annotations.html#annotations">Annotations</a></li>
+</ul>
+</li>
+<li><a href="topics/service-account-labels-and-annotations.html#pod">Pod</a>
+<ul>
+<li><a href="topics/service-account-labels-and-annotations.html#annotations-1">Annotations</a></li>
+</ul>
+</li>
+</ul>
+<p>The following is a list of available labels and annotations that can be used to configure the behavior when obtaining an AAD token via MSAL.</p>
+<h2 id="service-account-1"><a class="header" href="#service-account-1">Service Account</a></h2>
+<h3 id="labels"><a class="header" href="#labels">Labels</a></h3>
+<table><thead><tr><th>Label</th><th>Description</th><th>Recommended value</th><th>Required?</th></tr></thead><tbody>
+<tr><td><code>azure.workload.identity/use</code></td><td>Represents the service account is to be used for workload identity.</td><td><code>true</code></td><td>✓</td></tr>
+</tbody></table>
+<h3 id="annotations"><a class="header" href="#annotations">Annotations</a></h3>
+<table><thead><tr><th>Annotation</th><th>Description</th><th>Default</th></tr></thead><tbody>
+<tr><td><code>azure.workload.identity/client-id</code></td><td>Represents the AAD application client ID to be used with the pod.</td><td></td></tr>
+<tr><td><code>azure.workload.identity/tenant-id</code></td><td>Represents the Azure tenant ID where the AAD application is registered.</td><td><code>AZURE_TENANT_ID</code> environment variable extracted from <a href="https://github.com/Azure/azure-workload-identity/blob/1f4c734cfad7f0653601aa375daf4d32ef0cb5d2/manifest_staging/deploy/aad-pi-webhook.yaml#L43-L52"><code>aad-pi-webhook-config</code></a> ConfigMap</td></tr>
+<tr><td><code>azure.workload.identity/service-account-token-expiration</code></td><td>Represents the <code>expirationSeconds</code> field for the projected service account token. It is an optional field that the user might want to configure this to prevent any downtime caused by errors during service account token refresh. Kubernetes service account token expiry will not be correlated with AAD tokens. AAD tokens will expire in 24 hours after they are issued.</td><td><code>86400</code> (minimum <code>3600</code>)</td></tr>
+</tbody></table>
+<h2 id="pod"><a class="header" href="#pod">Pod</a></h2>
+<h3 id="annotations-1"><a class="header" href="#annotations-1">Annotations</a></h3>
+<table><thead><tr><th>Annotation</th><th>Description</th><th>Default</th></tr></thead><tbody>
+<tr><td><code>azure.workload.identity/service-account-token-expiration</code></td><td><strong>(Takes precedence if the service account is also annotated)</strong> Represents the <code>expirationSeconds</code> field for the projected service account token. It is an optional field that the user might want to configure this to prevent any downtime caused by errors during service account token refresh. Kubernetes service account token expiry will not be correlated with AAD tokens. AAD tokens will expire in 24 hours after they are issued.</td><td><code>86400</code> (minimum <code>3600</code>)</td></tr>
+<tr><td><code>azure.workload.identity/skip-containers</code></td><td>Represents a semi-colon-separated list of containers (e.g. <code>container1;container2</code>) to skip adding projected service account token volume. By default, the projected service account token volume will be added to all containers if the service account is labeled with <code>azure.workload.identity/use: true</code>.</td><td></td></tr>
+</tbody></table>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="federated-identity"><a class="header" href="#federated-identity">Federated Identity</a></h1>
+<ul>
+<li><a href="topics/federated-identity.html#azure-workload-identity-cli">Azure Workload Identity CLI</a></li>
+<li><a href="topics/federated-identity.html#azure-cli">Azure CLI</a></li>
+<li><a href="topics/federated-identity.html#azure-portal-ui">Azure Portal UI</a></li>
+</ul>
+<p>Not all service account tokens can be exchanged for a valid AAD token. A federated identity between an existing Kubernetes service account and an AAD application has to be established in advance.</p>
+<p>Currently, there are several ways to create a federated identity:</p>
+<h2 id="azure-workload-identity-cli"><a class="header" href="#azure-workload-identity-cli">Azure Workload Identity CLI</a></h2>
+<p>TODO</p>
+<h2 id="azure-cli"><a class="header" href="#azure-cli">Azure CLI</a></h2>
+<p>To create a federated identity, login to <a href="https://portal.azure.com/#cloudshell/">Azure Cloud Shell</a> and export the following environment variables:</p>
 <pre><code class="language-bash"># Get the client and object ID of the AAD application
 export APPLICATION_CLIENT_ID=&quot;...&quot;
 export APPLICATION_OBJECT_ID=&quot;$(az ad app show --id ${APPLICATION_CLIENT_ID} --query objectId -otsv)&quot;
@@ -522,13 +570,13 @@ export SERVICE_ACCOUNT_ISSUER=&quot;...&quot;
 export SERVICE_ACCOUNT_NAMESPACE=&quot;...&quot;
 export SERVICE_ACCOUNT_NAME=&quot;...&quot;
 </code></pre>
-<p>Add the federated identity credential:</p>
+<p>Add the federated identity:</p>
 <pre><code class="language-bash">cat &lt;&lt;EOF &gt; body.json
 {
-  &quot;name&quot;: &quot;kubernetes-federated-credential&quot;,
+  &quot;name&quot;: &quot;kubernetes-federated-identity&quot;,
   &quot;issuer&quot;: &quot;${SERVICE_ACCOUNT_ISSUER}&quot;,
   &quot;subject&quot;: &quot;system:serviceaccount:${SERVICE_ACCOUNT_NAMESPACE}:${SERVICE_ACCOUNT_NAME}&quot;,
-  &quot;description&quot;: &quot;Kubernetes service account federated credential&quot;,
+  &quot;description&quot;: &quot;Kubernetes service account federated identity&quot;,
   &quot;audiences&quot;: [
     &quot;api://AzureADTokenExchange&quot;
   ]
@@ -537,8 +585,8 @@ EOF
 
 az rest --method POST --uri &quot;https://graph.microsoft.com/beta/applications/${APPLICATION_OBJECT_ID}/federatedIdentityCredentials&quot; --body @body.json
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="topics"><a class="header" href="#topics">Topics</a></h1>
-<p>This section contains information about enabling and configuring various features with Azure AD Workload Identity. We strongly recommend users to go through each applicable topic in order, from setting up your Kubernetes clusters, performing various tasks for self-managed clusters, to leveraging the webhook in your application to securely access Azure cloud resources.</p>
+<h2 id="azure-portal-ui"><a class="header" href="#azure-portal-ui">Azure Portal UI</a></h2>
+<p>Coming soon.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="managed-clusters"><a class="header" href="#managed-clusters">Managed Clusters</a></h1>
 <h2 id="azure-kubernetes-service-aks"><a class="header" href="#azure-kubernetes-service-aks">Azure Kubernetes Service (AKS)</a></h2>
 <h2 id="amazon-elastic-kubernetes-service-eks"><a class="header" href="#amazon-elastic-kubernetes-service-eks">Amazon Elastic Kubernetes Service (EKS)</a></h2>
@@ -548,15 +596,141 @@ az rest --method POST --uri &quot;https://graph.microsoft.com/beta/applications/
 <ul>
 <li>Access to the cluster’s control plane node(s)</li>
 <li>Ability to modify arguments for system-critical pods such as kube-apiserver and kube-controller-manager</li>
-<li>Bring your own service account signing key pair and rotate it regularly (at least quarterly)</li>
-<li>Upload your OIDC discovery document and JWK to a public storage endpoint</li>
+<li>Bring your own service account signing key pair and <a href="topics/./self-managed-clusters/service-account-key-rotation.html">rotate it regularly</a> (at least quarterly)</li>
+<li>Manually set up your <a href="topics/./self-managed-clusters/oidc-issuer.html">OIDC issuer URL</a>, and upload your <a href="topics/self-managed-clusters/oidc-issuer/discovery-document.html">discovery document</a> and <a href="topics/self-managed-clusters/oidc-issuer/json-web-key-sets-jwks.html">JWKS</a> to a public endpoint</li>
 </ul>
 <h2 id="examples"><a class="header" href="#examples">Examples</a></h2>
 <table><thead><tr><th>Tool</th><th>Description</th></tr></thead><tbody>
 <tr><td><a href="https://capz.sigs.k8s.io/">Cluster API Provider Azure</a> (CAPZ)</td><td>Cluster API implementation for Microsoft Azure.</td></tr>
-<tr><td><a href="https://anywhere.eks.amazonaws.com/">Amazon EKS Anywhere</a></td><td>Run Amazon EKS on your own infrastructure.</td></tr>
 <tr><td><a href="https://kind.sigs.k8s.io/">Kubernetes in Docker</a> (kind)</td><td>Run local Kubernetes clusters using Docker container. A fast way to create a conformant Kubernetes cluster. Great for local testing and development.</td></tr>
 </tbody></table>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="openid-connect-issuer"><a class="header" href="#openid-connect-issuer">OpenID Connect Issuer</a></h1>
+<p>Azure AD Workload Identity and Azure Active Directory (AAD) leverages an authentication protocol called OpenID Connect (OIDC) to securely exchange a cryptographically signed Kubernetes service account token for an AAD token. Your workload can then consume the AAD token to access Azure cloud resources via the Azure SDK or MSAL.</p>
+<p>In the case of self-managed clusters, cluster administrator will have to manually set up an OIDC-compliant issuer URL and upload various documents to a public endpoint. The following table describes the documents that are required for the Azure AD Workload Identity webhook to work:</p>
+<table><thead><tr><th>Endpoint</th><th>Description</th></tr></thead><tbody>
+<tr><td><a href="topics/self-managed-clusters/./oidc-issuer/discovery-document.html"><code>{IssuerURL}/.well-known/openid-configuration</code></a></td><td>Also known as the OIDC discovery document. This contains the metadata about the issuer’s configurations.</td></tr>
+<tr><td><a href="topics/self-managed-clusters/./oidc-issuer/json-web-key-sets-jwks.html"><code>{IssuerURL}/openid/v1/jwks</code></a></td><td>This contains the public signing key(s) that AAD uses to validate the authenticity of the service account token.</td></tr>
+</tbody></table>
+<h2 id="sequence-diagram"><a class="header" href="#sequence-diagram">Sequence Diagram</a></h2>
+<p><img src="topics/self-managed-clusters/../../images/oidc-issuer-sequence-diagram.png" alt="Sequence Diagram" /></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="discovery-document"><a class="header" href="#discovery-document">Discovery Document</a></h1>
+<ul>
+<li><a href="topics/self-managed-clusters/oidc-issuer/discovery-document.html#walkthrough">Walkthrough</a>
+<ul>
+<li><a href="topics/self-managed-clusters/oidc-issuer/discovery-document.html#1-create-an-azure-blob-storage-account">1. Create an Azure Blob storage account</a></li>
+<li><a href="topics/self-managed-clusters/oidc-issuer/discovery-document.html#2-generate-the-discovery-document">2. Generate the discovery document</a></li>
+<li><a href="topics/self-managed-clusters/oidc-issuer/discovery-document.html#3-upload-the-discovery-document">3. Upload the discovery document</a></li>
+<li><a href="topics/self-managed-clusters/oidc-issuer/discovery-document.html#4-verify-that-the-discovery-document-is-publicly-accessible">4. Verify that the discovery document is publicly accessible</a></li>
+</ul>
+</li>
+</ul>
+<p>OpenID Connect describes a <a href="https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfig">metadata document</a> that contains the metadata of the issuer. This includes information such as the URLs to use and the location of the service’s public signing keys. The following section will walk you through how to generate and upload a minimal discovery document to an Azure Blob storage account.</p>
+<h2 id="walkthrough"><a class="header" href="#walkthrough">Walkthrough</a></h2>
+<h3 id="1-create-an-azure-blob-storage-account"><a class="header" href="#1-create-an-azure-blob-storage-account">1. Create an Azure Blob storage account</a></h3>
+<pre><code class="language-bash">export RESOURCE_GROUP=&quot;azwi&quot;
+export LOCATION=&quot;westus2&quot;
+az group create --name &quot;${RESOURCE_GROUP}&quot; --location &quot;${LOCATION}&quot;
+
+export AZURE_STORAGE_ACCOUNT=&quot;azwi$(openssl rand -hex 4)&quot;
+export AZURE_STORAGE_CONTAINER=&quot;oidc-test&quot;
+az storage account create --resource-group &quot;${RESOURCE_GROUP}&quot; --name &quot;${AZURE_STORAGE_ACCOUNT}&quot;
+az storage container create --name &quot;${AZURE_STORAGE_CONTAINER}&quot; --public-access container
+</code></pre>
+<h3 id="2-generate-the-discovery-document"><a class="header" href="#2-generate-the-discovery-document">2. Generate the discovery document</a></h3>
+<pre><code class="language-bash">cat &lt;&lt;EOF &gt; openid-configuration.json
+{
+  &quot;issuer&quot;: &quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/&quot;,
+  &quot;authorization_endpoint&quot;: &quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/connect/authorize&quot;,
+  &quot;jwks_uri&quot;: &quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/openid/v1/jwks&quot;,
+  &quot;response_types_supported&quot;: [
+    &quot;id_token&quot;
+  ],
+  &quot;subject_types_supported&quot;: [
+    &quot;public&quot;
+  ],
+  &quot;id_token_signing_alg_values_supported&quot;: [
+    &quot;RS256&quot;
+  ]
+}
+EOF
+</code></pre>
+<h3 id="3-upload-the-discovery-document"><a class="header" href="#3-upload-the-discovery-document">3. Upload the discovery document</a></h3>
+<pre><code class="language-bash">az storage blob upload \
+  --container-name &quot;${AZURE_STORAGE_CONTAINER}&quot; \
+  --file openid-configuration.json \
+  --name .well-known/openid-configuration
+</code></pre>
+<h3 id="4-verify-that-the-discovery-document-is-publicly-accessible"><a class="header" href="#4-verify-that-the-discovery-document-is-publicly-accessible">4. Verify that the discovery document is publicly accessible</a></h3>
+<pre><code class="language-bash">curl -s &quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/.well-known/openid-configuration&quot;
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code class="language-json">{
+  &quot;issuer&quot;: &quot;https://&lt;REDACTED&gt;.blob.core.windows.net/oidc-test/&quot;,
+  &quot;authorization_endpoint&quot;: &quot;https://&lt;REDACTED&gt;.blob.core.windows.net/oidc-test/connect/authorize&quot;,
+  &quot;jwks_uri&quot;: &quot;https://&lt;REDACTED&gt;.blob.core.windows.net/oidc-test/openid/v1/jwks&quot;,
+  &quot;response_types_supported&quot;: [
+    &quot;id_token&quot;
+  ],
+  &quot;subject_types_supported&quot;: [
+    &quot;public&quot;
+  ],
+  &quot;id_token_signing_alg_values_supported&quot;: [
+    &quot;RS256&quot;
+  ]
+}
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="json-web-key-sets-jwks"><a class="header" href="#json-web-key-sets-jwks">JSON Web Key Sets (JWKS)</a></h1>
+<ul>
+<li><a href="topics/self-managed-clusters/oidc-issuer/json-web-key-sets-jwks.html#walkthrough">Walkthrough</a>
+<ul>
+<li><a href="topics/self-managed-clusters/oidc-issuer/json-web-key-sets-jwks.html#1-install-azwi">1. Install <code>azwi</code></a></li>
+<li><a href="topics/self-managed-clusters/oidc-issuer/json-web-key-sets-jwks.html#2-generate-the-jwks-document">2. Generate the JWKS document</a></li>
+<li><a href="topics/self-managed-clusters/oidc-issuer/json-web-key-sets-jwks.html#3-upload-the-jwks-document">3. Upload the JWKS document</a></li>
+<li><a href="topics/self-managed-clusters/oidc-issuer/json-web-key-sets-jwks.html#4-verify-that-the-jwks-document-is-publicly-accessible">4. Verify that the JWKS document is publicly accessible</a></li>
+</ul>
+</li>
+</ul>
+<p>The JSON Web Key Sets (JWKS) document contains the public signing key(s) that allows AAD to verify the authenticity of the service account token.</p>
+<h2 id="walkthrough-1"><a class="header" href="#walkthrough-1">Walkthrough</a></h2>
+<blockquote>
+<p>Assuming you have access to your service account signing key pair and followed <a href="topics/self-managed-clusters/oidc-issuer/./discovery-document.html">the guide</a> on how to create and upload the discovery document to an Azure blob storage account. See this section on how to generate one.</p>
+</blockquote>
+<h3 id="1-install-azwi"><a class="header" href="#1-install-azwi">1. Install <code>azwi</code></a></h3>
+<p><code>azwi</code> is a CLI tool that helps generate the JWKS document in JSON.</p>
+<pre><code class="language-bash">go install github.com/Azure/azure-workload-identity/cmd/azwi
+</code></pre>
+<h3 id="2-generate-the-jwks-document"><a class="header" href="#2-generate-the-jwks-document">2. Generate the JWKS document</a></h3>
+<pre><code class="language-bash">azwi jwks --public-keys &lt;PublicKeyPath&gt; --output-file jwks.json
+</code></pre>
+<blockquote>
+<p>If you have multiple public signing keys, you can append additional <code>--public-keys</code> flag to the command.</p>
+</blockquote>
+<h3 id="3-upload-the-jwks-document"><a class="header" href="#3-upload-the-jwks-document">3. Upload the JWKS document</a></h3>
+<pre><code class="language-bash">az storage blob upload \
+  --container-name &quot;${AZURE_STORAGE_CONTAINER}&quot; \
+  --file jwks.json \
+  --name openid/v1/jwks
+</code></pre>
+<h3 id="4-verify-that-the-jwks-document-is-publicly-accessible"><a class="header" href="#4-verify-that-the-jwks-document-is-publicly-accessible">4. Verify that the JWKS document is publicly accessible</a></h3>
+<pre><code class="language-bash">curl -s &quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/openid/v1/jwks&quot;
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code class="language-json">{
+  &quot;keys&quot;: [
+    {
+      &quot;use&quot;: &quot;sig&quot;,
+      &quot;kty&quot;: &quot;RSA&quot;,
+      &quot;kid&quot;: &quot;Me5VC6i4_4mymFj7T5rcUftFjYX70YoCfSnZB6-nBY4&quot;,
+      &quot;alg&quot;: &quot;RS256&quot;,
+      &quot;n&quot;: &quot;ywg7HeKIFX3vleVKZHeYoNpuLHIDisnczYXrUdIGCNilCJFA1ymjG2UAADnt_FpYUsCVyKYJTqcxNbK4boNg_P3uK39OAqXabwYrilEZvsVJQKhzn8dXLeqAnM98L8eBpySU208KTsfMkS3Q6lqwurUP7c_a3g_1XRJukz_EmQxg9jLD_fQd5VwPTEo8HJQIFqIxFWzjTkkK5hbcL9Cclkf6RpeRyjh7Vem57Fu-jAlxDUiYiqyieM4OBNm4CQjiqDE8_xOC8viNpHNw542MYVDKSRnYui31lCOj32wBDphczR8BbnrZgbqN3K_zzB3gIjcGbWbbGA5xKJYqSu5uRwN89_CWrT3vGw5RN3XQPSbhGC4smgZkOCw3N9i1b-x-rrd-mRse6F95ONaoslCJUbJvxvDdb5X0P4_CVZRwJvUyP3OJ44ZvwzshA-zilG-QC9E1j2R9DTSMqOJzUuOxS0JIvoboteI1FAByV9KyU948zQRM7r7MMZYBKWIsu6h7&quot;,
+      &quot;e&quot;: &quot;AQAB&quot;
+    }
+  ]
+}
+</code></pre>
+</details>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="service-account-key-rotation"><a class="header" href="#service-account-key-rotation">Service Account Key Rotation</a></h1>
 <ul>
 <li><a href="topics/self-managed-clusters/service-account-key-rotation.html#best-practices">Best Practices</a>
@@ -713,7 +887,7 @@ EOF
 <pre><code class="language-bash">kubectl exec dummy-pod -- cat /var/run/secrets/tokens/azure-identity-token
 </code></pre>
 <p>Decode your token using <a href="https://jwt.io/">jwt.io</a>. The <code>kid</code> field in the token header should be the same as the <code>kid</code> of <code>generate-jwks --public-keys sa-new.pub | jq -r '.keys[0].kid'</code>. This means that the service account token is signed by the new private key.</p>
-<h3 id="6-cleanup-1"><a class="header" href="#6-cleanup-1">6. Cleanup</a></h3>
+<h3 id="6-cleanup"><a class="header" href="#6-cleanup">6. Cleanup</a></h3>
 <p>Delete the dangling resources created above:</p>
 <pre><code class="language-bash">kubectl delete ds jump
 kubectl delete pod dummy-pod
@@ -740,25 +914,6 @@ yq eval -i &quot;del(.spec.containers[0].command[${INDEX}])&quot; /etc/kubernete
 # remove the old key pair from disk
 rm sa.*
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="service-account-labels-and-annotations"><a class="header" href="#service-account-labels-and-annotations">Service Account Labels and Annotations</a></h1>
-<p>The following is a list of available labels and annotations that can be used to configure the behavior when obtaining an AAD token via MSAL.</p>
-<h2 id="service-account-1"><a class="header" href="#service-account-1">Service Account</a></h2>
-<h3 id="labels"><a class="header" href="#labels">Labels</a></h3>
-<table><thead><tr><th>Label</th><th>Description</th><th>Recommended value</th><th>Required?</th></tr></thead><tbody>
-<tr><td><code>azure.workload.identity/use</code></td><td>Represents the service account is to be used for workload identity.</td><td><code>true</code></td><td>✓</td></tr>
-</tbody></table>
-<h3 id="annotations"><a class="header" href="#annotations">Annotations</a></h3>
-<table><thead><tr><th>Annotation</th><th>Description</th><th>Default</th></tr></thead><tbody>
-<tr><td><code>azure.workload.identity/client-id</code></td><td>Represents the AAD application client ID to be used with the pod.</td><td></td></tr>
-<tr><td><code>azure.workload.identity/tenant-id</code></td><td>Represents the Azure tenant ID where the AAD application is registered.</td><td><code>AZURE_TENANT_ID</code> environment variable extracted from <a href="https://github.com/Azure/azure-workload-identity/blob/1f4c734cfad7f0653601aa375daf4d32ef0cb5d2/manifest_staging/deploy/aad-pi-webhook.yaml#L43-L52"><code>aad-pi-webhook-config</code></a> ConfigMap</td></tr>
-<tr><td><code>azure.workload.identity/service-account-token-expiration</code></td><td>Represents the <code>expirationSeconds</code> field for the projected service account token. It is an optional field that the user might want to configure this to prevent any downtime caused by errors during service account token refresh. Kubernetes service account token expiry will not be correlated with AAD tokens. AAD tokens will expire in 24 hours after they are issued.</td><td><code>86400</code> (minimum <code>3600</code>)</td></tr>
-</tbody></table>
-<h2 id="pod"><a class="header" href="#pod">Pod</a></h2>
-<h3 id="annotations-1"><a class="header" href="#annotations-1">Annotations</a></h3>
-<table><thead><tr><th>Annotation</th><th>Description</th><th>Default</th></tr></thead><tbody>
-<tr><td><code>azure.workload.identity/service-account-token-expiration</code></td><td><strong>(Takes precedence if the service account is also annotated)</strong> Represents the <code>expirationSeconds</code> field for the projected service account token. It is an optional field that the user might want to configure this to prevent any downtime caused by errors during service account token refresh. Kubernetes service account token expiry will not be correlated with AAD tokens. AAD tokens will expire in 24 hours after they are issued.</td><td><code>86400</code> (minimum <code>3600</code>)</td></tr>
-<tr><td><code>azure.workload.identity/skip-containers</code></td><td>Represents a semi-colon-separated list of containers (e.g. <code>container1;container2</code>) to skip adding projected service account token volume. By default, the projected service account token volume will be added to all containers if the service account is labeled with <code>azure.workload.identity/use: true</code>.</td><td></td></tr>
-</tbody></table>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="known-issues"><a class="header" href="#known-issues">Known Issues</a></h1>
 <h2 id="permission-denied-when-reading-the-projected-service-account-token-file"><a class="header" href="#permission-denied-when-reading-the-projected-service-account-token-file">Permission denied when reading the projected service account token file</a></h2>
 <p>In Kubernetes 1.18, the default mode for the projected service account token file is <code>0600</code>. This causes containers running as non-root to fail while trying to read the token file:</p>

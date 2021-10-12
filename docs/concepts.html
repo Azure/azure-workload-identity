@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><a href="installation.html">Installation</a></li><li class="chapter-item expanded affix "><a href="quick-start.html">Quick Start</a></li><li class="chapter-item expanded affix "><a href="concepts.html" class="active">Concepts</a></li><li class="chapter-item expanded "><a href="topics.html"><strong aria-hidden="true">1.</strong> Topics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="topics/managed-clusters.html"><strong aria-hidden="true">1.1.</strong> Managed Clusters</a></li><li class="chapter-item expanded "><a href="topics/self-managed-clusters.html"><strong aria-hidden="true">1.2.</strong> Self-Managed Clusters</a></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">1.2.1.</strong> Service Account Key Generation</div></li><li class="chapter-item expanded "><a href="topics/self-managed-clusters/service-account-key-rotation.html"><strong aria-hidden="true">1.2.2.</strong> Service Account Key Rotation</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.2.3.</strong> OIDC Endpoints</div></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">1.2.3.1.</strong> Discovery Endpoint</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.2.3.2.</strong> JSON Web Key (JWK) Endpoint</div></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.2.4.</strong> Configurations</div></li></ol></li><li class="chapter-item expanded "><a href="topics/service-account-labels-and-annotations.html"><strong aria-hidden="true">1.3.</strong> Service Account Labels And Annotations</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.4.</strong> Language-Specific Examples</div></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Troubleshooting</div></li><li class="chapter-item expanded "><a href="known-issues.html"><strong aria-hidden="true">3.</strong> Known Issues</a></li><li class="chapter-item expanded "><a href="development.html"><strong aria-hidden="true">4.</strong> Development</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="development/releasing.html"><strong aria-hidden="true">4.1.</strong> Releasing</a></li></ol></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="code-of-conduct.html"><strong aria-hidden="true">6.</strong> Code of Conduct</a></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><a href="installation.html">Installation</a></li><li class="chapter-item expanded affix "><a href="quick-start.html">Quick Start</a></li><li class="chapter-item expanded affix "><a href="concepts.html" class="active">Concepts</a></li><li class="chapter-item expanded "><a href="topics.html"><strong aria-hidden="true">1.</strong> Topics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="topics/mutating-admission-webhook.html"><strong aria-hidden="true">1.1.</strong> Mutating Admission Webhook</a></li><li class="chapter-item expanded "><a href="topics/service-account-labels-and-annotations.html"><strong aria-hidden="true">1.2.</strong> Service Account Labels And Annotations</a></li><li class="chapter-item expanded "><a href="topics/federated-identity.html"><strong aria-hidden="true">1.3.</strong> Federated Identity</a></li><li class="chapter-item expanded "><a href="topics/managed-clusters.html"><strong aria-hidden="true">1.4.</strong> Managed Clusters</a></li><li class="chapter-item expanded "><a href="topics/self-managed-clusters.html"><strong aria-hidden="true">1.5.</strong> Self-Managed Clusters</a></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">1.5.1.</strong> Service Account Key Generation</div></li><li class="chapter-item expanded "><a href="topics/self-managed-clusters/oidc-issuer.html"><strong aria-hidden="true">1.5.2.</strong> OpenID Connect Issuer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="topics/self-managed-clusters/oidc-issuer/discovery-document.html"><strong aria-hidden="true">1.5.2.1.</strong> Discovery Document</a></li><li class="chapter-item expanded "><a href="topics/self-managed-clusters/oidc-issuer/json-web-key-sets-jwks.html"><strong aria-hidden="true">1.5.2.2.</strong> JSON Web Key Sets (JWKS)</a></li></ol></li><li class="chapter-item expanded "><a href="topics/self-managed-clusters/service-account-key-rotation.html"><strong aria-hidden="true">1.5.3.</strong> Service Account Key Rotation</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.5.4.</strong> Configurations</div></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.6.</strong> Language-Specific Examples</div></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Troubleshooting</div></li><li class="chapter-item expanded "><a href="known-issues.html"><strong aria-hidden="true">3.</strong> Known Issues</a></li><li class="chapter-item expanded "><a href="development.html"><strong aria-hidden="true">4.</strong> Development</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="development/releasing.html"><strong aria-hidden="true">4.1.</strong> Releasing</a></li></ol></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="code-of-conduct.html"><strong aria-hidden="true">6.</strong> Code of Conduct</a></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -162,24 +162,6 @@
 <p>Note: if the service account annotations are updated, you need to restart the pod for the changes to take effect.</p>
 </blockquote>
 <p>Users who used <a href="https://github.com/Azure/aad-pod-identity">aad-pod-identity</a> can think of a service account as an <a href="https://azure.github.io/aad-pod-identity/docs/concepts/azureidentity/">AzureIdentity</a>, except service account is part of the core Kubernetes API, rather than a CRD. This <a href="../topics/service-account-labels-and-annotations.html">doc</a> describes a list of available labels and annotations to configure.</p>
-<h2 id="mutating-webhook"><a class="header" href="#mutating-webhook">Mutating Webhook</a></h2>
-<p>Azure AD Workload Identity uses a <a href="https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/">mutating admission webhook</a> to inject the following properties to pods with a service account that is configured to use Azure AD Workload Identity:</p>
-<h3 id="environment-variables"><a class="header" href="#environment-variables">Environment Variables</a></h3>
-<table><thead><tr><th>Environment variable</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>AZURE_AUTHORITY_HOST</code></td><td>The Azure Active Directory (AAD) endpoint.</td></tr>
-<tr><td><code>AZURE_CLIENT_ID</code></td><td>The client ID of the identity.</td></tr>
-<tr><td><code>AZURE_TENANT_ID</code></td><td>The tenant ID of the Azure account.</td></tr>
-<tr><td><code>AZURE_FEDERATED_TOKEN_FILE</code></td><td>The path of the projected service account token file.</td></tr>
-</tbody></table>
-<h3 id="volumes"><a class="header" href="#volumes">Volumes</a></h3>
-<table><thead><tr><th>Volume</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>azure-identity-token</code></td><td>The projected service account volume.</td></tr>
-</tbody></table>
-<h3 id="volume-mounts"><a class="header" href="#volume-mounts">Volume Mounts</a></h3>
-<table><thead><tr><th>Volume mount</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>/var/run/secrets/tokens/azure-identity-token</code></td><td>The path of the projected service account token file.</td></tr>
-</tbody></table>
-<p>With these properties injected, the webhook allows pods to use a <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-token-volume-projection">service account token</a> projected to its volume to exchange for a valid AAD token using the <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-overview">Microsoft Authentication Library</a> (MSAL).</p>
 <h2 id="proxy-init"><a class="header" href="#proxy-init">Proxy Init</a></h2>
 <p>Proxy Init is an <a href="https://kubernetes.io/docs/concepts/workloads/pods/init-containers/">init container</a> that establishes an iptables rule to redirect all IMDS requests from <code>169.254.169.254</code> to the <a href="#proxy">proxy</a> server by running the following command:</p>
 <pre><code class="language-sh">PROXY_PORT=${PROXY_PORT:-8000}
@@ -196,31 +178,6 @@ iptables -t nat -A OUTPUT -p tcp -d &quot;${METADATA_IP}&quot; --dport &quot;${M
 <p>“Starting June 30th, 2020, we will no longer add new features to ADAL. We’ll continue adding critical security fixes to ADAL until June 30th, 2022. After this date, your apps using ADAL will continue to work, but we recommend upgrading to MSAL to take advantage of the latest features and to stay secure.” - <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-migration#frequently-asked-questions-faq">source</a></p>
 </blockquote>
 <p>All IMDS requests from the container are routed to this proxy server due to an existing iptables rule created by <a href="#proxy-init">Proxy Init</a>.</p>
-<h2 id="trust"><a class="header" href="#trust">Trust</a></h2>
-<p>Not all service account tokens can be exchanged for a valid AAD token. Trust between an existing service account and an AAD application has to be established in advance.</p>
-<p>To establish trust, login to <a href="https://portal.azure.com/#cloudshell/">Azure Cloud Shell</a> and export the following environment variables:</p>
-<pre><code class="language-bash"># Get the client and object ID of the AAD application
-export APPLICATION_CLIENT_ID=&quot;...&quot;
-export APPLICATION_OBJECT_ID=&quot;$(az ad app show --id ${APPLICATION_CLIENT_ID} --query objectId -otsv)&quot;
-export SERVICE_ACCOUNT_ISSUER=&quot;...&quot;
-export SERVICE_ACCOUNT_NAMESPACE=&quot;...&quot;
-export SERVICE_ACCOUNT_NAME=&quot;...&quot;
-</code></pre>
-<p>Add the federated identity credential:</p>
-<pre><code class="language-bash">cat &lt;&lt;EOF &gt; body.json
-{
-  &quot;name&quot;: &quot;kubernetes-federated-credential&quot;,
-  &quot;issuer&quot;: &quot;${SERVICE_ACCOUNT_ISSUER}&quot;,
-  &quot;subject&quot;: &quot;system:serviceaccount:${SERVICE_ACCOUNT_NAMESPACE}:${SERVICE_ACCOUNT_NAME}&quot;,
-  &quot;description&quot;: &quot;Kubernetes service account federated credential&quot;,
-  &quot;audiences&quot;: [
-    &quot;api://AzureADTokenExchange&quot;
-  ]
-}
-EOF
-
-az rest --method POST --uri &quot;https://graph.microsoft.com/beta/applications/${APPLICATION_OBJECT_ID}/federatedIdentityCredentials&quot; --body @body.json
-</code></pre>
 
                     </main>
 
