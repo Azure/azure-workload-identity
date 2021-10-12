@@ -23,6 +23,7 @@ require (
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	gopkg.in/ini.v1 v1.51.0
+	gopkg.in/square/go-jose.v2 v2.2.2
 	k8s.io/api v0.21.2
 	k8s.io/apimachinery v0.21.2
 	k8s.io/client-go v0.21.2
