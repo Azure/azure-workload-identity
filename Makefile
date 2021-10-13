@@ -388,8 +388,10 @@ release-manifest: $(KUSTOMIZE)
 	@sed -i -e "s/version: .*/version: $$(echo ${NEW_VERSION} | cut -c2-)/" ./third_party/open-policy-agent/gatekeeper/helmify/static/Chart.yaml
 	@sed -i -e "s/release: .*/release: ${NEW_VERSION}/" ./third_party/open-policy-agent/gatekeeper/helmify/static/values.yaml
 	@sed -i -e 's/Current release version: `.*`/Current release version: `'"${NEW_VERSION}"'`/' ./third_party/open-policy-agent/gatekeeper/helmify/static/README.md
-	@sed -i -e 's/proxy-init:.*/proxy-init:${NEW_VERSION}' ./examples/migration/pod-with-proxy-init-and-proxy-sidecar.yaml
-	@sed -i -e 's/proxy:.*/proxy:${NEW_VERSION}' ./examples/migration/pod-with-proxy-init-and-proxy-sidecar.yaml
+	@sed -i -e 's/proxy-init:.*/proxy-init:${NEW_VERSION}/' ./examples/migration/pod-with-proxy-init-and-proxy-sidecar.yaml
+	@sed -i -e 's/proxy:.*/proxy:${NEW_VERSION}/' ./examples/migration/pod-with-proxy-init-and-proxy-sidecar.yaml
+	@sed -i -e 's/proxy-init:[^"]*/proxy-init:${NEW_VERSION}/' ./test/e2e/e2e_test.go
+	@sed -i -e 's/proxy:[^"]*/proxy:${NEW_VERSION}/' ./test/e2e/e2e_test.go
 	export
 	$(MAKE) manifests
 

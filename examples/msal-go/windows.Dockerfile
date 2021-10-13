@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64  golang:1.17 as builder
+FROM --platform=linux/amd64 golang:1.17 as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
