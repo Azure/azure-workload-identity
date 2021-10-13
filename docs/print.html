@@ -821,19 +821,15 @@ done
 </code></pre>
 <h3 id="3-update-the-jwks"><a class="header" href="#3-update-the-jwks">3. Update the JWKS</a></h3>
 <p>In the case of service account tokens generated before you initiated the key rotation, you would need a time period where the old and new public keys exist in the JWKS. The relying party can then validate service account tokens signed by both the old and new private key.</p>
-<p>Install the <code>generate-jwks</code> tool:</p>
-<blockquote>
-<p>Make sure the environment variable <code>GOBIN</code> is defined and it is part of your <code>PATH</code>.</p>
-</blockquote>
-<pre><code class="language-bash">pushd hack/generate-jwks
-go install .
-popd
+<p>Install <code>azwi</code>:</p>
+<p><code>azwi</code> is a CLI tool that helps generate the JWKS document in JSON.</p>
+<pre><code class="language-bash">go install github.com/Azure/azure-workload-identity/cmd/azwi
 </code></pre>
 <p>Generate and upload the JWKS:</p>
 <blockquote>
 <p>Assuming you followed our <a href="topics/self-managed-clusters/../../quick-start.html">Quick Start</a> and store your OIDC discovery document and JWKS in an Azure storage account.</p>
 </blockquote>
-<pre><code class="language-bash">generate-jwks --public-keys sa-old.pub,sa-new.pub &gt; jwks.json
+<pre><code class="language-bash">azwi jwks --public-keys sa-old.pub --public-keys sa-new.pub --output-file jwks.json
 export AZURE_STORAGE_ACCOUNT=&lt;AzureStorageAccount&gt;
 az storage blob upload \
   --container-name &quot;${AZURE_STORAGE_CONTAINER}&quot; \
@@ -886,7 +882,7 @@ EOF
 <p>Output the projected service account token:</p>
 <pre><code class="language-bash">kubectl exec dummy-pod -- cat /var/run/secrets/tokens/azure-identity-token
 </code></pre>
-<p>Decode your token using <a href="https://jwt.io/">jwt.io</a>. The <code>kid</code> field in the token header should be the same as the <code>kid</code> of <code>generate-jwks --public-keys sa-new.pub | jq -r '.keys[0].kid'</code>. This means that the service account token is signed by the new private key.</p>
+<p>Decode your token using <a href="https://jwt.io/">jwt.io</a>. The <code>kid</code> field in the token header should be the same as the <code>kid</code> of <code>azwi jwks --public-keys sa-new.pub | jq -r '.keys[0].kid'</code>. This means that the service account token is signed by the new private key.</p>
 <h3 id="6-cleanup"><a class="header" href="#6-cleanup">6. Cleanup</a></h3>
 <p>Delete the dangling resources created above:</p>
 <pre><code class="language-bash">kubectl delete ds jump
@@ -895,7 +891,7 @@ kubectl delete sa workload-identity-sa
 </code></pre>
 <h3 id="7-remove-old-jwk-after-maximum-token-expiration"><a class="header" href="#7-remove-old-jwk-after-maximum-token-expiration">7. Remove old JWK after maximum token expiration</a></h3>
 <p>After the maximum token expiration (the default expiration is 24 hours) has passed, projected service account tokens signed by the old private key will be rotated by kubelet and signed with the new signing key. The kubelet proactively rotates the token if it is older than 80% of its total TTL, or if the token is older than 24 hours. You should update the JWKS accordingly to only include the new public key:</p>
-<pre><code class="language-bash">generate-jwks --public-keys sa-new.pub | jq &gt; jwks.json
+<pre><code class="language-bash">azwi jwks --public-keys sa-new.pub --output-file jwks.json
 az storage blob upload \
   --container-name &quot;${AZURE_STORAGE_CONTAINER}&quot; \
   --file jwks.json \
@@ -1022,16 +1018,12 @@ az storage blob upload \
   --file openid-configuration.json \
   --name .well-known/openid-configuration
 </code></pre>
-<p>Install the <code>generate-jwks</code> tool:</p>
-<blockquote>
-<p>Make sure the environment variable <code>GOBIN</code> is defined and it is part of your <code>PATH</code>.</p>
-</blockquote>
-<pre><code class="language-bash">pushd hack/generate-jwks
-go install .
-popd
+<p>Install <code>azwi</code>:</p>
+<p><code>azwi</code> is a CLI tool that helps generate the JWKS document in JSON.</p>
+<pre><code class="language-bash">go install github.com/Azure/azure-workload-identity/cmd/azwi
 </code></pre>
 <p>Generate and upload the JWKS:</p>
-<pre><code class="language-bash">generate-jwks --public-keys sa.pub &gt; jwks.json
+<pre><code class="language-bash">azwi jwks --public-keys sa.pub --output-file jwks.json
 az storage blob upload \
   --container-name &quot;${AZURE_STORAGE_CONTAINER}&quot; \
   --file jwks.json \
