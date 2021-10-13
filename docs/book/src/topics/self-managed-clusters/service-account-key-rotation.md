@@ -91,14 +91,12 @@ done
 
 In the case of service account tokens generated before you initiated the key rotation, you would need a time period where the old and new public keys exist in the JWKS. The relying party can then validate service account tokens signed by both the old and new private key.
 
-Install the `generate-jwks` tool:
+Install `azwi`:
 
-> Make sure the environment variable `GOBIN` is defined and it is part of your `PATH`.
+`azwi` is a CLI tool that helps generate the JWKS document in JSON.
 
 ```bash
-pushd hack/generate-jwks
-go install .
-popd
+go install github.com/Azure/azure-workload-identity/cmd/azwi
 ```
 
 Generate and upload the JWKS:
@@ -106,7 +104,7 @@ Generate and upload the JWKS:
 > Assuming you followed our [Quick Start][2] and store your OIDC discovery document and JWKS in an Azure storage account.
 
 ```bash
-generate-jwks --public-keys sa-old.pub,sa-new.pub > jwks.json
+azwi jwks --public-keys sa-old.pub --public-keys sa-new.pub --output-file jwks.json
 export AZURE_STORAGE_ACCOUNT=<AzureStorageAccount>
 az storage blob upload \
   --container-name "${AZURE_STORAGE_CONTAINER}" \
@@ -172,7 +170,7 @@ Output the projected service account token:
 kubectl exec dummy-pod -- cat /var/run/secrets/tokens/azure-identity-token
 ```
 
-Decode your token using [jwt.io][3]. The `kid` field in the token header should be the same as the `kid` of `generate-jwks --public-keys sa-new.pub | jq -r '.keys[0].kid'`. This means that the service account token is signed by the new private key.
+Decode your token using [jwt.io][3]. The `kid` field in the token header should be the same as the `kid` of `azwi jwks --public-keys sa-new.pub | jq -r '.keys[0].kid'`. This means that the service account token is signed by the new private key.
 
 ### 6. Cleanup
 
@@ -189,7 +187,7 @@ kubectl delete sa workload-identity-sa
 After the maximum token expiration (the default expiration is 24 hours) has passed, projected service account tokens signed by the old private key will be rotated by kubelet and signed with the new signing key. The kubelet proactively rotates the token if it is older than 80% of its total TTL, or if the token is older than 24 hours. You should update the JWKS accordingly to only include the new public key:
 
 ```bash
-generate-jwks --public-keys sa-new.pub | jq > jwks.json
+azwi jwks --public-keys sa-new.pub --output-file jwks.json
 az storage blob upload \
   --container-name "${AZURE_STORAGE_CONTAINER}" \
   --file jwks.json \
