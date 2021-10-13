@@ -83,20 +83,18 @@ az storage blob upload \
   --name .well-known/openid-configuration
 ```
 
-Install the `generate-jwks` tool:
+Install `azwi`:
 
-> Make sure the environment variable `GOBIN` is defined and it is part of your `PATH`.
+`azwi` is a CLI tool that helps generate the JWKS document in JSON.
 
 ```bash
-pushd hack/generate-jwks
-go install .
-popd
+go install github.com/Azure/azure-workload-identity/cmd/azwi
 ```
 
 Generate and upload the JWKS:
 
 ```bash
-generate-jwks --public-keys sa.pub > jwks.json
+azwi jwks --public-keys sa.pub --output-file jwks.json
 az storage blob upload \
   --container-name "${AZURE_STORAGE_CONTAINER}" \
   --file jwks.json \

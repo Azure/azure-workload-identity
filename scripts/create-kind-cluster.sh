@@ -46,9 +46,8 @@ EOF
   exit 1
   fi
   if ! curl -sSf "${SERVICE_ACCOUNT_ISSUER}openid/v1/jwks" > /dev/null 2>&1; then
-    pushd hack/generate-jwks
-    JWKS="$(go run main.go --public-keys "${SERVICE_ACCOUNT_KEY_FILE}")"
-    popd
+    make azwi
+    JWKS="$(./bin/azwi jwks --public-keys "${SERVICE_ACCOUNT_KEY_FILE}")"
     cat <<EOF
 ${SERVICE_ACCOUNT_ISSUER}openid/v1/jwks is missing. You can upload the following JSON to the storage account:
 ${JWKS}
