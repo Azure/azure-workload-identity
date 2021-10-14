@@ -140,7 +140,7 @@ metadata:
 spec:
   serviceAccountName: ${SERVICE_ACCOUNT_NAME}
   containers:
-    - image: aramase/dotnet:v0.4
+    - image: aramase/msal-go:v0.6.0
       imagePullPolicy: IfNotPresent
       name: oidc
       env:
@@ -196,23 +196,23 @@ You can verify the following injected properties in the output:
 Name:         quick-start
 Namespace:    default
 Priority:     0
-Node:         azure-workload-identity-control-plane/172.18.0.2
-Start Time:   Wed, 07 Jul 2021 14:45:38 -0700
+Node:         k8s-agentpool1-38097163-vmss000002/10.240.0.34
+Start Time:   Wed, 13 Oct 2021 15:49:25 -0700
 Labels:       <none>
 Annotations:  <none>
 Status:       Running
-IP:           10.244.0.9
+IP:           10.240.0.55
 IPs:
-  IP:  10.244.0.9
+  IP:  10.240.0.55
 Containers:
   oidc:
-    Container ID:   containerd://efa8d09f78dc88dd17518ce5430ea820cef5743b33d77ae2b31e1082cc439218
-    Image:          aramase/dotnet:v0.4
-    Image ID:       docker.io/aramase/dotnet@sha256:821dbaa070bf7e26dd9172092658f6e6f910a2db198723e10b3ebb4e35a99eb5
+    Container ID:   containerd://f425e89eef9aa3a62eb51a3daa5af8c06d8a59baa79c4e4dbb1887aea2647048
+    Image:          aramase/msal-go:v0.6.0
+    Image ID:       docker.io/aramase/msal-go@sha256:864edcc9baacb6a14fa714af2fc0327cd4ef67d1c5ff28f38e7dc8a479ac17a1
     Port:           <none>
     Host Port:      <none>
     State:          Running
-      Started:      Wed, 07 Jul 2021 14:45:45 -0700
+      Started:      Wed, 13 Oct 2021 15:49:29 -0700
     Ready:          True
     Restart Count:  0
     Environment:
@@ -223,7 +223,7 @@ Containers:
       AZURE_TENANT_ID:            (Injected by the webhook)
       AZURE_FEDERATED_TOKEN_FILE: (Injected by the webhook)
     Mounts:
-      /var/run/secrets/kubernetes.io/serviceaccount from workload-identity-sa-token-mlgn8 (ro)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-844ns (ro)
       /var/run/secrets/tokens from azure-identity-token (ro) (Injected by the webhook)
 Conditions:
   Type              Status
@@ -232,10 +232,12 @@ Conditions:
   ContainersReady   True
   PodScheduled      True
 Volumes:
-  workload-identity-sa-token-mlgn8:
-    Type:        Secret (a volume populated by a Secret)
-    SecretName:  workload-identity-sa-token-mlgn8
-    Optional:    false
+  kube-api-access-844ns:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
   azure-identity-token: (Injected by the webhook)
     Type:                    Projected (a volume that contains injected data from multiple sources)
     TokenExpirationSeconds:  86400
@@ -244,13 +246,13 @@ Node-Selectors:              kubernetes.io/os=linux
 Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
                              node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
 Events:
-  Type    Reason     Age    From               Message
-  ----    ------     ----   ----               -------
-  Normal  Scheduled  3m27s  default-scheduler  Successfully assigned default/quick-start to azure-workload-identity-control-plane
-  Normal  Pulling    3m26s  kubelet            Pulling image "aramase/dotnet:v0.4"
-  Normal  Pulled     3m21s  kubelet            Successfully pulled image "aramase/dotnet:v0.4" in 5.824712366s
-  Normal  Created    3m20s  kubelet            Created container oidc
-  Normal  Started    3m20s  kubelet            Started container oidc
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  19s   default-scheduler  Successfully assigned oidc/quick-start to k8s-agentpool1-38097163-vmss000002
+  Normal  Pulling    18s   kubelet            Pulling image "aramase/msal-go:v0.6.0"
+  Normal  Pulled     16s   kubelet            Successfully pulled image "aramase/msal-go:v0.6.0" in 1.987165801s
+  Normal  Created    15s   kubelet            Created container oidc
+  Normal  Started    15s   kubelet            Started container oidc
 ```
 
 </details>
@@ -267,8 +269,7 @@ kubectl logs quick-start
 If successful, the log output would be similar to the following output:
 
 ```bash
-START 07/07/2021 21:45:45 (quick-start)
-Your secret is Hello!
+I1013 22:49:29.872708       1 main.go:30] "successfully got secret" secret="Hello!"
 ```
 
 </details>
