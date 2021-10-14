@@ -41,6 +41,9 @@ type Interface interface {
 	CreateRoleAssignment(ctx context.Context, scope, roleName, principalID string) (authorization.RoleAssignment, error)
 	DeleteRoleAssignment(ctx context.Context, roleAssignmentID string) (authorization.RoleAssignment, error)
 
+	// Role definition methods
+	GetRoleDefinitionIDByName(ctx context.Context, scope, roleName string) (authorization.RoleDefinition, error)
+
 	// Federation methods
 	AddFederatedCredential(ctx context.Context, objectID string, fc FederatedCredential) error
 	GetFederatedCredential(ctx context.Context, objectID, issuer, subject string) (FederatedCredential, error)
@@ -51,7 +54,8 @@ type AzureClient struct {
 	environment    azure.Environment
 	subscriptionID string
 
-	authorizationClient authorization.RoleAssignmentsClient
+	roleAssignmentsClient authorization.RoleAssignmentsClient
+	roleDefinitionsClient authorization.RoleDefinitionsClient
 
 	applicationsClient      graphrbac.ApplicationsClient
 	servicePrincipalsClient graphrbac.ServicePrincipalsClient
@@ -218,7 +222,8 @@ func getClient(env azure.Environment, subscriptionID, tenantID string, armAuthor
 		environment:    env,
 		subscriptionID: subscriptionID,
 
-		authorizationClient: authorization.NewRoleAssignmentsClientWithBaseURI(env.ResourceManagerEndpoint, subscriptionID),
+		roleAssignmentsClient: authorization.NewRoleAssignmentsClientWithBaseURI(env.ResourceManagerEndpoint, subscriptionID),
+		roleDefinitionsClient: authorization.NewRoleDefinitionsClientWithBaseURI(env.ResourceManagerEndpoint, subscriptionID),
 
 		applicationsClient:      graphrbac.NewApplicationsClientWithBaseURI(env.GraphEndpoint, tenantID),
 		servicePrincipalsClient: graphrbac.NewServicePrincipalsClientWithBaseURI(env.GraphEndpoint, tenantID),
@@ -226,7 +231,8 @@ func getClient(env azure.Environment, subscriptionID, tenantID string, armAuthor
 		federatedCredentialsClient: NewFederatedCredentialsClient(msGraphEndpoint[env]),
 	}
 
-	azClient.authorizationClient.Authorizer = armAuthorizer
+	azClient.roleAssignmentsClient.Authorizer = armAuthorizer
+	azClient.roleDefinitionsClient.Authorizer = armAuthorizer
 
 	azClient.applicationsClient.Authorizer = aadGraphAuthorizer
 	azClient.servicePrincipalsClient.Authorizer = aadGraphAuthorizer

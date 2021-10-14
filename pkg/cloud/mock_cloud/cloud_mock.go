@@ -186,6 +186,21 @@ func (mr *MockInterfaceMockRecorder) GetFederatedCredential(ctx, objectID, issue
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFederatedCredential", reflect.TypeOf((*MockInterface)(nil).GetFederatedCredential), ctx, objectID, issuer, subject)
 }
 
+// GetRoleDefinitionIDByName mocks base method.
+func (m *MockInterface) GetRoleDefinitionIDByName(ctx context.Context, scope, roleName string) (authorization.RoleDefinition, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRoleDefinitionIDByName", ctx, scope, roleName)
+	ret0, _ := ret[0].(authorization.RoleDefinition)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRoleDefinitionIDByName indicates an expected call of GetRoleDefinitionIDByName.
+func (mr *MockInterfaceMockRecorder) GetRoleDefinitionIDByName(ctx, scope, roleName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoleDefinitionIDByName", reflect.TypeOf((*MockInterface)(nil).GetRoleDefinitionIDByName), ctx, scope, roleName)
+}
+
 // GetServicePrincipal mocks base method.
 func (m *MockInterface) GetServicePrincipal(ctx context.Context, displayName string) (*graphrbac.ServicePrincipal, error) {
 	m.ctrl.T.Helper()
