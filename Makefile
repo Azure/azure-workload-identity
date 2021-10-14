@@ -125,7 +125,6 @@ docker-build:
 
 .image-%:
 	docker buildx build \
-		--build-arg GOARCH=$(ARCH) \
 		--build-arg LDFLAGS=$(LDFLAGS) \
 		--file docker/$(IMAGE_NAME).Dockerfile \
 		--output=$(OUTPUT_TYPE) \
