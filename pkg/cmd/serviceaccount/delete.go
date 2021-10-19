@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
+	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/auth"
+	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/util"
 	"github.com/Azure/azure-workload-identity/pkg/kuberneteshelper"
 
 	"github.com/pkg/errors"
@@ -14,8 +16,6 @@ import (
 )
 
 type deleteCmd struct {
-	authProvider
-
 	name             string
 	namespace        string
 	issuer           string
@@ -27,20 +27,18 @@ type deleteCmd struct {
 }
 
 func newDeleteCmd() *cobra.Command {
-	dc := &deleteCmd{
-		authProvider: &authArgs{},
-	}
-
+	authProvider := auth.NewProvider()
+	dc := &deleteCmd{}
 	cmd := &cobra.Command{
 		Use:   "delete",
 		Short: "Delete a service account",
 		Long:  "This command provides the ability to remove the role assignment, federated identity credential, Kubernetes service account, and application",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			return dc.getAuthArgs().validate()
+			return authProvider.Validate()
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
-			if dc.azureClient, err = dc.getClient(); err != nil {
+			if dc.azureClient, err = authProvider.GetAzureClient(); err != nil {
 				return err
 			}
 			if dc.kubeClient, err = kuberneteshelper.GetKubeClient(); err != nil {
@@ -51,13 +49,12 @@ func newDeleteCmd() *cobra.Command {
 	}
 
 	f := cmd.Flags()
+	authProvider.AddFlags(f)
 	f.StringVar(&dc.name, "name", "", "Name of the service account")
 	f.StringVar(&dc.namespace, "namespace", "default", "Namespace of the service account")
 	f.StringVar(&dc.issuer, "issuer", "", "OpenID Connect (OIDC) issuer URL")
 	f.StringVar(&dc.roleAssignmentID, "role-assignment-id", "", "Azure role assignment ID")
 	f.StringVar(&dc.appObjectID, "application-object-id", "", "Azure application object ID")
-
-	addAuthFlags(dc.getAuthArgs(), f)
 
 	_ = cmd.MarkFlagRequired("name")
 	_ = cmd.MarkFlagRequired("issuer")
@@ -83,7 +80,7 @@ func (dc *deleteCmd) run() error {
 	}
 
 	var fc cloud.FederatedCredential
-	subject := getSubject(dc.namespace, dc.name)
+	subject := util.GetFederatedCredentialSubject(dc.namespace, dc.name)
 	// delete the federated identity credential
 	if fc, err = dc.azureClient.GetFederatedCredential(ctx, dc.appObjectID, dc.issuer, subject); err != nil {
 		if !cloud.IsResourceNotFound(err) {

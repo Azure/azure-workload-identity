@@ -28,10 +28,6 @@ func TestDeleteCmdRun(t *testing.T) {
 		{
 			name: "failed to delete role assignment",
 			deleteCmd: deleteCmd{
-				authProvider: &mockAuthProvider{
-					authArgs: &authArgs{},
-				},
-
 				name:             "foo",
 				namespace:        "bar",
 				issuer:           "https://issuer-url",
@@ -51,10 +47,6 @@ func TestDeleteCmdRun(t *testing.T) {
 		{
 			name: "role assignment already deleted",
 			deleteCmd: deleteCmd{
-				authProvider: &mockAuthProvider{
-					authArgs: &authArgs{},
-				},
-
 				name:             "foo",
 				namespace:        "bar",
 				issuer:           "https://issuer-url",
@@ -75,10 +67,6 @@ func TestDeleteCmdRun(t *testing.T) {
 		{
 			name: "failed to delete federated identity credential",
 			deleteCmd: deleteCmd{
-				authProvider: &mockAuthProvider{
-					authArgs: &authArgs{},
-				},
-
 				name:             "foo",
 				namespace:        "bar",
 				issuer:           "https://issuer-url",
@@ -100,10 +88,6 @@ func TestDeleteCmdRun(t *testing.T) {
 		{
 			name: "failed to delete application",
 			deleteCmd: deleteCmd{
-				authProvider: &mockAuthProvider{
-					authArgs: &authArgs{},
-				},
-
 				name:             "foo",
 				namespace:        "bar",
 				issuer:           "https://issuer-url",
@@ -140,10 +124,6 @@ func TestDeleteCmdRun(t *testing.T) {
 		{
 			name: "successful delete cmd run",
 			deleteCmd: deleteCmd{
-				authProvider: &mockAuthProvider{
-					authArgs: &authArgs{},
-				},
-
 				name:             "foo",
 				namespace:        "bar",
 				issuer:           "https://issuer-url",

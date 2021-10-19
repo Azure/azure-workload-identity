@@ -1,0 +1,189 @@
+package auth
+
+import (
+	"os"
+	"path/filepath"
+	"runtime"
+
+	"github.com/Azure/azure-workload-identity/pkg/cloud"
+
+	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/google/uuid"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/pflag"
+	ini "gopkg.in/ini.v1"
+)
+
+const (
+	clientSecretAuthMethod      = "client_secret"
+	clientCertificateAuthMethod = "client_certificate"
+	cliAuthMethod               = "cli"
+)
+
+// Provider is an interface for getting an Azure client
+type Provider interface {
+	AddFlags(f *pflag.FlagSet)
+	GetAzureClient() (cloud.Interface, error)
+	GetAzureTenantID() string
+	Validate() error
+}
+
+// authArgs is an implementation of the Provider interface
+type authArgs struct {
+	rawAzureEnvironment string
+	rawSubscriptionID   string
+	subscriptionID      uuid.UUID
+	authMethod          string
+	rawClientID         string
+
+	tenantID        string
+	clientID        uuid.UUID
+	clientSecret    string
+	certificatePath string
+	privateKeyPath  string
+}
+
+// NewProvider returns a new authArgs
+func NewProvider() Provider {
+	return &authArgs{}
+}
+
+// AddFlags adds the flags for this package to the specified FlagSet
+func (a *authArgs) AddFlags(f *pflag.FlagSet) {
+	f.StringVar(&a.rawAzureEnvironment, "azure-env", "AzurePublicCloud", "the target Azure cloud")
+	f.StringVarP(&a.rawSubscriptionID, "subscription-id", "s", "", "azure subscription id (required)")
+	f.StringVar(&a.authMethod, "auth-method", cliAuthMethod, "auth method to use. Supported values: cli, client_secret, client_certificate")
+	f.StringVar(&a.rawClientID, "client-id", "", "client id (used with --auth-method=[client_secret|client_certificate])")
+	f.StringVar(&a.clientSecret, "client-secret", "", "client secret (used with --auth-method=client_secret)")
+	f.StringVar(&a.certificatePath, "certificate-path", "", "path to client certificate (used with --auth-method=client_certificate)")
+	f.StringVar(&a.privateKeyPath, "private-key-path", "", "path to private key (used with --auth-method=client_certificate)")
+}
+
+// GetAzureClient returns an Azure client
+func (a *authArgs) GetAzureClient() (cloud.Interface, error) {
+	var client *cloud.AzureClient
+	env, err := azure.EnvironmentFromName(a.rawAzureEnvironment)
+	if err != nil {
+		return nil, err
+	}
+	if a.tenantID, err = cloud.GetTenantID(env.ResourceManagerEndpoint, a.subscriptionID.String()); err != nil {
+		return nil, err
+	}
+	switch a.authMethod {
+	case cliAuthMethod:
+		client, err = cloud.NewAzureClientWithCLI(env, a.subscriptionID.String(), a.tenantID)
+	case clientSecretAuthMethod:
+		client, err = cloud.NewAzureClientWithClientSecret(env, a.subscriptionID.String(), a.clientID.String(), a.clientSecret, a.tenantID)
+	case clientCertificateAuthMethod:
+		client, err = cloud.NewAzureClientWithClientCertificateFile(env, a.subscriptionID.String(), a.clientID.String(), a.tenantID, a.certificatePath, a.privateKeyPath)
+	default:
+		return nil, errors.Errorf("--auth-method: ERROR: method unsupported. method=%q", a.authMethod)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return client, nil
+}
+
+// GetAzureTenantID returns the Azure tenant ID
+func (a *authArgs) GetAzureTenantID() string {
+	return a.tenantID
+}
+
+// Validate validates the authArgs
+func (a *authArgs) Validate() error {
+	var err error
+
+	if a.authMethod == "" {
+		return errors.New("--auth-method is a required parameter")
+	}
+	if a.authMethod == cliAuthMethod && a.rawClientID != "" && a.clientSecret != "" {
+		a.authMethod = clientSecretAuthMethod
+	}
+	if a.authMethod == clientSecretAuthMethod || a.authMethod == clientCertificateAuthMethod {
+		if a.clientID, err = uuid.Parse(a.rawClientID); err != nil {
+			return errors.Wrap(err, "parsing --client-id")
+		}
+		if a.authMethod == clientSecretAuthMethod {
+			if a.clientSecret == "" {
+				return errors.New(`--client-secret must be specified when --auth-method="client_secret"`)
+			}
+		} else if a.authMethod == clientCertificateAuthMethod {
+			if a.certificatePath == "" || a.privateKeyPath == "" {
+				return errors.New(`--certificate-path and --private-key-path must be specified when --auth-method="client_certificate"`)
+			}
+		}
+	}
+
+	a.subscriptionID, _ = uuid.Parse(a.rawSubscriptionID)
+	if a.subscriptionID.String() == "00000000-0000-0000-0000-000000000000" {
+		var subID uuid.UUID
+		subID, err = getSubFromAzDir(filepath.Join(getHomeDir(), ".azure"))
+		if err != nil || subID.String() == "00000000-0000-0000-0000-000000000000" {
+			return errors.New("--subscription-id is required (and must be a valid UUID)")
+		}
+		log.Infoln("No subscription provided, using selected subscription from Azure CLI:", subID.String())
+		a.subscriptionID = subID
+	}
+
+	if _, err = azure.EnvironmentFromName(a.rawAzureEnvironment); err != nil {
+		return errors.Wrap(err, "failed to parse --azure-env as a valid target Azure cloud environment")
+	}
+
+	return nil
+}
+
+// getSubFromAzDir returns the subscription ID from the Azure CLI directory
+func getSubFromAzDir(root string) (uuid.UUID, error) {
+	subConfig, err := ini.Load(filepath.Join(root, "clouds.config"))
+	if err != nil {
+		return uuid.UUID{}, errors.Wrap(err, "error decoding cloud subscription config")
+	}
+
+	cloudConfig, err := ini.Load(filepath.Join(root, "config"))
+	if err != nil {
+		return uuid.UUID{}, errors.Wrap(err, "error decoding cloud config")
+	}
+
+	cloud := getSelectedCloudFromAzConfig(cloudConfig)
+	return getCloudSubFromAzConfig(cloud, subConfig)
+}
+
+// getSelectedCloudFromAzConfig returns the selected cloud from the Azure CLI config
+func getSelectedCloudFromAzConfig(f *ini.File) string {
+	selectedCloud := "AzureCloud"
+	if cloud, err := f.GetSection("cloud"); err == nil {
+		if name, err := cloud.GetKey("name"); err == nil {
+			if s := name.String(); s != "" {
+				selectedCloud = s
+			}
+		}
+	}
+	return selectedCloud
+}
+
+// getCloudSubFromAzConfig returns the subscription ID from the Azure CLI config
+func getCloudSubFromAzConfig(cloud string, f *ini.File) (uuid.UUID, error) {
+	cfg, err := f.GetSection(cloud)
+	if err != nil {
+		return uuid.UUID{}, errors.Wrap(err, "could not find user defined subscription id")
+	}
+	sub, err := cfg.GetKey("subscription")
+	if err != nil {
+		return uuid.UUID{}, errors.Wrap(err, "error reading subscription id from cloud config")
+	}
+	return uuid.Parse(sub.String())
+}
+
+// getHomeDir attempts to get the home dir from env
+func getHomeDir() string {
+	if runtime.GOOS == "windows" {
+		home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
+		if home == "" {
+			home = os.Getenv("USERPROFILE")
+		}
+		return home
+	}
+	return os.Getenv("HOME")
+}
