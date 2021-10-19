@@ -2,12 +2,14 @@ package serviceaccount
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/auth"
 	phases "github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/create"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
+	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/util"
 	"github.com/Azure/azure-workload-identity/pkg/kuberneteshelper"
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
 
@@ -32,9 +34,6 @@ func newCreateCmd() *cobra.Command {
 			if data.azureClient, err = authProvider.GetAzureClient(); err != nil {
 				return err
 			}
-			if data.kubeClient, err = kuberneteshelper.GetKubeClient(); err != nil {
-				return err
-			}
 			data.azureTenantID = authProvider.GetAzureTenantID()
 
 			return createRunner.Run(data)
@@ -47,13 +46,13 @@ func newCreateCmd() *cobra.Command {
 	f.StringVar(&data.serviceAccountNamespace, "service-account-namespace", "default", "Namespace of the service account")
 	f.StringVar(&data.serviceAccountIssuerURL, "service-account-issuer-url", "", "URL of the issuer")
 	f.DurationVar(&data.serviceAccountTokenExpiration, "service-account-token-expiration", time.Duration(webhook.DefaultServiceAccountTokenExpiration)*time.Second, "Expiration time of the service account token. Must be between 1 hour and 24 hours")
-	f.StringVar(&data.aadApplicationName, "aad-application-name", "", "Name of the AAD application, If not specified, the name of the service account will be used")
+	f.StringVar(&data.aadApplicationName, "aad-application-name", "", "Name of the AAD application, If not specified, the namespace, the name of the service account and the hash of the issuer URL will be used")
 	f.StringVar(&data.aadApplicationClientID, "aad-application-client-id", "", "Client ID of the AAD application. If not specified, it will be fetched using the AAD application name")
 	f.StringVar(&data.aadApplicationObjectID, "aad-application-object-id", "", "Object ID of the AAD application. If not specified, it will be fetched using the AAD application name")
 	f.StringVar(&data.servicePrincipalName, "service-principal-name", "", "Name of the service principal that backs the AAD application. If this is not specified, the name of the AAD application will be used")
 	f.StringVar(&data.servicePrincipalObjectID, "service-principal-object-id", "", "Object ID of the service principal that backs the AAD application. If not specified, it will be fetched using the service principal name")
-	f.StringVar(&data.azureScope, "azure-scope", "", "Scope of the AAD application")
-	f.StringVar(&data.azureRole, "azure-role", "", "Role of the AAD application")
+	f.StringVar(&data.azureScope, "azure-scope", "", "Scope at which the role assignment or definition applies to")
+	f.StringVar(&data.azureRole, "azure-role", "", "Role of the AAD application (see all available roles at https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles)")
 
 	// append phases in order
 	createRunner.AppendPhases(
@@ -78,14 +77,13 @@ type createData struct {
 	aadApplicationName            string
 	aadApplicationClientID        string
 	aadApplicationObjectID        string
-	servicePrincipal              *graphrbac.ServicePrincipal
+	servicePrincipal              *graphrbac.ServicePrincipal // cache
 	servicePrincipalObjectID      string
 	servicePrincipalName          string
 	azureRole                     string
 	azureScope                    string
 	azureTenantID                 string
 	azureClient                   cloud.Interface
-	kubeClient                    kubernetes.Interface
 }
 
 var _ phases.CreateData = &createData{}
@@ -112,28 +110,23 @@ func (c *createData) ServiceAccountTokenExpiration() time.Duration {
 
 // AADApplication returns the AAD application object.
 // This will return the cached value if it has been created.
-func (c *createData) AADApplication() *graphrbac.Application {
+func (c *createData) AADApplication() (*graphrbac.Application, error) {
 	if c.aadApplication == nil {
 		app, err := c.AzureClient().GetApplication(context.Background(), c.AADApplicationName())
 		if err != nil {
-			if cloud.IsNotFound(err) {
-				log.WithField("name", c.AADApplicationName()).Debug("AAD application not found")
-			} else {
-				log.WithError(err).Debug("failed to get AAD application")
-			}
-			return nil
+			return nil, err
 		}
 		c.aadApplication = app
 	}
-	return c.aadApplication
+	return c.aadApplication, nil
 }
 
 // AADApplicationName returns the name of the AAD application.
 func (c *createData) AADApplicationName() string {
 	name := c.aadApplicationName
-	if name == "" {
-		name = c.ServiceAccountName()
-		log.WithField("name", name).Debug("AAD application name not specified, falling back to service account name")
+	if name == "" && c.ServiceAccountNamespace() != "" && c.ServiceAccountName() != "" && c.ServiceAccountIssuerURL() != "" {
+		name = fmt.Sprintf("%s-%s-%s", c.ServiceAccountNamespace(), c.serviceAccountName, util.GetIssuerHash(c.ServiceAccountIssuerURL()))
+		log.WithField("name", name).Debug("AAD application name not specified, falling back to service account namespace and name")
 	}
 	return name
 }
@@ -145,8 +138,9 @@ func (c *createData) AADApplicationClientID() string {
 		return c.aadApplicationClientID
 	}
 
-	app := c.AADApplication()
-	if app == nil {
+	app, err := c.AADApplication()
+	if err != nil {
+		log.WithError(err).Error("failed to get AAD application client ID. Returning an empty string")
 		return ""
 	}
 	return *app.AppID
@@ -159,8 +153,9 @@ func (c *createData) AADApplicationObjectID() string {
 		return c.aadApplicationObjectID
 	}
 
-	app := c.AADApplication()
-	if app == nil {
+	app, err := c.AADApplication()
+	if err != nil {
+		log.WithError(err).Error("failed to get AAD application object ID. Returning an empty string")
 		return ""
 	}
 	return *app.ObjectID
@@ -168,18 +163,15 @@ func (c *createData) AADApplicationObjectID() string {
 
 // ServicePrincipal returns the service principal object.
 // This will return the cached value if it has been created.
-func (c *createData) ServicePrincipal() *graphrbac.ServicePrincipal {
+func (c *createData) ServicePrincipal() (*graphrbac.ServicePrincipal, error) {
 	if c.servicePrincipal == nil {
 		sp, err := c.AzureClient().GetServicePrincipal(context.Background(), c.ServicePrincipalName())
 		if err != nil {
-			if cloud.IsNotFound(err) {
-				log.WithField("name", c.ServiceAccountName()).Debug("service principal not found")
-			}
-			return nil
+			return nil, err
 		}
 		c.servicePrincipal = sp
 	}
-	return c.servicePrincipal
+	return c.servicePrincipal, nil
 }
 
 // ServicePrincipalName returns the name of the service principal.
@@ -200,11 +192,12 @@ func (c *createData) ServicePrincipalObjectID() string {
 		return c.servicePrincipalObjectID
 	}
 
-	sp := c.ServicePrincipal()
-	if sp == nil {
+	sp, err := c.ServicePrincipal()
+	if err != nil {
+		log.WithError(err).Error("failed to get service principal object ID. Returning an empty string")
 		return ""
 	}
-	return *c.servicePrincipal.ObjectID
+	return *sp.ObjectID
 }
 
 // AzureRole returns the Azure role.
@@ -228,6 +221,6 @@ func (c *createData) AzureClient() cloud.Interface {
 }
 
 // KubeClient returns the Kubernetes client.
-func (c *createData) KubeClient() kubernetes.Interface {
-	return c.kubeClient
+func (c *createData) KubeClient() (kubernetes.Interface, error) {
+	return kuberneteshelper.GetKubeClient()
 }

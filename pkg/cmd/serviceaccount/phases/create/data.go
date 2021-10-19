@@ -26,7 +26,7 @@ type CreateData interface {
 
 	// AADApplication returns the AAD application object.
 	// This will return the cached value if it has been created.
-	AADApplication() *graphrbac.Application
+	AADApplication() (*graphrbac.Application, error)
 
 	// AADApplicationName returns the name of the AAD application.
 	AADApplicationName() string
@@ -41,7 +41,7 @@ type CreateData interface {
 
 	// ServicePrincipal returns the service principal object.
 	// This will return the cached value if it has been created.
-	ServicePrincipal() *graphrbac.ServicePrincipal
+	ServicePrincipal() (*graphrbac.ServicePrincipal, error)
 
 	// ServicePrincipalName returns the name of the service principal.
 	ServicePrincipalName() string
@@ -63,5 +63,5 @@ type CreateData interface {
 	AzureClient() cloud.Interface
 
 	// KubeClient returns the Kubernetes client.
-	KubeClient() kubernetes.Interface
+	KubeClient() (kubernetes.Interface, error)
 }

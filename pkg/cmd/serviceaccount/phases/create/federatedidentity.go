@@ -25,7 +25,7 @@ func NewFederatedIdentityPhase() workflow.Phase {
 	p := &federatedIdentityPhase{}
 	return workflow.Phase{
 		Name:        federatedIdentityPhaseName,
-		Description: "Create a federated identity between the AAD application and the Kubernetes service account",
+		Description: "Create federated identity between the AAD application and the Kubernetes service account",
 		PreRun:      p.prerun,
 		Run:         p.run,
 	}
@@ -46,9 +46,6 @@ func (p *federatedIdentityPhase) prerun(data workflow.RunData) error {
 	if createData.ServiceAccountIssuerURL() == "" {
 		return errors.New("--service-account-issuer-url is required")
 	}
-	if createData.AADApplicationName() == "" && createData.AADApplicationObjectID() == "" {
-		return errors.New("--aad-application-name or --aad-application-object-id is required")
-	}
 
 	return nil
 }
@@ -67,17 +64,17 @@ func (p *federatedIdentityPhase) run(ctx context.Context, data workflow.RunData)
 	if err != nil {
 		if cloud.IsAlreadyExists(err) {
 			log.WithFields(log.Fields{
-				"objecID": objectID,
-				"subject": subject,
-			}).Debugf("[%s] federated credential has been previously established", federatedIdentityPhaseName)
+				"objectID": objectID,
+				"subject":  subject,
+			}).Debugf("[%s] federated credential has been previously created", federatedIdentityPhaseName)
 		} else {
 			return errors.Wrap(err, "failed to add federated credential")
 		}
 	}
 
 	log.WithFields(log.Fields{
-		"objecID": objectID,
-		"subject": subject,
+		"objectID": objectID,
+		"subject":  subject,
 	}).Infof("[%s] added federated credential", federatedIdentityPhaseName)
 
 	return nil

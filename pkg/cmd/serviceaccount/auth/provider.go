@@ -53,7 +53,7 @@ func NewProvider() Provider {
 func (a *authArgs) AddFlags(f *pflag.FlagSet) {
 	f.StringVar(&a.rawAzureEnvironment, "azure-env", "AzurePublicCloud", "the target Azure cloud")
 	f.StringVarP(&a.rawSubscriptionID, "subscription-id", "s", "", "azure subscription id (required)")
-	f.StringVar(&a.authMethod, "auth-method", "cli", "auth method to use. Supported values: cli, client_secret, client_certificate")
+	f.StringVar(&a.authMethod, "auth-method", cliAuthMethod, "auth method to use. Supported values: cli, client_secret, client_certificate")
 	f.StringVar(&a.rawClientID, "client-id", "", "client id (used with --auth-method=[client_secret|client_certificate])")
 	f.StringVar(&a.clientSecret, "client-secret", "", "client secret (used with --auth-method=client_secret)")
 	f.StringVar(&a.certificatePath, "certificate-path", "", "path to client certificate (used with --auth-method=client_certificate)")
@@ -128,7 +128,7 @@ func (a *authArgs) Validate() error {
 	}
 
 	if _, err = azure.EnvironmentFromName(a.rawAzureEnvironment); err != nil {
-		return errors.New("failed to parse --azure-env as a valid target Azure cloud environment")
+		return errors.Wrap(err, "failed to parse --azure-env as a valid target Azure cloud environment")
 	}
 
 	return nil
@@ -167,7 +167,7 @@ func getSelectedCloudFromAzConfig(f *ini.File) string {
 func getCloudSubFromAzConfig(cloud string, f *ini.File) (uuid.UUID, error) {
 	cfg, err := f.GetSection(cloud)
 	if err != nil {
-		return uuid.UUID{}, errors.New("could not find user defined subscription id")
+		return uuid.UUID{}, errors.Wrap(err, "could not find user defined subscription id")
 	}
 	sub, err := cfg.GetKey("subscription")
 	if err != nil {

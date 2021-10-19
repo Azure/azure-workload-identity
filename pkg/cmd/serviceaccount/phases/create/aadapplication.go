@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Azure/azure-workload-identity/pkg/cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 	"github.com/Azure/azure-workload-identity/pkg/version"
 
@@ -23,7 +24,7 @@ func NewAADApplicationPhase() workflow.Phase {
 	p := &aadApplicationPhase{}
 	return workflow.Phase{
 		Name:        aadApplicationPhaseName,
-		Description: "Create an Azure Active Directory (AAD) application and its underlying service principal",
+		Description: "Create Azure Active Directory (AAD) application and its underlying service principal",
 		PreRun:      p.prerun,
 		Run:         p.run,
 	}
@@ -50,12 +51,16 @@ func (p *aadApplicationPhase) run(ctx context.Context, data workflow.RunData) er
 
 	// Check if the application with the same name already exists
 	var err error
-	app := createData.AADApplication()
-	if app == nil {
+	app, err := createData.AADApplication()
+	if err != nil {
+		if !cloud.IsNotFound(err) {
+			return errors.Wrap(err, "failed to get AAD application")
+		}
+
 		// create the application as it doesn't exist
 		app, err = createData.AzureClient().CreateApplication(ctx, createData.AADApplicationName())
 		if app == nil || err != nil {
-			return errors.Wrap(err, "failed to create an AAD application")
+			return errors.Wrap(err, "failed to create AAD application")
 		}
 	}
 
@@ -66,8 +71,12 @@ func (p *aadApplicationPhase) run(ctx context.Context, data workflow.RunData) er
 	}).Infof("[%s] created an AAD application", aadApplicationPhaseName)
 
 	// Check if the service principal with the same name already exists
-	sp := createData.ServicePrincipal()
-	if sp == nil {
+	sp, err := createData.ServicePrincipal()
+	if err != nil {
+		if !cloud.IsNotFound(err) {
+			return errors.Wrap(err, "failed to get service principal")
+		}
+
 		// create the service principal as it doesn't exist
 		tags := []string{
 			fmt.Sprintf("serviceAccount: %s-%s", createData.ServiceAccountNamespace(), createData.ServiceAccountName()),
@@ -84,7 +93,7 @@ func (p *aadApplicationPhase) run(ctx context.Context, data workflow.RunData) er
 		"name":     *sp.DisplayName,
 		"clientID": *sp.AppID,
 		"objectID": *sp.ObjectID,
-	}).Infof("[%s] created a service principal", aadApplicationPhaseName)
+	}).Infof("[%s] created service principal", aadApplicationPhaseName)
 
 	return nil
 }

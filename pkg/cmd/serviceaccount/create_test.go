@@ -10,7 +10,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/mock/gomock"
-	"k8s.io/client-go/kubernetes/fake"
 )
 
 const (
@@ -64,26 +63,6 @@ func TestCreateDataAADApplication(t *testing.T) {
 		verify     func(t *testing.T, createData *createData)
 	}{
 		{
-			name: "not found error",
-			createData: &createData{
-				aadApplicationName: appName,
-			},
-			expect: func(m *mock_cloud.MockInterfaceMockRecorder) {
-				m.GetApplication(gomock.Any(), appName).Return(nil, errors.New("not found")).Times(3)
-			},
-			verify: func(t *testing.T, createData *createData) {
-				if createData.AADApplication() != nil {
-					t.Error("Expected AADApplication() to be nil")
-				}
-				if createData.AADApplicationClientID() != "" {
-					t.Errorf("Expected AADApplicationClientID() to be empty, got %s", createData.AADApplicationClientID())
-				}
-				if createData.AADApplicationObjectID() != "" {
-					t.Errorf("Expected AADApplicationObjectID() to be empty, got %s", createData.AADApplicationObjectID())
-				}
-			},
-		},
-		{
 			name: "random error",
 			createData: &createData{
 				aadApplicationName: appName,
@@ -92,8 +71,8 @@ func TestCreateDataAADApplication(t *testing.T) {
 				m.GetApplication(gomock.Any(), appName).Return(nil, errors.New("random error")).Times(3)
 			},
 			verify: func(t *testing.T, createData *createData) {
-				if createData.AADApplication() != nil {
-					t.Error("Expected AADApplication() to be nil")
+				if _, err := createData.AADApplication(); err == nil {
+					t.Error("Expected AADApplication() to return error")
 				}
 				if createData.AADApplicationClientID() != "" {
 					t.Errorf("Expected AADApplicationClientID() to be empty, got %s", createData.AADApplicationClientID())
@@ -115,8 +94,8 @@ func TestCreateDataAADApplication(t *testing.T) {
 				}, nil)
 			},
 			verify: func(t *testing.T, createData *createData) {
-				if createData.AADApplication() == nil {
-					t.Error("Expected AADApplication() to be non-nil")
+				if _, err := createData.AADApplication(); err != nil {
+					t.Error("Expected AADApplication() to not return error")
 				}
 				if createData.AADApplicationClientID() != appID {
 					t.Errorf("Expected AADApplicationClientID() to be 'client-id', got %s", createData.AADApplicationClientID())
@@ -137,8 +116,8 @@ func TestCreateDataAADApplication(t *testing.T) {
 			},
 			expect: func(m *mock_cloud.MockInterfaceMockRecorder) {},
 			verify: func(t *testing.T, createData *createData) {
-				if createData.AADApplication() == nil {
-					t.Error("Expected AADApplication() to be non-nil")
+				if _, err := createData.AADApplication(); err != nil {
+					t.Error("Expected AADApplication() to not return error")
 				}
 				if createData.AADApplicationClientID() != appID {
 					t.Errorf("Expected AADApplicationClientID() to be 'client-id', got %s", createData.AADApplicationClientID())
@@ -171,9 +150,11 @@ func TestCreateDataAADApplicationName(t *testing.T) {
 		t.Errorf("Expected aadApplicationName() to be 'aad-application-name', got %s", createData.AADApplicationName())
 	}
 	createData.aadApplicationName = ""
+	createData.serviceAccountNamespace = "service-account-namespace"
 	createData.serviceAccountName = serviceAccountName
-	if createData.AADApplicationName() != serviceAccountName {
-		t.Errorf("Expected aadApplicationName() to be 'service-account-name', got %s", createData.AADApplicationName())
+	createData.serviceAccountIssuerURL = "service-account-issuer-url"
+	if createData.AADApplicationName() != "service-account-namespace-service-account-name-t4BxHnnPeJsOfTLIBFbdKeRHdVMaIRdxwkxwF13SvKw=" {
+		t.Errorf("Expected aadApplicationName() to be 'service-account-namespace-service-account-name-t4BxHnnPeJsOfTLIBFbdKeRHdVMaIRdxwkxwF13SvKw=', got %s", createData.AADApplicationName())
 	}
 }
 
@@ -203,16 +184,16 @@ func TestCreateDataServicePrincipal(t *testing.T) {
 		verify     func(t *testing.T, createData *createData)
 	}{
 		{
-			name: "not found error",
+			name: "random error",
 			createData: &createData{
 				servicePrincipalName: "service-principal-name",
 			},
 			expect: func(m *mock_cloud.MockInterfaceMockRecorder) {
-				m.GetServicePrincipal(gomock.Any(), "service-principal-name").Return(nil, errors.New("not found")).Times(2)
+				m.GetServicePrincipal(gomock.Any(), "service-principal-name").Return(nil, errors.New("random error")).Times(2)
 			},
 			verify: func(t *testing.T, createData *createData) {
-				if createData.ServicePrincipal() != nil {
-					t.Error("Expected ServicePrincipal() to be nil")
+				if _, err := createData.ServicePrincipal(); err == nil {
+					t.Error("Expected ServicePrincipal() to return error")
 				}
 				if createData.ServicePrincipalObjectID() != "" {
 					t.Errorf("Expected ServicePrincipalObjectID() to be '', got %s", createData.ServicePrincipalObjectID())
@@ -229,8 +210,8 @@ func TestCreateDataServicePrincipal(t *testing.T) {
 			},
 			expect: func(m *mock_cloud.MockInterfaceMockRecorder) {},
 			verify: func(t *testing.T, createData *createData) {
-				if createData.ServicePrincipal() == nil {
-					t.Error("Expected ServicePrincipal() to be non-nil")
+				if _, err := createData.ServicePrincipal(); err != nil {
+					t.Error("Expected ServicePrincipal() to not return error")
 				}
 				if createData.ServicePrincipalObjectID() != objectID {
 					t.Errorf("Expected ServicePrincipalObjectID() to be 'object-id', got %s", createData.ServicePrincipalObjectID())
@@ -248,8 +229,8 @@ func TestCreateDataServicePrincipal(t *testing.T) {
 				}, nil)
 			},
 			verify: func(t *testing.T, createData *createData) {
-				if createData.ServicePrincipal() == nil {
-					t.Error("Expected ServicePrincipal() to be non-nil")
+				if _, err := createData.ServicePrincipal(); err != nil {
+					t.Error("Expected ServicePrincipal() to not return error")
 				}
 				if createData.ServicePrincipalObjectID() != objectID {
 					t.Errorf("Expected ServicePrincipalObjectID() to be 'object-id', got %s", createData.ServicePrincipalObjectID())
@@ -318,14 +299,5 @@ func TestCreateDataAzureTenantID(t *testing.T) {
 	}
 	if createData.AzureTenantID() != "azure-tenant-id" {
 		t.Errorf("Expected AzureTenantID() to be 'azure-tenant-id', got %s", createData.AzureTenantID())
-	}
-}
-
-func TestCreateDataKubeClient(t *testing.T) {
-	createData := &createData{
-		kubeClient: &fake.Clientset{},
-	}
-	if createData.KubeClient() != createData.kubeClient {
-		t.Errorf("Expected KubeClient() to be %v, got %v", createData.kubeClient, createData.KubeClient())
 	}
 }

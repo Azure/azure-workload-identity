@@ -44,13 +44,8 @@ func TestFederatedIdentityPreRun(t *testing.T) {
 			errorMsg: "--service-account-issuer-url is required",
 		},
 		{
-			name:     "missing --aad-application-name and --aad-application-object-id",
-			data:     &mockCreateData{serviceAccountNamespace: "test", serviceAccountName: "test", serviceAccountIssuerURL: "test"},
-			errorMsg: "--aad-application-name or --aad-application-object-id is required",
-		},
-		{
 			name:     "valid data",
-			data:     &mockCreateData{serviceAccountNamespace: "test", serviceAccountName: "test", serviceAccountIssuerURL: "test", aadApplicationName: "test"},
+			data:     &mockCreateData{serviceAccountNamespace: "test", serviceAccountName: "test", serviceAccountIssuerURL: "test"},
 			errorMsg: "",
 		},
 	}

@@ -41,6 +41,7 @@ func TestServiceAccountPreRun(t *testing.T) {
 				serviceAccountNamespace:       "test",
 				serviceAccountName:            "test",
 				serviceAccountTokenExpiration: 1 * time.Hour,
+				kubeClient:                    fake.NewSimpleClientset(),
 			},
 			errorMsg: "",
 		},
@@ -68,6 +69,7 @@ func TestServiceAccountPreRun(t *testing.T) {
 				serviceAccountNamespace:       "test",
 				serviceAccountName:            "test",
 				serviceAccountTokenExpiration: 1 * time.Hour,
+				kubeClient:                    fake.NewSimpleClientset(),
 			},
 			errorMsg: "",
 		},
@@ -89,22 +91,26 @@ func TestServiceAccountPreRun(t *testing.T) {
 
 func TestServiceAccountRun(t *testing.T) {
 	phase := NewServiceAccountPhase()
+	kubeClient := fake.NewSimpleClientset()
 	data := &mockCreateData{
 		serviceAccountNamespace:       "service-account-namespace",
 		serviceAccountName:            "service-account-name",
 		serviceAccountTokenExpiration: 1 * time.Hour,
 		aadApplicationClientID:        "aad-application-client-id",
 		azureTenantID:                 "azure-tenant-id",
-		kubeClient:                    fake.NewSimpleClientset(),
+		kubeClient:                    kubeClient,
 	}
 
-	err := phase.Run(context.Background(), data)
+	err := phase.PreRun(data)
 	if err != nil {
-		t.Errorf("expected error but got nil")
+		t.Fatalf("unexpected error: %s", err.Error())
 	}
-
+	err = phase.Run(context.Background(), data)
+	if err != nil {
+		t.Errorf("unexpected error: %s", err.Error())
+	}
 	var sa *corev1.ServiceAccount
-	if sa, err = data.KubeClient().CoreV1().ServiceAccounts("service-account-namespace").Get(context.Background(), "service-account-name", metav1.GetOptions{}); err != nil {
+	if sa, err = kubeClient.CoreV1().ServiceAccounts("service-account-namespace").Get(context.Background(), "service-account-name", metav1.GetOptions{}); err != nil {
 		t.Errorf("expected service account to be created")
 	}
 	if sa.Labels[webhook.UsePodIdentityLabel] != "true" {

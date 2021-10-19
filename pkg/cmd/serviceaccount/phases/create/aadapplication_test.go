@@ -69,8 +69,8 @@ func TestAADApplicationRun(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockAzureClient := mock_cloud.NewMockInterface(ctrl)
-	mockAzureClient.EXPECT().CreateApplication(gomock.Any(), data.aadApplicationName).Return(&graphrbac.Application{
-		DisplayName: to.StringPtr(data.serviceAccountName),
+	mockAzureClient.EXPECT().CreateApplication(gomock.Any(), data.AADApplicationName()).Return(&graphrbac.Application{
+		DisplayName: to.StringPtr(data.AADApplicationName()),
 		AppID:       to.StringPtr("client-id"),
 		ObjectID:    to.StringPtr("object-id"),
 	}, nil)
@@ -78,7 +78,7 @@ func TestAADApplicationRun(t *testing.T) {
 		"serviceAccount: service-account-namespace-service-account-name",
 		"azwi version: , commit: ",
 	}).Return(&graphrbac.ServicePrincipal{
-		DisplayName: to.StringPtr(data.serviceAccountName),
+		DisplayName: to.StringPtr(data.AADApplicationName()),
 		AppID:       to.StringPtr("client-id"),
 		ObjectID:    to.StringPtr("object-id"),
 	}, nil)

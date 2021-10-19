@@ -15,8 +15,13 @@ type RunData = interface{}
 
 // Runner is the interface for running phases
 type Runner interface {
+	// AppendPhases adds a phase to the list of phases to run
 	AppendPhases(phases ...Phase)
+
+	// BindToCommand alters the command's help text and flags to include the phase's flags
 	BindToCommand(cmd *cobra.Command)
+
+	// Run runs the phases except the ones specified in skipPhases
 	Run(data RunData) error
 }
 

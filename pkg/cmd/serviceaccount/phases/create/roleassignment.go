@@ -22,7 +22,7 @@ func NewRoleAssignmentPhase() workflow.Phase {
 	p := &roleAssignmentPhase{}
 	return workflow.Phase{
 		Name:        roleAssignmentPhaseName,
-		Description: "Create a role assignment between the AAD application and the Azure cloud resource",
+		Description: "Create role assignment between the AAD application and the Azure cloud resource",
 		PreRun:      p.prerun,
 		Run:         p.run,
 	}
@@ -55,21 +55,21 @@ func (p *roleAssignmentPhase) run(ctx context.Context, data workflow.RunData) er
 	if err != nil {
 		if cloud.IsAlreadyExists(err) {
 			log.WithFields(log.Fields{
-				"scope":                   createData.AzureScope(),
-				"role":                    createData.AzureRole(),
-				"servicePrincipalObjecID": createData.ServicePrincipalObjectID(),
-				"roleAssignmentID":        ra.ID,
-			}).Debugf("[%s] role assignment has previously been established", roleAssignmentPhaseName)
+				"scope":                    createData.AzureScope(),
+				"role":                     createData.AzureRole(),
+				"servicePrincipalObjectID": createData.ServicePrincipalObjectID(),
+				"roleAssignmentID":         ra.ID,
+			}).Debugf("[%s] role assignment has previously been created", roleAssignmentPhaseName)
 		} else {
 			return errors.Wrap(err, "failed to create role assignment")
 		}
 	}
 
 	log.WithFields(log.Fields{
-		"scope":                   createData.AzureScope(),
-		"role":                    createData.AzureRole(),
-		"servicePrincipalObjecID": createData.ServicePrincipalObjectID(),
-		"roleAssignmentID":        ra.ID,
+		"scope":                    createData.AzureScope(),
+		"role":                     createData.AzureRole(),
+		"servicePrincipalObjectID": createData.ServicePrincipalObjectID(),
+		"roleAssignmentID":         ra.ID,
 	}).Infof("[%s] created role assignment", roleAssignmentPhaseName)
 
 	return nil
