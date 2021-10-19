@@ -589,9 +589,128 @@ az rest --method POST --uri &quot;https://graph.microsoft.com/beta/applications/
 <h2 id="azure-portal-ui"><a class="header" href="#azure-portal-ui">Azure Portal UI</a></h2>
 <p>Coming soon.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="managed-clusters"><a class="header" href="#managed-clusters">Managed Clusters</a></h1>
+<ul>
+<li><a href="topics/managed-clusters.html#azure-kubernetes-service-aks">Azure Kubernetes Service (AKS)</a></li>
+<li><a href="topics/managed-clusters.html#amazon-elastic-kubernetes-service-eks">Amazon Elastic Kubernetes Service (EKS)</a></li>
+<li><a href="topics/managed-clusters.html#google-kubernetes-engine-gke">Google Kubernetes Engine (GKE)</a></li>
+<li><a href="topics/managed-clusters.html#steps-to-get-the-oidc-issuer-url-for-your-cluster">Steps to get the OIDC issuer URL for your cluster</a>
+<ul>
+<li><a href="topics/managed-clusters.html#1-create-a-service-account-for-the-jump-pod">1. Create a service account for the jump pod</a></li>
+<li><a href="topics/managed-clusters.html#2-deploy-a-jump-pod-referencing-the-service-account">2. Deploy a jump pod referencing the service account</a></li>
+<li><a href="topics/managed-clusters.html#3-get-the-oidc-issuer-url-from-the-jump-pod">3. Get the OIDC issuer URL from the jump pod</a></li>
+<li><a href="topics/managed-clusters.html#4-cleanup">4. Cleanup</a></li>
+</ul>
+</li>
+</ul>
+<p>For managed clusters, the OpenID Connect (OIDC) issuer URL is setup and managed by the cloud provider.</p>
 <h2 id="azure-kubernetes-service-aks"><a class="header" href="#azure-kubernetes-service-aks">Azure Kubernetes Service (AKS)</a></h2>
+<p>Enabling an OpenID Connect (OIDC) issuer URL for an AKS cluster is <em>coming soon</em>.</p>
 <h2 id="amazon-elastic-kubernetes-service-eks"><a class="header" href="#amazon-elastic-kubernetes-service-eks">Amazon Elastic Kubernetes Service (EKS)</a></h2>
+<p>EKS cluster has an OIDC issuer URL associated with it by default. To get your cluster’s OIDC issuer URL run:</p>
+<pre><code class="language-bash">aws eks describe-cluster --name &lt;cluster_name&gt; --query &quot;cluster.identity.oidc.issuer&quot; --output text
+</code></pre>
+<p>Refer to the [Amazon EKS documentation][1] for more information on the OIDC issuer URL for the EKS cluster.</p>
 <h2 id="google-kubernetes-engine-gke"><a class="header" href="#google-kubernetes-engine-gke">Google Kubernetes Engine (GKE)</a></h2>
+<p>GKE cluster has an OIDC issuer URL associated with it by default.</p>
+<h2 id="steps-to-get-the-oidc-issuer-url-for-your-cluster"><a class="header" href="#steps-to-get-the-oidc-issuer-url-for-your-cluster">Steps to get the OIDC issuer URL for your cluster</a></h2>
+<p>In this section, we will cover how to get the OIDC issuer URL for a managed cluster using a jump pod.</p>
+<h3 id="1-create-a-service-account-for-the-jump-pod"><a class="header" href="#1-create-a-service-account-for-the-jump-pod">1. Create a service account for the jump pod</a></h3>
+<p>Run the following commands to set up a service account for the jump pod:</p>
+<pre><code class="language-bash">export NAMESPACE=&quot;default&quot;
+export SERVICE_ACCOUNT_NAME=&quot;jump-pod-sa&quot;
+
+kubectl create serviceaccount ${SERVICE_ACCOUNT_NAME} -n ${NAMESPACE}
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code class="language-bash">serviceaccount/jump-pod-sa created
+</code></pre>
+</details>
+<h3 id="2-deploy-a-jump-pod-referencing-the-service-account"><a class="header" href="#2-deploy-a-jump-pod-referencing-the-service-account">2. Deploy a jump pod referencing the service account</a></h3>
+<p>Deploy a jump pod with <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-token-volume-projection">projected service account token</a> to your cluster. The jump pod uses the <a href="https://smallstep.com/cli/">step-cli</a> docker image that is used for inspecting the service account token to retrieve the OIDC issuer URL.</p>
+<pre><code class="language-bash">cat &lt;&lt;EOF | kubectl apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: jump
+  namespace: ${NAMESPACE}
+spec:
+  containers:
+  - image: smallstep/step-cli
+    name: step-cli
+    command:
+    - /bin/sh
+    - -c
+    - cat /var/run/secrets/tokens/test-token | step crypto jwt inspect --insecure
+    volumeMounts:
+    - mountPath: /var/run/secrets/tokens
+      name: test-token
+  serviceAccountName: ${SERVICE_ACCOUNT_NAME}
+  volumes:
+  - name: test-token
+    projected:
+      sources:
+      - serviceAccountToken:
+          path: test-token
+          expirationSeconds: 3600
+          audience: test
+EOF
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code class="language-bash">pod/jump created
+</code></pre>
+</details>
+<h3 id="3-get-the-oidc-issuer-url-from-the-jump-pod"><a class="header" href="#3-get-the-oidc-issuer-url-from-the-jump-pod">3. Get the OIDC issuer URL from the jump pod</a></h3>
+<p>The jump pod logs will contain the decoded JWT. Run the following command to get the logs and extract the OIDC issuer URL:</p>
+<pre><code class="language-bash">kubectl logs jump -n ${NAMESPACE}
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code class="language-json">{
+  &quot;header&quot;: {
+    &quot;alg&quot;: &quot;RS256&quot;,
+    &quot;kid&quot;: &quot;[REDACTED]&quot;
+  },
+  &quot;payload&quot;: {
+    &quot;aud&quot;: [
+      &quot;test&quot;
+    ],
+    &quot;exp&quot;: 1634671190,
+    &quot;iat&quot;: 1634667590,
+    &quot;iss&quot;: &quot;https://container.googleapis.com/v1/projects/[REDACTED]/locations/us-central1-c/clusters/[REDACTED]&quot;,
+    &quot;kubernetes.io&quot;: {
+      &quot;namespace&quot;: &quot;default&quot;,
+      &quot;pod&quot;: {
+        &quot;name&quot;: &quot;jump&quot;,
+        &quot;uid&quot;: &quot;c4e09c90-3007-4255-ab74-f5f97d944db2&quot;
+      },
+      &quot;serviceaccount&quot;: {
+        &quot;name&quot;: &quot;jump-pod-sa&quot;,
+        &quot;uid&quot;: &quot;6af8dfb1-8a28-48f8-a7fe-e2abd99cd35e&quot;
+      }
+    },
+    &quot;nbf&quot;: 1634667590,
+    &quot;sub&quot;: &quot;system:serviceaccount:default:jump-pod-sa&quot;
+  },
+  &quot;signature&quot;: &quot;[REDACTED]&quot;
+}
+</code></pre>
+</details>
+<p>The OIDC issuer URL is the value of the <code>iss</code> claim in the JWT.</p>
+<p>To just get the issuer from the JWT, run the following command:</p>
+<pre><code class="language-bash">kubectl logs jump -n ${NAMESPACE} | jq -r '.payload.iss'
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code class="language-log">https://container.googleapis.com/v1/projects/[REDACTED]/locations/us-central1-c/clusters/[REDACTED]
+</code></pre>
+</details>
+<h3 id="4-cleanup"><a class="header" href="#4-cleanup">4. Cleanup</a></h3>
+<pre><code class="language-bash">kubectl delete pod jump -n ${NAMESPACE}
+kubectl delete serviceaccount ${SERVICE_ACCOUNT_NAME} -n ${NAMESPACE}
+</code></pre>
+<p>[1] https://docs.aws.amazon.com/eks/latest/userguide/enable-iam-roles-for-service-accounts.html</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="self-managed-clusters"><a class="header" href="#self-managed-clusters">Self-Managed Clusters</a></h1>
 <p>When compared to using managed Kubernetes services like AKS, managing your own Kubernetes cluster provides the most freedom in customizing Kubernetes and your workload. Make sure the cluster administrator can perform the following actions before deploying the Azure AD Workload Identity webhook to a self-managed cluster:</p>
 <ul>
