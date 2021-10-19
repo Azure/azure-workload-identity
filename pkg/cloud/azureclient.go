@@ -30,12 +30,12 @@ var msGraphEndpoint = map[azure.Environment]string{
 }
 
 type Interface interface {
-	CreateServicePrincipal(ctx context.Context, appID string, tags []string) (graphrbac.ServicePrincipal, error)
-	CreateApplication(ctx context.Context, displayName string) (graphrbac.Application, error)
+	CreateServicePrincipal(ctx context.Context, appID string, tags []string) (*graphrbac.ServicePrincipal, error)
+	CreateApplication(ctx context.Context, displayName string) (*graphrbac.Application, error)
 	DeleteServicePrincipal(ctx context.Context, objectID string) (autorest.Response, error)
 	DeleteApplication(ctx context.Context, objectID string) (autorest.Response, error)
-	GetServicePrincipal(ctx context.Context, displayName string) (graphrbac.ServicePrincipal, error)
-	GetApplication(ctx context.Context, displayName string) (graphrbac.Application, error)
+	GetServicePrincipal(ctx context.Context, displayName string) (*graphrbac.ServicePrincipal, error)
+	GetApplication(ctx context.Context, displayName string) (*graphrbac.Application, error)
 
 	// Role assignment methods
 	CreateRoleAssignment(ctx context.Context, scope, roleName, principalID string) (authorization.RoleAssignment, error)

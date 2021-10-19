@@ -1,42 +1,10 @@
-package serviceaccount
+package auth
 
 import (
-	"errors"
 	"testing"
 
-	"github.com/Azure/azure-workload-identity/pkg/cloud"
-	"github.com/Azure/azure-workload-identity/pkg/cloud/mock_cloud"
-
-	"github.com/spf13/cobra"
+	"github.com/pkg/errors"
 )
-
-//mockAuthProvider implements AuthProvider and allows in particular to stub out getClient()
-type mockAuthProvider struct {
-	getClientMock cloud.Interface
-	*authArgs
-}
-
-func (provider *mockAuthProvider) getClient() (cloud.Interface, error) {
-	provider.getClientMock = &mock_cloud.MockInterface{}
-	return provider.getClientMock, nil
-}
-
-func (provider *mockAuthProvider) getAuthArgs() *authArgs {
-	return provider.authArgs
-}
-
-func TestNewServiceAccountCmd(t *testing.T) {
-	command := NewServiceAccountCmd()
-	// The commands need to be listed in alphabetical order
-	expectedCommands := []*cobra.Command{newCreateCmd(), newDeleteCmd()}
-	cmds := command.Commands()
-
-	for i, c := range expectedCommands {
-		if cmds[i].Use != c.Use {
-			t.Errorf("serviceaccount command should have command %s, but found %s", c.Use, cmds[i].Use)
-		}
-	}
-}
 
 func TestValidateAuthArgs(t *testing.T) {
 	validID := "cc6b141e-6afc-4786-9bf6-e3b9a5601460"
@@ -138,7 +106,7 @@ func TestValidateAuthArgs(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.authArgs.validate()
+			err := tt.authArgs.Validate()
 			if tt.wantErr != nil {
 				if err == nil {
 					t.Errorf("validate() = %v, want %v", err, tt.wantErr)
@@ -149,41 +117,5 @@ func TestValidateAuthArgs(t *testing.T) {
 				}
 			}
 		})
-	}
-}
-
-func TestGetIssuerHash(t *testing.T) {
-	tests := []struct {
-		name        string
-		inputIssuer string
-		want        string
-	}{
-		{
-			name:        "empty",
-			inputIssuer: "",
-			want:        "47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU=",
-		},
-		{
-			name:        "valid issuer",
-			inputIssuer: "https://test.blob.core.windows.net/oidc-test/",
-			want:        "foWt5lYFJx_-XwBetmnSltvWY5J_nenUV-2c3Lqes3o=",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := getIssuerHash(tt.inputIssuer)
-			if got != tt.want {
-				t.Errorf("getIssuerHash() = %s, want %s", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestGetSubject(t *testing.T) {
-	want := "system:serviceaccount:oidc:pod-identity-sa"
-	got := getSubject("oidc", "pod-identity-sa")
-	if got != want {
-		t.Errorf("getSubject() = %s, want %s", got, want)
 	}
 }

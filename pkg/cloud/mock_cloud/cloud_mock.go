@@ -53,10 +53,10 @@ func (mr *MockInterfaceMockRecorder) AddFederatedCredential(ctx, objectID, fc in
 }
 
 // CreateApplication mocks base method.
-func (m *MockInterface) CreateApplication(ctx context.Context, displayName string) (graphrbac.Application, error) {
+func (m *MockInterface) CreateApplication(ctx context.Context, displayName string) (*graphrbac.Application, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateApplication", ctx, displayName)
-	ret0, _ := ret[0].(graphrbac.Application)
+	ret0, _ := ret[0].(*graphrbac.Application)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -83,10 +83,10 @@ func (mr *MockInterfaceMockRecorder) CreateRoleAssignment(ctx, scope, roleName, 
 }
 
 // CreateServicePrincipal mocks base method.
-func (m *MockInterface) CreateServicePrincipal(ctx context.Context, appID string, tags []string) (graphrbac.ServicePrincipal, error) {
+func (m *MockInterface) CreateServicePrincipal(ctx context.Context, appID string, tags []string) (*graphrbac.ServicePrincipal, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateServicePrincipal", ctx, appID, tags)
-	ret0, _ := ret[0].(graphrbac.ServicePrincipal)
+	ret0, _ := ret[0].(*graphrbac.ServicePrincipal)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -157,10 +157,10 @@ func (mr *MockInterfaceMockRecorder) DeleteServicePrincipal(ctx, objectID interf
 }
 
 // GetApplication mocks base method.
-func (m *MockInterface) GetApplication(ctx context.Context, displayName string) (graphrbac.Application, error) {
+func (m *MockInterface) GetApplication(ctx context.Context, displayName string) (*graphrbac.Application, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetApplication", ctx, displayName)
-	ret0, _ := ret[0].(graphrbac.Application)
+	ret0, _ := ret[0].(*graphrbac.Application)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -187,10 +187,10 @@ func (mr *MockInterfaceMockRecorder) GetFederatedCredential(ctx, objectID, issue
 }
 
 // GetServicePrincipal mocks base method.
-func (m *MockInterface) GetServicePrincipal(ctx context.Context, displayName string) (graphrbac.ServicePrincipal, error) {
+func (m *MockInterface) GetServicePrincipal(ctx context.Context, displayName string) (*graphrbac.ServicePrincipal, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetServicePrincipal", ctx, displayName)
-	ret0, _ := ret[0].(graphrbac.ServicePrincipal)
+	ret0, _ := ret[0].(*graphrbac.ServicePrincipal)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
