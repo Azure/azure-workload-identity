@@ -157,4 +157,4 @@ kubectl delete pod jump -n ${NAMESPACE}
 kubectl delete serviceaccount ${SERVICE_ACCOUNT_NAME} -n ${NAMESPACE}
 ```
 
-[1] https://docs.aws.amazon.com/eks/latest/userguide/enable-iam-roles-for-service-accounts.html
+[1]: https://docs.aws.amazon.com/eks/latest/userguide/enable-iam-roles-for-service-accounts.html
