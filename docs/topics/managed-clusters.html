@@ -167,7 +167,7 @@
 <p>EKS cluster has an OIDC issuer URL associated with it by default. To get your cluster’s OIDC issuer URL run:</p>
 <pre><code class="language-bash">aws eks describe-cluster --name &lt;cluster_name&gt; --query &quot;cluster.identity.oidc.issuer&quot; --output text
 </code></pre>
-<p>Refer to the [Amazon EKS documentation][1] for more information on the OIDC issuer URL for the EKS cluster.</p>
+<p>Refer to the <a href="https://docs.aws.amazon.com/eks/latest/userguide/enable-iam-roles-for-service-accounts.html">Amazon EKS documentation</a> for more information on the OIDC issuer URL for the EKS cluster.</p>
 <h2 id="google-kubernetes-engine-gke"><a class="header" href="#google-kubernetes-engine-gke">Google Kubernetes Engine (GKE)</a></h2>
 <p>GKE cluster has an OIDC issuer URL associated with it by default.</p>
 <h2 id="steps-to-get-the-oidc-issuer-url-for-your-cluster"><a class="header" href="#steps-to-get-the-oidc-issuer-url-for-your-cluster">Steps to get the OIDC issuer URL for your cluster</a></h2>
@@ -268,7 +268,6 @@ EOF
 <pre><code class="language-bash">kubectl delete pod jump -n ${NAMESPACE}
 kubectl delete serviceaccount ${SERVICE_ACCOUNT_NAME} -n ${NAMESPACE}
 </code></pre>
-<p>[1] https://docs.aws.amazon.com/eks/latest/userguide/enable-iam-roles-for-service-accounts.html</p>
 
                     </main>
 
