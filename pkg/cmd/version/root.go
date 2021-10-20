@@ -23,5 +23,5 @@ func NewVersionCmd() *cobra.Command {
 }
 
 func getVersion() string {
-	return fmt.Sprintf("Version; %s\nGitCommit: %s", version.BuildVersion, version.Vcs)
+	return fmt.Sprintf("Version: %s\nGitCommit: %s", version.BuildVersion, version.Vcs)
 }
