@@ -71,13 +71,13 @@ func TestAADApplicationRun(t *testing.T) {
 		t.Errorf("expected no error but got: %s", err.Error())
 	}
 
-	// Test for scenario where it failed to delete role assignment
+	// Test for scenario where it failed to delete aad application
 	mockAzureClient.EXPECT().DeleteApplication(gomock.Any(), data.aadApplicationObjectID).Return(autorest.Response{}, errors.New("random error"))
 	if err := phase.Run(context.Background(), data); err == nil {
 		t.Errorf("expected error but got nil")
 	}
 
-	// Test for scenario where role assignment is not found
+	// Test for scenario where aad application is not found
 	mockAzureClient.EXPECT().DeleteApplication(gomock.Any(), data.aadApplicationObjectID).Return(autorest.Response{}, autorest.DetailedError{StatusCode: http.StatusNotFound})
 	if err := phase.Run(context.Background(), data); err != nil {
 		t.Errorf("expected no error but got: %s", err.Error())

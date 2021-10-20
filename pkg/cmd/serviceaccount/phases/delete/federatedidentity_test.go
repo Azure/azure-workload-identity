@@ -90,7 +90,7 @@ func TestFederatedIdentityRun(t *testing.T) {
 		t.Errorf("expected no error but got: %s", err.Error())
 	}
 
-	// Test for scenario where it failed to delete role assignment
+	// Test for scenario where it failed to delete federated credential
 	mockAzureClient.EXPECT().GetFederatedCredential(
 		gomock.Any(),
 		"aad-application-object-id",

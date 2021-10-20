@@ -17,12 +17,12 @@ const (
 type aadApplicationPhase struct {
 }
 
-// NewAADApplicationPhase creates a new phase to create an AAD application
+// NewAADApplicationPhase creates a new phase to delete an AAD application
 func NewAADApplicationPhase() workflow.Phase {
 	p := &aadApplicationPhase{}
 	return workflow.Phase{
 		Name:        aadApplicationPhaseName,
-		Description: "Delete Azure Active Directory (AAD) application and its underlying service principal",
+		Description: "Delete the Azure Active Directory (AAD) application and its underlying service principal",
 		PreRun:      p.prerun,
 		Run:         p.run,
 	}

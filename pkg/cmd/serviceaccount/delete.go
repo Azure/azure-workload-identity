@@ -40,7 +40,7 @@ func newDeleteCmd() *cobra.Command {
 	f.StringVar(&data.serviceAccountName, "service-account-name", "", "Name of the service account")
 	f.StringVar(&data.serviceAccountNamespace, "service-account-namespace", "default", "Namespace of the service account")
 	f.StringVar(&data.serviceAccountIssuerURL, "service-account-issuer-url", "", "URL of the issuer")
-	f.StringVar(&data.aadApplicationName, "aad-application-name", "", "Name of the AAD application, If not specified, the namespace and the name of the service account will be used")
+	f.StringVar(&data.aadApplicationName, "aad-application-name", "", "Name of the AAD application. If not specified, the namespace, the name of the service account and the hash of the issuer URL will be used")
 	f.StringVar(&data.aadApplicationObjectID, "aad-application-object-id", "", "Object ID of the AAD application. If not specified, it will be fetched using the AAD application name")
 	f.StringVar(&data.roleAssignmentID, "role-assignment-id", "", "Azure role assignment ID")
 

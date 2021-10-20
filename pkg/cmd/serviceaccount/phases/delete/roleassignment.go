@@ -17,12 +17,12 @@ const (
 type roleAssignmentPhase struct {
 }
 
-// NewRoleAssignmentPhase creates a new phase to create role assignment
+// NewRoleAssignmentPhase creates a new phase to delete role assignment
 func NewRoleAssignmentPhase() workflow.Phase {
 	p := &roleAssignmentPhase{}
 	return workflow.Phase{
 		Name:        roleAssignmentPhaseName,
-		Description: "Delete role assignment between the AAD application and the Azure cloud resource",
+		Description: "Delete the role assignment between the AAD application and the Azure cloud resource",
 		PreRun:      p.prerun,
 		Run:         p.run,
 	}

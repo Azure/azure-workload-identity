@@ -20,12 +20,12 @@ type serviceAccountPhase struct {
 	kubeClient kubernetes.Interface
 }
 
-// NewServiceAccountPhase creates a new phase to create a Kubernetes service account
+// NewServiceAccountPhase creates a new phase to delete the Kubernetes service account
 func NewServiceAccountPhase() workflow.Phase {
 	p := &serviceAccountPhase{}
 	return workflow.Phase{
 		Name:        serviceAccountPhaseName,
-		Description: "Delete Kubernetes service account in the current KUBECONFIG context and add azure-workload-identity labels and annotations to it",
+		Description: "Delete the Kubernetes service account in the current KUBECONFIG context",
 		PreRun:      p.prerun,
 		Run:         p.run,
 	}
@@ -53,17 +53,17 @@ func (p *serviceAccountPhase) prerun(data workflow.RunData) error {
 }
 
 func (p *serviceAccountPhase) run(ctx context.Context, data workflow.RunData) error {
-	createData := data.(DeleteData)
+	deleteData := data.(DeleteData)
 
 	l := log.WithFields(log.Fields{
-		"namespace": createData.ServiceAccountNamespace(),
-		"name":      createData.ServiceAccountName(),
+		"namespace": deleteData.ServiceAccountNamespace(),
+		"name":      deleteData.ServiceAccountName(),
 	})
 	err := kuberneteshelper.DeleteServiceAccount(
 		ctx,
 		p.kubeClient,
-		createData.ServiceAccountNamespace(),
-		createData.ServiceAccountName(),
+		deleteData.ServiceAccountNamespace(),
+		deleteData.ServiceAccountName(),
 	)
 	if err != nil {
 		if !apierrors.IsNotFound(err) {

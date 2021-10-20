@@ -18,12 +18,12 @@ const (
 type federatedIdentityPhase struct {
 }
 
-// NewFederatedIdentityPhase creates a new phase to create federated identity.
+// NewFederatedIdentityPhase creates a new phase to delete federated identity.
 func NewFederatedIdentityPhase() workflow.Phase {
 	p := &federatedIdentityPhase{}
 	return workflow.Phase{
 		Name:        federatedIdentityPhaseName,
-		Description: "Delete federated identity between the AAD application and the Kubernetes service account",
+		Description: "Delete federated identity for the AAD application and the Kubernetes service account",
 		PreRun:      p.prerun,
 		Run:         p.run,
 	}
