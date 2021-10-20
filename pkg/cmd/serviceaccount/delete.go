@@ -2,119 +2,139 @@ package serviceaccount
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/auth"
+	phases "github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/delete"
+	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/util"
 	"github.com/Azure/azure-workload-identity/pkg/kuberneteshelper"
 
-	"github.com/pkg/errors"
+	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/kubernetes"
 )
 
-type deleteCmd struct {
-	name             string
-	namespace        string
-	issuer           string
-	roleAssignmentID string
-	appObjectID      string
-
-	azureClient cloud.Interface
-	kubeClient  kubernetes.Interface
-}
-
 func newDeleteCmd() *cobra.Command {
 	authProvider := auth.NewProvider()
-	dc := &deleteCmd{}
+	deleteRunner := workflow.NewPhaseRunner()
+	data := &deleteData{}
 	cmd := &cobra.Command{
-		Use:   "delete",
-		Short: "Delete a service account",
-		Long:  "This command provides the ability to remove the role assignment, federated identity credential, Kubernetes service account, and application",
+		Use: "delete",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return authProvider.Validate()
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
-			if dc.azureClient, err = authProvider.GetAzureClient(); err != nil {
+			if data.azureClient, err = authProvider.GetAzureClient(); err != nil {
 				return err
 			}
-			if dc.kubeClient, err = kuberneteshelper.GetKubeClient(); err != nil {
-				return err
-			}
-			return dc.run()
+			return deleteRunner.Run(data)
 		},
 	}
 
 	f := cmd.Flags()
 	authProvider.AddFlags(f)
-	f.StringVar(&dc.name, "name", "", "Name of the service account")
-	f.StringVar(&dc.namespace, "namespace", "default", "Namespace of the service account")
-	f.StringVar(&dc.issuer, "issuer", "", "OpenID Connect (OIDC) issuer URL")
-	f.StringVar(&dc.roleAssignmentID, "role-assignment-id", "", "Azure role assignment ID")
-	f.StringVar(&dc.appObjectID, "application-object-id", "", "Azure application object ID")
+	f.StringVar(&data.serviceAccountName, "service-account-name", "", "Name of the service account")
+	f.StringVar(&data.serviceAccountNamespace, "service-account-namespace", "default", "Namespace of the service account")
+	f.StringVar(&data.serviceAccountIssuerURL, "service-account-issuer-url", "", "URL of the issuer")
+	f.StringVar(&data.aadApplicationName, "aad-application-name", "", "Name of the AAD application. If not specified, the namespace, the name of the service account and the hash of the issuer URL will be used")
+	f.StringVar(&data.aadApplicationObjectID, "aad-application-object-id", "", "Object ID of the AAD application. If not specified, it will be fetched using the AAD application name")
+	f.StringVar(&data.roleAssignmentID, "role-assignment-id", "", "Azure role assignment ID")
 
-	_ = cmd.MarkFlagRequired("name")
-	_ = cmd.MarkFlagRequired("issuer")
-	_ = cmd.MarkFlagRequired("role-assignment-id")
-	_ = cmd.MarkFlagRequired("application-object-id")
+	// append phases in order
+	deleteRunner.AppendPhases(
+		phases.NewRoleAssignmentPhase(),
+		phases.NewFederatedIdentityPhase(),
+		phases.NewServiceAccountPhase(),
+		phases.NewAADApplicationPhase(),
+	)
+	deleteRunner.BindToCommand(cmd)
 
 	return cmd
 }
 
-func (dc *deleteCmd) run() error {
-	ctx := context.Background()
-	var err error
+// deleteData is an implementation of phases.DeleteData in
+// pkg/cmd/serviceaccount/phases/delete/data.go
+type deleteData struct {
+	serviceAccountName      string
+	serviceAccountNamespace string
+	serviceAccountIssuerURL string
+	aadApplication          *graphrbac.Application // cache
+	aadApplicationName      string
+	aadApplicationObjectID  string
+	roleAssignmentID        string
+	azureClient             cloud.Interface
+}
 
-	// TODO(aramase): consider supporting deletion of role assignment with scope, role and application id
-	// delete the role assignment
-	if _, err := dc.azureClient.DeleteRoleAssignment(ctx, dc.roleAssignmentID); err != nil {
-		if !cloud.IsRoleAssignmentAlreadyDeleted(err) {
-			return errors.Wrap(err, "failed to delete role assignment")
+var _ phases.DeleteData = &deleteData{}
+
+// ServiceAccountName returns the name of the service account.
+func (d *deleteData) ServiceAccountName() string {
+	return d.serviceAccountName
+}
+
+// ServiceAccountNamespace returns the namespace of the service account.
+func (d *deleteData) ServiceAccountNamespace() string {
+	return d.serviceAccountNamespace
+}
+
+// ServiceAccountIssuerURL returns the issuer URL of the service account.
+func (d *deleteData) ServiceAccountIssuerURL() string {
+	return d.serviceAccountIssuerURL
+}
+
+// AADApplication returns the AAD application object.
+// This will return the cached value if it has been created.
+func (d *deleteData) AADApplication() (*graphrbac.Application, error) {
+	if d.aadApplication == nil {
+		app, err := d.AzureClient().GetApplication(context.Background(), d.AADApplicationName())
+		if err != nil {
+			return nil, err
 		}
-		log.Debugf("Role assignment with id=%s already deleted", dc.roleAssignmentID)
-	} else {
-		log.Infof("Deleted role assignment %s", dc.roleAssignmentID)
+		d.aadApplication = app
+	}
+	return d.aadApplication, nil
+}
+
+// AADApplicationName returns the name of the AAD application.
+func (d *deleteData) AADApplicationName() string {
+	name := d.aadApplicationName
+	if name == "" && d.ServiceAccountNamespace() != "" && d.ServiceAccountName() != "" && d.ServiceAccountIssuerURL() != "" {
+		name = fmt.Sprintf("%s-%s-%s", d.ServiceAccountNamespace(), d.serviceAccountName, util.GetIssuerHash(d.ServiceAccountIssuerURL()))
+		log.WithField("name", name).Debug("AAD application name not specified, falling back to service account namespace and name")
+	}
+	return name
+}
+
+// AADApplicationObjectID returns the object ID of the AAD application.
+// This will be used for creating or removing the federated identity.
+func (d *deleteData) AADApplicationObjectID() string {
+	if d.aadApplicationObjectID != "" {
+		return d.aadApplicationObjectID
 	}
 
-	var fc cloud.FederatedCredential
-	subject := util.GetFederatedCredentialSubject(dc.namespace, dc.name)
-	// delete the federated identity credential
-	if fc, err = dc.azureClient.GetFederatedCredential(ctx, dc.appObjectID, dc.issuer, subject); err != nil {
-		if !cloud.IsResourceNotFound(err) {
-			return errors.Wrap(err, "failed to get federated credential")
-		}
-		log.Debugf("Federated credential for subject=%s, issuer=%s not found", subject, dc.issuer)
-	} else {
-		if err = dc.azureClient.DeleteFederatedCredential(ctx, dc.appObjectID, fc.ID); err != nil {
-			return errors.Wrap(err, "failed to delete federated credential")
-		}
-		log.Infof("Deleted federated identity credential for subject=%s, issuer=%s with id=%s", subject, dc.issuer, fc.ID)
+	app, err := d.AADApplication()
+	if err != nil {
+		log.WithError(err).Error("failed to get AAD application object ID. Returning an empty string")
+		return ""
 	}
+	return *app.ObjectID
+}
 
-	// delete the Kubernetes service account
-	if err = kuberneteshelper.DeleteServiceAccount(ctx, dc.kubeClient, dc.namespace, dc.name); err != nil {
-		if !apierrors.IsNotFound(err) {
-			return errors.Wrap(err, "failed to delete service account")
-		}
-		log.Debugf("Service account %s/%s not found", dc.namespace, dc.name)
-	} else {
-		log.Infof("Deleted kubernetes service account=%s/%s", dc.namespace, dc.name)
-	}
+// AzureClient returns the Azure client.
+func (d *deleteData) RoleAssignmentID() string {
+	return d.roleAssignmentID
+}
 
-	// TODO(aramase): consider deleting the application using the display name
-	// delete the application with the objectID
-	// this is cascading delete of all resources associated with the application
-	if _, err = dc.azureClient.DeleteApplication(ctx, dc.appObjectID); err != nil {
-		if !cloud.IsResourceNotFound(err) {
-			return errors.Wrap(err, "failed to delete application")
-		}
-		log.Debugf("Application with objectID=%s not found", dc.appObjectID)
-	} else {
-		log.Debugf("Deleted application with objectID=%s", dc.appObjectID)
-	}
+// AzureClient returns the Azure client.
+func (d *deleteData) AzureClient() cloud.Interface {
+	return d.azureClient
+}
 
-	return nil
+// KubeClient returns the Kubernetes client.
+func (d *deleteData) KubeClient() (kubernetes.Interface, error) {
+	return kuberneteshelper.GetKubeClient()
 }
