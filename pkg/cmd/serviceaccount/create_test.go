@@ -13,10 +13,12 @@ import (
 )
 
 const (
-	serviceAccountName = "service-account-name"
-	appID              = "app-id"
-	objectID           = "object-id"
-	appName            = "aad-application-name"
+	serviceAccountNamespace = "service-account-namespace"
+	serviceAccountName      = "service-account-name"
+	serviceAccountIssuerURL = "service-account-issuer-url"
+	appID                   = "app-id"
+	objectID                = "object-id"
+	appName                 = "aad-application-name"
 )
 
 func TestCreateDataServiceAccountName(t *testing.T) {
@@ -30,18 +32,18 @@ func TestCreateDataServiceAccountName(t *testing.T) {
 
 func TestCreateDataServiceAccountNamespace(t *testing.T) {
 	createData := &createData{
-		serviceAccountNamespace: "service-account-namespace",
+		serviceAccountNamespace: serviceAccountNamespace,
 	}
-	if createData.ServiceAccountNamespace() != "service-account-namespace" {
+	if createData.ServiceAccountNamespace() != serviceAccountNamespace {
 		t.Errorf("Expected ServiceAccountNamespace() to be 'service-account-namespace', got %s", createData.ServiceAccountNamespace())
 	}
 }
 
 func TestCreateDataServiceAccountIssuerURL(t *testing.T) {
 	createData := &createData{
-		serviceAccountIssuerURL: "service-account-issuer-url",
+		serviceAccountIssuerURL: serviceAccountIssuerURL,
 	}
-	if createData.ServiceAccountIssuerURL() != "service-account-issuer-url" {
+	if createData.ServiceAccountIssuerURL() != serviceAccountIssuerURL {
 		t.Errorf("Expected ServiceAccountIssuerURL() to be 'service-account-issuer-url', got %s", createData.ServiceAccountIssuerURL())
 	}
 }
@@ -150,9 +152,9 @@ func TestCreateDataAADApplicationName(t *testing.T) {
 		t.Errorf("Expected aadApplicationName() to be 'aad-application-name', got %s", createData.AADApplicationName())
 	}
 	createData.aadApplicationName = ""
-	createData.serviceAccountNamespace = "service-account-namespace"
+	createData.serviceAccountNamespace = serviceAccountNamespace
 	createData.serviceAccountName = serviceAccountName
-	createData.serviceAccountIssuerURL = "service-account-issuer-url"
+	createData.serviceAccountIssuerURL = serviceAccountIssuerURL
 	if createData.AADApplicationName() != "service-account-namespace-service-account-name-t4BxHnnPeJsOfTLIBFbdKeRHdVMaIRdxwkxwF13SvKw=" {
 		t.Errorf("Expected aadApplicationName() to be 'service-account-namespace-service-account-name-t4BxHnnPeJsOfTLIBFbdKeRHdVMaIRdxwkxwF13SvKw=', got %s", createData.AADApplicationName())
 	}

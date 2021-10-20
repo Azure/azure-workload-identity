@@ -1,177 +1,151 @@
 package serviceaccount
 
 import (
-	"context"
-	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-workload-identity/pkg/cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cloud/mock_cloud"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
-	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
-	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes/fake"
 )
 
-func TestDeleteCmdRun(t *testing.T) {
+func TestDeleteDataServiceAccountName(t *testing.T) {
+	deleteData := &deleteData{
+		serviceAccountName: serviceAccountName,
+	}
+	if deleteData.ServiceAccountName() != serviceAccountName {
+		t.Errorf("Expected ServiceAccountName() to be 'service-account-name', got %s", deleteData.ServiceAccountName())
+	}
+}
+
+func TestDeleteDataServiceAccountNamespace(t *testing.T) {
+	deleteData := &deleteData{
+		serviceAccountNamespace: serviceAccountNamespace,
+	}
+	if deleteData.ServiceAccountNamespace() != serviceAccountNamespace {
+		t.Errorf("Expected ServiceAccountNamespace() to be 'service-account-namespace', got %s", deleteData.ServiceAccountNamespace())
+	}
+}
+
+func TestDeleteDataServiceAccountIssuerURL(t *testing.T) {
+	deleteData := &deleteData{
+		serviceAccountIssuerURL: serviceAccountIssuerURL,
+	}
+	if deleteData.ServiceAccountIssuerURL() != serviceAccountIssuerURL {
+		t.Errorf("Expected ServiceAccountIssuerURL() to be 'service-account-issuer-url', got %s", deleteData.ServiceAccountIssuerURL())
+	}
+}
+
+func TestDeleteDataAADApplication(t *testing.T) {
 	tests := []struct {
-		name      string
-		deleteCmd deleteCmd
-		expect    func(m *mock_cloud.MockInterfaceMockRecorder)
-		verify    func(t *testing.T, dc deleteCmd, err error)
+		name       string
+		deleteData *deleteData
+		expect     func(m *mock_cloud.MockInterfaceMockRecorder)
+		verify     func(t *testing.T, deleteData *deleteData)
 	}{
 		{
-			name: "failed to delete role assignment",
-			deleteCmd: deleteCmd{
-				name:             "foo",
-				namespace:        "bar",
-				issuer:           "https://issuer-url",
-				roleAssignmentID: "role-assignment-id",
-				appObjectID:      "application-id",
-				kubeClient:       fake.NewSimpleClientset(),
+			name: "random error",
+			deleteData: &deleteData{
+				aadApplicationName: appName,
 			},
 			expect: func(m *mock_cloud.MockInterfaceMockRecorder) {
-				m.DeleteRoleAssignment(gomock.Any(), gomock.Any()).Return(authorization.RoleAssignment{}, errors.New("failed to delete role assignment"))
+				m.GetApplication(gomock.Any(), appName).Return(nil, errors.New("random error")).Times(2)
 			},
-			verify: func(t *testing.T, dc deleteCmd, err error) {
-				if err == nil {
-					t.Errorf("expected error, got nil")
+			verify: func(t *testing.T, deleteData *deleteData) {
+				if _, err := deleteData.AADApplication(); err == nil {
+					t.Error("Expected AADApplication() to return error")
+				}
+				if deleteData.AADApplicationObjectID() != "" {
+					t.Errorf("Expected AADApplicationObjectID() to be empty, got %s", deleteData.AADApplicationObjectID())
 				}
 			},
 		},
 		{
-			name: "role assignment already deleted",
-			deleteCmd: deleteCmd{
-				name:             "foo",
-				namespace:        "bar",
-				issuer:           "https://issuer-url",
-				roleAssignmentID: "role-assignment-id",
-				appObjectID:      "application-id",
-				kubeClient:       fake.NewSimpleClientset(),
+			name: "no cache",
+			deleteData: &deleteData{
+				aadApplicationName: appName,
 			},
 			expect: func(m *mock_cloud.MockInterfaceMockRecorder) {
-				m.DeleteRoleAssignment(gomock.Any(), gomock.Any()).Return(authorization.RoleAssignment{}, autorest.DetailedError{StatusCode: http.StatusNoContent})
-				m.GetFederatedCredential(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(cloud.FederatedCredential{}, errors.New("failed to get federated credential"))
+				m.GetApplication(gomock.Any(), appName).Return(&graphrbac.Application{
+					AppID:    to.StringPtr(appID),
+					ObjectID: to.StringPtr(objectID),
+				}, nil)
 			},
-			verify: func(t *testing.T, dc deleteCmd, err error) {
-				if err == nil {
-					t.Errorf("expected error, got nil")
+			verify: func(t *testing.T, deleteData *deleteData) {
+				if _, err := deleteData.AADApplication(); err != nil {
+					t.Error("Expected AADApplication() to not return error")
+				}
+				if deleteData.AADApplicationObjectID() != objectID {
+					t.Errorf("Expected AADApplicationObjectID() to be 'object-id', got %s", deleteData.AADApplicationObjectID())
 				}
 			},
 		},
 		{
-			name: "failed to delete federated identity credential",
-			deleteCmd: deleteCmd{
-				name:             "foo",
-				namespace:        "bar",
-				issuer:           "https://issuer-url",
-				roleAssignmentID: "role-assignment-id",
-				appObjectID:      "application-id",
-				kubeClient:       fake.NewSimpleClientset(),
+			name: "cache",
+			deleteData: &deleteData{
+				aadApplicationName: appName,
+				aadApplication: &graphrbac.Application{
+					AppID:    to.StringPtr(appID),
+					ObjectID: to.StringPtr(objectID),
+				},
 			},
-			expect: func(m *mock_cloud.MockInterfaceMockRecorder) {
-				m.DeleteRoleAssignment(gomock.Any(), gomock.Any()).Return(authorization.RoleAssignment{}, autorest.DetailedError{StatusCode: http.StatusNoContent})
-				m.GetFederatedCredential(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(cloud.FederatedCredential{ID: "fic-id"}, nil)
-				m.DeleteFederatedCredential(gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("failed to delete federated identity credential"))
-			},
-			verify: func(t *testing.T, dc deleteCmd, err error) {
-				if err == nil {
-					t.Errorf("expected error, got nil")
+			expect: func(m *mock_cloud.MockInterfaceMockRecorder) {},
+			verify: func(t *testing.T, deleteData *deleteData) {
+				if _, err := deleteData.AADApplication(); err != nil {
+					t.Error("Expected AADApplication() to not return error")
 				}
-			},
-		},
-		{
-			name: "failed to delete application",
-			deleteCmd: deleteCmd{
-				name:             "foo",
-				namespace:        "bar",
-				issuer:           "https://issuer-url",
-				roleAssignmentID: "role-assignment-id",
-				appObjectID:      "application-id",
-				kubeClient: fake.NewSimpleClientset(
-					&corev1.ServiceAccount{
-						ObjectMeta: metav1.ObjectMeta{
-							Name:      "foo",
-							Namespace: "bar",
-						},
-					},
-				),
-			},
-			expect: func(m *mock_cloud.MockInterfaceMockRecorder) {
-				m.DeleteRoleAssignment(gomock.Any(), gomock.Any()).Return(authorization.RoleAssignment{}, autorest.DetailedError{StatusCode: http.StatusNoContent})
-				m.GetFederatedCredential(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(cloud.FederatedCredential{ID: "fic-id"}, nil)
-				m.DeleteFederatedCredential(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
-				m.DeleteApplication(gomock.Any(), gomock.Any()).Return(autorest.Response{}, errors.New("failed to delete application"))
-			},
-			verify: func(t *testing.T, dc deleteCmd, err error) {
-				if err == nil {
-					t.Errorf("expected error, got nil")
-				}
-				// check service account has been deleted
-				if _, err = dc.kubeClient.CoreV1().ServiceAccounts("bar").Get(context.TODO(), "foo", metav1.GetOptions{}); err == nil {
-					t.Errorf("expected service account to be deleted")
-				}
-				if !apierrors.IsNotFound(err) {
-					t.Errorf("expected not found error, got %v", err)
-				}
-			},
-		},
-		{
-			name: "successful delete cmd run",
-			deleteCmd: deleteCmd{
-				name:             "foo",
-				namespace:        "bar",
-				issuer:           "https://issuer-url",
-				roleAssignmentID: "role-assignment-id",
-				appObjectID:      "application-id",
-				kubeClient: fake.NewSimpleClientset(
-					&corev1.ServiceAccount{
-						ObjectMeta: metav1.ObjectMeta{
-							Name:      "foo",
-							Namespace: "bar",
-						},
-					},
-				),
-			},
-			expect: func(m *mock_cloud.MockInterfaceMockRecorder) {
-				m.DeleteRoleAssignment(gomock.Any(), gomock.Any()).Return(authorization.RoleAssignment{}, autorest.DetailedError{StatusCode: http.StatusNoContent})
-				m.GetFederatedCredential(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(cloud.FederatedCredential{ID: "fic-id"}, nil)
-				m.DeleteFederatedCredential(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
-				m.DeleteApplication(gomock.Any(), gomock.Any()).Return(autorest.Response{}, nil)
-			},
-			verify: func(t *testing.T, dc deleteCmd, err error) {
-				if err != nil {
-					t.Errorf("expected no error, got %v", err)
-				}
-				// check service account has been deleted
-				if _, err = dc.kubeClient.CoreV1().ServiceAccounts("bar").Get(context.TODO(), "foo", metav1.GetOptions{}); err == nil {
-					t.Errorf("expected service account to be deleted")
-				}
-				if !apierrors.IsNotFound(err) {
-					t.Errorf("expected not found error, got %v", err)
+				if deleteData.AADApplicationObjectID() != objectID {
+					t.Errorf("Expected AADApplicationObjectID() to be 'object-id', got %s", deleteData.AADApplicationObjectID())
 				}
 			},
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-			clientMock := mock_cloud.NewMockInterface(ctrl)
-			tt.expect(clientMock.EXPECT())
-
-			tt.deleteCmd.azureClient = clientMock
-			tt.deleteCmd.kubeClient = fake.NewSimpleClientset()
-
-			err := tt.deleteCmd.run()
-			tt.verify(t, tt.deleteCmd, err)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			mockAzureClient := mock_cloud.NewMockInterface(ctrl)
+			test.expect(mockAzureClient.EXPECT())
+			test.deleteData.azureClient = mockAzureClient
+			test.verify(t, test.deleteData)
 		})
+	}
+}
+
+func TestDeleteDataAADApplicationName(t *testing.T) {
+	deleteData := &deleteData{
+		aadApplicationName: appName,
+	}
+	if deleteData.AADApplicationName() != appName {
+		t.Errorf("Expected AADApplicationName() to be 'aad-application-name', got %s", deleteData.AADApplicationName())
+	}
+	deleteData.aadApplicationName = ""
+	deleteData.serviceAccountNamespace = serviceAccountNamespace
+	deleteData.serviceAccountName = serviceAccountName
+	deleteData.serviceAccountIssuerURL = serviceAccountIssuerURL
+	if deleteData.AADApplicationName() != "service-account-namespace-service-account-name-t4BxHnnPeJsOfTLIBFbdKeRHdVMaIRdxwkxwF13SvKw=" {
+		t.Errorf("Expected AADApplicationName() to be 'service-account-namespace-service-account-name-t4BxHnnPeJsOfTLIBFbdKeRHdVMaIRdxwkxwF13SvKw=', got %s", deleteData.AADApplicationName())
+	}
+}
+
+func TestDeleteDataAADApplicationObjectID(t *testing.T) {
+	deleteData := &deleteData{
+		aadApplicationObjectID: objectID,
+	}
+	if deleteData.AADApplicationObjectID() != objectID {
+		t.Errorf("Expected AADApplicationObjectID() to be 'object-id', got %s", deleteData.AADApplicationObjectID())
+	}
+}
+
+func TestDeleteDataRoleAssignmentID(t *testing.T) {
+	deleteData := &deleteData{
+		roleAssignmentID: "role-assignment-id",
+	}
+	if deleteData.RoleAssignmentID() != "role-assignment-id" {
+		t.Errorf("Expected RoleAssignmentID() to be 'role-assignment-id', got %s", deleteData.AADApplicationObjectID())
 	}
 }
