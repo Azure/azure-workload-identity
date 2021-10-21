@@ -23,7 +23,7 @@
     - [Examples](./topics/self-managed-clusters/examples.md)
       - [Kubernetes in Docker (kind)](./topics/self-managed-clusters/examples/kubernetes-in-docker-kind.md)
   - [Language-Specific Examples]()
-- [Troubleshooting]()
+- [Troubleshooting](./troubleshooting.md)
 - [Known Issues](./known-issues.md)
 - [Development](./development.md)
   - [Releasing](./development/releasing.md)
