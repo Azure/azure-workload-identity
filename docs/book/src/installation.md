@@ -1,5 +1,9 @@
 # Installation
 
+<!-- toc -->
+
+## Webhook
+
 Obtain your Azure tenant ID by running the following command:
 
 ```bash
@@ -10,7 +14,9 @@ export AZURE_ENVIRONMENT="AzurePublicCloud"
 
 The tenant ID above will be the default tenant ID that the webhook uses when configuring the `AZURE_TENANT_ID` environment variable in the pod. In the case of a multi-tenant cluster, you can override the tenant ID by adding the `azure.workload.identity/tenant-id` annotation to your service account.
 
-## Helm
+You can install the mutating webhook with one of the following methods:
+
+### Helm
 
 ```bash
 # TODO(chewong): use https://azure.github.io/azure-workload-identity/charts
@@ -35,7 +41,7 @@ TEST SUITE: None
 
 </details>
 
-## Deployment YAML
+### Deployment YAML
 
 > Replace the Azure tenant ID and cloud environment name in [here][1] before executing
 
@@ -64,4 +70,20 @@ mutatingwebhookconfiguration.admissionregistration.k8s.io/azure-wi-webhook-mutat
 
 </details>
 
+## [Azure Workload Identity CLI (`azwi`)][2]
+
+### go install
+
+```bash
+go install github.com/Azure/azure-workload-identity/cmd/azwi
+```
+
+### Homebrew (macOS only)
+
+```bash
+brew install Azure/azure-workload-identity/azwi
+```
+
 [1]: https://github.com/Azure/azure-workload-identity/blob/1cb9d78159458b0c820c9c08fadf967833c8cdb4/deploy/azure-wi-webhook.yaml#L103-L104
+
+[2]: ./topics/azwi.md
