@@ -182,7 +182,7 @@ export LOCATION=&quot;westus2&quot;
 az group create --name &quot;${RESOURCE_GROUP}&quot; --location &quot;${LOCATION}&quot;
 </code></pre>
 <p>Create an Azure Key Vault:</p>
-<pre><code class="language-bash">export KEYVAULT_NAME=&quot;azure-wi-webhook-test-$(openssl rand -hex 2)&quot;
+<pre><code class="language-bash">export KEYVAULT_NAME=&quot;azure-wi-webhook-test-$(openssl rand -hex 1)&quot;
 export KEYVAULT_SECRET_NAME=&quot;my-secret&quot;
 az keyvault create --resource-group &quot;${RESOURCE_GROUP}&quot; \
    --location &quot;${LOCATION}&quot; \
@@ -191,10 +191,11 @@ az keyvault create --resource-group &quot;${RESOURCE_GROUP}&quot; \
 <p>Create a secret:</p>
 <pre><code class="language-bash">az keyvault secret set --vault-name &quot;${KEYVAULT_NAME}&quot; \
    --name &quot;${KEYVAULT_SECRET_NAME}&quot; \
-   --value &quot;Hello!&quot;
+   --value &quot;Hello\!&quot;
 </code></pre>
 <h2 id="3-create-an-aad-application-and-grant-permissions-to-access-the-secret"><a class="header" href="#3-create-an-aad-application-and-grant-permissions-to-access-the-secret">3. Create an AAD application and grant permissions to access the secret</a></h2>
-<pre><code class="language-bash">export APPLICATION_CLIENT_ID=&quot;$(az ad sp create-for-rbac --skip-assignment --name https://test-sp --query appId -otsv)&quot;
+<pre><code class="language-bash">export APPLICATION_NAME=&lt;your application name&gt;
+export APPLICATION_CLIENT_ID=&quot;$(az ad sp create-for-rbac --skip-assignment --name https://${APPLICATION_NAME} --query appId -otsv)&quot;
 </code></pre>
 <p>Set access policy for the AAD application to access the keyvault secret:</p>
 <pre><code class="language-bash">az keyvault set-policy --name &quot;${KEYVAULT_NAME}&quot; \
@@ -230,8 +231,11 @@ EOF
 <h2 id="5-establish-trust-between-the-aad-application-and-the-service-account-issuer--subject"><a class="header" href="#5-establish-trust-between-the-aad-application-and-the-service-account-issuer--subject">5. Establish trust between the AAD application and the service account issuer &amp; subject</a></h2>
 <p>Login to <a href="https://portal.azure.com/#cloudshell/">Azure Cloud Shell</a> and run the following commands:</p>
 <pre><code class="language-bash"># Get the object ID of the AAD application
+export APPLICATION_CLIENT_ID=&lt;Azure AD Application client ID from step 3&gt;
 export APPLICATION_OBJECT_ID=&quot;$(az ad app show --id ${APPLICATION_CLIENT_ID} --query objectId -otsv)&quot;
 export SERVICE_ACCOUNT_ISSUER=&quot;&lt;Your Service Account Issuer URL&gt;&quot;
+export SERVICE_ACCOUNT_NAME=&quot;workload-identity-sa&quot;
+export SERVICE_ACCOUNT_NAMESPACE=&quot;default&quot;
 </code></pre>
 <p>Add the federated identity credential:</p>
 <pre><code class="language-bash">cat &lt;&lt;EOF &gt; body.json

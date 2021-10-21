@@ -217,7 +217,6 @@ az storage container create --name &quot;${AZURE_STORAGE_CONTAINER}&quot; --publ
 <pre><code class="language-bash">cat &lt;&lt;EOF &gt; openid-configuration.json
 {
   &quot;issuer&quot;: &quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/&quot;,
-  &quot;authorization_endpoint&quot;: &quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/connect/authorize&quot;,
   &quot;jwks_uri&quot;: &quot;https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/openid/v1/jwks&quot;,
   &quot;response_types_supported&quot;: [
     &quot;id_token&quot;
@@ -253,7 +252,6 @@ az storage blob upload \
 <summary>Output</summary>
 <pre><code class="language-json">{
   &quot;issuer&quot;: &quot;https://&lt;REDACTED&gt;.blob.core.windows.net/oidc-test/&quot;,
-  &quot;authorization_endpoint&quot;: &quot;https://&lt;REDACTED&gt;.blob.core.windows.net/oidc-test/connect/authorize&quot;,
   &quot;jwks_uri&quot;: &quot;https://&lt;REDACTED&gt;.blob.core.windows.net/oidc-test/openid/v1/jwks&quot;,
   &quot;response_types_supported&quot;: [
     &quot;id_token&quot;
