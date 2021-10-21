@@ -30,7 +30,6 @@ preflight() {
 ${SERVICE_ACCOUNT_ISSUER}.well-known/openid-configuration is missing. You can upload the following JSON to the storage account:
 {
   "issuer": "${SERVICE_ACCOUNT_ISSUER}",
-  "authorization_endpoint": "${SERVICE_ACCOUNT_ISSUER}connect/authorize",
   "jwks_uri": "${SERVICE_ACCOUNT_ISSUER}openid/v1/jwks",
   "response_types_supported": [
     "id_token"
