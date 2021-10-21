@@ -14,6 +14,8 @@ When compared to using managed Kubernetes services like AKS, managing your own K
 | [Cluster API Provider Azure][1] (CAPZ) | Cluster API implementation for Microsoft Azure.                                                                                                      |
 | [Kubernetes in Docker][2] (kind)       | Run local Kubernetes clusters using Docker container. A fast way to create a conformant Kubernetes cluster. Great for local testing and development. |
 
+Refer to [examples][7] for a guide to create a self-managed cluster with the required configuration.
+
 [1]: https://capz.sigs.k8s.io/
 
 [2]: https://kind.sigs.k8s.io/
@@ -25,3 +27,5 @@ When compared to using managed Kubernetes services like AKS, managing your own K
 [5]: self-managed-clusters/oidc-issuer/json-web-key-sets-jwks.md
 
 [6]: ./self-managed-clusters/service-account-key-rotation.md
+
+[7]: ./self-managed-clusters/examples.md
