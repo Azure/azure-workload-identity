@@ -31,7 +31,7 @@ az group create --name "${RESOURCE_GROUP}" --location "${LOCATION}"
 Create an Azure Key Vault:
 
 ```bash
-export KEYVAULT_NAME="azure-wi-webhook-test-$(openssl rand -hex 2)"
+export KEYVAULT_NAME="azure-wi-webhook-test-$(openssl rand -hex 1)"
 export KEYVAULT_SECRET_NAME="my-secret"
 az keyvault create --resource-group "${RESOURCE_GROUP}" \
    --location "${LOCATION}" \
@@ -43,7 +43,7 @@ Create a secret:
 ```bash
 az keyvault secret set --vault-name "${KEYVAULT_NAME}" \
    --name "${KEYVAULT_SECRET_NAME}" \
-   --value "Hello!"
+   --value "Hello\!"
 ```
 
 ## 3. Create an AAD application and grant permissions to access the secret
@@ -104,8 +104,11 @@ Login to [Azure Cloud Shell][8] and run the following commands:
 
 ```bash
 # Get the object ID of the AAD application
+export APPLICATION_CLIENT_ID=<Azure AD Application ID from previous steps>
 export APPLICATION_OBJECT_ID="$(az ad app show --id ${APPLICATION_CLIENT_ID} --query objectId -otsv)"
 export SERVICE_ACCOUNT_ISSUER="<Your Service Account Issuer URL>"
+export SERVICE_ACCOUNT_NAME="workload-identity-sa"
+export SERVICE_ACCOUNT_NAMESPACE="default"
 ```
 
 Add the federated identity credential:
