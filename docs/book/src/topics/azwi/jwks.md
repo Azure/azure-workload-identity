@@ -4,7 +4,7 @@ Create JSON Web Key Sets for the service account issuer keys.
 
 ## Synopsis
 
-This command provides the ability to generate a JSON Web Key Sets (JWKS) for the service account issuer keys
+This command provides the ability to generate the JSON Web Key Sets (JWKS) for the service account issuer keys
 
     azwi jwks [flags]
 
