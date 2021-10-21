@@ -1,0 +1,235 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Configurations - Azure AD Workload Identity</title>
+                
+
+        <!-- Custom HTML head -->
+        
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+                <link rel="icon" href="../../favicon.svg">
+                        <link rel="shortcut icon" href="../../favicon.png">
+                <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+                <link rel="stylesheet" href="../../css/print.css" media="print">
+        
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+                <link rel="stylesheet" href="../../fonts/fonts.css">
+        
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../../highlight.css">
+        <link rel="stylesheet" href="../../tomorrow-night.css">
+        <link rel="stylesheet" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+            </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "../../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../../introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><a href="../../installation.html">Installation</a></li><li class="chapter-item expanded affix "><a href="../../quick-start.html">Quick Start</a></li><li class="chapter-item expanded affix "><a href="../../concepts.html">Concepts</a></li><li class="chapter-item expanded "><a href="../../topics.html"><strong aria-hidden="true">1.</strong> Topics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../topics/mutating-admission-webhook.html"><strong aria-hidden="true">1.1.</strong> Mutating Admission Webhook</a></li><li class="chapter-item expanded "><a href="../../topics/service-account-labels-and-annotations.html"><strong aria-hidden="true">1.2.</strong> Service Account Labels And Annotations</a></li><li class="chapter-item expanded "><a href="../../topics/federated-identity.html"><strong aria-hidden="true">1.3.</strong> Federated Identity</a></li><li class="chapter-item expanded "><a href="../../topics/azwi.html"><strong aria-hidden="true">1.4.</strong> Azure Workload Identity CLI (azwi)</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../topics/azwi/jwks.html"><strong aria-hidden="true">1.4.1.</strong> azwi jwks</a></li><li class="chapter-item expanded "><a href="../../topics/azwi/serviceaccount-create.html"><strong aria-hidden="true">1.4.2.</strong> azwi serviceaccount create</a></li><li class="chapter-item expanded "><a href="../../topics/azwi/serviceaccount-delete.html"><strong aria-hidden="true">1.4.3.</strong> azwi serviceaccount delete</a></li></ol></li><li class="chapter-item expanded "><a href="../../topics/managed-clusters.html"><strong aria-hidden="true">1.5.</strong> Managed Clusters</a></li><li class="chapter-item expanded "><a href="../../topics/self-managed-clusters.html"><strong aria-hidden="true">1.6.</strong> Self-Managed Clusters</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../topics/self-managed-clusters/service-account-key-generation.html"><strong aria-hidden="true">1.6.1.</strong> Service Account Key Generation</a></li><li class="chapter-item expanded "><a href="../../topics/self-managed-clusters/oidc-issuer.html"><strong aria-hidden="true">1.6.2.</strong> OpenID Connect Issuer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../topics/self-managed-clusters/oidc-issuer/discovery-document.html"><strong aria-hidden="true">1.6.2.1.</strong> Discovery Document</a></li><li class="chapter-item expanded "><a href="../../topics/self-managed-clusters/oidc-issuer/json-web-key-sets-jwks.html"><strong aria-hidden="true">1.6.2.2.</strong> JSON Web Key Sets (JWKS)</a></li></ol></li><li class="chapter-item expanded "><a href="../../topics/self-managed-clusters/service-account-key-rotation.html"><strong aria-hidden="true">1.6.3.</strong> Service Account Key Rotation</a></li><li class="chapter-item expanded "><a href="../../topics/self-managed-clusters/configurations.html" class="active"><strong aria-hidden="true">1.6.4.</strong> Configurations</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.6.5.</strong> Examples</div></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">1.6.5.1.</strong> Kubernetes in Docker (kind)</div></li></ol></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.7.</strong> Language-Specific Examples</div></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Troubleshooting</div></li><li class="chapter-item expanded "><a href="../../known-issues.html"><strong aria-hidden="true">3.</strong> Known Issues</a></li><li class="chapter-item expanded "><a href="../../development.html"><strong aria-hidden="true">4.</strong> Development</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../development/releasing.html"><strong aria-hidden="true">4.1.</strong> Releasing</a></li></ol></li><li class="chapter-item expanded "><a href="../../contributing.html"><strong aria-hidden="true">5.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="../../code-of-conduct.html"><strong aria-hidden="true">6.</strong> Code of Conduct</a></li></ol>            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                                                <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                                            </div>
+
+                    <h1 class="menu-title">Azure AD Workload Identity</h1>
+
+                    <div class="right-buttons">
+                                                <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                                                                        <a href="https://github.com/Azure/azure-workload-identity" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                                                
+                    </div>
+                </div>
+
+                                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="configurations"><a class="header" href="#configurations">Configurations</a></h1>
+<p>The following configurations are required to be enabled/set in the cluster configuration for Azure AD Workload Identity to function properly.</p>
+<ul>
+<li><a href="#kube-apiserver-flags">kube-apiserver flags</a>
+<ul>
+<li><a href="#--service-account-issuer"><code>--service-account-issuer</code></a></li>
+<li><a href="#--service-account-signing-key-file"><code>--service-account-signing-key-file</code></a></li>
+<li><a href="#--service-account-key-file"><code>--service-account-key-file</code></a></li>
+</ul>
+</li>
+<li><a href="#kube-controller-manager-flags">kube-controller-manager flags</a>
+<ul>
+<li><a href="#--service-account-private-key-file"><code>--service-account-private-key-file</code></a></li>
+</ul>
+</li>
+<li><a href="#feature-flags">Feature Flags</a>
+<ul>
+<li><a href="#service-account-token-volume-projection">Service Account Token Volume Projection</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="kube-apiserver-flags"><a class="header" href="#kube-apiserver-flags">kube-apiserver flags</a></h2>
+<p>This a list of required flags that need to be configured in the <code>kube-apiserver</code>. Refer to <a href="https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/">kube-apiserver</a> for more available flags.</p>
+<h3 id="--service-account-issuer"><a class="header" href="#--service-account-issuer"><code>--service-account-issuer</code></a></h3>
+<p>Identifier of the service account token issuer. The issuer will assert this identifier in “iss” claim of issued tokens. This value is a string or URI. If this option is not a valid URI per the OpenID Discovery 1.0 spec, the ServiceAccountIssuerDiscovery feature will remain disabled, even if the feature gate is set to true. It is highly recommended that this value comply with the OpenID spec: https://openid.net/specs/openid-connect-discovery-1_0.html. In practice, this means that service-account-issuer must be an https URL. It is also highly recommended that this URL be capable of serving OpenID discovery documents at {service-account-issuer}/.well-known/openid-configuration. When this flag is specified multiple times, the first is used to generate tokens and all are used to determine which issuers are accepted.</p>
+<h3 id="--service-account-signing-key-file"><a class="header" href="#--service-account-signing-key-file"><code>--service-account-signing-key-file</code></a></h3>
+<p>Path to the file that contains the current private key of the service account token issuer. The issuer will sign issued ID tokens with this private key.</p>
+<h3 id="--service-account-key-file"><a class="header" href="#--service-account-key-file"><code>--service-account-key-file</code></a></h3>
+<p>File containing PEM-encoded x509 RSA or ECDSA private or public keys, used to verify ServiceAccount tokens. The specified file can contain multiple keys, and the flag can be specified multiple times with different files. If unspecified, --tls-private-key-file is used. Must be specified when --service-account-signing-key is provided</p>
+<h2 id="kube-controller-manager-flags"><a class="header" href="#kube-controller-manager-flags">kube-controller-manager flags</a></h2>
+<p>This is a list of required flags that need to be configured in the <code>kube-controller-manager</code>. Refer to <a href="https://kubernetes.io/docs/reference/command-line-tools-reference/kube-controller-manager/">kube-controller-manager</a> for more available flags.</p>
+<h3 id="--service-account-private-key-file"><a class="header" href="#--service-account-private-key-file"><code>--service-account-private-key-file</code></a></h3>
+<p>Filename containing a PEM-encoded private RSA or ECDSA key used to sign service account tokens.</p>
+<h2 id="feature-flags"><a class="header" href="#feature-flags">Feature Flags</a></h2>
+<h3 id="service-account-token-volume-projection"><a class="header" href="#service-account-token-volume-projection">Service Account Token Volume Projection</a></h3>
+<p>This feature is stable in Kubernetes v1.20 and is enabled by default. Refer to <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-token-volume-projection">Service Account Token Volume Projection</a> for more information.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                                                    <a rel="prev" href="../../topics/self-managed-clusters/service-account-key-rotation.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+                                                    <a rel="next" href="../../known-issues.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                                    <a rel="prev" href="../../topics/self-managed-clusters/service-account-key-rotation.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+                                    <a rel="next" href="../../known-issues.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                            </nav>
+
+        </div>
+
+        
+        
+        
+                <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+        
+                <script src="../../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../../searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+        <script src="../../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../../book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+        
+    </body>
+</html>
