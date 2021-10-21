@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Known Issues - Azure AD Workload Identity</title>
+        <title>Azure Workload Identity CLI (azwi) - Azure AD Workload Identity</title>
                 
 
         <!-- Custom HTML head -->
@@ -14,21 +14,21 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff" />
 
-                <link rel="icon" href="favicon.svg">
-                        <link rel="shortcut icon" href="favicon.png">
-                <link rel="stylesheet" href="css/variables.css">
-        <link rel="stylesheet" href="css/general.css">
-        <link rel="stylesheet" href="css/chrome.css">
-                <link rel="stylesheet" href="css/print.css" media="print">
+                <link rel="icon" href="../favicon.svg">
+                        <link rel="shortcut icon" href="../favicon.png">
+                <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+                <link rel="stylesheet" href="../css/print.css" media="print">
         
         <!-- Fonts -->
-        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
-                <link rel="stylesheet" href="fonts/fonts.css">
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+                <link rel="stylesheet" href="../fonts/fonts.css">
         
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" href="highlight.css">
-        <link rel="stylesheet" href="tomorrow-night.css">
-        <link rel="stylesheet" href="ayu-highlight.css">
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
         
@@ -36,7 +36,7 @@
     <body>
         <!-- Provide site root to javascript -->
         <script type="text/javascript">
-            var path_to_root = "";
+            var path_to_root = "../";
             var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
         </script>
 
@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><a href="installation.html">Installation</a></li><li class="chapter-item expanded affix "><a href="quick-start.html">Quick Start</a></li><li class="chapter-item expanded affix "><a href="concepts.html">Concepts</a></li><li class="chapter-item expanded "><a href="topics.html"><strong aria-hidden="true">1.</strong> Topics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="topics/mutating-admission-webhook.html"><strong aria-hidden="true">1.1.</strong> Mutating Admission Webhook</a></li><li class="chapter-item expanded "><a href="topics/service-account-labels-and-annotations.html"><strong aria-hidden="true">1.2.</strong> Service Account Labels And Annotations</a></li><li class="chapter-item expanded "><a href="topics/federated-identity.html"><strong aria-hidden="true">1.3.</strong> Federated Identity</a></li><li class="chapter-item expanded "><a href="topics/azwi.html"><strong aria-hidden="true">1.4.</strong> Azure Workload Identity CLI (azwi)</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="topics/azwi/jwks.html"><strong aria-hidden="true">1.4.1.</strong> azwi jwks</a></li><li class="chapter-item expanded "><a href="topics/azwi/serviceaccount-create.html"><strong aria-hidden="true">1.4.2.</strong> azwi serviceaccount create</a></li><li class="chapter-item expanded "><a href="topics/azwi/serviceaccount-delete.html"><strong aria-hidden="true">1.4.3.</strong> azwi serviceaccount delete</a></li></ol></li><li class="chapter-item expanded "><a href="topics/managed-clusters.html"><strong aria-hidden="true">1.5.</strong> Managed Clusters</a></li><li class="chapter-item expanded "><a href="topics/self-managed-clusters.html"><strong aria-hidden="true">1.6.</strong> Self-Managed Clusters</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="topics/self-managed-clusters/service-account-key-generation.html"><strong aria-hidden="true">1.6.1.</strong> Service Account Key Generation</a></li><li class="chapter-item expanded "><a href="topics/self-managed-clusters/oidc-issuer.html"><strong aria-hidden="true">1.6.2.</strong> OpenID Connect Issuer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="topics/self-managed-clusters/oidc-issuer/discovery-document.html"><strong aria-hidden="true">1.6.2.1.</strong> Discovery Document</a></li><li class="chapter-item expanded "><a href="topics/self-managed-clusters/oidc-issuer/json-web-key-sets-jwks.html"><strong aria-hidden="true">1.6.2.2.</strong> JSON Web Key Sets (JWKS)</a></li></ol></li><li class="chapter-item expanded "><a href="topics/self-managed-clusters/service-account-key-rotation.html"><strong aria-hidden="true">1.6.3.</strong> Service Account Key Rotation</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.6.4.</strong> Configurations</div></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.7.</strong> Language-Specific Examples</div></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Troubleshooting</div></li><li class="chapter-item expanded "><a href="known-issues.html" class="active"><strong aria-hidden="true">3.</strong> Known Issues</a></li><li class="chapter-item expanded "><a href="development.html"><strong aria-hidden="true">4.</strong> Development</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="development/releasing.html"><strong aria-hidden="true">4.1.</strong> Releasing</a></li></ol></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="code-of-conduct.html"><strong aria-hidden="true">6.</strong> Code of Conduct</a></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><a href="../installation.html">Installation</a></li><li class="chapter-item expanded affix "><a href="../quick-start.html">Quick Start</a></li><li class="chapter-item expanded affix "><a href="../concepts.html">Concepts</a></li><li class="chapter-item expanded "><a href="../topics.html"><strong aria-hidden="true">1.</strong> Topics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../topics/mutating-admission-webhook.html"><strong aria-hidden="true">1.1.</strong> Mutating Admission Webhook</a></li><li class="chapter-item expanded "><a href="../topics/service-account-labels-and-annotations.html"><strong aria-hidden="true">1.2.</strong> Service Account Labels And Annotations</a></li><li class="chapter-item expanded "><a href="../topics/federated-identity.html"><strong aria-hidden="true">1.3.</strong> Federated Identity</a></li><li class="chapter-item expanded "><a href="../topics/azwi.html" class="active"><strong aria-hidden="true">1.4.</strong> Azure Workload Identity CLI (azwi)</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../topics/azwi/jwks.html"><strong aria-hidden="true">1.4.1.</strong> azwi jwks</a></li><li class="chapter-item expanded "><a href="../topics/azwi/serviceaccount-create.html"><strong aria-hidden="true">1.4.2.</strong> azwi serviceaccount create</a></li><li class="chapter-item expanded "><a href="../topics/azwi/serviceaccount-delete.html"><strong aria-hidden="true">1.4.3.</strong> azwi serviceaccount delete</a></li></ol></li><li class="chapter-item expanded "><a href="../topics/managed-clusters.html"><strong aria-hidden="true">1.5.</strong> Managed Clusters</a></li><li class="chapter-item expanded "><a href="../topics/self-managed-clusters.html"><strong aria-hidden="true">1.6.</strong> Self-Managed Clusters</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../topics/self-managed-clusters/service-account-key-generation.html"><strong aria-hidden="true">1.6.1.</strong> Service Account Key Generation</a></li><li class="chapter-item expanded "><a href="../topics/self-managed-clusters/oidc-issuer.html"><strong aria-hidden="true">1.6.2.</strong> OpenID Connect Issuer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../topics/self-managed-clusters/oidc-issuer/discovery-document.html"><strong aria-hidden="true">1.6.2.1.</strong> Discovery Document</a></li><li class="chapter-item expanded "><a href="../topics/self-managed-clusters/oidc-issuer/json-web-key-sets-jwks.html"><strong aria-hidden="true">1.6.2.2.</strong> JSON Web Key Sets (JWKS)</a></li></ol></li><li class="chapter-item expanded "><a href="../topics/self-managed-clusters/service-account-key-rotation.html"><strong aria-hidden="true">1.6.3.</strong> Service Account Key Rotation</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.6.4.</strong> Configurations</div></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.7.</strong> Language-Specific Examples</div></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Troubleshooting</div></li><li class="chapter-item expanded "><a href="../known-issues.html"><strong aria-hidden="true">3.</strong> Known Issues</a></li><li class="chapter-item expanded "><a href="../development.html"><strong aria-hidden="true">4.</strong> Development</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../development/releasing.html"><strong aria-hidden="true">4.1.</strong> Releasing</a></li></ol></li><li class="chapter-item expanded "><a href="../contributing.html"><strong aria-hidden="true">5.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="../code-of-conduct.html"><strong aria-hidden="true">6.</strong> Code of Conduct</a></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -114,7 +114,7 @@
                     <h1 class="menu-title">Azure AD Workload Identity</h1>
 
                     <div class="right-buttons">
-                                                <a href="print.html" title="Print this book" aria-label="Print this book">
+                                                <a href="../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
                                                                         <a href="https://github.com/Azure/azure-workload-identity" title="Git repository" aria-label="Git repository">
@@ -146,35 +146,29 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="known-issues"><a class="header" href="#known-issues">Known Issues</a></h1>
-<h2 id="permission-denied-when-reading-the-projected-service-account-token-file"><a class="header" href="#permission-denied-when-reading-the-projected-service-account-token-file">Permission denied when reading the projected service account token file</a></h2>
-<p>In Kubernetes 1.18, the default mode for the projected service account token file is <code>0600</code>. This causes containers running as non-root to fail while trying to read the token file:</p>
-<pre><code class="language-bash">F0826 20:03:20.113998 1 main.go:27] failed to get secret from keyvault, err: autorest/Client#Do: Preparing request failed: StatusCode=0 -- Original Error: failed to read service account token: open /var/run/secrets/tokens/azure-identity-token: permission denied
-</code></pre>
-<p>The default mode was changed to <code>0644</code> in Kubernetes v1.19, which allows containers running as non-root to read the projected service account token.</p>
-<p>If you ran into this issue, you can either:</p>
-<ol>
-<li>
-<p>Upgrade your cluster to v1.19+ or</p>
+                        <h1 id="azure-workload-identity-cli-azwi"><a class="header" href="#azure-workload-identity-cli-azwi">Azure Workload Identity CLI (<code>azwi</code>)</a></h1>
+<p>The Azure Workload Identity CLI (<code>azwi</code>) is a utility CLI that helps manage Azure AD Workload Identity and automate error-prone operations:</p>
+<ul>
+<li>Generate the JWKS document from a list of public keys</li>
+<li>Streamline the creation and deletion of the following resources:
+<ul>
+<li>AAD applications</li>
+<li>Kubernetes service accounts</li>
+<li>Federated identities</li>
+<li>Azure role assignments</li>
+</ul>
 </li>
-<li>
-<p>Apply the following <code>securityContext</code> field to your pod spec:</p>
-</li>
-</ol>
-<pre><code class="language-yaml">spec:
-  securityContext:
-    fsGroup: 65534
-</code></pre>
+</ul>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                                                    <a rel="prev" href="topics/self-managed-clusters/service-account-key-rotation.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                                    <a rel="prev" href="../topics/federated-identity.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
-                                                    <a rel="next" href="development.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                                    <a rel="next" href="../topics/azwi/jwks.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         
@@ -184,11 +178,11 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                                    <a rel="prev" href="topics/self-managed-clusters/service-account-key-rotation.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                    <a rel="prev" href="../topics/federated-identity.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
-                                    <a rel="next" href="development.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                    <a rel="next" href="../topics/azwi/jwks.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
                             </nav>
@@ -203,13 +197,13 @@
         </script>
         
         
-                <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+                <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
         
-        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
-        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../book.js" type="text/javascript" charset="utf-8"></script>
 
         <!-- Custom JS scripts -->
         
