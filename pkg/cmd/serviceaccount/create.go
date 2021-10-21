@@ -19,29 +19,20 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func newCreateCmd() *cobra.Command {
-	authProvider := auth.NewProvider()
+func newCreateCmd(authProvider auth.Provider) *cobra.Command {
 	createRunner := workflow.NewPhaseRunner()
-	data := &createData{}
+	data := &createData{
+		authProvider: authProvider,
+	}
+
 	cmd := &cobra.Command{
 		Use: "create",
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			return authProvider.Validate()
-		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// inject various clients and fields at runtime
-			var err error
-			if data.azureClient, err = authProvider.GetAzureClient(); err != nil {
-				return err
-			}
-			data.azureTenantID = authProvider.GetAzureTenantID()
-
 			return createRunner.Run(data)
 		},
 	}
 
 	f := cmd.Flags()
-	authProvider.AddFlags(f)
 	f.StringVar(&data.serviceAccountName, "service-account-name", "", "Name of the service account")
 	f.StringVar(&data.serviceAccountNamespace, "service-account-namespace", "default", "Namespace of the service account")
 	f.StringVar(&data.serviceAccountIssuerURL, "service-account-issuer-url", "", "URL of the issuer")
@@ -61,7 +52,7 @@ func newCreateCmd() *cobra.Command {
 		phases.NewFederatedIdentityPhase(),
 		phases.NewRoleAssignmentPhase(),
 	)
-	createRunner.BindToCommand(cmd)
+	createRunner.BindToCommand(cmd, data)
 
 	return cmd
 }
@@ -82,8 +73,7 @@ type createData struct {
 	servicePrincipalName          string
 	azureRole                     string
 	azureScope                    string
-	azureTenantID                 string
-	azureClient                   cloud.Interface
+	authProvider                  auth.Provider
 }
 
 var _ phases.CreateData = &createData{}
@@ -124,9 +114,11 @@ func (c *createData) AADApplication() (*graphrbac.Application, error) {
 // AADApplicationName returns the name of the AAD application.
 func (c *createData) AADApplicationName() string {
 	name := c.aadApplicationName
-	if name == "" && c.ServiceAccountNamespace() != "" && c.ServiceAccountName() != "" && c.ServiceAccountIssuerURL() != "" {
-		name = fmt.Sprintf("%s-%s-%s", c.ServiceAccountNamespace(), c.serviceAccountName, util.GetIssuerHash(c.ServiceAccountIssuerURL()))
-		log.WithField("name", name).Debug("AAD application name not specified, falling back to service account namespace and name")
+	if name == "" {
+		log.Warn("--aad-application-name not specified, constructing name with service account namespace, name, and the hash of the issuer URL")
+		if c.ServiceAccountNamespace() != "" && c.ServiceAccountName() != "" && c.ServiceAccountIssuerURL() != "" {
+			name = fmt.Sprintf("%s-%s-%s", c.ServiceAccountNamespace(), c.serviceAccountName, util.GetIssuerHash(c.ServiceAccountIssuerURL()))
+		}
 	}
 	return name
 }
@@ -179,8 +171,8 @@ func (c *createData) ServicePrincipalName() string {
 	name := c.servicePrincipalName
 	// fall back to the name of the AAD application
 	if name == "" {
+		log.Warn("--service-principal-name not specified, falling back to AAD application name")
 		name = c.AADApplicationName()
-		log.WithField("name", name).Debug("service principal name not specified, falling back to AAD application name")
 	}
 	return name
 }
@@ -212,12 +204,12 @@ func (c *createData) AzureScope() string {
 
 // AzureTenantID returns the Azure tenant ID.
 func (c *createData) AzureTenantID() string {
-	return c.azureTenantID
+	return c.authProvider.GetAzureTenantID()
 }
 
 // AzureClient returns the Azure client.
 func (c *createData) AzureClient() cloud.Interface {
-	return c.azureClient
+	return c.authProvider.GetAzureClient()
 }
 
 // KubeClient returns the Kubernetes client.

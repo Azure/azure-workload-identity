@@ -27,20 +27,31 @@ func TestAADApplicationPreRun(t *testing.T) {
 		{
 			name:     "missing --service-account-namespace",
 			phase:    NewAADApplicationPhase(),
-			data:     &mockCreateData{aadApplicationName: "test"},
+			data:     &mockCreateData{},
 			errorMsg: "--service-account-namespace is required",
 		},
 		{
 			name:     "missing --service-account-name",
 			phase:    NewAADApplicationPhase(),
-			data:     &mockCreateData{aadApplicationName: "test", serviceAccountNamespace: "test"},
+			data:     &mockCreateData{serviceAccountNamespace: "test"},
 			errorMsg: "--service-account-name is required",
 		},
 		{
-			name:     "valid data",
+			name:     "missing --service-account-issuer-url",
 			phase:    NewAADApplicationPhase(),
-			data:     &mockCreateData{aadApplicationName: "test", serviceAccountNamespace: "test", serviceAccountName: "test"},
+			data:     &mockCreateData{serviceAccountNamespace: "test", serviceAccountName: "test"},
+			errorMsg: "--service-account-issuer-url is required",
+		},
+		{
+			name:     "valid data 1",
+			phase:    NewAADApplicationPhase(),
+			data:     &mockCreateData{aadApplicationName: "test"},
 			errorMsg: "",
+		},
+		{
+			name:  "valid data 2",
+			phase: NewAADApplicationPhase(),
+			data:  &mockCreateData{serviceAccountNamespace: "test", serviceAccountName: "test", serviceAccountIssuerURL: "test"},
 		},
 	}
 

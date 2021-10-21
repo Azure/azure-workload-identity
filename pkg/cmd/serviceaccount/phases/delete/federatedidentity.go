@@ -23,9 +23,11 @@ func NewFederatedIdentityPhase() workflow.Phase {
 	p := &federatedIdentityPhase{}
 	return workflow.Phase{
 		Name:        federatedIdentityPhaseName,
+		Aliases:     []string{"fi"},
 		Description: "Delete federated identity credential for the AAD application and the Kubernetes service account",
 		PreRun:      p.prerun,
 		Run:         p.run,
+		Flags:       []string{"service-account-namespace", "service-account-name", "service-account-issuer-url", "aad-application-name", "aad-application-object-id"},
 	}
 }
 

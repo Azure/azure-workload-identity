@@ -5,11 +5,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Azure/azure-workload-identity/pkg/cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cloud/mock_cloud"
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/mock/gomock"
+	"github.com/spf13/pflag"
 )
 
 const (
@@ -20,6 +22,16 @@ const (
 	objectID                = "object-id"
 	appName                 = "aad-application-name"
 )
+
+type mockAuthProvider struct {
+	azureClient   *mock_cloud.MockInterface
+	azureTenantID string
+}
+
+func (m *mockAuthProvider) AddFlags(f *pflag.FlagSet)       {}
+func (m *mockAuthProvider) GetAzureClient() cloud.Interface { return m.azureClient }
+func (m *mockAuthProvider) GetAzureTenantID() string        { return m.azureTenantID }
+func (m *mockAuthProvider) Validate() error                 { return nil }
 
 func TestCreateDataServiceAccountName(t *testing.T) {
 	createData := &createData{
@@ -136,9 +148,11 @@ func TestCreateDataAADApplication(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			mockAzureClient := mock_cloud.NewMockInterface(ctrl)
-			test.expect(mockAzureClient.EXPECT())
-			test.createData.azureClient = mockAzureClient
+			authProvider := &mockAuthProvider{
+				azureClient: mock_cloud.NewMockInterface(ctrl),
+			}
+			test.expect(authProvider.azureClient.EXPECT())
+			test.createData.authProvider = authProvider
 			test.verify(t, test.createData)
 		})
 	}
@@ -246,9 +260,11 @@ func TestCreateDataServicePrincipal(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			mockAzureClient := mock_cloud.NewMockInterface(ctrl)
-			test.expect(mockAzureClient.EXPECT())
-			test.createData.azureClient = mockAzureClient
+			authProvider := &mockAuthProvider{
+				azureClient: mock_cloud.NewMockInterface(ctrl),
+			}
+			test.expect(authProvider.azureClient.EXPECT())
+			test.createData.authProvider = authProvider
 			test.verify(t, test.createData)
 		})
 	}
@@ -297,7 +313,9 @@ func TestCreateDataAzureScope(t *testing.T) {
 
 func TestCreateDataAzureTenantID(t *testing.T) {
 	createData := &createData{
-		azureTenantID: "azure-tenant-id",
+		authProvider: &mockAuthProvider{
+			azureTenantID: "azure-tenant-id",
+		},
 	}
 	if createData.AzureTenantID() != "azure-tenant-id" {
 		t.Errorf("Expected AzureTenantID() to be 'azure-tenant-id', got %s", createData.AzureTenantID())

@@ -108,7 +108,7 @@ jobs:
           LOCAL_ONLY: "true"
           TEST_HELM_CHART: "true"
     steps:
-      - script: echo "##vso[task.setvariable variable=CLUSTER_NAME]pod-managed-identity-e2e-$(openssl rand -hex 2)"
+      - script: echo "##vso[task.setvariable variable=CLUSTER_NAME]azwi-e2e-$(openssl rand -hex 2)"
         displayName: Set CLUSTER_NAME
         condition: ne(variables.LOCAL_ONLY, 'true')
       - script: make test-e2e

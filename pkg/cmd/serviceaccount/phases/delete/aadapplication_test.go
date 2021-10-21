@@ -27,15 +27,39 @@ func TestAADApplicationPreRun(t *testing.T) {
 			errorMsg: "invalid data type string",
 		},
 		{
-			name:     "missing --aad-application-name and aad-application-object-id",
+			name:     "missing --service-account-namespace",
 			phase:    NewAADApplicationPhase(),
 			data:     &mockDeleteData{},
-			errorMsg: "--aad-application-name or --aad-application-object-id is required",
+			errorMsg: "--service-account-namespace is required",
 		},
 		{
-			name:     "valid data",
+			name:     "missing --service-account-name",
+			phase:    NewAADApplicationPhase(),
+			data:     &mockDeleteData{serviceAccountNamespace: "test"},
+			errorMsg: "--service-account-name is required",
+		},
+		{
+			name:     "missing --service-account-issuer-url",
+			phase:    NewAADApplicationPhase(),
+			data:     &mockDeleteData{serviceAccountNamespace: "test", serviceAccountName: "test"},
+			errorMsg: "--service-account-issuer-url is required",
+		},
+		{
+			name:     "valid data 1",
 			phase:    NewAADApplicationPhase(),
 			data:     &mockDeleteData{aadApplicationName: "test"},
+			errorMsg: "",
+		},
+		{
+			name:     "valid data 2",
+			phase:    NewAADApplicationPhase(),
+			data:     &mockDeleteData{aadApplicationObjectID: "test"},
+			errorMsg: "",
+		},
+		{
+			name:     "valid data 3",
+			phase:    NewAADApplicationPhase(),
+			data:     &mockDeleteData{serviceAccountNamespace: "test", serviceAccountName: "test", serviceAccountIssuerURL: "test"},
 			errorMsg: "",
 		},
 	}

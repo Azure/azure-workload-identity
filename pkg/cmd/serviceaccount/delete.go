@@ -17,20 +17,15 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func newDeleteCmd() *cobra.Command {
-	authProvider := auth.NewProvider()
+func newDeleteCmd(authProvider auth.Provider) *cobra.Command {
 	deleteRunner := workflow.NewPhaseRunner()
-	data := &deleteData{}
+	data := &deleteData{
+		authProvider: authProvider,
+	}
+
 	cmd := &cobra.Command{
 		Use: "delete",
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			return authProvider.Validate()
-		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var err error
-			if data.azureClient, err = authProvider.GetAzureClient(); err != nil {
-				return err
-			}
 			return deleteRunner.Run(data)
 		},
 	}
@@ -51,7 +46,7 @@ func newDeleteCmd() *cobra.Command {
 		phases.NewServiceAccountPhase(),
 		phases.NewAADApplicationPhase(),
 	)
-	deleteRunner.BindToCommand(cmd)
+	deleteRunner.BindToCommand(cmd, data)
 
 	return cmd
 }
@@ -66,7 +61,7 @@ type deleteData struct {
 	aadApplicationName      string
 	aadApplicationObjectID  string
 	roleAssignmentID        string
-	azureClient             cloud.Interface
+	authProvider            auth.Provider
 }
 
 var _ phases.DeleteData = &deleteData{}
@@ -102,9 +97,11 @@ func (d *deleteData) AADApplication() (*graphrbac.Application, error) {
 // AADApplicationName returns the name of the AAD application.
 func (d *deleteData) AADApplicationName() string {
 	name := d.aadApplicationName
-	if name == "" && d.ServiceAccountNamespace() != "" && d.ServiceAccountName() != "" && d.ServiceAccountIssuerURL() != "" {
-		name = fmt.Sprintf("%s-%s-%s", d.ServiceAccountNamespace(), d.serviceAccountName, util.GetIssuerHash(d.ServiceAccountIssuerURL()))
-		log.WithField("name", name).Debug("AAD application name not specified, falling back to service account namespace and name")
+	if name == "" {
+		log.Warn("--aad-application-name not specified, constructing name with service account namespace, name, and the hash of the issuer URL")
+		if d.ServiceAccountNamespace() != "" && d.ServiceAccountName() != "" && d.ServiceAccountIssuerURL() != "" {
+			name = fmt.Sprintf("%s-%s-%s", d.ServiceAccountNamespace(), d.serviceAccountName, util.GetIssuerHash(d.ServiceAccountIssuerURL()))
+		}
 	}
 	return name
 }
@@ -131,7 +128,7 @@ func (d *deleteData) RoleAssignmentID() string {
 
 // AzureClient returns the Azure client.
 func (d *deleteData) AzureClient() cloud.Interface {
-	return d.azureClient
+	return d.authProvider.GetAzureClient()
 }
 
 // KubeClient returns the Kubernetes client.

@@ -22,9 +22,11 @@ func NewAADApplicationPhase() workflow.Phase {
 	p := &aadApplicationPhase{}
 	return workflow.Phase{
 		Name:        aadApplicationPhaseName,
+		Aliases:     []string{"app"},
 		Description: "Delete the Azure Active Directory (AAD) application and its underlying service principal",
 		PreRun:      p.prerun,
 		Run:         p.run,
+		Flags:       []string{"aad-application-name", "aad-application-object-id", "service-account-namespace", "service-account-name", "service-account-issuer-url"},
 	}
 }
 
@@ -35,7 +37,15 @@ func (p *aadApplicationPhase) prerun(data workflow.RunData) error {
 	}
 
 	if deleteData.AADApplicationName() == "" && deleteData.AADApplicationObjectID() == "" {
-		return errors.New("--aad-application-name or --aad-application-object-id is required")
+		if deleteData.ServiceAccountNamespace() == "" {
+			return errors.New("--service-account-namespace is required")
+		}
+		if deleteData.ServiceAccountName() == "" {
+			return errors.New("--service-account-name is required")
+		}
+		if deleteData.ServiceAccountIssuerURL() == "" {
+			return errors.New("--service-account-issuer-url is required")
+		}
 	}
 
 	return nil
@@ -44,7 +54,10 @@ func (p *aadApplicationPhase) prerun(data workflow.RunData) error {
 func (p *aadApplicationPhase) run(ctx context.Context, data workflow.RunData) error {
 	deleteData := data.(DeleteData)
 
-	l := log.WithField("objectID", deleteData.AADApplicationObjectID())
+	l := log.WithFields(log.Fields{
+		"name":     deleteData.AADApplicationName(),
+		"objectID": deleteData.AADApplicationObjectID(),
+	})
 	if _, err := deleteData.AzureClient().DeleteApplication(ctx, deleteData.AADApplicationObjectID()); err != nil {
 		if !cloud.IsResourceNotFound(err) {
 			return errors.Wrap(err, "failed to delete application")

@@ -64,7 +64,7 @@ func TestValidateAuthArgs(t *testing.T) {
 				authMethod:          "client_secret",
 				rawAzureEnvironment: "AZUREPUBLICCLOUD",
 			},
-			wantErr: nil,
+			wantErr: errors.New("Unexpected response from Get Subscription: 404"),
 		},
 		{
 			name: "ClientCertificateAuthExpectsCertificatePath",
@@ -100,7 +100,7 @@ func TestValidateAuthArgs(t *testing.T) {
 				authMethod:          "client_certificate",
 				rawAzureEnvironment: "AZUREPUBLICCLOUD",
 			},
-			wantErr: nil,
+			wantErr: errors.New("Unexpected response from Get Subscription: 404"),
 		},
 	}
 

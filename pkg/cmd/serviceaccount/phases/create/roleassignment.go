@@ -22,9 +22,11 @@ func NewRoleAssignmentPhase() workflow.Phase {
 	p := &roleAssignmentPhase{}
 	return workflow.Phase{
 		Name:        roleAssignmentPhaseName,
+		Aliases:     []string{"ra"},
 		Description: "Create role assignment between the AAD application and the Azure cloud resource",
 		PreRun:      p.prerun,
 		Run:         p.run,
+		Flags:       []string{"azure-scope", "azure-role", "service-account-namespace", "service-account-name", "service-account-issuer-url", "aad-application-name", "service-principal-name", "service-principal-object-id"},
 	}
 }
 
@@ -41,7 +43,15 @@ func (p *roleAssignmentPhase) prerun(data workflow.RunData) error {
 		return errors.New("--azure-role is required")
 	}
 	if createData.ServicePrincipalName() == "" && createData.ServicePrincipalObjectID() == "" {
-		return errors.New("--service-principal-name or --service-principal-object-id is required")
+		if createData.ServiceAccountNamespace() == "" {
+			return errors.New("--service-account-namespace is required")
+		}
+		if createData.ServiceAccountName() == "" {
+			return errors.New("--service-account-name is required")
+		}
+		if createData.ServiceAccountIssuerURL() == "" {
+			return errors.New("--service-account-issuer-url is required")
+		}
 	}
 
 	return nil
