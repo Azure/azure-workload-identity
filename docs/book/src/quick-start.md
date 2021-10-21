@@ -49,7 +49,8 @@ az keyvault secret set --vault-name "${KEYVAULT_NAME}" \
 ## 3. Create an AAD application and grant permissions to access the secret
 
 ```bash
-export APPLICATION_CLIENT_ID="$(az ad sp create-for-rbac --skip-assignment --name https://test-sp --query appId -otsv)"
+export APPLICATION_NAME=<your application name>
+export APPLICATION_CLIENT_ID="$(az ad sp create-for-rbac --skip-assignment --name https://${APPLICATION_NAME} --query appId -otsv)"
 ```
 
 Set access policy for the AAD application to access the keyvault secret:
@@ -104,7 +105,7 @@ Login to [Azure Cloud Shell][8] and run the following commands:
 
 ```bash
 # Get the object ID of the AAD application
-export APPLICATION_CLIENT_ID=<Azure AD Application ID from previous steps>
+export APPLICATION_CLIENT_ID=<Azure AD Application client ID from step 3>
 export APPLICATION_OBJECT_ID="$(az ad app show --id ${APPLICATION_CLIENT_ID} --query objectId -otsv)"
 export SERVICE_ACCOUNT_ISSUER="<Your Service Account Issuer URL>"
 export SERVICE_ACCOUNT_NAME="workload-identity-sa"
