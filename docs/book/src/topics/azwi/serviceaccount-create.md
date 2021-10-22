@@ -32,7 +32,7 @@ The "create" command executes the following phases in order:
           --service-account-issuer-url string           URL of the issuer
           --service-account-name string                 Name of the service account
           --service-account-namespace string            Namespace of the service account (default "default")
-          --service-account-token-expiration duration   Expiration time of the service account token. Must be between 1 hour and 24 hours (default 24h0m0s)
+          --service-account-token-expiration duration   Expiration time of the service account token. Must be between 1 hour and 24 hours (default 1h0m0s)
           --service-principal-name string               Name of the service principal that backs the AAD application. If this is not specified, the name of the AAD application will be used
           --service-principal-object-id string          Object ID of the service principal that backs the AAD application. If not specified, it will be fetched using the service principal name
           --skip-phases strings                         List of phases to skip

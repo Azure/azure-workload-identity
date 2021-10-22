@@ -217,7 +217,7 @@ func getServiceAccountTokenExpiration(pod *corev1.Pod, sa *corev1.ServiceAccount
 }
 
 func validServiceAccountTokenExpiry(tokenExpiry int64) bool {
-	return tokenExpiry <= DefaultServiceAccountTokenExpiration && tokenExpiry >= MinServiceAccountTokenExpiration
+	return tokenExpiry <= MaxServiceAccountTokenExpiration && tokenExpiry >= MinServiceAccountTokenExpiration
 }
 
 // getClientID returns the clientID to be configured

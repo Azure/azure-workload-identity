@@ -16,10 +16,13 @@ const (
 	// By default, the projected service account token volume will be added to all containers if the service account is labeled with `azure.workload.identity/use: true`
 	SkipContainersAnnotation = "azure.workload.identity/skip-containers"
 
-	// DefaultServiceAccountTokenExpiration is the default service account token expiration in seconds
-	DefaultServiceAccountTokenExpiration = int64(86400)
 	// MinServiceAccountTokenExpiration is the minimum service account token expiration in seconds
 	MinServiceAccountTokenExpiration = int64(3600)
+	// MaxServiceAccountTokenExpiration is the maximum service account token expiration in seconds
+	MaxServiceAccountTokenExpiration = int64(86400)
+	// DefaultServiceAccountTokenExpiration is the default service account token expiration in seconds
+	// This is the Kubernetes default value for projected service account token
+	DefaultServiceAccountTokenExpiration = int64(3600)
 )
 
 // Environment variables injected in the pod
