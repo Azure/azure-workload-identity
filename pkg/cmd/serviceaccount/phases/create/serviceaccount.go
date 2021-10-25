@@ -46,11 +46,12 @@ func (p *serviceAccountPhase) prerun(data workflow.RunData) error {
 	}
 
 	minTokenExpirationDuration := time.Duration(webhook.MinServiceAccountTokenExpiration) * time.Second
+	maxTokenExpirationDuration := time.Duration(webhook.MaxServiceAccountTokenExpiration) * time.Second
 	if createData.ServiceAccountTokenExpiration() < minTokenExpirationDuration {
-		return errors.Errorf("--token-expiration must be greater than or equal to %s", minTokenExpirationDuration.String())
+		return errors.Errorf("--service-account-token-expiration must be greater than or equal to %s", minTokenExpirationDuration.String())
 	}
-	if createData.ServiceAccountTokenExpiration() > 24*time.Hour {
-		return errors.Errorf("--token-expiration must be less than or equal to 24h")
+	if createData.ServiceAccountTokenExpiration() > maxTokenExpirationDuration {
+		return errors.Errorf("--service-account-token-expiration must be less than or equal to %s", maxTokenExpirationDuration.String())
 	}
 
 	var err error

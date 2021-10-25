@@ -52,7 +52,7 @@ func TestServiceAccountPreRun(t *testing.T) {
 				serviceAccountName:            "test",
 				serviceAccountTokenExpiration: 1 * time.Minute,
 			},
-			errorMsg: "--token-expiration must be greater than or equal to 1h0m0s",
+			errorMsg: "--service-account-token-expiration must be greater than or equal to 1h0m0s",
 		},
 		{
 			name: "token expiration > maximum token expiration",
@@ -61,7 +61,7 @@ func TestServiceAccountPreRun(t *testing.T) {
 				serviceAccountName:            "test",
 				serviceAccountTokenExpiration: 25 * time.Hour,
 			},
-			errorMsg: "--token-expiration must be less than or equal to 24h",
+			errorMsg: "--service-account-token-expiration must be less than or equal to 24h0m0s",
 		},
 		{
 			name: "valid data",
@@ -95,7 +95,7 @@ func TestServiceAccountRun(t *testing.T) {
 	data := &mockCreateData{
 		serviceAccountNamespace:       "service-account-namespace",
 		serviceAccountName:            "service-account-name",
-		serviceAccountTokenExpiration: 1 * time.Hour,
+		serviceAccountTokenExpiration: 2 * time.Hour,
 		aadApplicationClientID:        "aad-application-client-id",
 		azureTenantID:                 "azure-tenant-id",
 		kubeClient:                    kubeClient,
@@ -122,7 +122,7 @@ func TestServiceAccountRun(t *testing.T) {
 	if sa.Annotations[webhook.TenantIDAnnotation] != "azure-tenant-id" {
 		t.Errorf("expected service account to have tenant id annotation but got: %s", sa.Annotations[webhook.TenantIDAnnotation])
 	}
-	if sa.Annotations[webhook.ServiceAccountTokenExpiryAnnotation] != "3600" {
+	if sa.Annotations[webhook.ServiceAccountTokenExpiryAnnotation] != "7200" {
 		t.Errorf("expected service account to have token expiration label but got: %s", sa.Labels[webhook.ServiceAccountTokenExpiryAnnotation])
 	}
 }
