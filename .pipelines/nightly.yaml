@@ -18,9 +18,7 @@ jobs:
     workspace:
       clean: all
     steps:
-      - template: templates/publish-images.yaml
-        parameters:
-          publish: false
+      - template: templates/scan-images.yaml
   - job: verify_deployment_yaml
     timeoutInMinutes: 20
     workspace:

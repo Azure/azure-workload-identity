@@ -17,9 +17,7 @@ jobs:
     workspace:
       clean: all
     steps:
-      - template: templates/publish-images.yaml
-        parameters:
-          publish: false
+      - template: templates/scan-images.yaml
   - job: lint
     timeoutInMinutes: 5
     workspace:
