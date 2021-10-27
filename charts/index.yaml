@@ -3,7 +3,7 @@ entries:
   pod-identity-webhook:
   - apiVersion: v2
     appVersion: v0.3.0
-    created: "2021-10-27T21:25:02.693846544Z"
+    created: "2021-10-27T22:38:12.196096202Z"
     description: A Helm chart to install the aad-pod-managed-identity webhook
     digest: 73b53fd1432b04975a02cf91395fae56277c97fed3ab9b0d3206166f5218f291
     home: https://github.com/Azure/aad-pod-managed-identity
@@ -17,9 +17,9 @@ entries:
   workload-identity-webhook:
   - apiVersion: v2
     appVersion: v0.6.0
-    created: "2021-10-27T21:25:02.695979413Z"
+    created: "2021-10-27T22:38:12.197691024Z"
     description: A Helm chart to install the azure-workload-identity webhook
-    digest: 46a79a23ffb5b0ae8051b3bea8ebf3f0608ae74eec65dc1b48894922d7ffe10b
+    digest: c5ee3d5e3d65a5bb293ae791db7c4dbae0fb2172c368a482e12a432c6781e350
     home: https://github.com/Azure/azure-workload-identity
     name: workload-identity-webhook
     sources:
@@ -30,7 +30,7 @@ entries:
     version: 0.6.0
   - apiVersion: v2
     appVersion: v0.5.0
-    created: "2021-10-27T21:25:02.695171576Z"
+    created: "2021-10-27T22:38:12.197211217Z"
     description: A Helm chart to install the azure-workload-identity webhook
     digest: 0d551fb94dac546dd21733590a7856975ec970d370f1d09c4e7f4fae63b924ab
     home: https://github.com/Azure/azure-workload-identity
@@ -43,7 +43,7 @@ entries:
     version: 0.5.0
   - apiVersion: v2
     appVersion: v0.4.0
-    created: "2021-10-27T21:25:02.694532305Z"
+    created: "2021-10-27T22:38:12.19668681Z"
     description: A Helm chart to install the azure-workload-identity webhook
     digest: 85dfa90279627ce09c3b8c6a302d35620e5dbf5fd617c9b44e1fd5c1deda4567
     home: https://github.com/Azure/azure-workload-identity
@@ -54,4 +54,4 @@ entries:
     urls:
     - https://Azure.github.io/azure-workload-identity/charts/workload-identity-webhook-0.4.0.tgz
     version: 0.4.0
-generated: "2021-10-27T21:25:02.692687778Z"
+generated: "2021-10-27T22:38:12.195443793Z"
