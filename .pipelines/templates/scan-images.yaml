@@ -2,6 +2,8 @@ steps:
   - script: make docker-build
     displayName: make docker-build
     env:
+      REGISTRY: e2e
+      IMAGE_VERSION: test
       ALL_LINUX_ARCH: amd64 # build amd64 only to speed up PR gate
       OUTPUT_TYPE: type=docker
   - script: |
@@ -15,4 +17,6 @@ steps:
       done
     displayName: Scan images
     env:
+      REGISTRY: e2e
+      IMAGE_VERSION: test
       TRIVY_VERSION: $(TRIVY_VERSION)

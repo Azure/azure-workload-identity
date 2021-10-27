@@ -14,7 +14,7 @@ pool: staging-pool
 
 jobs:
   - job: scan_images
-    timeoutInMinutes: 10
+    timeoutInMinutes: 20
     workspace:
       clean: all
     steps:
