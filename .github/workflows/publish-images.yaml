@@ -1,0 +1,59 @@
+name: publish_images
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  REGISTRY: ghcr.io/${{ github.repository }}
+
+jobs:
+  publish-images:
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [webhook, proxy, proxy-init]
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+          fetch-depth: 0
+      - name: Login to ghcr.io
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build ${{ matrix.image }}
+        run: |
+          make docker-build docker-push-manifest
+        env:
+          ALL_IMAGES: ${{ matrix.image }}
+          IMAGE_VERSION: latest
+
+  publish-example-images:
+    strategy:
+      fail-fast: false
+      matrix:
+        dir: [examples/msal-go, examples/msal-net/akvdotnet, examples/msal-node, examples/msal-python]
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+          fetch-depth: 0
+      - name: Login to ghcr.io
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 20
+          max_attempts: 3
+          command: |
+            make docker-buildx-builder
+            make -C ${{ matrix.dir }} container-all push-manifest
