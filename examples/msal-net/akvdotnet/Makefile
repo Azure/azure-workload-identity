@@ -1,5 +1,5 @@
 REGISTRY ?= ghcr.io/azure/azure-workload-identity
-IMAGE_NAME := msal-go
+IMAGE_NAME := msal-net
 IMAGE_VERSION ?= latest
 
 DEMO_IMAGE := $(REGISTRY)/$(IMAGE_NAME):$(IMAGE_VERSION)
@@ -34,10 +34,9 @@ container-linux:
 .PHONY: container-windows
 container-windows:
 	docker buildx build \
-		--build-arg OS_VERSION=$(OSVERSION) \
+		--build-arg BASEIMAGE=mcr.microsoft.com/dotnet/runtime:5.0-nanoserver-${OSVERSION} \
 		--output=$(OUTPUT_TYPE) \
 		--platform="windows/$(ARCH)" \
-		--file=windows.Dockerfile \
 		--tag=$(DEMO_IMAGE)-windows-$(OSVERSION)-$(ARCH) .
 
 .PHONY: container-all

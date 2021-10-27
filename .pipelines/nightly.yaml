@@ -14,13 +14,11 @@ pool: staging-pool
 
 jobs:
   - job: scan_images
-    timeoutInMinutes: 10
+    timeoutInMinutes: 20
     workspace:
       clean: all
     steps:
-      - template: templates/publish-images.yaml
-        parameters:
-          publish: false
+      - template: templates/scan-images.yaml
   - job: verify_deployment_yaml
     timeoutInMinutes: 20
     workspace:

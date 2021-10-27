@@ -110,13 +110,16 @@ split-by-hyphen = $(word $2,$(subst -, ,$1))
 BUILDX_BUILDER_NAME ?= img-builder
 QEMU_VERSION ?= 5.2.0-2
 
-.PHONY: docker-build
-docker-build:
+.PHONY: docker-buildx-builder
+docker-buildx-builder:
 	@if ! docker buildx ls | grep $(BUILDX_BUILDER_NAME); then \
 		docker run --rm --privileged multiarch/qemu-user-static:$(QEMU_VERSION) --reset -p yes; \
 		docker buildx create --name $(BUILDX_BUILDER_NAME) --use; \
 		docker buildx inspect $(BUILDX_BUILDER_NAME) --bootstrap; \
 	fi
+
+.PHONY: docker-build
+docker-build: docker-buildx-builder
 	for img in $(ALL_IMAGES); do \
 		for arch in $(ALL_LINUX_ARCH); do \
 			IMAGE_NAME=$${img} ARCH=$${arch} $(MAKE) .image-$${img}-$${arch}; \
