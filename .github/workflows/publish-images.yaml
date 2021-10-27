@@ -8,6 +8,9 @@ on:
 env:
   REGISTRY: ghcr.io/${{ github.repository }}
 
+permissions:
+  packages: write
+
 jobs:
   publish-images:
     strategy:
