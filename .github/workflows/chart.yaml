@@ -6,7 +6,10 @@ on:
       - main
     paths:
       - ".github/workflows/chart.yaml"
-      - "charts/**"    
+      - "charts/**"
+
+permissions:
+  contents: write
 
 jobs:
   deploy:

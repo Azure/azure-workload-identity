@@ -7,6 +7,9 @@ on:
       - release-**
     types: [closed]
 
+permissions:
+  contents: write
+
 jobs:
   create-tag:
     if: github.event.pull_request.merged == true && contains(github.event.pull_request.title, 'update manifest and helm charts')
