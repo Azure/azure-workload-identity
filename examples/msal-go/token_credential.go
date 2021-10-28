@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/AzureAD/microsoft-authentication-library-for-go/apps/confidential"
 	"github.com/pkg/errors"
+	"k8s.io/klog/v2"
 )
 
 // authResult contains the subset of results from token acquisition operation in ConfidentialClientApplication
@@ -39,10 +40,12 @@ func clientAssertionBearerAuthorizerCallback(tenantID, resource string) (*autore
 	// read the service account token from the filesystem
 	signedAssertion, err := readJWTFromFS(tokenFilePath)
 	if err != nil {
+		klog.ErrorS(err, "failed to read the service account token from the filesystem")
 		return nil, errors.Wrap(err, "failed to read service account token")
 	}
 	cred, err := confidential.NewCredFromAssertion(signedAssertion)
 	if err != nil {
+		klog.ErrorS(err, "failed to create credential from signed assertion")
 		return nil, errors.Wrap(err, "failed to create confidential creds")
 	}
 	// create the confidential client to request an AAD token
@@ -51,6 +54,7 @@ func clientAssertionBearerAuthorizerCallback(tenantID, resource string) (*autore
 		cred,
 		confidential.WithAuthority(fmt.Sprintf("%s%s/oauth2/token", authorityHost, tenantID)))
 	if err != nil {
+		klog.ErrorS(err, "failed to create confidential client")
 		return nil, errors.Wrap(err, "failed to create confidential client app")
 	}
 
@@ -63,7 +67,8 @@ func clientAssertionBearerAuthorizerCallback(tenantID, resource string) (*autore
 
 	result, err := confidentialClientApp.AcquireTokenByCredential(context.Background(), []string{resource})
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get token")
+		klog.ErrorS(err, "failed to acquire token")
+		return nil, errors.Wrap(err, "failed to acquire token")
 	}
 
 	return autorest.NewBearerAuthorizer(authResult{
