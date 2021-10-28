@@ -151,27 +151,28 @@
 <li><a href="#webhook">Webhook</a>
 <ul>
 <li><a href="#helm">Helm</a></li>
-<li><a href="#deployment-yaml">Deployment YAML</a></li>
+<li><a href="#deployment-yaml">Deployment YAML</a>
+<ul>
+<li><a href="#install-envsubst">Install <code>envsubst</code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a href="#azure-workload-identity-cli-azwi">Azure Workload Identity CLI (<code>azwi</code>)</a>
 <ul>
-<li><a href="#go-install">go install</a></li>
-<li><a href="#homebrew-macos-only">Homebrew (macOS only)</a></li>
+<li><a href="#go-install"><code>go install</code></a></li>
+<li><a href="#homebrew-macos-only">Homebrew (MacOS only)</a></li>
 </ul>
 </li>
 </ul>
 <h2 id="webhook"><a class="header" href="#webhook">Webhook</a></h2>
-<p>Obtain your Azure tenant ID by running the following command:</p>
+<p>Export your Azure tenant ID as an environment variable by running the following command:</p>
 <pre><code class="language-bash">export AZURE_TENANT_ID=&quot;$(az account show -s &lt;AzureSubscriptionID&gt; --query tenantId -otsv)&quot;
-# TODO: account for different environments
-export AZURE_ENVIRONMENT=&quot;AzurePublicCloud&quot;
 </code></pre>
 <p>The tenant ID above will be the default tenant ID that the webhook uses when configuring the <code>AZURE_TENANT_ID</code> environment variable in the pod. In the case of a multi-tenant cluster, you can override the tenant ID by adding the <code>azure.workload.identity/tenant-id</code> annotation to your service account.</p>
 <p>You can install the mutating webhook with one of the following methods:</p>
 <h3 id="helm"><a class="header" href="#helm">Helm</a></h3>
-<pre><code class="language-bash"># TODO(chewong): use https://azure.github.io/azure-workload-identity/charts
-helm install workload-identity-webhook manifest_staging/charts/workload-identity-webhook \
+<pre><code class="language-bash">helm install workload-identity-webhook manifest_staging/charts/workload-identity-webhook \
    --namespace azure-workload-identity-system \
    --create-namespace \
    --set azureTenantID=&quot;${AZURE_TENANT_ID}&quot;
@@ -188,12 +189,10 @@ TEST SUITE: None
 </code></pre>
 </details>
 <h3 id="deployment-yaml"><a class="header" href="#deployment-yaml">Deployment YAML</a></h3>
-<blockquote>
-<p>Replace the Azure tenant ID and cloud environment name in <a href="https://github.com/Azure/azure-workload-identity/blob/1cb9d78159458b0c820c9c08fadf967833c8cdb4/deploy/azure-wi-webhook.yaml#L103-L104">here</a> before executing</p>
-</blockquote>
-<pre><code class="language-bash">sed -i &quot;s/AZURE_TENANT_ID: .*/AZURE_TENANT_ID: ${AZURE_TENANT_ID}/&quot; deploy/azure-wi-webhook.yaml
-sed -i &quot;s/AZURE_ENVIRONMENT: .*/AZURE_ENVIRONMENT: ${AZURE_ENVIRONMENT}/&quot; deploy/azure-wi-webhook.yaml
-kubectl apply -f deploy/azure-wi-webhook.yaml
+<h4 id="install-envsubst"><a class="header" href="#install-envsubst">Install <code>envsubst</code></a></h4>
+<p>The deployment YAML contains the environment variables we defined above and we rely on the <code>envsubst</code> binary to substitute them for their respective values before deploying. See <a href="https://github.com/a8m/envsubst#installation">the <code>envsubst</code>‘s installation guide</a> on how to install it.</p>
+<p>Install the webhook using the deployment YAML via <code>kubectl apply -f</code> and <code>envsubst</code>:</p>
+<pre><code class="language-bash">curl -s https://github.com/Azure/azure-workload-identity/releases/download/v0.6.0/azure-wi-webhook.yaml | envsubst | kubectl apply -f -
 </code></pre>
 <details>
 <summary>Output</summary>
@@ -211,10 +210,10 @@ mutatingwebhookconfiguration.admissionregistration.k8s.io/azure-wi-webhook-mutat
 </code></pre>
 </details>
 <h2 id="a-hreftopicsazwihtmlazure-workload-identity-cli-azwia"><a class="header" href="#a-hreftopicsazwihtmlazure-workload-identity-cli-azwia"><a href="./topics/azwi.html">Azure Workload Identity CLI (<code>azwi</code>)</a></a></h2>
-<h3 id="go-install"><a class="header" href="#go-install">go install</a></h3>
-<pre><code class="language-bash">go install github.com/Azure/azure-workload-identity/cmd/azwi
+<h3 id="go-install"><a class="header" href="#go-install"><code>go install</code></a></h3>
+<pre><code class="language-bash">go install github.com/Azure/azure-workload-identity/cmd/azwi@v0.6.0
 </code></pre>
-<h3 id="homebrew-macos-only"><a class="header" href="#homebrew-macos-only">Homebrew (macOS only)</a></h3>
+<h3 id="homebrew-macos-only"><a class="header" href="#homebrew-macos-only">Homebrew (MacOS only)</a></h3>
 <pre><code class="language-bash">brew install Azure/azure-workload-identity/azwi
 </code></pre>
 
