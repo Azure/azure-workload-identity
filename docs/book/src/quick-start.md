@@ -2,21 +2,11 @@
 
 <!-- toc -->
 
-In this tutorial, we will cover the basics of how to use the Azure AD Workload Identity webhook to acquire a token to access a secret in an [Azure Key Vault][1].
+In this tutorial, we will cover the basics of how to use the webhook to acquire an Azure AD token to access a secret in an [Azure Key Vault][1].
 
-## Prerequisites
+## 1. Complete the installation guide
 
-*   [kubectl][2]
-*   [Microsoft Azure][5] account
-*   [Azure CLI][6]
-*   A Kubernetes cluster, with service account issuer URL and signing key pair set up
-    *   Check out [this section][9] if you are planning to use a managed Kubernetes cluster
-    *   Check out [this section][10] if you are planning to use a self-managed Kubernetes cluster
-
-## 1. Install the Azure AD Workload Identity webhook
-
-*   [Helm][11]
-*   [Deployment YAML][12]
+[Installation guide][13]
 
 ## 2. Create an Azure Key Vault and secret
 
@@ -105,7 +95,6 @@ Login to [Azure Cloud Shell][8] and run the following commands:
 
 ```bash
 # Get the object ID of the AAD application
-export APPLICATION_CLIENT_ID=<Azure AD Application client ID from step 3>
 export APPLICATION_OBJECT_ID="$(az ad app show --id ${APPLICATION_CLIENT_ID} --query objectId -otsv)"
 export SERVICE_ACCOUNT_ISSUER="<Your Service Account Issuer URL>"
 export SERVICE_ACCOUNT_NAME="workload-identity-sa"
@@ -144,7 +133,7 @@ metadata:
 spec:
   serviceAccountName: ${SERVICE_ACCOUNT_NAME}
   containers:
-    - image: aramase/msal-go:v0.6.0
+    - image: ghcr.io/azure/azure-workload-identity/msal-go:latest
       imagePullPolicy: IfNotPresent
       name: oidc
       env:
@@ -211,8 +200,8 @@ IPs:
 Containers:
   oidc:
     Container ID:   containerd://f425e89eef9aa3a62eb51a3daa5af8c06d8a59baa79c4e4dbb1887aea2647048
-    Image:          aramase/msal-go:v0.6.0
-    Image ID:       docker.io/aramase/msal-go@sha256:864edcc9baacb6a14fa714af2fc0327cd4ef67d1c5ff28f38e7dc8a479ac17a1
+    Image:          ghcr.io/azure/azure-workload-identity/msal-go:latest
+    Image ID:       ghcr.io/azure/azure-workload-identity/msal-go@sha256:84421aeea707ce66ade0891d9fcd3bb3f7bbd5dd3f810caced0acd315dcf8751
     Port:           <none>
     Host Port:      <none>
     State:          Running
@@ -253,8 +242,8 @@ Events:
   Type    Reason     Age   From               Message
   ----    ------     ----  ----               -------
   Normal  Scheduled  19s   default-scheduler  Successfully assigned oidc/quick-start to k8s-agentpool1-38097163-vmss000002
-  Normal  Pulling    18s   kubelet            Pulling image "aramase/msal-go:v0.6.0"
-  Normal  Pulled     16s   kubelet            Successfully pulled image "aramase/msal-go:v0.6.0" in 1.987165801s
+  Normal  Pulling    18s   kubelet            Pulling image "ghcr.io/azure/azure-workload-identity/msal-go:latest"
+  Normal  Pulled     16s   kubelet            Successfully pulled image "ghcr.io/azure/azure-workload-identity/msal-go:latest" in 1.987165801s
   Normal  Created    15s   kubelet            Created container oidc
   Normal  Started    15s   kubelet            Started container oidc
 ```
@@ -311,3 +300,5 @@ az ad sp delete --id "${APPLICATION_CLIENT_ID}"
 [11]: ../installation.md#helm
 
 [12]: ../installation.md#deployment-yaml
+
+[13]: ./installation.md

@@ -1,8 +1,8 @@
 # OpenID Connect Issuer
 
-Azure AD Workload Identity and Azure Active Directory (AAD) leverages an authentication protocol called OpenID Connect (OIDC) to securely exchange a cryptographically signed Kubernetes service account token for an AAD token. Your workload can then consume the AAD token to access Azure cloud resources via the Azure SDK or MSAL.
+Azure AD Workload Identity and Azure Active Directory (AAD) leverages an authentication protocol called OpenID Connect (OIDC) to securely exchange a cryptographically signed Kubernetes service account token for an AAD token. Your workload can then consume the AAD token to access Azure cloud resources via the Azure Identity SDKs or the Microsoft Authentication Library (MSAL).
 
-In the case of self-managed clusters, cluster administrator will have to manually set up an OIDC-compliant issuer URL and upload various documents to a public endpoint. The following table describes the documents that are required for the Azure AD Workload Identity webhook to work:
+In the case of self-managed clusters, administrator will have to manually provide the cluster's service account issuer URL, which should comply with the [OpenID specification][4]. The following table describes the required OIDC issuer endpoints for Azure AD Workload Identity:
 
 | Endpoint                                            | Description                                                                                                      |
 | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
@@ -15,6 +15,8 @@ In the case of self-managed clusters, cluster administrator will have to manuall
 
 [1]: ./oidc-issuer/discovery-document.md
 
-[2]: ./oidc-issuer/json-web-key-sets-jwks.md
+[2]: ./oidc-issuer/jwks.md
 
 [3]: ../../images/oidc-issuer-sequence-diagram.png
+
+[4]: https://openid.net/specs/openid-connect-discovery-1_0.html

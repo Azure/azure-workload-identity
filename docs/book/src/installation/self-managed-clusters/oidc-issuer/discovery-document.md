@@ -2,18 +2,18 @@
 
 <!-- toc -->
 
-OpenID Connect describes a [metadata document][1] that contains the metadata of the issuer. This includes information such as the URLs to use and the location of the service's public signing keys. The following section will walk you through how to generate and upload a minimal discovery document to an Azure Blob storage account.
+OpenID Connect describes a [metadata document][1] that contains the metadata of the issuer. This includes information such as the URLs to use and the location of the service's public signing keys. The following section will walk you through how to set up a secured, public OIDC issuer URL using Azure blob storage and upload a minimal discovery document to the storage account.
 
 ## Walkthrough
 
 ### 1. Create an Azure Blob storage account
 
 ```bash
-export RESOURCE_GROUP="azwi"
+export RESOURCE_GROUP="oidc-issuer"
 export LOCATION="westus2"
 az group create --name "${RESOURCE_GROUP}" --location "${LOCATION}"
 
-export AZURE_STORAGE_ACCOUNT="azwi$(openssl rand -hex 4)"
+export AZURE_STORAGE_ACCOUNT="oidcissuer$(openssl rand -hex 4)"
 export AZURE_STORAGE_CONTAINER="oidc-test"
 az storage account create --resource-group "${RESOURCE_GROUP}" --name "${AZURE_STORAGE_ACCOUNT}"
 az storage container create --name "${AZURE_STORAGE_CONTAINER}" --public-access container
