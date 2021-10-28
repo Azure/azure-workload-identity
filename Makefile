@@ -200,10 +200,6 @@ manifests: $(CONTROLLER_GEN) $(KUSTOMIZE)
 	$(KUSTOMIZE) build config/default -o manifest_staging/deploy/azure-wi-webhook.yaml
 	$(KUSTOMIZE) build third_party/open-policy-agent/gatekeeper/helmify | go run third_party/open-policy-agent/gatekeeper/helmify/*.go
 
-	@sed -i -e "s/AZURE_TENANT_ID: .*/AZURE_TENANT_ID: <replace with Azure Tenant ID>/" manifest_staging/deploy/azure-wi-webhook.yaml
-	@sed -i -e "s/AZURE_ENVIRONMENT: .*/AZURE_ENVIRONMENT: <replace with Azure Environment Name>/" manifest_staging/deploy/azure-wi-webhook.yaml
-	@sed -i -e "s/-arc-cluster=.*/-arc-cluster=false/" manifest_staging/deploy/azure-wi-webhook.yaml
-
 # Generate code
 .PHONY: generate
 generate: $(CONTROLLER_GEN) $(MOCKGEN) ## Runs Go related generate targets
@@ -394,7 +390,8 @@ release-manifest: $(KUSTOMIZE)
 	@sed -i -e 's/proxy:.*/proxy:${NEW_VERSION}/' ./examples/migration/pod-with-proxy-init-and-proxy-sidecar.yaml
 	@sed -i -e 's/proxy-init:[^"]*/proxy-init:${NEW_VERSION}/' ./test/e2e/e2e_test.go
 	@sed -i -e 's/proxy:[^"]*/proxy:${NEW_VERSION}/' ./test/e2e/e2e_test.go
-	export
+	@sed -i -e 's|download/v.*/azure-wi-webhook.yaml|download/${NEW_VERSION}/azure-wi-webhook.yaml|' ./docs/book/src/installation.md
+	@sed -i -e 's|azwi@v.*|azwi@${NEW_VERSION}|' ./docs/book/src/installation.md
 	$(MAKE) manifests
 
 .PHONY: promote-staging-manifest
