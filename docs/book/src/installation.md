@@ -4,12 +4,10 @@
 
 ## Webhook
 
-Obtain your Azure tenant ID by running the following command:
+Export your Azure tenant ID as an environment variable by running the following command:
 
 ```bash
 export AZURE_TENANT_ID="$(az account show -s <AzureSubscriptionID> --query tenantId -otsv)"
-# TODO: account for different environments
-export AZURE_ENVIRONMENT="AzurePublicCloud"
 ```
 
 The tenant ID above will be the default tenant ID that the webhook uses when configuring the `AZURE_TENANT_ID` environment variable in the pod. In the case of a multi-tenant cluster, you can override the tenant ID by adding the `azure.workload.identity/tenant-id` annotation to your service account.
@@ -19,7 +17,6 @@ You can install the mutating webhook with one of the following methods:
 ### Helm
 
 ```bash
-# TODO(chewong): use https://azure.github.io/azure-workload-identity/charts
 helm install workload-identity-webhook manifest_staging/charts/workload-identity-webhook \
    --namespace azure-workload-identity-system \
    --create-namespace \
@@ -43,12 +40,14 @@ TEST SUITE: None
 
 ### Deployment YAML
 
-> Replace the Azure tenant ID and cloud environment name in [here][1] before executing
+#### Install `envsubst`
+
+The deployment YAML contains the environment variables we defined above and we rely on the `envsubst` binary to substitute them for their respective values before deploying. See [the `envsubst`'s installation guide][1] on how to install it.
+
+Install the webhook using the deployment YAML via `kubectl apply -f` and `envsubst`:
 
 ```bash
-sed -i "s/AZURE_TENANT_ID: .*/AZURE_TENANT_ID: ${AZURE_TENANT_ID}/" deploy/azure-wi-webhook.yaml
-sed -i "s/AZURE_ENVIRONMENT: .*/AZURE_ENVIRONMENT: ${AZURE_ENVIRONMENT}/" deploy/azure-wi-webhook.yaml
-kubectl apply -f deploy/azure-wi-webhook.yaml
+curl -s https://github.com/Azure/azure-workload-identity/releases/download/v0.6.0/azure-wi-webhook.yaml | envsubst | kubectl apply -f -
 ```
 
 <details>
@@ -72,18 +71,18 @@ mutatingwebhookconfiguration.admissionregistration.k8s.io/azure-wi-webhook-mutat
 
 ## [Azure Workload Identity CLI (`azwi`)][2]
 
-### go install
+### `go install`
 
 ```bash
-go install github.com/Azure/azure-workload-identity/cmd/azwi
+go install github.com/Azure/azure-workload-identity/cmd/azwi@v0.6.0
 ```
 
-### Homebrew (macOS only)
+### Homebrew (MacOS only)
 
 ```bash
 brew install Azure/azure-workload-identity/azwi
 ```
 
-[1]: https://github.com/Azure/azure-workload-identity/blob/1cb9d78159458b0c820c9c08fadf967833c8cdb4/deploy/azure-wi-webhook.yaml#L103-L104
+[1]: https://github.com/a8m/envsubst#installation
 
 [2]: ./topics/azwi.md
