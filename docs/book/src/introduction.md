@@ -7,7 +7,7 @@ Azure AD Workload Identity for Kubernetes integrates with the capabilities nativ
 *   Removes the scale and performance issues that existed for identity assignment
 *   Supports Kubernetes clusters hosted in **any cloud** or **on-premises**
 *   Supports both **Linux** and **Windows** workloads
-*   Removes the need for Custom Resource Definitions and pods that intercept IMDS (Instance Metadata Service) traffic
+*   Removes the need for Custom Resource Definitions and pods that intercept [Instance Metadata Service (IMDS)][10] traffic
 *   Avoids the complication and error-prone installation steps such as cluster role assignment from the previous iteration.
 
 ## Getting started
@@ -42,3 +42,5 @@ In this model, the Kubernetes cluster becomes a token issuer, issuing tokens to 
 [8]: ./concepts.md
 
 [9]: ./images/how-it-works-diagram.png
+
+[10]: https://docs.microsoft.com/en-us/azure/virtual-machines/windows/instance-metadata-service?tabs=windows

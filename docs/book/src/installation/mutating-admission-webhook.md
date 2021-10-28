@@ -5,12 +5,12 @@ Azure AD Workload Identity uses a [mutating admission webhook][1] to project a s
 <details>
 <summary>Properties</summary>
 
-| Environment variable         | Description                                           |
-| ---------------------------- | ----------------------------------------------------- |
-| `AZURE_AUTHORITY_HOST`       | The Azure Active Directory (AAD) endpoint.            |
-| `AZURE_CLIENT_ID`            | The client ID of the identity.                        |
-| `AZURE_TENANT_ID`            | The tenant ID of the Azure account.                   |
-| `AZURE_FEDERATED_TOKEN_FILE` | The path of the projected service account token file. |
+| Environment variable         | Description                                            |
+| ---------------------------- | ------------------------------------------------------ |
+| `AZURE_AUTHORITY_HOST`       | The Azure Active Directory (AAD) endpoint.             |
+| `AZURE_CLIENT_ID`            | The application/client ID of the Azure AD application. |
+| `AZURE_TENANT_ID`            | The tenant ID of the Azure account.                    |
+| `AZURE_FEDERATED_TOKEN_FILE` | The path of the projected service account token file.  |
 
 | Volume                 | Description                           |
 | ---------------------- | ------------------------------------- |
