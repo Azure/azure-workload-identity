@@ -2,7 +2,7 @@
 
 <!-- toc -->
 
-For managed clusters, the service account signing keys should be set up and managed by the cloud provider.
+For managed clusters, the service account signing keys will be set up and managed by the cloud provider.
 
 Before deploying Azure AD Workload Identity, you will need to enable any **OIDC-specific** feature flags and obtain the **OIDC issuer URL** when setting up the federated identity.
 
@@ -27,7 +27,7 @@ Refer to the [Amazon EKS documentation][1] for more information on the OIDC issu
 
 ## Google Kubernetes Engine (GKE)
 
-GKE cluster has an OIDC issuer URL associated with it by default but it is not exposed in the cluster's public API model.
+GKE cluster has an OIDC issuer URL associated with it by default. Follow the [steps](#steps-to-get-the-oidc-issuer-url-from-a-generic-managed-cluster) to get the OIDC issuer URL.
 
 ## Steps to get the OIDC issuer URL from a generic managed cluster
 

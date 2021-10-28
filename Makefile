@@ -390,8 +390,8 @@ release-manifest: $(KUSTOMIZE)
 	@sed -i -e 's/proxy:.*/proxy:${NEW_VERSION}/' ./examples/migration/pod-with-proxy-init-and-proxy-sidecar.yaml
 	@sed -i -e 's/proxy-init:[^"]*/proxy-init:${NEW_VERSION}/' ./test/e2e/e2e_test.go
 	@sed -i -e 's/proxy:[^"]*/proxy:${NEW_VERSION}/' ./test/e2e/e2e_test.go
-	@sed -i -e 's|download/v.*/azure-wi-webhook.yaml|download/${NEW_VERSION}/azure-wi-webhook.yaml|' ./docs/book/src/installation.md
-	@sed -i -e 's|azwi@v.*|azwi@${NEW_VERSION}|' ./docs/book/src/installation.md
+	@sed -i -e 's|download/v.*/azure-wi-webhook.yaml|download/${NEW_VERSION}/azure-wi-webhook.yaml|' ./docs/book/src/installation/mutating-admission-webhook.md
+	@sed -i -e 's|azwi@v.*|azwi@${NEW_VERSION}|' ./docs/book/src/installation/azwi.md
 	$(MAKE) manifests
 
 .PHONY: promote-staging-manifest

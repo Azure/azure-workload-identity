@@ -1,15 +1,15 @@
 # Azure AD Workload Identity
 
+[![Build Status][14]][13]
+
 Azure AD Workload Identity is the next iteration of [Azure AD Pod Identity][1] that enables Kubernetes applications to access Azure cloud resources securely with [Azure Active Directory][2] based on annotated [service accounts][3].
 
-| Kubernetes Version | Supported | CI Signal                 | Known Issues                                                                  |
-| ------------------ | --------- | ------------------------- | ----------------------------------------------------------------------------- |
-| 1.22               | ✅         | [![Build Status][14]][13] |                                                                               |
-| 1.21               | ✅         | [![Build Status][14]][13] |                                                                               |
-| 1.20               | ✅         | [![Build Status][14]][13] |                                                                               |
-| 1.19               | ✅         | [![Build Status][14]][13] |                                                                               |
-| 1.18               | ✅         | N/A                       | [Permission denied when reading the projected service account token file][15] |
-| ≤ 1.17             | ❓         | N/A                       | We recommend upgrading your Kubernetes clusters to a supported version.       |
+| Kubernetes Version | Supported |
+| ------------------ | --------- |
+| 1.22               | ✅         |
+| 1.21               | ✅         |
+| 1.20               | ✅         |
+| 1.19               | ✅         |
 
 ## Installation
 
