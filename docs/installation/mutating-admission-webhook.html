@@ -1,0 +1,262 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Mutating Admission Webhook - Azure AD Workload Identity</title>
+                
+
+        <!-- Custom HTML head -->
+        
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+                <link rel="icon" href="../favicon.svg">
+                        <link rel="shortcut icon" href="../favicon.png">
+                <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+                <link rel="stylesheet" href="../css/print.css" media="print">
+        
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+                <link rel="stylesheet" href="../fonts/fonts.css">
+        
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+            </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="../installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../installation/managed-clusters.html"><strong aria-hidden="true">1.1.</strong> Managed Clusters</a></li><li class="chapter-item expanded "><a href="../installation/self-managed-clusters.html"><strong aria-hidden="true">1.2.</strong> Self-Managed Clusters</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../installation/self-managed-clusters/service-account-key-generation.html"><strong aria-hidden="true">1.2.1.</strong> Service Account Key Generation</a></li><li class="chapter-item expanded "><a href="../installation/self-managed-clusters/oidc-issuer.html"><strong aria-hidden="true">1.2.2.</strong> OpenID Connect Issuer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../installation/self-managed-clusters/oidc-issuer/discovery-document.html"><strong aria-hidden="true">1.2.2.1.</strong> Discovery Document</a></li><li class="chapter-item expanded "><a href="../installation/self-managed-clusters/oidc-issuer/jwks.html"><strong aria-hidden="true">1.2.2.2.</strong> JSON Web Key Sets (JWKS)</a></li></ol></li><li class="chapter-item expanded "><a href="../installation/self-managed-clusters/configurations.html"><strong aria-hidden="true">1.2.3.</strong> Configurations</a></li></ol></li><li class="chapter-item expanded "><a href="../installation/mutating-admission-webhook.html" class="active"><strong aria-hidden="true">1.3.</strong> Mutating Admission Webhook</a></li><li class="chapter-item expanded "><a href="../installation/azwi.html"><strong aria-hidden="true">1.4.</strong> Azure AD Workload Identity CLI (azwi)</a></li></ol></li><li class="chapter-item expanded "><a href="../quick-start.html"><strong aria-hidden="true">2.</strong> Quick Start</a></li><li class="chapter-item expanded "><a href="../concepts.html"><strong aria-hidden="true">3.</strong> Concepts</a></li><li class="chapter-item expanded "><a href="../topics.html"><strong aria-hidden="true">4.</strong> Topics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../topics/service-account-labels-and-annotations.html"><strong aria-hidden="true">4.1.</strong> Service Account Labels And Annotations</a></li><li class="chapter-item expanded "><a href="../topics/federated-identity.html"><strong aria-hidden="true">4.2.</strong> Federated Identity</a></li><li class="chapter-item expanded "><a href="../topics/azwi.html"><strong aria-hidden="true">4.3.</strong> Azure Workload Identity CLI (azwi)</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../topics/azwi/jwks.html"><strong aria-hidden="true">4.3.1.</strong> azwi jwks</a></li><li class="chapter-item expanded "><a href="../topics/azwi/serviceaccount-create.html"><strong aria-hidden="true">4.3.2.</strong> azwi serviceaccount create</a></li><li class="chapter-item expanded "><a href="../topics/azwi/serviceaccount-delete.html"><strong aria-hidden="true">4.3.3.</strong> azwi serviceaccount delete</a></li></ol></li><li class="chapter-item expanded "><a href="../topics/self-managed-clusters.html"><strong aria-hidden="true">4.4.</strong> Self-Managed Clusters</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../topics/self-managed-clusters/service-account-key-rotation.html"><strong aria-hidden="true">4.4.1.</strong> Service Account Key Rotation</a></li><li class="chapter-item expanded "><a href="../topics/self-managed-clusters/examples.html"><strong aria-hidden="true">4.4.2.</strong> Examples</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../topics/self-managed-clusters/examples/kind.html"><strong aria-hidden="true">4.4.2.1.</strong> Kubernetes in Docker (kind)</a></li></ol></li></ol></li><li class="chapter-item expanded "><a href="../topics/language-specific-examples.html"><strong aria-hidden="true">4.5.</strong> Language-Specific Examples</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../topics/language-specific-examples/azure-identity-sdk.html"><strong aria-hidden="true">4.5.1.</strong> Azure Identity SDK</a></li><li class="chapter-item expanded "><a href="../topics/language-specific-examples/msal.html"><strong aria-hidden="true">4.5.2.</strong> Microsoft Authentication Library (MSAL)</a></li></ol></li></ol></li><li class="chapter-item expanded "><a href="../troubleshooting.html"><strong aria-hidden="true">5.</strong> Troubleshooting</a></li><li class="chapter-item expanded "><a href="../known-issues.html"><strong aria-hidden="true">6.</strong> Known Issues</a></li><li class="chapter-item expanded "><a href="../development.html"><strong aria-hidden="true">7.</strong> Development</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../development/releasing.html"><strong aria-hidden="true">7.1.</strong> Releasing</a></li></ol></li><li class="chapter-item expanded "><a href="../contributing.html"><strong aria-hidden="true">8.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="../code-of-conduct.html"><strong aria-hidden="true">9.</strong> Code of Conduct</a></li></ol>            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                                                <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                                            </div>
+
+                    <h1 class="menu-title">Azure AD Workload Identity</h1>
+
+                    <div class="right-buttons">
+                                                <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                                                                        <a href="https://github.com/Azure/azure-workload-identity" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                                                
+                    </div>
+                </div>
+
+                                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="mutating-admission-webhook"><a class="header" href="#mutating-admission-webhook">Mutating Admission Webhook</a></h1>
+<p>Azure AD Workload Identity uses a <a href="https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#mutatingadmissionwebhook">mutating admission webhook</a> to project a signed service account token to your workload’s volume and inject the following properties to pods with a service account that is configured to use the webhook:</p>
+<details>
+<summary>Properties</summary>
+<table><thead><tr><th>Environment variable</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>AZURE_AUTHORITY_HOST</code></td><td>The Azure Active Directory (AAD) endpoint.</td></tr>
+<tr><td><code>AZURE_CLIENT_ID</code></td><td>The application/client ID of the Azure AD application.</td></tr>
+<tr><td><code>AZURE_TENANT_ID</code></td><td>The tenant ID of the Azure account.</td></tr>
+<tr><td><code>AZURE_FEDERATED_TOKEN_FILE</code></td><td>The path of the projected service account token file.</td></tr>
+</tbody></table>
+<table><thead><tr><th>Volume</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>azure-identity-token</code></td><td>The projected service account volume.</td></tr>
+</tbody></table>
+<table><thead><tr><th>Volume mount</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>/var/run/secrets/tokens/azure-identity-token</code></td><td>The path of the projected service account token file.</td></tr>
+</tbody></table>
+</details>
+<p>The webhook allows pods to use a <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-token-volume-projection">service account token</a> projected to a well-known volume path to exchange for an Azure AD access token by leveraging the above properties with the Azure Identity SDKs or the <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-overview">Microsoft Authentication Library</a> (MSAL).</p>
+<h2 id="prerequisites"><a class="header" href="#prerequisites">Prerequisites</a></h2>
+<p>Obtain your Azure tenant ID by running the following command:</p>
+<pre><code class="language-bash">export AZURE_TENANT_ID=&quot;$(az account show -s &lt;AzureSubscriptionID&gt; --query tenantId -otsv)&quot;
+</code></pre>
+<p>The tenant ID above will be the default tenant ID that the webhook uses when configuring the <code>AZURE_TENANT_ID</code> environment variable in the pod. In the case of a multi-tenant cluster, you can override the tenant ID by adding the <code>azure.workload.identity/tenant-id</code> annotation to your service account.</p>
+<p>You can install the mutating admission webhook with one of the following methods:</p>
+<h2 id="helm-3-recommended"><a class="header" href="#helm-3-recommended">Helm 3 (Recommended)</a></h2>
+<pre><code class="language-bash"># TODO(chewong): use https://azure.github.io/azure-workload-identity/charts
+helm install workload-identity-webhook manifest_staging/charts/workload-identity-webhook \
+   --namespace azure-workload-identity-system \
+   --create-namespace \
+   --set azureTenantID=&quot;${AZURE_TENANT_ID}&quot;
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code class="language-bash">namespace/azure-workload-identity-system created
+NAME: workload-identity-webhook
+LAST DEPLOYED: Wed Aug  4 10:49:20 2021
+NAMESPACE: azure-workload-identity-system
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+</code></pre>
+</details>
+<h2 id="deployment-yaml"><a class="header" href="#deployment-yaml">Deployment YAML</a></h2>
+<h3 id="install-envsubst"><a class="header" href="#install-envsubst">Install <code>envsubst</code></a></h3>
+<p>The deployment YAML contains the environment variables we defined above and we rely on the <code>envsubst</code> binary to substitute them for their respective values before deploying. See <a href="https://github.com/a8m/envsubst#installation">the <code>envsubst</code>‘s installation guide</a> on how to install it.</p>
+<p>Install the webhook using the deployment YAML via <code>kubectl apply -f</code> and <code>envsubst</code>:</p>
+<pre><code class="language-bash">curl -s https://github.com/Azure/azure-workload-identity/releases/download/v0.6.0/azure-wi-webhook.yaml | envsubst | kubectl apply -f -
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code class="language-bash">namespace/azure-workload-identity-system created
+serviceaccount/azure-wi-webhook-admin created
+role.rbac.authorization.k8s.io/azure-wi-webhook-manager-role created
+clusterrole.rbac.authorization.k8s.io/azure-wi-webhook-manager-role created
+rolebinding.rbac.authorization.k8s.io/azure-wi-webhook-manager-rolebinding created
+clusterrolebinding.rbac.authorization.k8s.io/azure-wi-webhook-manager-rolebinding created
+configmap/azure-wi-webhook-config created
+secret/azure-wi-webhook-server-cert created
+service/azure-wi-webhook-webhook-service created
+deployment.apps/azure-wi-webhook-controller-manager created
+mutatingwebhookconfiguration.admissionregistration.k8s.io/azure-wi-webhook-mutating-webhook-configuration created
+</code></pre>
+</details>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                                                    <a rel="prev" href="../installation/self-managed-clusters/configurations.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+                                                    <a rel="next" href="../installation/azwi.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                                    <a rel="prev" href="../installation/self-managed-clusters/configurations.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+                                    <a rel="next" href="../installation/azwi.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                            </nav>
+
+        </div>
+
+        
+        
+        
+                <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+        
+                <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+        <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+        
+    </body>
+</html>
