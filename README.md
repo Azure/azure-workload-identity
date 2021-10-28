@@ -1,38 +1,31 @@
 # Azure AD Workload Identity
 
-Azure AD Workload Identity is the next iteration of [AAD Pod Identity][1] that enables Kubernetes applications to access Azure cloud resources securely with [Azure Active Directory][2] based on annotated [service accounts][3].
+[![Build Status][14]][13]
+
+Azure AD Workload Identity is the next iteration of [Azure AD Pod Identity][1] that enables Kubernetes applications to access Azure cloud resources securely with [Azure Active Directory][2] based on annotated [service accounts][3].
+
+| Kubernetes Version | Supported |
+| ------------------ | --------- |
+| 1.22               | ✅         |
+| 1.21               | ✅         |
+| 1.20               | ✅         |
+| 1.19               | ✅         |
 
 ## Installation
 
-Check out the [installation guide][12] on how to deploy the Azure AD Workload Identity webhook.
+Check out the [installation guide][16] on how to deploy the Azure AD Workload Identity webhook.
 
 ## Quick Start
 
-Check out the Azure AD Workload Identity [Quick Start][4] on how to securely access Azure cloud resources from your application using the webhook and MSAL.
+Check out the Azure AD Workload Identity [Quick Start][4] on how to securely access Azure cloud resources from your Kubernetes workload using the Microsoft Authentication Library (MSAL).
 
-## Overview
+## Code of Conduct
 
-The repository contains the following components:
+This project has adopted the [Microsoft Open Source Code of Conduct][17]. For more information, see the [Code of Conduct FAQ][18] or contact [opencode@microsoft.com][19] with any additional questions or comments.
 
-1.  [Mutating Webhook][5]
-    > The webhook is for mutating pods that reference an annotated service account. The webhook will inject the environment variables and the [projected service account token volume][11]. Your application/SDK will consume them to authenticate itself to Azure resources.
+## Support
 
-2.  [Proxy Init][6] and [Proxy][7]
-    > The proxy init container and proxy sidecar container will be used for applications that are still using [AAD Pod Identity][1].
-
-## Motivation
-
-*   Cloud-agnostic.
-*   Support Linux and Windows workload.
-*   Industry-standard and Kubernetes-friendly authentication based on OpenID Connect (OIDC).
-*   Remove convoluted steps to set up [cluster role assignments][8].
-*   Remove the following dependencies:
-    *   [Instance Metadata Service][9] (IMDS)
-    *   [CustomResourceDefinitions][10] (CRDs)
-
-## Goals
-
-*   A secure way for cloud-native applications to obtain AAD tokens and access Azure cloud resources in a Kubernetes cluster.
+Azure AD Workload Identity is an open source project that is [**not** covered by the Microsoft Azure support policy][20]. [Please search open issues here][21], and if your issue isn't already represented please [open a new one][22]. The project maintainers will respond to the best of their abilities.
 
 <!-- - Ensure backward compatibility when upgrading from [AAD Pod Identity](https://github.com/Azure/aad-pod-identity). -->
 
@@ -59,3 +52,23 @@ The repository contains the following components:
 [11]: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-token-volume-projection
 
 [12]: https://azure.github.io/azure-workload-identity/installation.html
+
+[13]: https://dev.azure.com/AzureContainerUpstream/Azure%20Workload%20Identity/_build/latest?definitionId=365&branchName=main
+
+[14]: https://dev.azure.com/AzureContainerUpstream/Azure%20Workload%20Identity/_apis/build/status/Azure%20Workload%20Identity%20Nightly?branchName=main
+
+[15]: https://azure.github.io/azure-workload-identity/known-issues.html#permission-denied-when-reading-the-projected-service-account-token-file
+
+[16]: https://azure.github.io/azure-workload-identity/installation
+
+[17]: https://opensource.microsoft.com/codeofconduct/
+
+[18]: https://opensource.microsoft.com/codeofconduct/faq
+
+[19]: mailto:opencode@microsoft.com
+
+[20]: https://support.microsoft.com/en-us/help/2941892/support-for-linux-and-open-source-technology-in-azure
+
+[21]: https://github.com/Azure/azure-workload-identity/issues
+
+[22]: https://github.com/Azure/azure-workload-identity/issues/new/choose

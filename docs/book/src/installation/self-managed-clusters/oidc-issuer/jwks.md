@@ -6,15 +6,11 @@ The JSON Web Key Sets (JWKS) document contains the public signing key(s) that al
 
 ## Walkthrough
 
-> Assuming you have access to your service account signing key pair and followed [the guide][1] on how to create and upload the discovery document to an Azure blob storage account. See this section on how to generate one.
+> Assuming you have access to your service account signing key pair and followed [the guide][1] on how to create and upload the discovery document to an Azure blob storage account. See [this section][2] on how to generate a minimal signing key pair.
 
 ### 1. Install `azwi`
 
-`azwi` is a CLI tool that helps generate the JWKS document in JSON.
-
-```bash
-go install github.com/Azure/azure-workload-identity/cmd/azwi
-```
+[Installation guide][3]
 
 ### 2. Generate the JWKS document
 
@@ -60,3 +56,7 @@ curl -s "https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_
 </details>
 
 [1]: ./discovery-document.md
+
+[2]: ../service-account-key-generation.md
+
+[3]: ../../azwi.md

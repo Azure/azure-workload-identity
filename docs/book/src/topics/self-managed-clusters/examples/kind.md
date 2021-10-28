@@ -1,18 +1,13 @@
-# Kubernetes in Docker (Kind)
+# Kubernetes in Docker (kind)
 
 <!-- toc -->
 
 This document shows you how to create a kind cluster and customize the required [configuration][1] for the kube-apiserver.
 
-## 1. Create and upload OIDC discovery document and JWKS
+## 1. Complete the self-managed cluster installation guide
 
-### Generating service account signing key
-
-Follow this [guide][2] to generate a service account signing key using openssl. If you're planning to bring your own keys, you can skip this step.
-
-### Upload the OIDC discovery document and JWKS
-
-Follow the walkthrough in [Discovery Document][3] and [JSON Web Key Sets][4] to create and upload the OIDC discovery document and JWKS.
+- [Service Account Key Generation](../../../installation/self-managed-clusters/service-account-key-generation.md)
+- [OpenID Connect Issuer](../../../installation/self-managed-clusters/oidc-issuer.md)
 
 ## 2. Create a kind cluster
 
@@ -26,7 +21,7 @@ export SERVICE_ACCOUNT_SIGNING_KEY_FILE="$(pwd)/sa.key"
 
 Create a kind cluster with one control plane node and customize various service account related flags for the kube-apiserver:
 
-> The minimum supported Kubernetes version for the webhook is v1.18.0, however, we recommend using Kubernetes version v1.20.0+.
+> The minimum supported Kubernetes version for the webhook is v1.18, however, we recommend using Kubernetes version v1.20+.
 
 ```yaml
 cat <<EOF | kind create cluster --name azure-workload-identity --image kindest/node:v1.21.1 --config=-
@@ -47,6 +42,9 @@ nodes:
         service-account-issuer: ${SERVICE_ACCOUNT_ISSUER}
         service-account-key-file: /etc/kubernetes/pki/sa.pub
         service-account-signing-key-file: /etc/kubernetes/pki/sa.key
+    controllerManager:
+      extraArgs:
+        service-account-private-key-file: /etc/kubernetes/pki/sa.key
 EOF
 ```
 
@@ -95,12 +93,12 @@ azure-workload-identity-control-plane   Ready    control-plane,master   2m28s   
 
 Now that we have confirmed the cluster is up and running with the required configuration, you can follow the tutorial in [Quick Start][5] to learn the basics of how to use the Azure AD Workload Identity webhook to acquire a token to access a secret in an [Azure Key Vault][1].
 
-[1]: ../configurations.md
+[1]: ../../../../installation/self-managed-clusters/configurations.md
 
 [2]: ../service-account-key-generation.md
 
 [3]: ../oidc-issuer/discovery-document.md
 
-[4]: ../oidc-issuer/json-web-key-sets-jwks.md
+[4]: ../oidc-issuer/jwks.md
 
 [5]: ../../../quick-start.md

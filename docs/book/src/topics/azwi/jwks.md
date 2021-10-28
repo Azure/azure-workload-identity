@@ -17,7 +17,7 @@ This command provides the ability to generate the JSON Web Key Sets (JWKS) for t
 ## Example
 
 ```bash
-azwi jwks --public-keys sa.key
+azwi jwks --public-keys sa.pub
 ```
 
 <details>
