@@ -6,7 +6,7 @@ parameters:
 
 jobs:
   - job:
-    timeoutInMinutes: 60
+    timeoutInMinutes: 90
     dependsOn: ${{ parameters.dependsOn }}
     workspace:
       clean: all
