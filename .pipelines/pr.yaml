@@ -13,7 +13,7 @@ pool: staging-pool
 
 jobs:
   - job: scan_images
-    timeoutInMinutes: 20
+    timeoutInMinutes: 30
     workspace:
       clean: all
     steps:
@@ -27,8 +27,20 @@ jobs:
         displayName: golangci-lint
       - script: make helm-lint
         displayName: helm lint
-      - script: go mod tidy && git diff --exit-code go.mod go.sum
+      - script: |
+          go mod tidy
+          if ! git diff --exit-code go.mod go.sum; then
+            echo "go.mod/go.sum is not up to date. Please run 'go mod tidy'"
+            exit 1
+          fi
         displayName: go mod tidy
+      - script: |
+          make manifests
+          if ! git diff --exit-code manifest_staging/; then
+            echo "manifest_staging/ is not up to date. Please run 'make manifests'"
+            exit 1
+          fi
+        displayName: make manifests
   - job: unit_test
     timeoutInMinutes: 5
     workspace:
@@ -44,7 +56,7 @@ jobs:
       - script: make shellcheck
         displayName: shellcheck
   - job:
-    timeoutInMinutes: 40
+    timeoutInMinutes: 60
     dependsOn:
     - lint
     - scan_images
@@ -91,8 +103,8 @@ jobs:
           KIND_NODE_VERSION: v1.21.2
           LOCAL_ONLY: "true"
           TEST_HELM_CHART: "true"
-        kind_v1_22_0:
-          KIND_NODE_VERSION: v1.22.0
+        kind_v1_22_2:
+          KIND_NODE_VERSION: v1.22.2
           LOCAL_ONLY: "true"
           TEST_HELM_CHART: "true"
     steps:

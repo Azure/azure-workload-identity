@@ -14,13 +14,13 @@ pool: staging-pool
 
 jobs:
   - job: scan_images
-    timeoutInMinutes: 20
+    timeoutInMinutes: 30
     workspace:
       clean: all
     steps:
       - template: templates/scan-images.yaml
   - job: verify_deployment_yaml
-    timeoutInMinutes: 20
+    timeoutInMinutes: 30
     workspace:
       clean: all
     variables:
@@ -28,10 +28,6 @@ jobs:
       # - AZURE_TENANT_ID
       # - SERVICE_ACCOUNT_ISSUER
       - group: e2e-environment-variables
-      - name: REGISTRY
-        value: "e2e"
-      - name: IMAGE_VERSION
-        value: "latest"
       - name: OUTPUT_TYPE
         value: "type=docker"
     steps:
@@ -44,32 +40,27 @@ jobs:
           SKIP_PREFLIGHT: "true"
           SERVICE_ACCOUNT_ISSUER: $(SERVICE_ACCOUNT_ISSUER)
       - script: |
-          make docker-build
-          KIND=$(pwd)/hack/tools/bin/kind
-          ${KIND} load docker-image ${REGISTRY}/webhook:${IMAGE_VERSION} --name azure-workload-identity
+          # build the same image as the one in the deployment YAML
+          # then load it into the kind cluster
+          make docker-build kind-load-images
         displayName: Build the webhook image
         env:
           ALL_IMAGES: webhook
           ALL_LINUX_ARCH: amd64
           OUTPUT_TYPE: type=docker
       - script: |
-          set -o errexit
-          sed -i "s/AZURE_TENANT_ID: .*/AZURE_TENANT_ID: ${AZURE_TENANT_ID}/" manifest_staging/deploy/azure-wi-webhook.yaml
-          sed -i "s/AZURE_ENVIRONMENT: .*/AZURE_ENVIRONMENT: AzurePublicCloud/" manifest_staging/deploy/azure-wi-webhook.yaml
-          sed -i "s|image: .*$|image: ${WEBHOOK_IMAGE}|g" manifest_staging/deploy/azure-wi-webhook.yaml
-          KUBECTL=$(pwd)/hack/tools/bin/kubectl
-          ${KUBECTL} apply -f manifest_staging/deploy/azure-wi-webhook.yaml
-          ${KUBECTL} wait --for=condition=Available --timeout=5m -n azure-workload-identity-system deployment/azure-wi-webhook-controller-manager
-          ${KUBECTL} delete -f manifest_staging/deploy/azure-wi-webhook.yaml --wait --timeout=5m
+          # deploy the webhook, wait for it to
+          # be ready, then uninstall it
+          make deploy uninstall-deploy
         displayName: Verify deployment YAML in manifest_staging/
         env:
           AZURE_TENANT_ID: $(AZURE_TENANT_ID)
-          WEBHOOK_IMAGE: $(REGISTRY)/webhook:$(IMAGE_VERSION)
+          DEPLOYMENT_YAML: true
       - script: make kind-delete
         displayName: Cleanup
         condition: always()
   - job:
-    timeoutInMinutes: 20
+    timeoutInMinutes: 60
     dependsOn:
       - scan_images
       - verify_deployment_yaml
@@ -114,7 +105,7 @@ jobs:
         upgrade_arc:
           ARC_CLUSTER: "true"
   - job:
-    timeoutInMinutes: 40
+    timeoutInMinutes: 60
     dependsOn:
       - scan_images
       - verify_deployment_yaml
@@ -141,8 +132,8 @@ jobs:
           KIND_NODE_VERSION: v1.20.7
         kind_v1_21_2:
           KIND_NODE_VERSION: v1.21.2
-        kind_v1_22_0:
-          KIND_NODE_VERSION: v1.22.0
+        kind_v1_22_2:
+          KIND_NODE_VERSION: v1.22.2
     steps:
       - script: make test-e2e
         displayName: Webhook E2E test suite
