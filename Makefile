@@ -170,19 +170,26 @@ run: generate fmt vet manifests
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 ARC_CLUSTER ?= false
-AZURE_ENVIRONMENT ?=
-AZURE_TENANT_ID ?=
+DEPLOYMENT_YAML ?= false
 
 .PHONY: deploy
 deploy: $(KUBECTL) $(KUSTOMIZE) $(ENVSUBST)
 	$(MAKE) manifests
-	cd config/manager && $(KUSTOMIZE) edit set image manager=$(WEBHOOK_IMAGE)
-	$(KUSTOMIZE) build config/default | $(ENVSUBST) | $(KUBECTL) apply -f -
+	@if [ "$(DEPLOYMENT_YAML)" = "true" ]; then \
+		cat manifest_staging/deploy/azure-wi-webhook.yaml | $(ENVSUBST) | $(KUBECTL) apply -f -; \
+	else \
+		cd config/manager && $(KUSTOMIZE) edit set image manager=$(WEBHOOK_IMAGE); \
+		$(KUSTOMIZE) build ../default | $(ENVSUBST) | $(KUBECTL) apply -f -; \
+	fi
 	$(KUBECTL) wait --for=condition=Available --timeout=5m -n azure-workload-identity-system deployment/azure-wi-webhook-controller-manager
 
 .PHONY: uninstall-deploy
 uninstall-deploy: $(KUBECTL) $(KUSTOMIZE) $(ENVSUBST)
-	$(KUSTOMIZE) build config/default | $(ENVSUBST) | $(KUBECTL) delete -f -
+	@if [ "$(DEPLOYMENT_YAML)" = "true" ]; then \
+		$(KUBECTL) apply -f manifest_staging/deploy/azure-wi-webhook.yaml; \
+	else \
+		$(KUSTOMIZE) build config/default | $(ENVSUBST) | $(KUBECTL) delete -f -; \
+	fi
 
 ## --------------------------------------
 ## Code Generation
