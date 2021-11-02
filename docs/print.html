@@ -962,7 +962,7 @@ az rest --method POST --uri &quot;https://graph.microsoft.com/beta/applications/
 <p>The “create” command executes the following phases in order:</p>
 <pre><code>aad-application     Create Azure Active Directory (AAD) application and its underlying service principal
 service-account     Create Kubernetes service account in the current KUBECONFIG context and add azure-workload-identity labels and annotations to it
-federated-identity  Create federated identity between the AAD application and the Kubernetes service account
+federated-identity  Create federated identity credential between the AAD application and the Kubernetes service account
 role-assignment     Create role assignment between the AAD application and the Azure cloud resource
 </code></pre>
 <!---->
@@ -1012,7 +1012,7 @@ INFO[0004] [federated-identity] added federated credential  objectID=19888f97-e0
 <h2 id="synopsis-2"><a class="header" href="#synopsis-2">Synopsis</a></h2>
 <p>The “delete” command executes the following phases in order:</p>
 <pre><code>role-assignment     Delete the role assignment between the AAD application and the Azure cloud resource
-federated-identity  Delete federated identity for the AAD application and the Kubernetes service account
+federated-identity  Delete federated identity credential for the AAD application and the Kubernetes service account
 service-account     Delete the Kubernetes service account in the current KUBECONFIG context
 aad-application     Delete the Azure Active Directory (AAD) application and its underlying service principal
 </code></pre>
@@ -1047,7 +1047,7 @@ azwi sa delete \
 <summary>Output</summary>
 <pre><code>INFO[0000] No subscription provided, using selected subscription from Azure CLI: &lt;SubscriptionID&gt;
 INFO[0001] skipping phase                                phase=role-assignment
-INFO[0001] [federated-identity] deleted federated identity  issuerURL=&quot;https://chuwon.blob.core.windows.net/oidc-test/&quot; subject=&quot;system:serviceaccount:default:azwi-sa&quot;
+INFO[0001] [federated-identity] deleted federated identity credential  issuerURL=&quot;https://chuwon.blob.core.windows.net/oidc-test/&quot; subject=&quot;system:serviceaccount:default:azwi-sa&quot;
 INFO[0001] [service-account] deleted service account     name=azwi-sa namespace=default
 INFO[0001] [aad-application] deleted aad application     objectID=19888f97-e0d3-4f61-8eb9-b87bf161e27d
 </code></pre>
