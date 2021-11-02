@@ -7,8 +7,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Azure/azure-workload-identity/pkg/webhook"
-
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -22,22 +20,30 @@ var _ = ginkgo.Describe("TokenExchange [KindOnly]", func() {
 	f := framework.NewDefaultFramework("token-exchange")
 
 	// E2E scenario from https://github.com/Azure/azure-workload-identity/tree/main/examples/msal-go
-	ginkgo.It("should exchange the service account token for a valid AAD token", func() {
-		clientID, ok := os.LookupEnv("APPLICATION_CLIENT_ID")
-		gomega.Expect(ok).To(gomega.BeTrue(), "APPLICATION_CLIENT_ID must be set")
+	ginkgo.FIt("should exchange the service account token for a valid AAD token", func() {
+		applicationName, ok := os.LookupEnv("APPLICATION_NAME")
+		gomega.Expect(ok, gomega.BeTrue(), "APPLICATION_NAME must be set")
+		serviceAccountIsser, ok := os.LookupEnv("SERVICE_ACCOUNT_ISSUER")
+		gomega.Expect(ok, gomega.BeTrue(), "SERVICE_ACCOUNT_ISSUER must be set")
 		keyvaultName, ok := os.LookupEnv("KEYVAULT_NAME")
 		gomega.Expect(ok).To(gomega.BeTrue(), "KEYVAULT_NAME must be set")
 		keyvaultSecretName, ok := os.LookupEnv("KEYVAULT_SECRET_NAME")
 		gomega.Expect(ok).To(gomega.BeTrue(), "KEYVAULT_SECRET_NAME must be set")
 
-		// trust is only set up for 'pod-identity-sa' service account in the default namespace for now
-		const namespace = "default"
-		serviceAccount := createServiceAccount(f.ClientSet, namespace, "pod-identity-sa", map[string]string{webhook.UsePodIdentityLabel: "true"}, map[string]string{webhook.ClientIDAnnotation: clientID})
-		defer f.ClientSet.CoreV1().ServiceAccounts(namespace).Delete(context.TODO(), serviceAccount, metav1.DeleteOptions{})
+		// create a service account and federated identity
+		serviceAccount := f.Namespace.Name + "-sa"
+		err := runAzwiSerivceAccount("create",
+			"--aad-application-name", applicationName,
+			"--service-account-namespace", f.Namespace.Name,
+			"--service-account-name", serviceAccount,
+			"--service-account-issuer-url", serviceAccountIsser,
+			"--skip-phases", "aad-application,role-assignment",
+		)
+		framework.ExpectNoError(err, "failed to create service account and federated identity")
 
 		pod, err := createPodWithServiceAccount(
 			f.ClientSet,
-			namespace,
+			f.Namespace.Name,
 			serviceAccount,
 			tokenExchangeE2EImage,
 			nil,
@@ -51,15 +57,15 @@ var _ = ginkgo.Describe("TokenExchange [KindOnly]", func() {
 			}},
 			nil,
 		)
-		framework.ExpectNoError(err, "failed to create pod %s in %s", pod.Name, namespace)
-		defer f.ClientSet.CoreV1().Pods(namespace).Delete(context.TODO(), pod.Name, metav1.DeleteOptions{})
+		framework.ExpectNoError(err, "failed to create pod %s in %s", pod.Name, f.Namespace.Name)
+		defer f.ClientSet.CoreV1().Pods(f.Namespace.Name).Delete(context.TODO(), pod.Name, metav1.DeleteOptions{})
 
 		for _, container := range []string{busybox1, busybox2} {
 			framework.Logf("validating that %s in %s has exchanged its service account token for a valid AAD token", container, pod.Name)
 			gomega.Eventually(func() bool {
-				stdout, err := e2epod.GetPodLogs(f.ClientSet, namespace, pod.Name, container)
+				stdout, err := e2epod.GetPodLogs(f.ClientSet, f.Namespace.Name, pod.Name, container)
 				if err != nil {
-					framework.Logf("failed to get logs from container %s in %s/%s: %v. Retrying...", container, namespace, pod.Name, err)
+					framework.Logf("failed to get logs from container %s in %s/%s: %v. Retrying...", container, f.Namespace.Name, pod.Name, err)
 					return false
 				}
 				framework.Logf("stdout: %s", stdout)

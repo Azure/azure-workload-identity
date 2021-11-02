@@ -5,19 +5,20 @@ set -o nounset
 set -o pipefail
 
 : "${AZURE_TENANT_ID:?Environment variable empty or not defined.}"
+: "${KEYVAULT_NAME:?Environment variable empty or not defined.}"
 
 REPO_ROOT=$(dirname "${BASH_SOURCE[0]}")/..
 cd "${REPO_ROOT}" || exit 1
 
-readonly CLUSTER_NAME="${CLUSTER_NAME:-pod-managed-identity-e2e-$(openssl rand -hex 2)}"
+readonly CLUSTER_NAME="${CLUSTER_NAME:-azwi-e2e-$(openssl rand -hex 2)}"
 readonly KUBECTL="${REPO_ROOT}/hack/tools/bin/kubectl"
+readonly AZWI="${REPO_ROOT}/bin/azwi"
 
 IMAGE_VERSION="$(git describe --tags --always)"
 export IMAGE_VERSION
 
 create_cluster() {
   if [[ "${LOCAL_ONLY:-}" == "true" ]]; then
-    download_service_account_keys
     # create a kind cluster, then build and load the webhook manager image to the kind cluster
     make kind-create
     # only build amd64 images for now
@@ -55,14 +56,6 @@ create_cluster() {
   ${KUBECTL} get nodes -owide
 }
 
-download_service_account_keys() {
-  if [[ -z "${SERVICE_ACCOUNT_KEYVAULT_NAME:-}" ]]; then
-    return
-  fi
-  az keyvault secret show --vault-name "${SERVICE_ACCOUNT_KEYVAULT_NAME}" --name sa-pub | jq -r .value | base64 -d > "${REPO_ROOT}/sa.pub"
-  az keyvault secret show --vault-name "${SERVICE_ACCOUNT_KEYVAULT_NAME}" --name sa-key | jq -r .value | base64 -d > "${REPO_ROOT}/sa.key"
-}
-
 cleanup() {
   if [[ "${SOAK_CLUSTER:-}" == "true" ]] || [[ "${SKIP_CLEANUP:-}" == "true" ]]; then
     return
@@ -75,11 +68,33 @@ cleanup() {
       az role assignment delete --assignee "${ASSIGNEE_OBJECT_ID}" --scope "${REGISTRY_SCOPE}" || true
   fi
   az group delete --name "${CLUSTER_NAME}" --yes --no-wait || true
+
+  ${AZWI} serviceaccount delete \
+    --aad-application-name "${APPLICATION_NAME}" \
+    --skip-phases service-account,federated-identity,role-assignment || true
 }
 trap cleanup EXIT
 
 main() {
   az login -i > /dev/null && echo "Using machine identity for az commands" || echo "Using pre-existing credential for az commands"
+
+  APPLICATION_NAME="azwi-app-$(openssl rand -hex 2)"
+  export APPLICATION_NAME
+
+  # create an AAD application with azwi
+  ${AZWI} serviceaccount create \
+    --aad-application-name "${APPLICATION_NAME}" \
+    --skip-phases service-account,federated-identity,role-assignment
+
+  if ! az keyvault show --name "${KEYVAULT_NAME}" > /dev/null; then
+    echo "Keyvault ${KEYVAULT_NAME} not found"
+    exit 1
+  fi
+
+  # grant read access to test keyvault
+  az keyvault set-policy --name "${KEYVAULT_NAME}" \
+    --secret-permissions get \
+    --spn "$(az ad sp list --display-name "${APPLICATION_NAME}" | jq -r '.[0].appId')"
 
   create_cluster
   make deploy

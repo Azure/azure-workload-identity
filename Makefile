@@ -320,7 +320,8 @@ E2E_ARGS := -kubeconfig=$(KUBECONFIG) -report-dir=$(PWD)/_artifacts \
 				 -e2e.arc-cluster=$(ARC_CLUSTER) \
 				 -e2e.token-exchange-image=$(MSAL_GO_E2E_IMAGE) \
 				 -e2e.proxy-image=$(PROXY_IMAGE) \
-				 -e2e.proxy-init-image=$(INIT_IMAGE)
+				 -e2e.proxy-init-image=$(INIT_IMAGE) \
+				 -e2e.azwi=$(PWD)/bin/azwi
 E2E_EXTRA_ARGS ?=
 
 .PHONY: test-e2e-run
@@ -330,6 +331,7 @@ test-e2e-run: $(E2E_TEST) $(GINKGO)
 
 .PHONY: test-e2e
 test-e2e: $(KUBECTL) $(HELM)
+	$(MAKE) azwi
 	./scripts/ci-e2e.sh
 
 ## --------------------------------------

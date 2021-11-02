@@ -8,7 +8,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Azure/azure-workload-identity/pkg/webhook"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -23,20 +22,26 @@ var _ = ginkgo.Describe("Proxy [KindOnly] [LinuxOnly]", func() {
 	f := framework.NewDefaultFramework("proxy")
 
 	ginkgo.It("should get a valid AAD token with the proxy sidecar", func() {
-		clientID, ok := os.LookupEnv("APPLICATION_CLIENT_ID")
-		gomega.Expect(ok).To(gomega.BeTrue(), "APPLICATION_CLIENT_ID must be set")
-		// trust is only set up for 'proxy-test-sa' service account in the default namespace for now
-		const namespace = "default"
-		serviceAccount := createServiceAccount(f.ClientSet, namespace, "proxy-test-sa", map[string]string{webhook.UsePodIdentityLabel: "true"}, map[string]string{webhook.ClientIDAnnotation: clientID})
-		defer f.ClientSet.CoreV1().ServiceAccounts(namespace).Delete(context.TODO(), serviceAccount, metav1.DeleteOptions{})
+		serviceAccountIsser, ok := os.LookupEnv("SERVICE_ACCOUNT_ISSUER")
+		gomega.Expect(ok, gomega.BeTrue(), "SERVICE_ACCOUNT_ISSUER must be set")
+
+		// create a dummy aad application, a service account and federated identity
+		serviceAccount := f.Namespace.Name + "-sa"
+		err := runAzwiSerivceAccount("create",
+			"--service-account-namespace", f.Namespace.Name,
+			"--service-account-name", serviceAccount,
+			"--service-account-issuer-url", serviceAccountIsser,
+			"--skip-phases", "role-assignment",
+		)
+		framework.ExpectNoError(err, "failed to create service account and federated identity")
 
 		pod := generatePodWithServiceAccount(
 			f.ClientSet,
-			namespace,
+			f.Namespace.Name,
 			serviceAccount,
 			"mcr.microsoft.com/azure-cli",
 			nil,
-			[]string{"/bin/sh", "-c", fmt.Sprintf("az login -i -u %s --allow-no-subscriptions --debug; sleep 3600", clientID)},
+			[]string{"/bin/sh", "-c", fmt.Sprintf("az login -i -u $(AZURE_CLIENT_ID) --allow-no-subscriptions --debug; sleep 3600")},
 			nil,
 			nil,
 		)
@@ -82,14 +87,14 @@ var _ = ginkgo.Describe("Proxy [KindOnly] [LinuxOnly]", func() {
 				},
 			}...)
 
-		pod, err := createPod(f.ClientSet, pod)
-		framework.ExpectNoError(err, "failed to create pod %s in %s", pod.Name, namespace)
-		defer f.ClientSet.CoreV1().Pods(namespace).Delete(context.TODO(), pod.Name, metav1.DeleteOptions{})
+		pod, err = createPod(f.ClientSet, pod)
+		framework.ExpectNoError(err, "failed to create pod %s in %s", pod.Name, f.Namespace.Name)
+		defer f.ClientSet.CoreV1().Pods(f.Namespace.Name).Delete(context.TODO(), pod.Name, metav1.DeleteOptions{})
 
 		// output proxy and proxy init logs for debugging
 		defer func() {
 			for _, container := range []string{proxy, proxyInit} {
-				stdout, _ := e2epod.GetPodLogs(f.ClientSet, namespace, pod.Name, container)
+				stdout, _ := e2epod.GetPodLogs(f.ClientSet, f.Namespace.Name, pod.Name, container)
 				framework.Logf("%s logs: %s", container, stdout)
 			}
 		}()
@@ -97,9 +102,9 @@ var _ = ginkgo.Describe("Proxy [KindOnly] [LinuxOnly]", func() {
 		for _, container := range []string{busybox1, busybox2} {
 			framework.Logf("validating that %s in %s has acquired a valid AAD token via the proxy", container, pod.Name)
 			gomega.Eventually(func() bool {
-				stdout, err := e2epod.GetPodLogs(f.ClientSet, namespace, pod.Name, container)
+				stdout, err := e2epod.GetPodLogs(f.ClientSet, f.Namespace.Name, pod.Name, container)
 				if err != nil {
-					framework.Logf("failed to get logs from container %s in %s/%s: %v. Retrying...", container, namespace, pod.Name, err)
+					framework.Logf("failed to get logs from container %s in %s/%s: %v. Retrying...", container, f.Namespace.Name, pod.Name, err)
 					return false
 				}
 				framework.Logf("stdout: %s", stdout)

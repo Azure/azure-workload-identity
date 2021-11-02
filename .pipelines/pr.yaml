@@ -66,13 +66,11 @@ jobs:
       clean: all
     variables:
       # contains the following environment variables:
-      # - APPLICATION_CLIENT_ID
       # - AZURE_TENANT_ID
       # - KEYVAULT_NAME
       # - KEYVAULT_SECRET_NAME
       # - SERVICE_ACCOUNT_ISSUER
-      # - SERVICE_ACCOUNT_KEYVAULT_NAME
-      - group: e2e-environment-variables
+      - group: e2e-environment-variables-test
     strategy:
       matrix:
         aks_windows_dockershim:
@@ -108,18 +106,17 @@ jobs:
           LOCAL_ONLY: "true"
           TEST_HELM_CHART: "true"
     steps:
-      - script: echo "##vso[task.setvariable variable=CLUSTER_NAME]pod-managed-identity-e2e-$(openssl rand -hex 2)"
+      - script: echo "##vso[task.setvariable variable=CLUSTER_NAME]azwi-e2e-$(openssl rand -hex 2)"
         displayName: Set CLUSTER_NAME
         condition: ne(variables.LOCAL_ONLY, 'true')
       - script: make test-e2e
         displayName: Webhook E2E test suite
         env:
-          APPLICATION_CLIENT_ID: $(APPLICATION_CLIENT_ID)
           AZURE_TENANT_ID: $(AZURE_TENANT_ID)
           KEYVAULT_NAME: $(KEYVAULT_NAME)
           KEYVAULT_SECRET_NAME: $(KEYVAULT_SECRET_NAME)
           SERVICE_ACCOUNT_ISSUER: $(SERVICE_ACCOUNT_ISSUER)
-          SERVICE_ACCOUNT_KEYVAULT_NAME: $(SERVICE_ACCOUNT_KEYVAULT_NAME)
+          SERVICE_ACCOUNT_KEYVAULT_NAME: $(KEYVAULT_NAME)
       - script: az group delete --name "${CLUSTER_NAME}" --yes --no-wait || true
         displayName: Cleanup
         condition: ne(variables.LOCAL_ONLY, 'true')

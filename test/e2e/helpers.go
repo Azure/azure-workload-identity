@@ -5,7 +5,9 @@ package e2e
 import (
 	"context"
 	"fmt"
+	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
 
@@ -19,6 +21,8 @@ import (
 	e2edeploy "k8s.io/kubernetes/test/e2e/framework/deployment"
 	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
 )
+
+var ()
 
 const (
 	busybox1  = "busybox-1"
@@ -339,4 +343,12 @@ func getVolumeProjectionSources(serviceAccountName string) []corev1.VolumeProjec
 			Audience:          webhook.DefaultAudience,
 		}},
 	}
+}
+
+func runAzwiSerivceAccount(verb string, args ...string) error {
+	args = append([]string{"serviceaccount", verb}, args...)
+	cmd := exec.Command("azwi", args...)
+	output, err := cmd.CombinedOutput()
+	framework.Logf("%s %s: %s", cmd.Path, strings.Join(cmd.Args, " "), output)
+	return err
 }
