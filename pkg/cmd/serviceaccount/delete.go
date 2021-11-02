@@ -110,7 +110,7 @@ func (d *deleteData) AADApplicationName() string {
 }
 
 // AADApplicationObjectID returns the object ID of the AAD application.
-// This will be used for creating or removing the federated identity.
+// This will be used for creating or removing the federated identity credential.
 func (d *deleteData) AADApplicationObjectID() string {
 	if d.aadApplicationObjectID != "" {
 		return d.aadApplicationObjectID

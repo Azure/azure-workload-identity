@@ -20,12 +20,12 @@ const (
 type federatedIdentityPhase struct {
 }
 
-// NewFederatedIdentityPhase creates a new phase to create federated identity.
+// NewFederatedIdentityPhase creates a new phase to create federated identity credential.
 func NewFederatedIdentityPhase() workflow.Phase {
 	p := &federatedIdentityPhase{}
 	return workflow.Phase{
 		Name:        federatedIdentityPhaseName,
-		Description: "Create federated identity between the AAD application and the Kubernetes service account",
+		Description: "Create federated identity credential between the AAD application and the Kubernetes service account",
 		PreRun:      p.prerun,
 		Run:         p.run,
 	}

@@ -36,7 +36,7 @@ type CreateData interface {
 	AADApplicationClientID() string
 
 	// AADApplicationObjectID returns the object ID of the AAD application.
-	// This will be used for creating or removing the federated identity.
+	// This will be used for creating or removing the federated identity credential.
 	AADApplicationObjectID() string
 
 	// ServicePrincipal returns the service principal object.
