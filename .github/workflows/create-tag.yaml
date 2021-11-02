@@ -48,7 +48,11 @@ jobs:
             cp bin/azwi-${GOOS}-${GOARCH}${EXTENSION} ${tmp_dir}/azwi${EXTENSION}
 
             pushd ${tmp_dir}
-            tar -czf ${GITHUB_WORKSPACE}/_dist/azwi-${{ steps.get-tag.outputs.tag }}-${GOOS}-${GOARCH}.tar.gz azwi*
+            if [[ ${EXTENSION} == ".exe" ]]; then
+              zip ${GITHUB_WORKSPACE}/_dist/azwi-$${{ steps.get-tag.outputs.tag }}-${GOOS}-${GOARCH}.zip azwi*.exe
+            else
+              tar -czf ${GITHUB_WORKSPACE}/_dist/azwi-${{ steps.get-tag.outputs.tag }}-${GOOS}-${GOARCH}.tar.gz azwi*
+            fi
             popd
             rm -rf ${tmp_dir}
           }
@@ -62,7 +66,7 @@ jobs:
 
           pushd _dist
           # consolidate tar and zip's sha256sum into a single file
-          find . -type f -name '*.tar.gz' | sort | xargs sha256sum >> sha256sums.txt
+          find . -type f -name '*.tar.gz' -o -name '*.zip' | sort | xargs sha256sum >> sha256sums.txt
           popd
       - uses: ncipollo/release-action@v1
         with:
