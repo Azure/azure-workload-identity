@@ -4,6 +4,12 @@
 
 In this tutorial, we will cover the basics of how to use the webhook to acquire an Azure AD token to access a secret in an [Azure Key Vault][1].
 
+Before we get started, ensure the following:
+
+*  You are logged in with the Azure CLI as a user.
+   *  If you are logged in with a Service Principal, you must log out and log back in as a user. 
+*  Your logged in account must have sufficient permissions to create applications and service principals in Azure AD.
+
 ## 1. Complete the installation guide
 
 [Installation guide][13]

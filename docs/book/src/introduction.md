@@ -10,6 +10,10 @@ Azure AD Workload Identity for Kubernetes integrates with the capabilities nativ
 *   Removes the need for Custom Resource Definitions and pods that intercept [Instance Metadata Service (IMDS)][10] traffic
 *   Avoids the complication and error-prone installation steps such as cluster role assignment from the previous iteration.
 
+## Limitations
+
+*   Workload Identity Federation is currently only supported for Azure AD Applications.
+
 ## Getting started
 
 *   [Installation][2]
