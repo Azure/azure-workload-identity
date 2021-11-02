@@ -147,7 +147,7 @@ func (c *createData) AADApplicationClientID() string {
 }
 
 // AADApplicationObjectID returns the object ID of the AAD application.
-// This will be used for creating or removing the federated identity.
+// This will be used for creating or removing the federated identity credential.
 func (c *createData) AADApplicationObjectID() string {
 	if c.aadApplicationObjectID != "" {
 		return c.aadApplicationObjectID

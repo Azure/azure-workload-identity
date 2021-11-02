@@ -8,7 +8,7 @@ The "create" command executes the following phases in order:
 
     aad-application     Create Azure Active Directory (AAD) application and its underlying service principal
     service-account     Create Kubernetes service account in the current KUBECONFIG context and add azure-workload-identity labels and annotations to it
-    federated-identity  Create federated identity between the AAD application and the Kubernetes service account
+    federated-identity  Create federated identity credential between the AAD application and the Kubernetes service account
     role-assignment     Create role assignment between the AAD application and the Azure cloud resource
 
 <!---->

@@ -7,7 +7,7 @@ Delete a workload identity.
 The "delete" command executes the following phases in order:
 
     role-assignment     Delete the role assignment between the AAD application and the Azure cloud resource
-    federated-identity  Delete federated identity for the AAD application and the Kubernetes service account
+    federated-identity  Delete federated identity credential for the AAD application and the Kubernetes service account
     service-account     Delete the Kubernetes service account in the current KUBECONFIG context
     aad-application     Delete the Azure Active Directory (AAD) application and its underlying service principal
 
@@ -48,7 +48,7 @@ azwi sa delete \
 
     INFO[0000] No subscription provided, using selected subscription from Azure CLI: <SubscriptionID>
     INFO[0001] skipping phase                                phase=role-assignment
-    INFO[0001] [federated-identity] deleted federated identity  issuerURL="https://chuwon.blob.core.windows.net/oidc-test/" subject="system:serviceaccount:default:azwi-sa"
+    INFO[0001] [federated-identity] deleted federated identity credential  issuerURL="https://chuwon.blob.core.windows.net/oidc-test/" subject="system:serviceaccount:default:azwi-sa"
     INFO[0001] [service-account] deleted service account     name=azwi-sa namespace=default
     INFO[0001] [aad-application] deleted aad application     objectID=19888f97-e0d3-4f61-8eb9-b87bf161e27d
 
