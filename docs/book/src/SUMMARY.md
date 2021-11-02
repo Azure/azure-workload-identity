@@ -15,7 +15,7 @@
 - [Concepts](./concepts.md)
 - [Topics](./topics.md)
   - [Service Account Labels And Annotations](./topics/service-account-labels-and-annotations.md)
-  - [Federated Identity](./topics/federated-identity.md)
+  - [Federated Identity Credential](./topics/federated-identity-credential.md)
   - [Azure Workload Identity CLI (`azwi`)](./topics/azwi.md)
     - [`azwi jwks`](./topics/azwi/jwks.md)
     - [`azwi serviceaccount create`](./topics/azwi/serviceaccount-create.md)
