@@ -4,7 +4,7 @@
 
 For managed clusters, the service account signing keys will be set up and managed by the cloud provider.
 
-Before deploying Azure AD Workload Identity, you will need to enable any **OIDC-specific** feature flags and obtain the **OIDC issuer URL** when setting up the federated identity.
+Before deploying Azure AD Workload Identity, you will need to enable any **OIDC-specific** feature flags and obtain the **OIDC issuer URL** when setting up the federated identity credentials.
 
 ## Azure Kubernetes Service (AKS)
 
