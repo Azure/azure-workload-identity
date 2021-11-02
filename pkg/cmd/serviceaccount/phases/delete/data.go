@@ -27,7 +27,7 @@ type DeleteData interface {
 	AADApplicationName() string
 
 	// AADApplicationObjectID returns the object ID of the AAD application.
-	// This will be used for creating or removing the federated identity.
+	// This will be used for creating or removing the federated identity credential.
 	AADApplicationObjectID() string
 
 	// RoleDefinitionID returns the role definition ID.
