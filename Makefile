@@ -80,9 +80,8 @@ GO_INSTALL := ./hack/go-install.sh
 ## Binaries
 ## --------------------------------------
 
-.PHONY: azwi
-azwi: bin/azwi-$(GOOS)-$(GOARCH)$(EXTENSION)
-	mv bin/azwi-$(GOOS)-$(GOARCH)$(EXTENSION) bin/azwi
+bin/azwi: bin/azwi-$(GOOS)-$(GOARCH)$(EXTENSION)
+	ln -sf $(PWD)/bin/azwi-$(GOOS)-$(GOARCH)$(EXTENSION) $(PWD)/bin/azwi
 
 ## --------------------------------------
 ## Release Binaries
@@ -330,8 +329,7 @@ test-e2e-run: $(E2E_TEST) $(GINKGO)
 		$(E2E_TEST) -- $(E2E_ARGS) $(E2E_EXTRA_ARGS)
 
 .PHONY: test-e2e
-test-e2e: $(KUBECTL) $(HELM)
-	$(MAKE) azwi
+test-e2e: $(KUBECTL) $(HELM) bin/azwi
 	./scripts/ci-e2e.sh
 
 ## --------------------------------------

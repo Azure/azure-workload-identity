@@ -36,11 +36,13 @@ func (p *aadApplicationPhase) prerun(data workflow.RunData) error {
 		return errors.Errorf("invalid data type %T", data)
 	}
 
-	if createData.ServiceAccountNamespace() == "" {
-		return errors.New("--service-account-namespace is required")
-	}
-	if createData.ServiceAccountName() == "" {
-		return errors.New("--service-account-name is required")
+	if createData.AADApplicationName() == "" {
+		if createData.ServiceAccountNamespace() == "" {
+			return errors.New("--service-account-namespace is required")
+		}
+		if createData.ServiceAccountName() == "" {
+			return errors.New("--service-account-name is required")
+		}
 	}
 
 	return nil
