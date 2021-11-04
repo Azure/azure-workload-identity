@@ -65,64 +65,27 @@ jobs:
     workspace:
       clean: all
     variables:
-      # contains the following environment variables:
-      # - APPLICATION_CLIENT_ID
-      # - AZURE_TENANT_ID
-      # - KEYVAULT_NAME
-      # - KEYVAULT_SECRET_NAME
-      # - SERVICE_ACCOUNT_ISSUER
-      # - SERVICE_ACCOUNT_KEYVAULT_NAME
-      - group: e2e-environment-variables
+      AZURE_TENANT_ID: "fake tenant id"
+      REGISTRY: upstreamk8sci.azurecr.io/azure-workload-identity
+      GINKGO_SKIP: \[KindOnly\]
     strategy:
       matrix:
         aks_windows_dockershim:
-          REGISTRY: upstreamk8sci.azurecr.io/azure-workload-identity
           WINDOWS_CLUSTER: "true"
-          GINKGO_SKIP: \[KindOnly\]
         aks_windows_containerd:
-          REGISTRY: upstreamk8sci.azurecr.io/azure-workload-identity
           WINDOWS_CLUSTER: "true"
           WINDOWS_CONTAINERD: "true"
-          GINKGO_SKIP: \[KindOnly\]
         aks_linux:
-          REGISTRY: upstreamk8sci.azurecr.io/azure-workload-identity
-          GINKGO_SKIP: \[KindOnly\]
+          DUMMY_VAR: ""
         arc:
-          REGISTRY: upstreamk8sci.azurecr.io/azure-workload-identity
           ARC_CLUSTER: "true"
-          GINKGO_SKIP: \[KindOnly\]
-        kind_v1_19_11:
-          KIND_NODE_VERSION: v1.19.11
-          LOCAL_ONLY: "true"
-          TEST_HELM_CHART: "true"
-        kind_v1_20_7:
-          KIND_NODE_VERSION: v1.20.7
-          LOCAL_ONLY: "true"
-          TEST_HELM_CHART: "true"
-        kind_v1_21_2:
-          KIND_NODE_VERSION: v1.21.2
-          LOCAL_ONLY: "true"
-          TEST_HELM_CHART: "true"
-        kind_v1_22_2:
-          KIND_NODE_VERSION: v1.22.2
-          LOCAL_ONLY: "true"
-          TEST_HELM_CHART: "true"
     steps:
       - script: echo "##vso[task.setvariable variable=CLUSTER_NAME]azwi-e2e-$(openssl rand -hex 2)"
         displayName: Set CLUSTER_NAME
-        condition: ne(variables.LOCAL_ONLY, 'true')
       - script: make test-e2e
         displayName: Webhook E2E test suite
-        env:
-          APPLICATION_CLIENT_ID: $(APPLICATION_CLIENT_ID)
-          AZURE_TENANT_ID: $(AZURE_TENANT_ID)
-          KEYVAULT_NAME: $(KEYVAULT_NAME)
-          KEYVAULT_SECRET_NAME: $(KEYVAULT_SECRET_NAME)
-          SERVICE_ACCOUNT_ISSUER: $(SERVICE_ACCOUNT_ISSUER)
-          SERVICE_ACCOUNT_KEYVAULT_NAME: $(SERVICE_ACCOUNT_KEYVAULT_NAME)
       - script: az group delete --name "${CLUSTER_NAME}" --yes --no-wait || true
         displayName: Cleanup
-        condition: ne(variables.LOCAL_ONLY, 'true')
       - template: templates/publish-logs.yaml
   - template: templates/upgrade.yaml
     parameters:
