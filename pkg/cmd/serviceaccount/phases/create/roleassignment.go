@@ -22,9 +22,11 @@ func NewRoleAssignmentPhase() workflow.Phase {
 	p := &roleAssignmentPhase{}
 	return workflow.Phase{
 		Name:        roleAssignmentPhaseName,
+		Aliases:     []string{"ra"},
 		Description: "Create role assignment between the AAD application and the Azure cloud resource",
 		PreRun:      p.prerun,
 		Run:         p.run,
+		Flags:       []string{"azure-scope", "azure-role", "service-principal-name", "service-principal-object-id"},
 	}
 }
 

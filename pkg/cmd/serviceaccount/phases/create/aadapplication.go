@@ -24,9 +24,11 @@ func NewAADApplicationPhase() workflow.Phase {
 	p := &aadApplicationPhase{}
 	return workflow.Phase{
 		Name:        aadApplicationPhaseName,
+		Aliases:     []string{"app"},
 		Description: "Create Azure Active Directory (AAD) application and its underlying service principal",
 		PreRun:      p.prerun,
 		Run:         p.run,
+		Flags:       []string{"aad-application-name"},
 	}
 }
 
@@ -36,11 +38,8 @@ func (p *aadApplicationPhase) prerun(data workflow.RunData) error {
 		return errors.Errorf("invalid data type %T", data)
 	}
 
-	if createData.ServiceAccountNamespace() == "" {
-		return errors.New("--service-account-namespace is required")
-	}
-	if createData.ServiceAccountName() == "" {
-		return errors.New("--service-account-name is required")
+	if createData.AADApplicationName() == "" {
+		return errors.New("--aad-application-name is required")
 	}
 
 	return nil
@@ -79,7 +78,6 @@ func (p *aadApplicationPhase) run(ctx context.Context, data workflow.RunData) er
 
 		// create the service principal as it doesn't exist
 		tags := []string{
-			fmt.Sprintf("serviceAccount: %s-%s", createData.ServiceAccountNamespace(), createData.ServiceAccountName()),
 			fmt.Sprintf("azwi version: %s, commit: %s", version.BuildVersion, version.Vcs),
 		}
 

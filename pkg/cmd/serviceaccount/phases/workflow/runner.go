@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 // RunData contains the data that is passed to the phases
@@ -19,7 +20,7 @@ type Runner interface {
 	AppendPhases(phases ...Phase)
 
 	// BindToCommand alters the command's help text and flags to include the phase's flags
-	BindToCommand(cmd *cobra.Command)
+	BindToCommand(cmd *cobra.Command, data RunData)
 
 	// Run runs the phases except the ones specified in skipPhases
 	Run(data RunData) error
@@ -44,7 +45,7 @@ func (r *runner) AppendPhases(phases ...Phase) {
 }
 
 // BindToCommand alters the command's help text and flags to include the phase's flags
-func (r *runner) BindToCommand(cmd *cobra.Command) {
+func (r *runner) BindToCommand(cmd *cobra.Command, data RunData) {
 	// Alter the command's help text
 	if cmd.Short == "" {
 		cmd.Short = fmt.Sprintf("%s a workload identity", cmd.Use)
@@ -66,8 +67,34 @@ func (r *runner) BindToCommand(cmd *cobra.Command) {
 		cmd.Long = long
 	}
 
-	// Common flags between commands
+	// common flags between commands
 	cmd.Flags().StringSliceVar(&r.skipPhases, "skip-phases", []string{}, "List of phases to skip")
+
+	// add the phase command, enabling the user to specify the phase to run
+	phaseCmd := &cobra.Command{
+		Use:   "phase",
+		Short: fmt.Sprintf("The \"phase\" command invokes a single phase of the %s workflow", cmd.Use),
+	}
+	for _, phase := range r.phases {
+		// workaround: create a copy of the variable 'phase' so that each subcommand
+		// gets its own 'phase' variable instead of sharing the iterator variable
+		p := phase
+
+		subcommand := &cobra.Command{
+			Use:     p.Name,
+			Aliases: p.Aliases,
+			Short:   p.Description,
+			RunE: func(c *cobra.Command, args []string) error {
+				// only run this particular phase
+				r.phases = []Phase{p}
+				return r.Run(data)
+			},
+		}
+		inheritsFlags(cmd.Flags(), subcommand.Flags(), p.Flags)
+		phaseCmd.AddCommand(subcommand)
+	}
+
+	cmd.AddCommand(phaseCmd)
 }
 
 // Run runs the phases except the ones specified in skipPhases
@@ -123,4 +150,22 @@ func (r *runner) computeSkipPhases() (map[string]bool, error) {
 	}
 
 	return skipPhases, nil
+}
+
+// inheritFlags copies flags from the parent command to the child command.
+// xref: https://github.com/kubernetes/kubernetes/blob/1f9d448283a7915df9d617708468f06ba17aaaa7/cmd/kubeadm/app/cmd/phases/workflow/runner.go#L400-L414
+func inheritsFlags(sourceFlags, targetFlags *pflag.FlagSet, cmdFlags []string) {
+	// If the list of flag to be inherited from the parent command is not defined, no flag is added
+	if cmdFlags == nil {
+		return
+	}
+
+	// add all the flags to be inherited to the target flagSet
+	sourceFlags.VisitAll(func(f *pflag.Flag) {
+		for _, c := range cmdFlags {
+			if f.Name == c {
+				targetFlags.AddFlag(f)
+			}
+		}
+	})
 }

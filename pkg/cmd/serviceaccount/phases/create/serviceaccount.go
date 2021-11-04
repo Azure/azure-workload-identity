@@ -26,9 +26,11 @@ func NewServiceAccountPhase() workflow.Phase {
 	p := &serviceAccountPhase{}
 	return workflow.Phase{
 		Name:        serviceAccountPhaseName,
+		Aliases:     []string{"sa"},
 		Description: "Create Kubernetes service account in the current KUBECONFIG context and add azure-workload-identity labels and annotations to it",
 		PreRun:      p.prerun,
 		Run:         p.run,
+		Flags:       []string{"service-account-namespace", "service-account-name", "service-account-issuer-url", "aad-application-name", "aad-application-client-id", "service-account-token-expiration"},
 	}
 }
 
@@ -43,6 +45,9 @@ func (p *serviceAccountPhase) prerun(data workflow.RunData) error {
 	}
 	if createData.ServiceAccountName() == "" {
 		return errors.New("--service-account-name is required")
+	}
+	if createData.ServiceAccountIssuerURL() == "" {
+		return errors.New("--service-account-issuer-url is required")
 	}
 
 	minTokenExpirationDuration := time.Duration(webhook.MinServiceAccountTokenExpiration) * time.Second

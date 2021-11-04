@@ -95,7 +95,7 @@ func TestBindToCommand(t *testing.T) {
 		Description: "phase-2 description plus some random string on top of some other random string",
 	})
 
-	r.BindToCommand(cmd)
+	r.BindToCommand(cmd, nil)
 	if cmd.Short != "test a workload identity" {
 		t.Errorf("expected short description to be %q, got %q", "test a workload identity", cmd.Short)
 	}

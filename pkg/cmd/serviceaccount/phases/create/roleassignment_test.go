@@ -37,14 +37,29 @@ func TestRoleAssignmentPreRun(t *testing.T) {
 			errorMsg: "--azure-role is required",
 		},
 		{
-			name:     "missing --service-principal-name and --service-principal-object-id",
+			name:     "missing --service-principal-name or --service-principal-object-id",
 			data:     &mockCreateData{azureScope: "test", azureRole: "test"},
 			errorMsg: "--service-principal-name or --service-principal-object-id is required",
 		},
 		{
-			name:     "valid data",
-			data:     &mockCreateData{azureScope: "test", azureRole: "test", servicePrincipalName: "test", servicePrincipalObjectID: "test"},
+			name:     "valid data 1",
+			data:     &mockCreateData{azureScope: "test", azureRole: "test", servicePrincipalName: "test"},
 			errorMsg: "",
+		},
+		{
+			name:  "valid data 2",
+			phase: NewAADApplicationPhase(),
+			data:  &mockCreateData{azureScope: "test", azureRole: "test", serviceAccountNamespace: "test", serviceAccountName: "test", serviceAccountIssuerURL: "test"},
+		},
+		{
+			name:  "valid data 3",
+			phase: NewAADApplicationPhase(),
+			data:  &mockCreateData{azureScope: "test", azureRole: "test", servicePrincipalObjectID: "test"},
+		},
+		{
+			name:  "valid data 4",
+			phase: NewAADApplicationPhase(),
+			data:  &mockCreateData{azureScope: "test", azureRole: "test", aadApplicationName: "test"},
 		},
 	}
 

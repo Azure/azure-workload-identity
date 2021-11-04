@@ -108,9 +108,11 @@ func TestDeleteDataAADApplication(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			mockAzureClient := mock_cloud.NewMockInterface(ctrl)
-			test.expect(mockAzureClient.EXPECT())
-			test.deleteData.azureClient = mockAzureClient
+			authProvider := &mockAuthProvider{
+				azureClient: mock_cloud.NewMockInterface(ctrl),
+			}
+			test.expect(authProvider.azureClient.EXPECT())
+			test.deleteData.authProvider = authProvider
 			test.verify(t, test.deleteData)
 		})
 	}

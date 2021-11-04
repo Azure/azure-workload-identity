@@ -25,9 +25,11 @@ func NewServiceAccountPhase() workflow.Phase {
 	p := &serviceAccountPhase{}
 	return workflow.Phase{
 		Name:        serviceAccountPhaseName,
+		Aliases:     []string{"sa"},
 		Description: "Delete the Kubernetes service account in the current KUBECONFIG context",
 		PreRun:      p.prerun,
 		Run:         p.run,
+		Flags:       []string{"service-account-namespace", "service-account-name"},
 	}
 }
 

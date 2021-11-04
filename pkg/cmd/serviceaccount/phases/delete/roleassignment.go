@@ -22,9 +22,11 @@ func NewRoleAssignmentPhase() workflow.Phase {
 	p := &roleAssignmentPhase{}
 	return workflow.Phase{
 		Name:        roleAssignmentPhaseName,
+		Aliases:     []string{"ra"},
 		Description: "Delete the role assignment between the AAD application and the Azure cloud resource",
 		PreRun:      p.prerun,
 		Run:         p.run,
+		Flags:       []string{"role-assignment-id"},
 	}
 }
 

@@ -24,7 +24,7 @@ const (
 // Provider is an interface for getting an Azure client
 type Provider interface {
 	AddFlags(f *pflag.FlagSet)
-	GetAzureClient() (cloud.Interface, error)
+	GetAzureClient() cloud.Interface
 	GetAzureTenantID() string
 	Validate() error
 }
@@ -42,6 +42,7 @@ type authArgs struct {
 	clientSecret    string
 	certificatePath string
 	privateKeyPath  string
+	azureClient     cloud.Interface
 }
 
 // NewProvider returns a new authArgs
@@ -61,29 +62,8 @@ func (a *authArgs) AddFlags(f *pflag.FlagSet) {
 }
 
 // GetAzureClient returns an Azure client
-func (a *authArgs) GetAzureClient() (cloud.Interface, error) {
-	var client *cloud.AzureClient
-	env, err := azure.EnvironmentFromName(a.rawAzureEnvironment)
-	if err != nil {
-		return nil, err
-	}
-	if a.tenantID, err = cloud.GetTenantID(env.ResourceManagerEndpoint, a.subscriptionID.String()); err != nil {
-		return nil, err
-	}
-	switch a.authMethod {
-	case cliAuthMethod:
-		client, err = cloud.NewAzureClientWithCLI(env, a.subscriptionID.String(), a.tenantID)
-	case clientSecretAuthMethod:
-		client, err = cloud.NewAzureClientWithClientSecret(env, a.subscriptionID.String(), a.clientID.String(), a.clientSecret, a.tenantID)
-	case clientCertificateAuthMethod:
-		client, err = cloud.NewAzureClientWithClientCertificateFile(env, a.subscriptionID.String(), a.clientID.String(), a.tenantID, a.certificatePath, a.privateKeyPath)
-	default:
-		return nil, errors.Errorf("--auth-method: ERROR: method unsupported. method=%q", a.authMethod)
-	}
-	if err != nil {
-		return nil, err
-	}
-	return client, nil
+func (a *authArgs) GetAzureClient() cloud.Interface {
+	return a.azureClient
 }
 
 // GetAzureTenantID returns the Azure tenant ID
@@ -127,11 +107,27 @@ func (a *authArgs) Validate() error {
 		a.subscriptionID = subID
 	}
 
-	if _, err = azure.EnvironmentFromName(a.rawAzureEnvironment); err != nil {
+	env, err := azure.EnvironmentFromName(a.rawAzureEnvironment)
+	if err != nil {
 		return errors.Wrap(err, "failed to parse --azure-env as a valid target Azure cloud environment")
 	}
 
-	return nil
+	if a.tenantID, err = cloud.GetTenantID(env.ResourceManagerEndpoint, a.subscriptionID.String()); err != nil {
+		return err
+	}
+
+	switch a.authMethod {
+	case cliAuthMethod:
+		a.azureClient, err = cloud.NewAzureClientWithCLI(env, a.subscriptionID.String(), a.tenantID)
+	case clientSecretAuthMethod:
+		a.azureClient, err = cloud.NewAzureClientWithClientSecret(env, a.subscriptionID.String(), a.clientID.String(), a.clientSecret, a.tenantID)
+	case clientCertificateAuthMethod:
+		a.azureClient, err = cloud.NewAzureClientWithClientCertificateFile(env, a.subscriptionID.String(), a.clientID.String(), a.tenantID, a.certificatePath, a.privateKeyPath)
+	default:
+		err = errors.Errorf("--auth-method: ERROR: method unsupported. method=%q", a.authMethod)
+	}
+
+	return err
 }
 
 // getSubFromAzDir returns the subscription ID from the Azure CLI directory
