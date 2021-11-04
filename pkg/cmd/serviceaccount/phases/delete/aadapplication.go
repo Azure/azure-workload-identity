@@ -26,7 +26,7 @@ func NewAADApplicationPhase() workflow.Phase {
 		Description: "Delete the Azure Active Directory (AAD) application and its underlying service principal",
 		PreRun:      p.prerun,
 		Run:         p.run,
-		Flags:       []string{"aad-application-name", "aad-application-object-id", "service-account-namespace", "service-account-name", "service-account-issuer-url"},
+		Flags:       []string{"aad-application-name", "aad-application-object-id"},
 	}
 }
 
@@ -37,15 +37,7 @@ func (p *aadApplicationPhase) prerun(data workflow.RunData) error {
 	}
 
 	if deleteData.AADApplicationName() == "" && deleteData.AADApplicationObjectID() == "" {
-		if deleteData.ServiceAccountNamespace() == "" {
-			return errors.New("--service-account-namespace is required")
-		}
-		if deleteData.ServiceAccountName() == "" {
-			return errors.New("--service-account-name is required")
-		}
-		if deleteData.ServiceAccountIssuerURL() == "" {
-			return errors.New("--service-account-issuer-url is required")
-		}
+		return errors.New("--aad-application-name or --aad-application-object-id is required")
 	}
 
 	return nil

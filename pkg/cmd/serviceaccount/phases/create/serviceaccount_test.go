@@ -104,6 +104,7 @@ func TestServiceAccountRun(t *testing.T) {
 	data := &mockCreateData{
 		serviceAccountNamespace:       "service-account-namespace",
 		serviceAccountName:            "service-account-name",
+		serviceAccountIssuerURL:       "service-account-issuer-url",
 		serviceAccountTokenExpiration: 2 * time.Hour,
 		aadApplicationClientID:        "aad-application-client-id",
 		azureTenantID:                 "azure-tenant-id",

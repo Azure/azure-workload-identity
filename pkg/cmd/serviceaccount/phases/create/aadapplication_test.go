@@ -25,22 +25,10 @@ func TestAADApplicationPreRun(t *testing.T) {
 			errorMsg: "invalid data type string",
 		},
 		{
-			name:     "missing --service-account-namespace",
+			name:     "missing --aad-application-name",
 			phase:    NewAADApplicationPhase(),
 			data:     &mockCreateData{},
-			errorMsg: "--service-account-namespace is required",
-		},
-		{
-			name:     "missing --service-account-name",
-			phase:    NewAADApplicationPhase(),
-			data:     &mockCreateData{serviceAccountNamespace: "test"},
-			errorMsg: "--service-account-name is required",
-		},
-		{
-			name:     "missing --service-account-issuer-url",
-			phase:    NewAADApplicationPhase(),
-			data:     &mockCreateData{serviceAccountNamespace: "test", serviceAccountName: "test"},
-			errorMsg: "--service-account-issuer-url is required",
+			errorMsg: "--aad-application-name is required",
 		},
 		{
 			name:     "valid data 1",
@@ -86,7 +74,6 @@ func TestAADApplicationRun(t *testing.T) {
 		ObjectID:    to.StringPtr("object-id"),
 	}, nil)
 	mockAzureClient.EXPECT().CreateServicePrincipal(gomock.Any(), "client-id", []string{
-		"serviceAccount: service-account-namespace-service-account-name",
 		"azwi version: , commit: ",
 	}).Return(&graphrbac.ServicePrincipal{
 		DisplayName: to.StringPtr(data.AADApplicationName()),

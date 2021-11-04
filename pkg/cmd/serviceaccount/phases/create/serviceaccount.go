@@ -46,7 +46,7 @@ func (p *serviceAccountPhase) prerun(data workflow.RunData) error {
 	if createData.ServiceAccountName() == "" {
 		return errors.New("--service-account-name is required")
 	}
-	if createData.AADApplicationName() == "" && createData.AADApplicationClientID() == "" && createData.ServiceAccountIssuerURL() == "" {
+	if createData.ServiceAccountIssuerURL() == "" {
 		return errors.New("--service-account-issuer-url is required")
 	}
 

@@ -76,7 +76,7 @@ func (r *runner) BindToCommand(cmd *cobra.Command, data RunData) {
 		Short: fmt.Sprintf("The \"phase\" command invokes a single phase of the %s workflow", cmd.Use),
 	}
 	for _, phase := range r.phases {
-		// workaround: create a copy of the variable 'phase' so that each subcommamnd
+		// workaround: create a copy of the variable 'phase' so that each subcommand
 		// gets its own 'phase' variable instead of sharing the iterator variable
 		p := phase
 

@@ -37,22 +37,9 @@ func TestRoleAssignmentPreRun(t *testing.T) {
 			errorMsg: "--azure-role is required",
 		},
 		{
-			name:     "missing --service-account-namespace",
-			phase:    NewAADApplicationPhase(),
+			name:     "missing --service-principal-name or --service-principal-object-id",
 			data:     &mockCreateData{azureScope: "test", azureRole: "test"},
-			errorMsg: "--service-account-namespace is required",
-		},
-		{
-			name:     "missing --service-account-name",
-			phase:    NewAADApplicationPhase(),
-			data:     &mockCreateData{azureScope: "test", azureRole: "test", serviceAccountNamespace: "test"},
-			errorMsg: "--service-account-name is required",
-		},
-		{
-			name:     "missing --service-account-issuer-url",
-			phase:    NewAADApplicationPhase(),
-			data:     &mockCreateData{azureScope: "test", azureRole: "test", serviceAccountNamespace: "test", serviceAccountName: "test"},
-			errorMsg: "--service-account-issuer-url is required",
+			errorMsg: "--service-principal-name or --service-principal-object-id is required",
 		},
 		{
 			name:     "valid data 1",

@@ -28,7 +28,7 @@ func NewAADApplicationPhase() workflow.Phase {
 		Description: "Create Azure Active Directory (AAD) application and its underlying service principal",
 		PreRun:      p.prerun,
 		Run:         p.run,
-		Flags:       []string{"aad-application-name", "service-account-namespace", "service-account-name", "service-account-issuer-url"},
+		Flags:       []string{"aad-application-name"},
 	}
 }
 
@@ -39,15 +39,7 @@ func (p *aadApplicationPhase) prerun(data workflow.RunData) error {
 	}
 
 	if createData.AADApplicationName() == "" {
-		if createData.ServiceAccountNamespace() == "" {
-			return errors.New("--service-account-namespace is required")
-		}
-		if createData.ServiceAccountName() == "" {
-			return errors.New("--service-account-name is required")
-		}
-		if createData.ServiceAccountIssuerURL() == "" {
-			return errors.New("--service-account-issuer-url is required")
-		}
+		return errors.New("--aad-application-name is required")
 	}
 
 	return nil
@@ -86,7 +78,6 @@ func (p *aadApplicationPhase) run(ctx context.Context, data workflow.RunData) er
 
 		// create the service principal as it doesn't exist
 		tags := []string{
-			fmt.Sprintf("serviceAccount: %s-%s", createData.ServiceAccountNamespace(), createData.ServiceAccountName()),
 			fmt.Sprintf("azwi version: %s, commit: %s", version.BuildVersion, version.Vcs),
 		}
 

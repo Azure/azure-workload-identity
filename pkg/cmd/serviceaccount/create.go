@@ -115,8 +115,8 @@ func (c *createData) AADApplication() (*graphrbac.Application, error) {
 func (c *createData) AADApplicationName() string {
 	name := c.aadApplicationName
 	if name == "" {
-		log.Warn("--aad-application-name not specified, constructing name with service account namespace, name, and the hash of the issuer URL")
 		if c.ServiceAccountNamespace() != "" && c.ServiceAccountName() != "" && c.ServiceAccountIssuerURL() != "" {
+			log.Warn("--aad-application-name not specified, constructing name with service account namespace, name, and the hash of the issuer URL")
 			name = fmt.Sprintf("%s-%s-%s", c.ServiceAccountNamespace(), c.serviceAccountName, util.GetIssuerHash(c.ServiceAccountIssuerURL()))
 		}
 	}

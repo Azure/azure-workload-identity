@@ -31,7 +31,6 @@ func newDeleteCmd(authProvider auth.Provider) *cobra.Command {
 	}
 
 	f := cmd.Flags()
-	authProvider.AddFlags(f)
 	f.StringVar(&data.serviceAccountName, "service-account-name", "", "Name of the service account")
 	f.StringVar(&data.serviceAccountNamespace, "service-account-namespace", "default", "Namespace of the service account")
 	f.StringVar(&data.serviceAccountIssuerURL, "service-account-issuer-url", "", "URL of the issuer")
@@ -98,8 +97,8 @@ func (d *deleteData) AADApplication() (*graphrbac.Application, error) {
 func (d *deleteData) AADApplicationName() string {
 	name := d.aadApplicationName
 	if name == "" {
-		log.Warn("--aad-application-name not specified, constructing name with service account namespace, name, and the hash of the issuer URL")
 		if d.ServiceAccountNamespace() != "" && d.ServiceAccountName() != "" && d.ServiceAccountIssuerURL() != "" {
+			log.Warn("--aad-application-name not specified, constructing name with service account namespace, name, and the hash of the issuer URL")
 			name = fmt.Sprintf("%s-%s-%s", d.ServiceAccountNamespace(), d.serviceAccountName, util.GetIssuerHash(d.ServiceAccountIssuerURL()))
 		}
 	}

@@ -29,7 +29,7 @@ func NewFederatedIdentityPhase() workflow.Phase {
 		Description: "Create federated identity credential between the AAD application and the Kubernetes service account",
 		PreRun:      p.prerun,
 		Run:         p.run,
-		Flags:       []string{"service-account-namespace", "service-account-name", "service-account-issuer-url"},
+		Flags:       []string{"service-account-namespace", "service-account-name", "service-account-issuer-url", "aad-application-name", "aad-application-object-id"},
 	}
 }
 
