@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
+	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/options"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 
 	"github.com/pkg/errors"
@@ -26,7 +27,7 @@ func NewRoleAssignmentPhase() workflow.Phase {
 		Description: "Delete the role assignment between the AAD application and the Azure cloud resource",
 		PreRun:      p.prerun,
 		Run:         p.run,
-		Flags:       []string{"role-assignment-id"},
+		Flags:       []string{options.RoleAssignmentID},
 	}
 }
 
@@ -37,7 +38,7 @@ func (p *roleAssignmentPhase) prerun(data workflow.RunData) error {
 	}
 
 	if deleteData.RoleAssignmentID() == "" {
-		return errors.New("--role-assignment-id is required")
+		return options.FlagIsRequiredError(options.RoleAssignmentID)
 	}
 
 	return nil

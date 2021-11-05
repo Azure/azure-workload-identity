@@ -3,6 +3,7 @@ package phases
 import (
 	"context"
 
+	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/options"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 	"github.com/Azure/azure-workload-identity/pkg/kuberneteshelper"
 
@@ -29,7 +30,10 @@ func NewServiceAccountPhase() workflow.Phase {
 		Description: "Delete the Kubernetes service account in the current KUBECONFIG context",
 		PreRun:      p.prerun,
 		Run:         p.run,
-		Flags:       []string{"service-account-namespace", "service-account-name"},
+		Flags: []string{
+			options.ServiceAccountNamespace,
+			options.ServiceAccountName,
+		},
 	}
 }
 
@@ -40,10 +44,10 @@ func (p *serviceAccountPhase) prerun(data workflow.RunData) error {
 	}
 
 	if deleteData.ServiceAccountNamespace() == "" {
-		return errors.New("--service-account-namespace is required")
+		return options.FlagIsRequiredError(options.ServiceAccountNamespace)
 	}
 	if deleteData.ServiceAccountName() == "" {
-		return errors.New("--service-account-name is required")
+		return options.FlagIsRequiredError(options.ServiceAccountName)
 	}
 
 	var err error

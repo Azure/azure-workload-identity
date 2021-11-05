@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
+	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/options"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 
 	"github.com/pkg/errors"
@@ -26,7 +27,12 @@ func NewRoleAssignmentPhase() workflow.Phase {
 		Description: "Create role assignment between the AAD application and the Azure cloud resource",
 		PreRun:      p.prerun,
 		Run:         p.run,
-		Flags:       []string{"azure-scope", "azure-role", "service-principal-name", "service-principal-object-id"},
+		Flags: []string{
+			options.AzureScope,
+			options.AzureRole,
+			options.ServicePrincipalName,
+			options.ServicePrincipalObjectID,
+		},
 	}
 }
 
@@ -37,13 +43,13 @@ func (p *roleAssignmentPhase) prerun(data workflow.RunData) error {
 	}
 
 	if createData.AzureScope() == "" {
-		return errors.New("--azure-scope is required")
+		return options.FlagIsRequiredError(options.AzureScope)
 	}
 	if createData.AzureRole() == "" {
-		return errors.New("--azure-role is required")
+		return options.FlagIsRequiredError(options.AzureRole)
 	}
 	if createData.ServicePrincipalName() == "" && createData.ServicePrincipalObjectID() == "" {
-		return errors.New("--service-principal-name or --service-principal-object-id is required")
+		return options.OneOfFlagsIsRequiredError(options.ServicePrincipalName, options.ServicePrincipalObjectID)
 	}
 
 	return nil

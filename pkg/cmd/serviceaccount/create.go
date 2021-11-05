@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/auth"
+	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/options"
 	phases "github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/create"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/util"
@@ -33,17 +34,17 @@ func newCreateCmd(authProvider auth.Provider) *cobra.Command {
 	}
 
 	f := cmd.Flags()
-	f.StringVar(&data.serviceAccountName, "service-account-name", "", "Name of the service account")
-	f.StringVar(&data.serviceAccountNamespace, "service-account-namespace", "default", "Namespace of the service account")
-	f.StringVar(&data.serviceAccountIssuerURL, "service-account-issuer-url", "", "URL of the issuer")
-	f.DurationVar(&data.serviceAccountTokenExpiration, "service-account-token-expiration", time.Duration(webhook.DefaultServiceAccountTokenExpiration)*time.Second, "Expiration time of the service account token. Must be between 1 hour and 24 hours")
-	f.StringVar(&data.aadApplicationName, "aad-application-name", "", "Name of the AAD application, If not specified, the namespace, the name of the service account and the hash of the issuer URL will be used")
-	f.StringVar(&data.aadApplicationClientID, "aad-application-client-id", "", "Client ID of the AAD application. If not specified, it will be fetched using the AAD application name")
-	f.StringVar(&data.aadApplicationObjectID, "aad-application-object-id", "", "Object ID of the AAD application. If not specified, it will be fetched using the AAD application name")
-	f.StringVar(&data.servicePrincipalName, "service-principal-name", "", "Name of the service principal that backs the AAD application. If this is not specified, the name of the AAD application will be used")
-	f.StringVar(&data.servicePrincipalObjectID, "service-principal-object-id", "", "Object ID of the service principal that backs the AAD application. If not specified, it will be fetched using the service principal name")
-	f.StringVar(&data.azureScope, "azure-scope", "", "Scope at which the role assignment or definition applies to")
-	f.StringVar(&data.azureRole, "azure-role", "", "Role of the AAD application (see all available roles at https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles)")
+	f.StringVar(&data.serviceAccountName, options.ServiceAccountName, "", "Name of the service account")
+	f.StringVar(&data.serviceAccountNamespace, options.ServiceAccountNamespace, "default", "Namespace of the service account")
+	f.StringVar(&data.serviceAccountIssuerURL, options.ServiceAccountIssuerURL, "", "URL of the issuer")
+	f.DurationVar(&data.serviceAccountTokenExpiration, options.ServiceAccountTokenExpiration, time.Duration(webhook.DefaultServiceAccountTokenExpiration)*time.Second, "Expiration time of the service account token. Must be between 1 hour and 24 hours")
+	f.StringVar(&data.aadApplicationName, options.AADApplicationName, "", "Name of the AAD application, If not specified, the namespace, the name of the service account and the hash of the issuer URL will be used")
+	f.StringVar(&data.aadApplicationClientID, options.AADApplicationClientID, "", "Client ID of the AAD application. If not specified, it will be fetched using the AAD application name")
+	f.StringVar(&data.aadApplicationObjectID, options.AADApplicationObjectID, "", "Object ID of the AAD application. If not specified, it will be fetched using the AAD application name")
+	f.StringVar(&data.servicePrincipalName, options.ServicePrincipalName, "", "Name of the service principal that backs the AAD application. If this is not specified, the name of the AAD application will be used")
+	f.StringVar(&data.servicePrincipalObjectID, options.ServicePrincipalObjectID, "", "Object ID of the service principal that backs the AAD application. If not specified, it will be fetched using the service principal name")
+	f.StringVar(&data.azureScope, options.AzureScope, "", "Scope at which the role assignment or definition applies to")
+	f.StringVar(&data.azureRole, options.AzureRole, "", "Role of the AAD application (see all available roles at https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles)")
 
 	// append phases in order
 	createRunner.AppendPhases(

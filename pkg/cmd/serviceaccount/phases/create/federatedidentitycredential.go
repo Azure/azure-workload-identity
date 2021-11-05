@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
+	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/options"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/util"
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
@@ -29,7 +30,13 @@ func NewFederatedIdentityPhase() workflow.Phase {
 		Description: "Create federated identity credential between the AAD application and the Kubernetes service account",
 		PreRun:      p.prerun,
 		Run:         p.run,
-		Flags:       []string{"service-account-namespace", "service-account-name", "service-account-issuer-url", "aad-application-name", "aad-application-object-id"},
+		Flags: []string{
+			options.ServiceAccountNamespace,
+			options.ServiceAccountName,
+			options.ServiceAccountIssuerURL,
+			options.AADApplicationName,
+			options.AADApplicationObjectID,
+		},
 	}
 }
 
@@ -40,13 +47,13 @@ func (p *federatedIdentityPhase) prerun(data workflow.RunData) error {
 	}
 
 	if createData.ServiceAccountNamespace() == "" {
-		return errors.New("--service-account-namespace is required")
+		return options.FlagIsRequiredError(options.ServiceAccountNamespace)
 	}
 	if createData.ServiceAccountName() == "" {
-		return errors.New("--service-account-name is required")
+		return options.FlagIsRequiredError(options.ServiceAccountName)
 	}
 	if createData.ServiceAccountIssuerURL() == "" {
-		return errors.New("--service-account-issuer-url is required")
+		return options.FlagIsRequiredError(options.ServiceAccountIssuerURL)
 	}
 
 	return nil

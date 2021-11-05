@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
+	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/options"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 	"github.com/Azure/azure-workload-identity/pkg/version"
 
@@ -28,7 +29,7 @@ func NewAADApplicationPhase() workflow.Phase {
 		Description: "Create Azure Active Directory (AAD) application and its underlying service principal",
 		PreRun:      p.prerun,
 		Run:         p.run,
-		Flags:       []string{"aad-application-name"},
+		Flags:       []string{options.AADApplicationName},
 	}
 }
 
@@ -39,7 +40,7 @@ func (p *aadApplicationPhase) prerun(data workflow.RunData) error {
 	}
 
 	if createData.AADApplicationName() == "" {
-		return errors.New("--aad-application-name is required")
+		return options.FlagIsRequiredError(options.AADApplicationName)
 	}
 
 	return nil
