@@ -24,7 +24,7 @@ spec:
 
 ## User tried to log in to a device from a platform (Unknown) that's currently not supported through Conditional Access policy
 
-When creating a federated identity, your request might be blocked by Azure Active Directory's [Conditional Access: Require compliant devices](https://docs.microsoft.com/en-us/azure/active-directory/conditional-access/howto-conditional-access-policy-compliant-device) policy:
+When creating a federated identity credential, your request might be blocked by Azure Active Directory [Conditional Access: Require compliant devices](https://docs.microsoft.com/en-us/azure/active-directory/conditional-access/howto-conditional-access-policy-compliant-device) policy:
 
 ```bash
 az rest --method POST --uri "https://graph.microsoft.com/beta/applications/${APPLICATION_OBJECT_ID}/federatedIdentityCredentials" --body @body.json
@@ -49,6 +49,7 @@ In the case of service principal, you will have to grant the `Application.ReadWr
 
 ```bash
 # get the app role ID of `Application.ReadWrite.All`
+APPLICATION_OBJECT_ID="$(az ad app show --id ${APPLICATION_CLIENT_ID} --query objectId -otsv)"
 GRAPH_RESOURCE_ID="$(az ad sp list --display-name "Microsoft Graph" --query '[0].objectId' -otsv)"
 APPLICATION_READWRITE_ALL_ID="$(az ad sp list --display-name "Microsoft Graph" --query "[0].appRoles[?value=='Application.ReadWrite.All' && contains(allowedMemberTypes, 'Application')].id" --output tsv)"
 
