@@ -1389,6 +1389,32 @@ true
   securityContext:
     fsGroup: 65534
 </code></pre>
+<h2 id="user-tried-to-log-in-to-a-device-from-a-platform-unknown-thats-currently-not-supported-through-conditional-access-policy"><a class="header" href="#user-tried-to-log-in-to-a-device-from-a-platform-unknown-thats-currently-not-supported-through-conditional-access-policy">User tried to log in to a device from a platform (Unknown) that’s currently not supported through Conditional Access policy</a></h2>
+<p>When creating a federated identity credential, your request might be blocked by Azure Active Directory <a href="https://docs.microsoft.com/en-us/azure/active-directory/conditional-access/howto-conditional-access-policy-compliant-device">Conditional Access: Require compliant devices</a> policy:</p>
+<pre><code class="language-bash">az rest --method POST --uri &quot;https://graph.microsoft.com/beta/applications/${APPLICATION_OBJECT_ID}/federatedIdentityCredentials&quot; --body @body.json
+AADSTS50005: User tried to log in to a device from a platform (Unknown) that's currently not supported through Conditional Access policy. Supported device platforms are: iOS, Android, Mac, and Windows flavors.
+...
+To re-authenticate, please run:
+az login --scope https://graph.microsoft.com//.default
+</code></pre>
+<p>Another quick way to verify if your tenant has a conditional access policy in place:</p>
+<pre><code class="language-bash">az account get-access-token --resource-type=ms-graph
+</code></pre>
+<p>To bypass this policy:</p>
+<ul>
+<li><code>az login</code> with a user account on a supported system - Windows or MacOS, and make the device compliant.</li>
+<li><code>az login --service-principal</code> with a service principal which does not have the above compilance check.</li>
+</ul>
+<p>In the case of service principal, you will have to grant the <code>Application.ReadWrite.All</code> API permission:</p>
+<pre><code class="language-bash"># get the app role ID of `Application.ReadWrite.All`
+APPLICATION_OBJECT_ID=&quot;$(az ad app show --id ${APPLICATION_CLIENT_ID} --query objectId -otsv)&quot;
+GRAPH_RESOURCE_ID=&quot;$(az ad sp list --display-name &quot;Microsoft Graph&quot; --query '[0].objectId' -otsv)&quot;
+APPLICATION_READWRITE_ALL_ID=&quot;$(az ad sp list --display-name &quot;Microsoft Graph&quot; --query &quot;[0].appRoles[?value=='Application.ReadWrite.All' &amp;&amp; contains(allowedMemberTypes, 'Application')].id&quot; --output tsv)&quot;
+
+URI=&quot;https://graph.microsoft.com/v1.0/servicePrincipals/${APPLICATION_OBJECT_ID}/appRoleAssignments&quot;
+BODY=&quot;{'principalId':'${APPLICATION_OBJECT_ID}','resourceId':'${GRAPH_RESOURCE_ID}','appRoleId':'${APPLICATION_READWRITE_ALL_ID}'}&quot;
+az rest --method post --uri &quot;${URI}&quot; --body &quot;${BODY}&quot; --headers &quot;Content-Type=application/json&quot;
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="development"><a class="header" href="#development">Development</a></h1>
 <ul>
 <li><a href="development.html#setting-up">Setting up</a>
