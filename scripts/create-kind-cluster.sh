@@ -75,11 +75,23 @@ nodes:
         service-account-issuer: ${SERVICE_ACCOUNT_ISSUER}
         service-account-key-file: /etc/kubernetes/pki/sa.pub
         service-account-signing-key-file: /etc/kubernetes/pki/sa.key
+    controllerManager:
+      extraArgs:
+        service-account-private-key-file: /etc/kubernetes/pki/sa.key
 EOF
 
   ${KUBECTL} wait node "${KIND_CLUSTER_NAME}-control-plane" --for=condition=Ready --timeout=90s
 }
 
+download_service_account_keys() {
+  if [[ -z "${SERVICE_ACCOUNT_KEYVAULT_NAME:-}" ]]; then
+    return
+  fi
+  az keyvault secret show --vault-name "${SERVICE_ACCOUNT_KEYVAULT_NAME}" --name sa-pub | jq -r .value | base64 -d > "${SERVICE_ACCOUNT_KEY_FILE}"
+  az keyvault secret show --vault-name "${SERVICE_ACCOUNT_KEYVAULT_NAME}" --name sa-key | jq -r .value | base64 -d > "${SERVICE_ACCOUNT_SIGNING_KEY_FILE}"
+}
+
+download_service_account_keys
 if [[ "${SKIP_PREFLIGHT:-}" != "true" ]]; then
   preflight
 fi

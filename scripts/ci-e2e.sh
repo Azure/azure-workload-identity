@@ -17,7 +17,6 @@ export IMAGE_VERSION
 
 create_cluster() {
   if [[ "${LOCAL_ONLY:-}" == "true" ]]; then
-    download_service_account_keys
     # create a kind cluster, then build and load the webhook manager image to the kind cluster
     make kind-create
     # only build amd64 images for now
@@ -53,14 +52,6 @@ create_cluster() {
     ALL_IMAGES=webhook make docker-build docker-push-manifest
   fi
   ${KUBECTL} get nodes -owide
-}
-
-download_service_account_keys() {
-  if [[ -z "${SERVICE_ACCOUNT_KEYVAULT_NAME:-}" ]]; then
-    return
-  fi
-  az keyvault secret show --vault-name "${SERVICE_ACCOUNT_KEYVAULT_NAME}" --name sa-pub | jq -r .value | base64 -d > "${REPO_ROOT}/sa.pub"
-  az keyvault secret show --vault-name "${SERVICE_ACCOUNT_KEYVAULT_NAME}" --name sa-key | jq -r .value | base64 -d > "${REPO_ROOT}/sa.key"
 }
 
 cleanup() {
