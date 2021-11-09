@@ -35,18 +35,10 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: "^1.17"
-      - name: Install Azure CLI beta
+      - name: Install Azure CLI latest
         run: |
-          cd ../..
-          CWD="$(pwd)"
-          python3 -m venv oidc-venv
-          . oidc-venv/bin/activate
-          echo "activated environment"
-          python3 -m pip install --upgrade pip
-          echo "started installing cli beta"
-          pip install -q --extra-index-url https://azcliprod.blob.core.windows.net/beta/simple/ azure-cli
-          echo "installed cli beta"
-          echo "$CWD/oidc-venv/bin" >> $GITHUB_PATH
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+          az version
       - name: Set variables
         id: variables
         run: |
