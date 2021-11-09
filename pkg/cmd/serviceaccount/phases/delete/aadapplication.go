@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
+	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/options"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 
 	"github.com/pkg/errors"
@@ -26,7 +27,10 @@ func NewAADApplicationPhase() workflow.Phase {
 		Description: "Delete the Azure Active Directory (AAD) application and its underlying service principal",
 		PreRun:      p.prerun,
 		Run:         p.run,
-		Flags:       []string{"aad-application-name", "aad-application-object-id"},
+		Flags: []string{
+			options.AADApplicationName.Flag,
+			options.AADApplicationObjectID.Flag,
+		},
 	}
 }
 
@@ -37,7 +41,7 @@ func (p *aadApplicationPhase) prerun(data workflow.RunData) error {
 	}
 
 	if deleteData.AADApplicationName() == "" && deleteData.AADApplicationObjectID() == "" {
-		return errors.New("--aad-application-name or --aad-application-object-id is required")
+		return options.OneOfFlagsIsRequiredError(options.AADApplicationName.Flag, options.AADApplicationObjectID.Flag)
 	}
 
 	return nil

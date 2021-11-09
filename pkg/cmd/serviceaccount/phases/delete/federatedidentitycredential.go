@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
+	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/options"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/util"
 
@@ -27,7 +28,13 @@ func NewFederatedIdentityPhase() workflow.Phase {
 		Description: "Delete federated identity credential for the AAD application and the Kubernetes service account",
 		PreRun:      p.prerun,
 		Run:         p.run,
-		Flags:       []string{"service-account-namespace", "service-account-name", "service-account-issuer-url", "aad-application-name", "aad-application-object-id"},
+		Flags: []string{
+			options.ServiceAccountNamespace.Flag,
+			options.ServiceAccountName.Flag,
+			options.ServiceAccountIssuerURL.Flag,
+			options.AADApplicationName.Flag,
+			options.AADApplicationObjectID.Flag,
+		},
 	}
 }
 
@@ -38,13 +45,13 @@ func (p *federatedIdentityPhase) prerun(data workflow.RunData) error {
 	}
 
 	if deleteData.ServiceAccountNamespace() == "" {
-		return errors.New("--service-account-namespace is required")
+		return options.FlagIsRequiredError(options.ServiceAccountNamespace.Flag)
 	}
 	if deleteData.ServiceAccountName() == "" {
-		return errors.New("--service-account-name is required")
+		return options.FlagIsRequiredError(options.ServiceAccountName.Flag)
 	}
 	if deleteData.ServiceAccountIssuerURL() == "" {
-		return errors.New("--service-account-issuer-url is required")
+		return options.FlagIsRequiredError(options.ServiceAccountIssuerURL.Flag)
 	}
 
 	return nil

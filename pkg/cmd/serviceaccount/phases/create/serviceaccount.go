@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/options"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 	"github.com/Azure/azure-workload-identity/pkg/kuberneteshelper"
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
@@ -30,7 +31,14 @@ func NewServiceAccountPhase() workflow.Phase {
 		Description: "Create Kubernetes service account in the current KUBECONFIG context and add azure-workload-identity labels and annotations to it",
 		PreRun:      p.prerun,
 		Run:         p.run,
-		Flags:       []string{"service-account-namespace", "service-account-name", "service-account-issuer-url", "aad-application-name", "aad-application-client-id", "service-account-token-expiration"},
+		Flags: []string{
+			options.ServiceAccountNamespace.Flag,
+			options.ServiceAccountName.Flag,
+			options.ServiceAccountIssuerURL.Flag,
+			options.ServiceAccountTokenExpiration.Flag,
+			options.AADApplicationName.Flag,
+			options.AADApplicationClientID.Flag,
+		},
 	}
 }
 
@@ -41,13 +49,13 @@ func (p *serviceAccountPhase) prerun(data workflow.RunData) error {
 	}
 
 	if createData.ServiceAccountNamespace() == "" {
-		return errors.New("--service-account-namespace is required")
+		return options.FlagIsRequiredError(options.ServiceAccountNamespace.Flag)
 	}
 	if createData.ServiceAccountName() == "" {
-		return errors.New("--service-account-name is required")
+		return options.FlagIsRequiredError(options.ServiceAccountName.Flag)
 	}
 	if createData.ServiceAccountIssuerURL() == "" {
-		return errors.New("--service-account-issuer-url is required")
+		return options.FlagIsRequiredError(options.ServiceAccountIssuerURL.Flag)
 	}
 
 	minTokenExpirationDuration := time.Duration(webhook.MinServiceAccountTokenExpiration) * time.Second
@@ -81,13 +89,13 @@ func (p *serviceAccountPhase) run(ctx context.Context, data workflow.RunData) er
 		createData.ServiceAccountTokenExpiration(),
 	)
 	if err != nil {
-		return errors.Wrap(err, "failed to create service account")
+		return errors.Wrap(err, "failed to create kubernetes service account")
 	}
 
 	log.WithFields(log.Fields{
 		"namespace": createData.ServiceAccountNamespace(),
 		"name":      createData.ServiceAccountName(),
-	}).Infof("[%s] created Kubernetes service account", serviceAccountPhaseName)
+	}).Infof("[%s] created kubernetes service account", serviceAccountPhaseName)
 
 	return nil
 }
