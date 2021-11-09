@@ -39,8 +39,9 @@ You can install the mutating admission webhook with one of the following methods
 ## Helm 3 (Recommended)
 
 ```bash
-# TODO(chewong): use https://azure.github.io/azure-workload-identity/charts
-helm install workload-identity-webhook manifest_staging/charts/workload-identity-webhook \
+helm repo add azure-workload-identity https://azure.github.io/azure-workload-identity/charts
+helm repo update
+helm install workload-identity-webhook azure-workload-identity/workload-identity-webhook \
    --namespace azure-workload-identity-system \
    --create-namespace \
    --set azureTenantID="${AZURE_TENANT_ID}"
