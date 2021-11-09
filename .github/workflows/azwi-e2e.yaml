@@ -24,8 +24,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # TODO(chewong): add windows test env
-        env: [ubuntu-20.04,macos-11]
+        # TODO(chewong): add windows and macos test env
+        env: [ubuntu-20.04]
     runs-on: ${{ matrix.env }}
     steps:
       - uses: actions/checkout@v2
@@ -47,8 +47,6 @@ jobs:
           pip install -q --extra-index-url https://azcliprod.blob.core.windows.net/beta/simple/ azure-cli
           echo "installed cli beta"
           echo "$CWD/oidc-venv/bin" >> $GITHUB_PATH
-      - uses: docker-practice/actions-setup-docker@c0498c7a608acf6d98942dbb16a4bc857372ad04
-        if: ${{ matrix.env == 'macos-11' }}
       - name: Set variables
         id: variables
         run: |
