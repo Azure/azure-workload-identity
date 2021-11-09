@@ -72,7 +72,7 @@ func (c *AzureClient) AddFederatedCredential(ctx context.Context, objectID strin
 	req.Header.Add("Content-Type", "application/json")
 
 	// Adding retries to handle the propagation delay of the service principal.
-	// Trying to create federated identity credentiak immediately after service
+	// Trying to create federated identity credential immediately after service
 	// principal is created might result in "PrincipalNotFound" error.
 	var response *http.Response
 	for i := 0; i < federatedCredentialCreateRetryCount; i++ {

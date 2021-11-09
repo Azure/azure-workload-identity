@@ -47,7 +47,7 @@ jobs:
           pip install -q --extra-index-url https://azcliprod.blob.core.windows.net/beta/simple/ azure-cli
           echo "installed cli beta"
           echo "$CWD/oidc-venv/bin" >> $GITHUB_PATH
-      - uses: docker-practice/actions-setup-docker@master
+      - uses: docker-practice/actions-setup-docker@c0498c7a608acf6d98942dbb16a4bc857372ad04
         if: ${{ matrix.env == 'macos-11' }}
       - name: Set variables
         id: variables
