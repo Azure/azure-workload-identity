@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/Azure/azure-workload-identity/pkg/version"
 
@@ -13,6 +14,16 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+)
+
+const (
+	federatedCredentialCreateRetryCount = 10
+	federatedCredentialCreateRetryDelay = 6 * time.Second
+)
+
+var (
+	// ErrFederatedCredentialNotFound is returned when the federated credential is not found.
+	ErrFederatedCredentialNotFound = errors.New("federated credential not found")
 )
 
 // FederatedCredentials returns a list of federated credentials for the specified application.
@@ -60,7 +71,17 @@ func (c *AzureClient) AddFederatedCredential(ctx context.Context, objectID strin
 	}
 	req.Header.Add("Content-Type", "application/json")
 
-	response, err := c.federatedCredentialsClient.Do(req)
+	// Adding retries to handle the propagation delay of the service principal.
+	// Trying to create federated identity credential immediately after service
+	// principal is created might result in "PrincipalNotFound" error.
+	var response *http.Response
+	for i := 0; i < federatedCredentialCreateRetryCount; i++ {
+		response, err = c.federatedCredentialsClient.Do(req)
+		if err == nil {
+			break
+		}
+		time.Sleep(federatedCredentialCreateRetryDelay)
+	}
 	if err != nil {
 		return autorest.NewErrorWithError(err, "FederatedCredentialsClient", http.MethodPost, response, "Failure sending request")
 	}
@@ -104,7 +125,7 @@ func (c *AzureClient) GetFederatedCredential(ctx context.Context, objectID, issu
 			return fic, nil
 		}
 	}
-	return fc, errors.New("federated credential not found")
+	return fc, ErrFederatedCredentialNotFound
 }
 
 // DeleteFederatedCredential deletes a federated credential from the cloud provider.
