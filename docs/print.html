@@ -543,8 +543,9 @@ EOF
 <p>The tenant ID above will be the default tenant ID that the webhook uses when configuring the <code>AZURE_TENANT_ID</code> environment variable in the pod. In the case of a multi-tenant cluster, you can override the tenant ID by adding the <code>azure.workload.identity/tenant-id</code> annotation to your service account.</p>
 <p>You can install the mutating admission webhook with one of the following methods:</p>
 <h2 id="helm-3-recommended"><a class="header" href="#helm-3-recommended">Helm 3 (Recommended)</a></h2>
-<pre><code class="language-bash"># TODO(chewong): use https://azure.github.io/azure-workload-identity/charts
-helm install workload-identity-webhook manifest_staging/charts/workload-identity-webhook \
+<pre><code class="language-bash">helm repo add azure-workload-identity https://azure.github.io/azure-workload-identity/charts
+helm repo update
+helm install workload-identity-webhook azure-workload-identity/workload-identity-webhook \
    --namespace azure-workload-identity-system \
    --create-namespace \
    --set azureTenantID=&quot;${AZURE_TENANT_ID}&quot;
@@ -1318,7 +1319,7 @@ azure-workload-identity-control-plane   Ready    control-plane,master   2m28s   
 </details>
 <p>Now that we have confirmed the cluster is up and running with the required configuration, you can follow the tutorial in <a href="topics/self-managed-clusters/examples/../../../quick-start.html">Quick Start</a> to learn the basics of how to use the Azure AD Workload Identity webhook to acquire a token to access a secret in an <a href="topics/self-managed-clusters/examples/../../../../installation/self-managed-clusters/configurations.html">Azure Key Vault</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="language-specific-examples"><a class="header" href="#language-specific-examples">Language-Specific Examples</a></h1>
-<p>Azure AD Workload Identity works especially well with the <a href="https://azure.microsoft.com/en-us/downloads/">Azure SDK</a> and the <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-overview">Microsoft Authentication Library (MSAL)</a>. Your workload can leverage any of these library to seemlessly access Azure cloud resources. This section contains example projects using both libraries in different programming languages.</p>
+<p>Azure AD Workload Identity works especially well with the <a href="https://azure.microsoft.com/en-us/downloads/">Azure SDK</a> and the <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-overview">Microsoft Authentication Library (MSAL)</a>. Your workload can leverage any of these library to seamlessly access Azure cloud resources. This section contains example projects using both libraries in different programming languages.</p>
 <blockquote>
 <p>You can swap the demo image used in the <a href="topics/../../quick-start.html#6-deploy-workload">quick start</a> with images built from these example projects.</p>
 </blockquote>

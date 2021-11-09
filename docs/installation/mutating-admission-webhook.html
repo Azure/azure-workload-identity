@@ -171,8 +171,9 @@
 <p>The tenant ID above will be the default tenant ID that the webhook uses when configuring the <code>AZURE_TENANT_ID</code> environment variable in the pod. In the case of a multi-tenant cluster, you can override the tenant ID by adding the <code>azure.workload.identity/tenant-id</code> annotation to your service account.</p>
 <p>You can install the mutating admission webhook with one of the following methods:</p>
 <h2 id="helm-3-recommended"><a class="header" href="#helm-3-recommended">Helm 3 (Recommended)</a></h2>
-<pre><code class="language-bash"># TODO(chewong): use https://azure.github.io/azure-workload-identity/charts
-helm install workload-identity-webhook manifest_staging/charts/workload-identity-webhook \
+<pre><code class="language-bash">helm repo add azure-workload-identity https://azure.github.io/azure-workload-identity/charts
+helm repo update
+helm install workload-identity-webhook azure-workload-identity/workload-identity-webhook \
    --namespace azure-workload-identity-system \
    --create-namespace \
    --set azureTenantID=&quot;${AZURE_TENANT_ID}&quot;
