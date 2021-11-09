@@ -12,7 +12,7 @@ The default mode was changed to `0644` in Kubernetes v1.19, which allows contain
 
 If you ran into this issue, you can either:
 
-1. Upgrade your cluster to v1.19+ or
+1. Upgrade your cluster to v1.20+ or
 
 2. Apply the following `securityContext` field to your pod spec:
 

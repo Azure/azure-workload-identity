@@ -36,16 +36,10 @@ func TestServiceAccountPreRun(t *testing.T) {
 			errorMsg: "--service-account-name is required",
 		},
 		{
-			name:     "missing --service-account-issuer-url",
-			data:     &mockCreateData{serviceAccountNamespace: "test", serviceAccountName: "test"},
-			errorMsg: "--service-account-issuer-url is required",
-		},
-		{
 			name: "token expiration >= minimum token expiration",
 			data: &mockCreateData{
 				serviceAccountNamespace:       "test",
 				serviceAccountName:            "test",
-				serviceAccountIssuerURL:       "test",
 				serviceAccountTokenExpiration: 1 * time.Hour,
 				kubeClient:                    fake.NewSimpleClientset(),
 			},
@@ -56,7 +50,6 @@ func TestServiceAccountPreRun(t *testing.T) {
 			data: &mockCreateData{
 				serviceAccountNamespace:       "test",
 				serviceAccountName:            "test",
-				serviceAccountIssuerURL:       "test",
 				serviceAccountTokenExpiration: 1 * time.Minute,
 			},
 			errorMsg: "--service-account-token-expiration must be greater than or equal to 1h0m0s",
@@ -66,7 +59,6 @@ func TestServiceAccountPreRun(t *testing.T) {
 			data: &mockCreateData{
 				serviceAccountNamespace:       "test",
 				serviceAccountName:            "test",
-				serviceAccountIssuerURL:       "test",
 				serviceAccountTokenExpiration: 25 * time.Hour,
 			},
 			errorMsg: "--service-account-token-expiration must be less than or equal to 24h0m0s",
@@ -76,7 +68,6 @@ func TestServiceAccountPreRun(t *testing.T) {
 			data: &mockCreateData{
 				serviceAccountNamespace:       "test",
 				serviceAccountName:            "test",
-				serviceAccountIssuerURL:       "test",
 				serviceAccountTokenExpiration: 1 * time.Hour,
 				kubeClient:                    fake.NewSimpleClientset(),
 			},
@@ -104,7 +95,6 @@ func TestServiceAccountRun(t *testing.T) {
 	data := &mockCreateData{
 		serviceAccountNamespace:       "service-account-namespace",
 		serviceAccountName:            "service-account-name",
-		serviceAccountIssuerURL:       "service-account-issuer-url",
 		serviceAccountTokenExpiration: 2 * time.Hour,
 		aadApplicationClientID:        "aad-application-client-id",
 		azureTenantID:                 "azure-tenant-id",

@@ -34,7 +34,6 @@ func NewServiceAccountPhase() workflow.Phase {
 		Flags: []string{
 			options.ServiceAccountNamespace.Flag,
 			options.ServiceAccountName.Flag,
-			options.ServiceAccountIssuerURL.Flag,
 			options.ServiceAccountTokenExpiration.Flag,
 			options.AADApplicationName.Flag,
 			options.AADApplicationClientID.Flag,
@@ -53,9 +52,6 @@ func (p *serviceAccountPhase) prerun(data workflow.RunData) error {
 	}
 	if createData.ServiceAccountName() == "" {
 		return options.FlagIsRequiredError(options.ServiceAccountName.Flag)
-	}
-	if createData.ServiceAccountIssuerURL() == "" {
-		return options.FlagIsRequiredError(options.ServiceAccountIssuerURL.Flag)
 	}
 
 	minTokenExpirationDuration := time.Duration(webhook.MinServiceAccountTokenExpiration) * time.Second
