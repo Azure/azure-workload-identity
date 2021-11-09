@@ -80,14 +80,6 @@ GO_INSTALL := ./hack/go-install.sh
 ## Binaries
 ## --------------------------------------
 
-.PHONY: azwi
-azwi: bin/azwi-$(GOOS)-$(GOARCH)$(EXTENSION)
-	mv bin/azwi-$(GOOS)-$(GOARCH)$(EXTENSION) bin/azwi
-
-## --------------------------------------
-## Release Binaries
-## --------------------------------------
-
 EXTENSION.linux :=
 EXTENSION.darwin :=
 EXTENSION.windows := .exe
@@ -95,6 +87,9 @@ EXTENSION := $(EXTENSION.$(GOOS))
 
 bin/azwi-$(GOOS)-$(GOARCH)$(EXTENSION):
 	GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o $(BIN_DIR)/azwi-$(GOOS)-$(GOARCH)$(EXTENSION) -ldflags $(LDFLAGS) ./cmd/azwi
+
+bin/azwi: bin/azwi-$(GOOS)-$(GOARCH)$(EXTENSION)
+	ln -sf $(PWD)/bin/azwi-$(GOOS)-$(GOARCH)$(EXTENSION) $(PWD)/bin/azwi
 
 ## --------------------------------------
 ## Images
