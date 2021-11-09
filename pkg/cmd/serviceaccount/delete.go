@@ -32,12 +32,12 @@ func newDeleteCmd(authProvider auth.Provider) *cobra.Command {
 	}
 
 	f := cmd.Flags()
-	f.StringVar(&data.serviceAccountName, options.ServiceAccountName, "", "Name of the service account")
-	f.StringVar(&data.serviceAccountNamespace, options.ServiceAccountNamespace, "default", "Namespace of the service account")
-	f.StringVar(&data.serviceAccountIssuerURL, options.ServiceAccountIssuerURL, "", "URL of the issuer")
-	f.StringVar(&data.aadApplicationName, options.AADApplicationName, "", "Name of the AAD application. If not specified, the namespace, the name of the service account and the hash of the issuer URL will be used")
-	f.StringVar(&data.aadApplicationObjectID, options.AADApplicationObjectID, "", "Object ID of the AAD application. If not specified, it will be fetched using the AAD application name")
-	f.StringVar(&data.roleAssignmentID, options.RoleAssignmentID, "", "Azure role assignment ID")
+	f.StringVar(&data.serviceAccountName, options.ServiceAccountName.Flag, "", options.ServiceAccountName.Description)
+	f.StringVar(&data.serviceAccountNamespace, options.ServiceAccountNamespace.Flag, "default", options.ServiceAccountNamespace.Description)
+	f.StringVar(&data.serviceAccountIssuerURL, options.ServiceAccountIssuerURL.Flag, "", options.ServiceAccountIssuerURL.Description)
+	f.StringVar(&data.aadApplicationName, options.AADApplicationName.Flag, "", options.AADApplicationName.Description)
+	f.StringVar(&data.aadApplicationObjectID, options.AADApplicationObjectID.Flag, "", options.AADApplicationObjectID.Description)
+	f.StringVar(&data.roleAssignmentID, options.RoleAssignmentID.Flag, "", options.RoleAssignmentID.Description)
 
 	// append phases in order
 	deleteRunner.AppendPhases(

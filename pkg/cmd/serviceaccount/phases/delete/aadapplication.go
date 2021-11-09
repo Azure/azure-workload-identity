@@ -28,8 +28,8 @@ func NewAADApplicationPhase() workflow.Phase {
 		PreRun:      p.prerun,
 		Run:         p.run,
 		Flags: []string{
-			options.AADApplicationName,
-			options.AADApplicationObjectID,
+			options.AADApplicationName.Flag,
+			options.AADApplicationObjectID.Flag,
 		},
 	}
 }
@@ -41,7 +41,7 @@ func (p *aadApplicationPhase) prerun(data workflow.RunData) error {
 	}
 
 	if deleteData.AADApplicationName() == "" && deleteData.AADApplicationObjectID() == "" {
-		return options.OneOfFlagsIsRequiredError(options.AADApplicationName, options.AADApplicationObjectID)
+		return options.OneOfFlagsIsRequiredError(options.AADApplicationName.Flag, options.AADApplicationObjectID.Flag)
 	}
 
 	return nil

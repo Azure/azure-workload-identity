@@ -28,10 +28,10 @@ func NewRoleAssignmentPhase() workflow.Phase {
 		PreRun:      p.prerun,
 		Run:         p.run,
 		Flags: []string{
-			options.AzureScope,
-			options.AzureRole,
-			options.ServicePrincipalName,
-			options.ServicePrincipalObjectID,
+			options.AzureScope.Flag,
+			options.AzureRole.Flag,
+			options.ServicePrincipalName.Flag,
+			options.ServicePrincipalObjectID.Flag,
 		},
 	}
 }
@@ -43,13 +43,13 @@ func (p *roleAssignmentPhase) prerun(data workflow.RunData) error {
 	}
 
 	if createData.AzureScope() == "" {
-		return options.FlagIsRequiredError(options.AzureScope)
+		return options.FlagIsRequiredError(options.AzureScope.Flag)
 	}
 	if createData.AzureRole() == "" {
-		return options.FlagIsRequiredError(options.AzureRole)
+		return options.FlagIsRequiredError(options.AzureRole.Flag)
 	}
 	if createData.ServicePrincipalName() == "" && createData.ServicePrincipalObjectID() == "" {
-		return options.OneOfFlagsIsRequiredError(options.ServicePrincipalName, options.ServicePrincipalObjectID)
+		return options.OneOfFlagsIsRequiredError(options.ServicePrincipalName.Flag, options.ServicePrincipalObjectID.Flag)
 	}
 
 	return nil

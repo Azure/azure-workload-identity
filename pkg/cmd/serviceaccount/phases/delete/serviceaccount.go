@@ -31,8 +31,8 @@ func NewServiceAccountPhase() workflow.Phase {
 		PreRun:      p.prerun,
 		Run:         p.run,
 		Flags: []string{
-			options.ServiceAccountNamespace,
-			options.ServiceAccountName,
+			options.ServiceAccountNamespace.Flag,
+			options.ServiceAccountName.Flag,
 		},
 	}
 }
@@ -44,10 +44,10 @@ func (p *serviceAccountPhase) prerun(data workflow.RunData) error {
 	}
 
 	if deleteData.ServiceAccountNamespace() == "" {
-		return options.FlagIsRequiredError(options.ServiceAccountNamespace)
+		return options.FlagIsRequiredError(options.ServiceAccountNamespace.Flag)
 	}
 	if deleteData.ServiceAccountName() == "" {
-		return options.FlagIsRequiredError(options.ServiceAccountName)
+		return options.FlagIsRequiredError(options.ServiceAccountName.Flag)
 	}
 
 	var err error

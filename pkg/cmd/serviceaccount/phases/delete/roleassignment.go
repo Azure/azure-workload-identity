@@ -27,7 +27,7 @@ func NewRoleAssignmentPhase() workflow.Phase {
 		Description: "Delete the role assignment between the AAD application and the Azure cloud resource",
 		PreRun:      p.prerun,
 		Run:         p.run,
-		Flags:       []string{options.RoleAssignmentID},
+		Flags:       []string{options.RoleAssignmentID.Flag},
 	}
 }
 
@@ -38,7 +38,7 @@ func (p *roleAssignmentPhase) prerun(data workflow.RunData) error {
 	}
 
 	if deleteData.RoleAssignmentID() == "" {
-		return options.FlagIsRequiredError(options.RoleAssignmentID)
+		return options.FlagIsRequiredError(options.RoleAssignmentID.Flag)
 	}
 
 	return nil

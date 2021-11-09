@@ -29,11 +29,11 @@ func NewFederatedIdentityPhase() workflow.Phase {
 		PreRun:      p.prerun,
 		Run:         p.run,
 		Flags: []string{
-			options.ServiceAccountNamespace,
-			options.ServiceAccountName,
-			options.ServiceAccountIssuerURL,
-			options.AADApplicationName,
-			options.AADApplicationObjectID,
+			options.ServiceAccountNamespace.Flag,
+			options.ServiceAccountName.Flag,
+			options.ServiceAccountIssuerURL.Flag,
+			options.AADApplicationName.Flag,
+			options.AADApplicationObjectID.Flag,
 		},
 	}
 }
@@ -45,13 +45,13 @@ func (p *federatedIdentityPhase) prerun(data workflow.RunData) error {
 	}
 
 	if deleteData.ServiceAccountNamespace() == "" {
-		return options.FlagIsRequiredError(options.ServiceAccountNamespace)
+		return options.FlagIsRequiredError(options.ServiceAccountNamespace.Flag)
 	}
 	if deleteData.ServiceAccountName() == "" {
-		return options.FlagIsRequiredError(options.ServiceAccountName)
+		return options.FlagIsRequiredError(options.ServiceAccountName.Flag)
 	}
 	if deleteData.ServiceAccountIssuerURL() == "" {
-		return options.FlagIsRequiredError(options.ServiceAccountIssuerURL)
+		return options.FlagIsRequiredError(options.ServiceAccountIssuerURL.Flag)
 	}
 
 	return nil

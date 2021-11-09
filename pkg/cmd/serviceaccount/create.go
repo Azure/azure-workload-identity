@@ -34,17 +34,17 @@ func newCreateCmd(authProvider auth.Provider) *cobra.Command {
 	}
 
 	f := cmd.Flags()
-	f.StringVar(&data.serviceAccountName, options.ServiceAccountName, "", "Name of the service account")
-	f.StringVar(&data.serviceAccountNamespace, options.ServiceAccountNamespace, "default", "Namespace of the service account")
-	f.StringVar(&data.serviceAccountIssuerURL, options.ServiceAccountIssuerURL, "", "URL of the issuer")
-	f.DurationVar(&data.serviceAccountTokenExpiration, options.ServiceAccountTokenExpiration, time.Duration(webhook.DefaultServiceAccountTokenExpiration)*time.Second, "Expiration time of the service account token. Must be between 1 hour and 24 hours")
-	f.StringVar(&data.aadApplicationName, options.AADApplicationName, "", "Name of the AAD application, If not specified, the namespace, the name of the service account and the hash of the issuer URL will be used")
-	f.StringVar(&data.aadApplicationClientID, options.AADApplicationClientID, "", "Client ID of the AAD application. If not specified, it will be fetched using the AAD application name")
-	f.StringVar(&data.aadApplicationObjectID, options.AADApplicationObjectID, "", "Object ID of the AAD application. If not specified, it will be fetched using the AAD application name")
-	f.StringVar(&data.servicePrincipalName, options.ServicePrincipalName, "", "Name of the service principal that backs the AAD application. If this is not specified, the name of the AAD application will be used")
-	f.StringVar(&data.servicePrincipalObjectID, options.ServicePrincipalObjectID, "", "Object ID of the service principal that backs the AAD application. If not specified, it will be fetched using the service principal name")
-	f.StringVar(&data.azureScope, options.AzureScope, "", "Scope at which the role assignment or definition applies to")
-	f.StringVar(&data.azureRole, options.AzureRole, "", "Role of the AAD application (see all available roles at https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles)")
+	f.StringVar(&data.serviceAccountName, options.ServiceAccountName.Flag, "", options.ServiceAccountName.Description)
+	f.StringVar(&data.serviceAccountNamespace, options.ServiceAccountNamespace.Flag, "default", options.ServiceAccountNamespace.Description)
+	f.StringVar(&data.serviceAccountIssuerURL, options.ServiceAccountIssuerURL.Flag, "", options.ServiceAccountIssuerURL.Description)
+	f.DurationVar(&data.serviceAccountTokenExpiration, options.ServiceAccountTokenExpiration.Flag, time.Duration(webhook.DefaultServiceAccountTokenExpiration)*time.Second, options.ServiceAccountTokenExpiration.Description)
+	f.StringVar(&data.aadApplicationName, options.AADApplicationName.Flag, "", options.AADApplicationName.Description)
+	f.StringVar(&data.aadApplicationClientID, options.AADApplicationClientID.Flag, "", options.AADApplicationClientID.Description)
+	f.StringVar(&data.aadApplicationObjectID, options.AADApplicationObjectID.Flag, "", options.AADApplicationObjectID.Description)
+	f.StringVar(&data.servicePrincipalName, options.ServicePrincipalName.Flag, "", options.ServicePrincipalName.Description)
+	f.StringVar(&data.servicePrincipalObjectID, options.ServicePrincipalObjectID.Flag, "", options.ServicePrincipalObjectID.Description)
+	f.StringVar(&data.azureScope, options.AzureScope.Flag, "", options.AzureScope.Description)
+	f.StringVar(&data.azureRole, options.AzureRole.Flag, "", options.AzureRole.Description)
 
 	// append phases in order
 	createRunner.AppendPhases(

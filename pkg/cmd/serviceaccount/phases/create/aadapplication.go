@@ -29,7 +29,7 @@ func NewAADApplicationPhase() workflow.Phase {
 		Description: "Create Azure Active Directory (AAD) application and its underlying service principal",
 		PreRun:      p.prerun,
 		Run:         p.run,
-		Flags:       []string{options.AADApplicationName},
+		Flags:       []string{options.AADApplicationName.Flag},
 	}
 }
 
@@ -40,7 +40,7 @@ func (p *aadApplicationPhase) prerun(data workflow.RunData) error {
 	}
 
 	if createData.AADApplicationName() == "" {
-		return options.FlagIsRequiredError(options.AADApplicationName)
+		return options.FlagIsRequiredError(options.AADApplicationName.Flag)
 	}
 
 	return nil
