@@ -212,6 +212,6 @@ rm sa.*
 
 [1]: https://github.com/kvaps/kubectl-node-shell
 
-[2]: ../../quick-start.html
+[2]: ../../quick-start.md
 
 [3]: https://jwt.io/

@@ -6,7 +6,7 @@
 
 ### Base requirements
 
-1.  Prerequisites from [Quick Start][1]
+1.  Prerequisites from [Installation][1]
 2.  Install [go][2]
     *   Get the latest patch version for go 1.17.
 3.  Install [jq][3]
@@ -239,7 +239,7 @@ Optional settings are:
 | `KUBECONFIG`          | The cluster KUBECONFIG you want to run the e2e test against.       | `${HOME}/.kube/config` |
 | `E2E_EXTRA_ARGS`      | Allow you to insert extra arguments when executing the test suite. |                        |
 
-[1]: ./quick-start.html#prerequisites
+[1]: ./installation.md#prerequisites
 
 [2]: https://golang.org/dl/
 

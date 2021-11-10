@@ -93,7 +93,7 @@ azure-workload-identity-control-plane   Ready    control-plane,master   2m28s   
 
 Now that we have confirmed the cluster is up and running with the required configuration, you can follow the tutorial in [Quick Start][5] to learn the basics of how to use the Azure AD Workload Identity webhook to acquire a token to access a secret in an [Azure Key Vault][1].
 
-[1]: ../../../../installation/self-managed-clusters/configurations.md
+[1]: ../../../installation/self-managed-clusters/configurations.md
 
 [2]: ../service-account-key-generation.md
 
