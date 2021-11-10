@@ -142,7 +142,7 @@ Create a kind cluster with one control plane node and customize various service 
 > The minimum supported Kubernetes version for the webhook is v1.18.0, however, we recommend using Kubernetes version v1.20.0+.
 
 ```bash
-cat <<EOF | kind create cluster --name azure-workload-identity --image kindest/node:v1.22. --config=-
+cat <<EOF | kind create cluster --name azure-workload-identity --image kindest/node:v1.22.2 --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:

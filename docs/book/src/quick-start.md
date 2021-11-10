@@ -101,7 +101,7 @@ az keyvault set-policy --name "${KEYVAULT_NAME}" \
 
 ## 5. Create a Kubernetes service account
 
-Create a Kubernetes service account and annotate it with the client ID of the AAD application we created in step 3:
+Create a Kubernetes service account and annotate it with the client ID of the AAD application we created in step 4:
 
 <details>
 <summary>Azure Workload Identity CLI</summary>
@@ -158,7 +158,7 @@ serviceaccount/workload-identity-sa created
 If the AAD application is not in the same tenant as the default tenant defined during installation, then annotate the service account with the application tenant ID:
 
 ```bash
-kubectl annotate sa workload-identity-sa azure.workload.identity/tenant-id="${APPLICATION_TENANT_ID}" --overwrite
+kubectl annotate sa ${SERVICE_ACCOUNT_NAME} -n ${SERVICE_ACCOUNT_NAMESPACE} azure.workload.identity/tenant-id="${APPLICATION_TENANT_ID}" --overwrite
 ```
 
 ## 6. Establish federated identity credential between the AAD application and the service account issuer & subject
@@ -196,6 +196,9 @@ Login to [Azure Cloud Shell][8] and run the following commands:
 ```bash
 # Get the object ID of the AAD application
 export APPLICATION_OBJECT_ID="$(az ad app show --id ${APPLICATION_CLIENT_ID} --query objectId -otsv)"
+export SERVICE_ACCOUNT_ISSUER="<your service account issuer url>"
+export SERVICE_ACCOUNT_NAME="workload-identity-sa"
+export SERVICE_ACCOUNT_NAMESPACE="default"
 ```
 
 Add the federated identity credential:
