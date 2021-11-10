@@ -181,7 +181,7 @@
 <ul>
 <li><a href="https://docs.microsoft.com/en-us/cli/azure/install-azure-cli">Azure CLI</a></li>
 <li><a href="https://helm.sh/docs/intro/install/">Helm 3</a></li>
-<li>A Kubernetes cluster with version ≥ v1.19
+<li>A Kubernetes cluster with version ≥ v1.20
 <ul>
 <li><strong>Follow the cluster-specific setup guide below before deploying Azure AD Workload Identity:</strong></li>
 </ul>
@@ -604,35 +604,47 @@ mutatingwebhookconfiguration.admissionregistration.k8s.io/azure-wi-webhook-mutat
 <div style="break-before: page; page-break-before: always;"></div><h1 id="quick-start"><a class="header" href="#quick-start">Quick Start</a></h1>
 <ul>
 <li><a href="quick-start.html#1-complete-the-installation-guide">1. Complete the installation guide</a></li>
-<li><a href="quick-start.html#2-create-an-azure-key-vault-and-secret">2. Create an Azure Key Vault and secret</a></li>
-<li><a href="quick-start.html#3-create-an-aad-application-and-grant-permissions-to-access-the-secret">3. Create an AAD application and grant permissions to access the secret</a></li>
-<li><a href="quick-start.html#4-create-a-kubernetes-service-account">4. Create a Kubernetes service account</a></li>
-<li><a href="quick-start.html#5-establish-trust-between-the-aad-application-and-the-service-account-issuer--subject">5. Establish trust between the AAD application and the service account issuer &amp; subject</a></li>
-<li><a href="quick-start.html#6-deploy-workload">6. Deploy workload</a></li>
-<li><a href="quick-start.html#7-cleanup">7. Cleanup</a></li>
+<li><a href="quick-start.html#2-export-environment-variables">2. Export environment variables</a></li>
+<li><a href="quick-start.html#3-create-an-azure-key-vault-and-secret">3. Create an Azure Key Vault and secret</a></li>
+<li><a href="quick-start.html#4-create-an-aad-application-and-grant-permissions-to-access-the-secret">4. Create an AAD application and grant permissions to access the secret</a></li>
+<li><a href="quick-start.html#5-create-a-kubernetes-service-account">5. Create a Kubernetes service account</a></li>
+<li><a href="quick-start.html#6-establish-federated-identity-credential-between-the-aad-application-and-the-service-account-issuer--subject">6. Establish federated identity credential between the AAD application and the service account issuer &amp; subject</a></li>
+<li><a href="quick-start.html#7-deploy-workload">7. Deploy workload</a></li>
+<li><a href="quick-start.html#8-cleanup">8. Cleanup</a></li>
 </ul>
 <p>In this tutorial, we will cover the basics of how to use the webhook to acquire an Azure AD token to access a secret in an <a href="https://azure.microsoft.com/en-us/services/key-vault/">Azure Key Vault</a>.</p>
 <p>Before we get started, ensure the following:</p>
 <ul>
 <li>You are logged in with the Azure CLI as a user.
 <ul>
-<li>If you are logged in with a Service Principal, you must log out and log back in as a user. </li>
+<li>If you are logged in with a Service Principal, ensure that it has the correct <a href="../known-issues.html#user-tried-to-log-in-to-a-device-from-a-platform-unknown-thats-currently-not-supported-through-conditional-access-policy">API permissions</a> enabled.</li>
 </ul>
 </li>
 <li>Your logged in account must have sufficient permissions to create applications and service principals in Azure AD.</li>
 </ul>
 <h2 id="1-complete-the-installation-guide"><a class="header" href="#1-complete-the-installation-guide">1. Complete the installation guide</a></h2>
 <p><a href="./installation.html">Installation guide</a></p>
-<h2 id="2-create-an-azure-key-vault-and-secret"><a class="header" href="#2-create-an-azure-key-vault-and-secret">2. Create an Azure Key Vault and secret</a></h2>
-<p>Create an Azure resource group:</p>
-<pre><code class="language-bash">export RESOURCE_GROUP=&quot;azure-wi-webhook-test&quot;
+<h2 id="2-export-environment-variables"><a class="header" href="#2-export-environment-variables">2. Export environment variables</a></h2>
+<pre><code class="language-bash"># environment variables for the Azure Key Vault resource
+export KEYVAULT_NAME=&quot;azwi-kv-$(openssl rand -hex 2)&quot;
+export KEYVAULT_SECRET_NAME=&quot;my-secret&quot;
+export RESOURCE_GROUP=&quot;azwi-quickstart-$(openssl rand -hex 2)&quot;
 export LOCATION=&quot;westus2&quot;
-az group create --name &quot;${RESOURCE_GROUP}&quot; --location &quot;${LOCATION}&quot;
+
+# environment variables for the AAD application
+export APPLICATION_NAME=&quot;&lt;your application name&gt;&quot;
+
+# environment variables for the Kubernetes service account &amp; federated identity credential
+export SERVICE_ACCOUNT_NAMESPACE=&quot;default&quot;
+export SERVICE_ACCOUNT_NAME=&quot;workload-identity-sa&quot;
+export SERVICE_ACCOUNT_ISSUER=&quot;&lt;your service account issuer url&gt;&quot; # see section 1.1 on how to get the service account issuer url
+</code></pre>
+<h2 id="3-create-an-azure-key-vault-and-secret"><a class="header" href="#3-create-an-azure-key-vault-and-secret">3. Create an Azure Key Vault and secret</a></h2>
+<p>Create an Azure resource group:</p>
+<pre><code class="language-bash">az group create --name &quot;${RESOURCE_GROUP}&quot; --location &quot;${LOCATION}&quot;
 </code></pre>
 <p>Create an Azure Key Vault:</p>
-<pre><code class="language-bash">export KEYVAULT_NAME=&quot;azure-wi-webhook-test-$(openssl rand -hex 1)&quot;
-export KEYVAULT_SECRET_NAME=&quot;my-secret&quot;
-az keyvault create --resource-group &quot;${RESOURCE_GROUP}&quot; \
+<pre><code class="language-bash">az keyvault create --resource-group &quot;${RESOURCE_GROUP}&quot; \
    --location &quot;${LOCATION}&quot; \
    --name &quot;${KEYVAULT_NAME}&quot;
 </code></pre>
@@ -641,22 +653,52 @@ az keyvault create --resource-group &quot;${RESOURCE_GROUP}&quot; \
    --name &quot;${KEYVAULT_SECRET_NAME}&quot; \
    --value &quot;Hello\!&quot;
 </code></pre>
-<h2 id="3-create-an-aad-application-and-grant-permissions-to-access-the-secret"><a class="header" href="#3-create-an-aad-application-and-grant-permissions-to-access-the-secret">3. Create an AAD application and grant permissions to access the secret</a></h2>
-<pre><code class="language-bash">export APPLICATION_NAME=&lt;your application name&gt;
-export APPLICATION_CLIENT_ID=&quot;$(az ad sp create-for-rbac --skip-assignment --name https://${APPLICATION_NAME} --query appId -otsv)&quot;
+<h2 id="4-create-an-aad-application-and-grant-permissions-to-access-the-secret"><a class="header" href="#4-create-an-aad-application-and-grant-permissions-to-access-the-secret">4. Create an AAD application and grant permissions to access the secret</a></h2>
+<details>
+<summary>Azure Workload Identity CLI</summary>
+<pre><code class="language-bash">azwi serviceaccount create phase app --aad-application-name &quot;${APPLICATION_NAME}&quot;
 </code></pre>
+<details>
+<summary>Output</summary>
+<pre><code>INFO[0000] No subscription provided, using selected subscription from Azure CLI: REDACTED
+INFO[0005] [aad-application] created an AAD application  clientID=REDACTED name=azwi-test objectID=REDACTED
+WARN[0005] --service-principal-name not specified, falling back to AAD application name
+INFO[0005] [aad-application] created service principal   clientID=REDACTED name=azwi-test objectID=REDACTED
+</code></pre>
+</details>
+</details>
+<br>
+<details>
+<summary>Azure CLI</summary>
+<pre><code class="language-bash">az ad sp create-for-rbac --skip-assignment --name &quot;${APPLICATION_NAME}&quot;
+</code></pre>
+</details>
 <p>Set access policy for the AAD application to access the keyvault secret:</p>
-<pre><code class="language-bash">az keyvault set-policy --name &quot;${KEYVAULT_NAME}&quot; \
+<pre><code class="language-bash">export APPLICATION_CLIENT_ID=&quot;$(az ad sp list --display-name &quot;${APPLICATION_NAME}&quot; --query '[0].appId' -otsv)&quot;
+az keyvault set-policy --name &quot;${KEYVAULT_NAME}&quot; \
   --secret-permissions get \
   --spn &quot;${APPLICATION_CLIENT_ID}&quot;
 </code></pre>
+<h2 id="5-create-a-kubernetes-service-account"><a class="header" href="#5-create-a-kubernetes-service-account">5. Create a Kubernetes service account</a></h2>
+<p>Create a Kubernetes service account and annotate it with the client ID of the AAD application we created in step 4:</p>
+<details>
+<summary>Azure Workload Identity CLI</summary>
+<pre><code class="language-bash">azwi serviceaccount create phase sa \
+  --aad-application-name &quot;${APPLICATION_NAME}&quot; \
+  --service-account-namespace &quot;${SERVICE_ACCOUNT_NAMESPACE}&quot; \
+  --service-account-name &quot;${SERVICE_ACCOUNT_NAME}&quot;
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code>INFO[0000] No subscription provided, using selected subscription from Azure CLI: REDACTED
+INFO[0002] [service-account] created Kubernetes service account  name=workload-identity-sa namespace=default
+</code></pre>
 </details>
-<h2 id="4-create-a-kubernetes-service-account"><a class="header" href="#4-create-a-kubernetes-service-account">4. Create a Kubernetes service account</a></h2>
-<p>Create a Kubernetes service account and associate it with the AAD application we created in step 3:</p>
-<pre><code class="language-bash">export SERVICE_ACCOUNT_NAMESPACE=&quot;default&quot;
-export SERVICE_ACCOUNT_NAME=&quot;workload-identity-sa&quot;
-
-cat &lt;&lt;EOF | kubectl apply -f -
+</details>
+<br>
+<details>
+<summary>kubectl</summary>
+<pre><code class="language-bash">cat &lt;&lt;EOF | kubectl apply -f -
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -673,14 +715,33 @@ EOF
 <pre><code class="language-bash">serviceaccount/workload-identity-sa created
 </code></pre>
 </details>
-<p>If the AAD application is not in the same tenant as the Kubernetes cluster, then annotate the service account with the application tenant ID.</p>
-<pre><code class="language-bash">kubectl annotate sa workload-identity-sa azure.workload.identity/tenant-id=&quot;${APPLICATION_TENANT_ID}&quot; --overwrite
+</details>
+<p>If the AAD application is not in the same tenant as the default tenant defined during installation, then annotate the service account with the application tenant ID:</p>
+<pre><code class="language-bash">kubectl annotate sa ${SERVICE_ACCOUNT_NAME} -n ${SERVICE_ACCOUNT_NAMESPACE} azure.workload.identity/tenant-id=&quot;${APPLICATION_TENANT_ID}&quot; --overwrite
 </code></pre>
-<h2 id="5-establish-trust-between-the-aad-application-and-the-service-account-issuer--subject"><a class="header" href="#5-establish-trust-between-the-aad-application-and-the-service-account-issuer--subject">5. Establish trust between the AAD application and the service account issuer &amp; subject</a></h2>
+<h2 id="6-establish-federated-identity-credential-between-the-aad-application-and-the-service-account-issuer--subject"><a class="header" href="#6-establish-federated-identity-credential-between-the-aad-application-and-the-service-account-issuer--subject">6. Establish federated identity credential between the AAD application and the service account issuer &amp; subject</a></h2>
+<details>
+<summary>Azure Workload Identity CLI</summary>
+<pre><code class="language-bash">azwi serviceaccount create phase federated-identity \
+  --aad-application-name &quot;${APPLICATION_NAME}&quot; \
+  --service-account-namespace &quot;${SERVICE_ACCOUNT_NAMESPACE}&quot; \
+  --service-account-name &quot;${SERVICE_ACCOUNT_NAME}&quot; \
+  --service-account-issuer-url &quot;${SERVICE_ACCOUNT_ISSUER}&quot;
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code>INFO[0000] No subscription provided, using selected subscription from Azure CLI: REDACTED
+INFO[0032] [federated-identity] added federated credential  objectID=REDACTED subject=&quot;system:serviceaccount:default:workload-identity-sa&quot;
+</code></pre>
+</details>
+</details>
+<br>
+<details>
+<summary>Azure CLI</summary>
 <p>Login to <a href="https://portal.azure.com/#cloudshell/">Azure Cloud Shell</a> and run the following commands:</p>
 <pre><code class="language-bash"># Get the object ID of the AAD application
 export APPLICATION_OBJECT_ID=&quot;$(az ad app show --id ${APPLICATION_CLIENT_ID} --query objectId -otsv)&quot;
-export SERVICE_ACCOUNT_ISSUER=&quot;&lt;Your Service Account Issuer URL&gt;&quot;
+export SERVICE_ACCOUNT_ISSUER=&quot;&lt;your service account issuer url&gt;&quot;
 export SERVICE_ACCOUNT_NAME=&quot;workload-identity-sa&quot;
 export SERVICE_ACCOUNT_NAMESPACE=&quot;default&quot;
 </code></pre>
@@ -699,7 +760,8 @@ EOF
 
 az rest --method POST --uri &quot;https://graph.microsoft.com/beta/applications/${APPLICATION_OBJECT_ID}/federatedIdentityCredentials&quot; --body @body.json
 </code></pre>
-<h2 id="6-deploy-workload"><a class="header" href="#6-deploy-workload">6. Deploy workload</a></h2>
+</details>
+<h2 id="7-deploy-workload"><a class="header" href="#7-deploy-workload">7. Deploy workload</a></h2>
 <p>Deploy a pod that references the service account created in the last step:</p>
 <pre><code class="language-bash">cat &lt;&lt;EOF | kubectl apply -f -
 apiVersion: v1
@@ -818,9 +880,9 @@ Events:
 <pre><code class="language-bash">I1013 22:49:29.872708       1 main.go:30] &quot;successfully got secret&quot; secret=&quot;Hello!&quot;
 </code></pre>
 </details>
-<h2 id="7-cleanup"><a class="header" href="#7-cleanup">7. Cleanup</a></h2>
+<h2 id="8-cleanup"><a class="header" href="#8-cleanup">8. Cleanup</a></h2>
 <pre><code class="language-bash">kubectl delete pod quick-start
-kubectl delete sa workload-identity-sa
+kubectl delete sa &quot;${SERVICE_ACCOUNT_NAME}&quot; --namespace &quot;${SERVICE_ACCOUNT_NAMESPACE}&quot;
 
 az group delete --name &quot;${RESOURCE_GROUP}&quot;
 az ad sp delete --id &quot;${APPLICATION_CLIENT_ID}&quot;
@@ -1262,7 +1324,7 @@ export SERVICE_ACCOUNT_SIGNING_KEY_FILE=&quot;$(pwd)/sa.key&quot;
 <blockquote>
 <p>The minimum supported Kubernetes version for the webhook is v1.18, however, we recommend using Kubernetes version v1.20+.</p>
 </blockquote>
-<pre><code class="language-yaml">cat &lt;&lt;EOF | kind create cluster --name azure-workload-identity --image kindest/node:v1.21.1 --config=-
+<pre><code class="language-yaml">cat &lt;&lt;EOF | kind create cluster --name azure-workload-identity --image kindest/node:v1.22.2 --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
@@ -1288,8 +1350,8 @@ EOF
 <details>
 <summary>Output</summary>
 <pre><code class="language-bash">Creating cluster &quot;azure-workload-identity&quot; ...
- • Ensuring node image (kindest/node:v1.21.1) 🖼  ...
- ✓ Ensuring node image (kindest/node:v1.21.1) 🖼
+ • Ensuring node image (kindest/node:v1.22.2) 🖼  ...
+ ✓ Ensuring node image (kindest/node:v1.22.2) 🖼
  • Preparing nodes 📦   ...
  ✓ Preparing nodes 📦
  • Writing configuration 📜  ...
@@ -1314,7 +1376,7 @@ Have a question, bug, or feature request? Let us know! https://kind.sigs.k8s.io/
 <details>
 <summary>Output</summary>
 <pre><code class="language-bash">NAME                                     STATUS   ROLES                  AGE     VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE       KERNEL-VERSION     CONTAINER-RUNTIME
-azure-workload-identity-control-plane   Ready    control-plane,master   2m28s   v1.21.1   172.18.0.2    &lt;none&gt;        Ubuntu 21.04   5.4.0-1047-azure   containerd://1.5.2
+azure-workload-identity-control-plane   Ready    control-plane,master   2m28s   v1.22.2   172.18.0.2    &lt;none&gt;        Ubuntu 21.04   5.4.0-1047-azure   containerd://1.5.2
 </code></pre>
 </details>
 <p>Now that we have confirmed the cluster is up and running with the required configuration, you can follow the tutorial in <a href="topics/self-managed-clusters/examples/../../../quick-start.html">Quick Start</a> to learn the basics of how to use the Azure AD Workload Identity webhook to acquire a token to access a secret in an <a href="topics/self-managed-clusters/examples/../../../../installation/self-managed-clusters/configurations.html">Azure Key Vault</a>.</p>
@@ -1380,7 +1442,7 @@ true
 <p>If you ran into this issue, you can either:</p>
 <ol>
 <li>
-<p>Upgrade your cluster to v1.19+ or</p>
+<p>Upgrade your cluster to v1.20+ or</p>
 </li>
 <li>
 <p>Apply the following <code>securityContext</code> field to your pod spec:</p>
@@ -1545,7 +1607,7 @@ export SERVICE_ACCOUNT_SIGNING_KEY_FILE=&quot;$(pwd)/sa.key&quot;
 <blockquote>
 <p>The minimum supported Kubernetes version for the webhook is v1.18.0, however, we recommend using Kubernetes version v1.20.0+.</p>
 </blockquote>
-<pre><code class="language-bash">cat &lt;&lt;EOF | kind create cluster --name azure-workload-identity --image kindest/node:v1.21.1 --config=-
+<pre><code class="language-bash">cat &lt;&lt;EOF | kind create cluster --name azure-workload-identity --image kindest/node:v1.22.2 --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
@@ -1568,8 +1630,8 @@ EOF
 <details>
 <summary>Output</summary>
 <pre><code class="language-bash">Creating cluster &quot;azure-workload-identity&quot; ...
- • Ensuring node image (kindest/node:v1.21.1) 🖼  ...
- ✓ Ensuring node image (kindest/node:v1.21.1) 🖼
+ • Ensuring node image (kindest/node:v1.22.2) 🖼  ...
+ ✓ Ensuring node image (kindest/node:v1.22.2) 🖼
  • Preparing nodes 📦   ...
  ✓ Preparing nodes 📦
  • Writing configuration 📜  ...
@@ -1594,7 +1656,7 @@ Have a question, bug, or feature request? Let us know! https://kind.sigs.k8s.io/
 <details>
 <summary>Output</summary>
 <pre><code class="language-bash">NAME                                     STATUS   ROLES                  AGE     VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE       KERNEL-VERSION     CONTAINER-RUNTIME
-azure-workload-identity-control-plane   Ready    control-plane,master   2m28s   v1.21.1   172.18.0.2    &lt;none&gt;        Ubuntu 21.04   5.4.0-1047-azure   containerd://1.5.2
+azure-workload-identity-control-plane   Ready    control-plane,master   2m28s   v1.22.2   172.18.0.2    &lt;none&gt;        Ubuntu 21.04   5.4.0-1047-azure   containerd://1.5.2
 </code></pre>
 </details>
 <h2 id="build-and-deploy-the-webhook"><a class="header" href="#build-and-deploy-the-webhook">Build and deploy the webhook</a></h2>
