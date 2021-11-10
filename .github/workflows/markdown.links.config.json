@@ -1,0 +1,11 @@
+{
+    "ignorePatterns": [
+        {
+            "pattern": "^https://github.com/Azure/azure-workload-identity"
+        }
+    ],
+    "aliveStatusCodes": [
+        200,
+        203
+    ]
+}
