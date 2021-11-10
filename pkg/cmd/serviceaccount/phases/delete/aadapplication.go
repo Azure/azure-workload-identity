@@ -54,7 +54,8 @@ func (p *aadApplicationPhase) run(ctx context.Context, data workflow.RunData) er
 		"name":     deleteData.AADApplicationName(),
 		"objectID": deleteData.AADApplicationObjectID(),
 	})
-	if _, err := deleteData.AzureClient().DeleteApplication(ctx, deleteData.AADApplicationObjectID()); err != nil {
+	if err := deleteData.AzureClient().DeleteApplication(ctx, deleteData.AADApplicationObjectID()); err != nil {
+		// TODO(aramase) check if this error is a 404 and type after change to graph sdk
 		if !cloud.IsResourceNotFound(err) {
 			return errors.Wrap(err, "failed to delete application")
 		}

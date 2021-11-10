@@ -8,11 +8,10 @@ import (
 	context "context"
 	reflect "reflect"
 
-	graphrbac "github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	authorization "github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	cloud "github.com/Azure/azure-workload-identity/pkg/cloud"
-	autorest "github.com/Azure/go-autorest/autorest"
 	gomock "github.com/golang/mock/gomock"
+	graph "github.com/microsoftgraph/msgraph-sdk-go/models/microsoft/graph"
 )
 
 // MockInterface is a mock of Interface interface.
@@ -53,10 +52,10 @@ func (mr *MockInterfaceMockRecorder) AddFederatedCredential(ctx, objectID, fc in
 }
 
 // CreateApplication mocks base method.
-func (m *MockInterface) CreateApplication(ctx context.Context, displayName string) (*graphrbac.Application, error) {
+func (m *MockInterface) CreateApplication(ctx context.Context, displayName string) (*graph.Application, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateApplication", ctx, displayName)
-	ret0, _ := ret[0].(*graphrbac.Application)
+	ret0, _ := ret[0].(*graph.Application)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -83,10 +82,10 @@ func (mr *MockInterfaceMockRecorder) CreateRoleAssignment(ctx, scope, roleName, 
 }
 
 // CreateServicePrincipal mocks base method.
-func (m *MockInterface) CreateServicePrincipal(ctx context.Context, appID string, tags []string) (*graphrbac.ServicePrincipal, error) {
+func (m *MockInterface) CreateServicePrincipal(ctx context.Context, appID string, tags []string) (*graph.ServicePrincipal, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateServicePrincipal", ctx, appID, tags)
-	ret0, _ := ret[0].(*graphrbac.ServicePrincipal)
+	ret0, _ := ret[0].(*graph.ServicePrincipal)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -98,12 +97,11 @@ func (mr *MockInterfaceMockRecorder) CreateServicePrincipal(ctx, appID, tags int
 }
 
 // DeleteApplication mocks base method.
-func (m *MockInterface) DeleteApplication(ctx context.Context, objectID string) (autorest.Response, error) {
+func (m *MockInterface) DeleteApplication(ctx context.Context, objectID string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteApplication", ctx, objectID)
-	ret0, _ := ret[0].(autorest.Response)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // DeleteApplication indicates an expected call of DeleteApplication.
@@ -142,12 +140,11 @@ func (mr *MockInterfaceMockRecorder) DeleteRoleAssignment(ctx, roleAssignmentID 
 }
 
 // DeleteServicePrincipal mocks base method.
-func (m *MockInterface) DeleteServicePrincipal(ctx context.Context, objectID string) (autorest.Response, error) {
+func (m *MockInterface) DeleteServicePrincipal(ctx context.Context, objectID string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteServicePrincipal", ctx, objectID)
-	ret0, _ := ret[0].(autorest.Response)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // DeleteServicePrincipal indicates an expected call of DeleteServicePrincipal.
@@ -157,10 +154,10 @@ func (mr *MockInterfaceMockRecorder) DeleteServicePrincipal(ctx, objectID interf
 }
 
 // GetApplication mocks base method.
-func (m *MockInterface) GetApplication(ctx context.Context, displayName string) (*graphrbac.Application, error) {
+func (m *MockInterface) GetApplication(ctx context.Context, displayName string) (*graph.Application, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetApplication", ctx, displayName)
-	ret0, _ := ret[0].(*graphrbac.Application)
+	ret0, _ := ret[0].(*graph.Application)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -202,10 +199,10 @@ func (mr *MockInterfaceMockRecorder) GetRoleDefinitionIDByName(ctx, scope, roleN
 }
 
 // GetServicePrincipal mocks base method.
-func (m *MockInterface) GetServicePrincipal(ctx context.Context, displayName string) (*graphrbac.ServicePrincipal, error) {
+func (m *MockInterface) GetServicePrincipal(ctx context.Context, displayName string) (*graph.ServicePrincipal, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetServicePrincipal", ctx, displayName)
-	ret0, _ := ret[0].(*graphrbac.ServicePrincipal)
+	ret0, _ := ret[0].(*graph.ServicePrincipal)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

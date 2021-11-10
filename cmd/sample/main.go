@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
 
 	"k8s.io/klog/v2"
@@ -17,10 +19,17 @@ func init() {
 }
 
 func main() {
-	app, err := cloud.GraphClient(testTenantID, testClientID, testClientSecret)
+	c, err := cloud.GraphClient(testTenantID, testClientID, testClientSecret)
 	if err != nil {
-		klog.Fatalf("failed to create application: %v", err)
+		klog.Fatalf("failed to create client: %w", err)
 	}
-	klog.InfoS("application name", "name", app.GetDisplayName())
-	klog.InfoS("application app id", "app id", *app.GetAppId())
+	client := &cloud.AzureClient{
+		GraphServiceClient: c,
+	}
+	app, err := client.GetApplication(context.Background(), "azwi-e2e-app-b886")
+	if err != nil {
+		klog.ErrorS(err, "failed to get application")
+		return
+	}
+	klog.InfoS("application", "name", *app.GetDisplayName(), "id", *app.GetId(), "appID", *app.GetAppId())
 }

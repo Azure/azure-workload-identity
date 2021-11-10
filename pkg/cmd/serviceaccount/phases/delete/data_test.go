@@ -6,7 +6,7 @@ import (
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/util"
 
-	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
+	"github.com/microsoftgraph/msgraph-sdk-go/models/microsoft/graph"
 	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
 )
@@ -15,7 +15,7 @@ type mockDeleteData struct {
 	serviceAccountName      string
 	serviceAccountNamespace string
 	serviceAccountIssuerURL string
-	aadApplication          *graphrbac.Application // cache
+	aadApplication          *graph.Application // cache
 	aadApplicationName      string
 	aadApplicationObjectID  string
 	roleAssignmentID        string
@@ -37,7 +37,7 @@ func (d *mockDeleteData) ServiceAccountIssuerURL() string {
 	return d.serviceAccountIssuerURL
 }
 
-func (d *mockDeleteData) AADApplication() (*graphrbac.Application, error) {
+func (d *mockDeleteData) AADApplication() (*graph.Application, error) {
 	if d.aadApplication == nil {
 		return nil, errors.New("not found")
 	}

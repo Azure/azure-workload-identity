@@ -12,6 +12,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	betagraph "github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -56,7 +57,7 @@ func NewFederatedCredentialsClient(baseURI string) FederatedCredentialsClient {
 }
 
 // AddFederatedCredential adds a federated credential to the cloud provider.
-func (c *AzureClient) AddFederatedCredential(ctx context.Context, objectID string, fc FederatedCredential) error {
+func (c *AzureClient) AddFederatedCredential(ctx context.Context, objectID string, fc *betagraph.FederatedIdentityCredential) error {
 	log.Debugf("Adding federated credential for objectID=%s", objectID)
 
 	body, err := json.Marshal(fc)

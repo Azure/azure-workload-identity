@@ -86,10 +86,7 @@ func TestDeleteDataAADApplication(t *testing.T) {
 			name: "cache",
 			deleteData: &deleteData{
 				aadApplicationName: appName,
-				aadApplication: &graphrbac.Application{
-					AppID:    to.StringPtr(appID),
-					ObjectID: to.StringPtr(objectID),
-				},
+				aadApplication:     testApplication(appID, objectID),
 			},
 			expect: func(m *mock_cloud.MockInterfaceMockRecorder) {},
 			verify: func(t *testing.T, deleteData *deleteData) {

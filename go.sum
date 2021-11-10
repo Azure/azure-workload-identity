@@ -425,12 +425,15 @@ github.com/microsoft/kiota/authentication/go/azure v0.0.0-20211101175933-7e7ef25
 github.com/microsoft/kiota/authentication/go/azure v0.0.0-20211110153957-004520ec140f h1:osXOSWFiWwIKkLuQNGRnYLaENWk7BvMTDPRw9DMYM6k=
 github.com/microsoft/kiota/authentication/go/azure v0.0.0-20211110153957-004520ec140f/go.mod h1:PMKgz2OtLftNNMIdia56cvhYK7EsHQBJf+rNs1GUfXM=
 github.com/microsoft/kiota/http/go/nethttp v0.0.0-20211108132630-7da008c70103/go.mod h1:X5JSRgVba6fXiCfH2v4plxfZlfEYCF4MMSuqjsURZk4=
+github.com/microsoft/kiota/http/go/nethttp v0.0.0-20211108143922-c77efb191939/go.mod h1:X5JSRgVba6fXiCfH2v4plxfZlfEYCF4MMSuqjsURZk4=
 github.com/microsoft/kiota/http/go/nethttp v0.0.0-20211110153957-004520ec140f h1:5SmyR8KOnsAlDGV5EgzXAb2BYSNtYQcnAT8aUfyjpag=
 github.com/microsoft/kiota/http/go/nethttp v0.0.0-20211110153957-004520ec140f/go.mod h1:X5JSRgVba6fXiCfH2v4plxfZlfEYCF4MMSuqjsURZk4=
 github.com/microsoft/kiota/serialization/go/json v0.0.0-20211101175933-7e7ef25b396e/go.mod h1:edr20sXHBVGx5B4Y2sQoXzJqMRIpsCmqT3Fbq1NRiR0=
 github.com/microsoft/kiota/serialization/go/json v0.0.0-20211108132630-7da008c70103/go.mod h1:edr20sXHBVGx5B4Y2sQoXzJqMRIpsCmqT3Fbq1NRiR0=
 github.com/microsoft/kiota/serialization/go/json v0.0.0-20211110153957-004520ec140f h1:j90tG5I2BAya9fMP+UJ3Aoms4DY9bkE01ZZLrWBt+xU=
 github.com/microsoft/kiota/serialization/go/json v0.0.0-20211110153957-004520ec140f/go.mod h1:edr20sXHBVGx5B4Y2sQoXzJqMRIpsCmqT3Fbq1NRiR0=
+github.com/microsoftgraph/msgraph-beta-sdk-go v0.1.1 h1:LTKnJO3GqrX7aRUdqrblOC+n7A4C72fgMHpB8f32Y0g=
+github.com/microsoftgraph/msgraph-beta-sdk-go v0.1.1/go.mod h1:Ulfh6SXbgqrjJFLspG4r4Qqx9p6ecGrKn9IGedqfsqk=
 github.com/microsoftgraph/msgraph-sdk-go v0.1.1 h1:6Xa+XCccuG2JTm3RQYUTXttSRkbglL6ZtFn2TEgrADg=
 github.com/microsoftgraph/msgraph-sdk-go v0.1.1/go.mod h1:WCXZoCSNKh2VW0OV8OxZscgIYVfTn9eKx+fhy55GI3Y=
 github.com/microsoftgraph/msgraph-sdk-go-core v0.0.2 h1:4F6wuz4javZxc2+MRE3yofTZ3jeaoiM+FN+hRLlXnSw=

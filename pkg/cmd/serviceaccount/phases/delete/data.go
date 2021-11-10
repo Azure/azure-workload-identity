@@ -3,7 +3,7 @@ package phases
 import (
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
 
-	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
+	"github.com/microsoftgraph/msgraph-sdk-go/models/microsoft/graph"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -21,7 +21,7 @@ type DeleteData interface {
 
 	// AADApplication returns the AAD application object.
 	// This will return the cached value if it has been created.
-	AADApplication() (*graphrbac.Application, error)
+	AADApplication() (*graph.Application, error)
 
 	// AADApplicationName returns the name of the AAD application.
 	AADApplicationName() string

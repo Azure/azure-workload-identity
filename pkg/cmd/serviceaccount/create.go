@@ -14,7 +14,7 @@ import (
 	"github.com/Azure/azure-workload-identity/pkg/kuberneteshelper"
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
 
-	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
+	"github.com/microsoftgraph/msgraph-sdk-go/models/microsoft/graph"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/kubernetes"
@@ -65,11 +65,11 @@ type createData struct {
 	serviceAccountNamespace       string
 	serviceAccountIssuerURL       string
 	serviceAccountTokenExpiration time.Duration
-	aadApplication                *graphrbac.Application // cache
+	aadApplication                *graph.Application // cache
 	aadApplicationName            string
 	aadApplicationClientID        string
 	aadApplicationObjectID        string
-	servicePrincipal              *graphrbac.ServicePrincipal // cache
+	servicePrincipal              *graph.ServicePrincipal // cache
 	servicePrincipalObjectID      string
 	servicePrincipalName          string
 	azureRole                     string
@@ -101,7 +101,7 @@ func (c *createData) ServiceAccountTokenExpiration() time.Duration {
 
 // AADApplication returns the AAD application object.
 // This will return the cached value if it has been created.
-func (c *createData) AADApplication() (*graphrbac.Application, error) {
+func (c *createData) AADApplication() (*graph.Application, error) {
 	if c.aadApplication == nil {
 		app, err := c.AzureClient().GetApplication(context.Background(), c.AADApplicationName())
 		if err != nil {
@@ -136,7 +136,7 @@ func (c *createData) AADApplicationClientID() string {
 		log.WithError(err).Error("failed to get AAD application client ID. Returning an empty string")
 		return ""
 	}
-	return *app.AppID
+	return *app.GetAppId()
 }
 
 // AADApplicationObjectID returns the object ID of the AAD application.
@@ -151,12 +151,12 @@ func (c *createData) AADApplicationObjectID() string {
 		log.WithError(err).Error("failed to get AAD application object ID. Returning an empty string")
 		return ""
 	}
-	return *app.ObjectID
+	return *app.GetId()
 }
 
 // ServicePrincipal returns the service principal object.
 // This will return the cached value if it has been created.
-func (c *createData) ServicePrincipal() (*graphrbac.ServicePrincipal, error) {
+func (c *createData) ServicePrincipal() (*graph.ServicePrincipal, error) {
 	if c.servicePrincipal == nil {
 		sp, err := c.AzureClient().GetServicePrincipal(context.Background(), c.ServicePrincipalName())
 		if err != nil {
@@ -190,7 +190,7 @@ func (c *createData) ServicePrincipalObjectID() string {
 		log.WithError(err).Error("failed to get service principal object ID. Returning an empty string")
 		return ""
 	}
-	return *sp.ObjectID
+	return *sp.GetId()
 }
 
 // AzureRole returns the Azure role.
