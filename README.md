@@ -9,7 +9,6 @@ Azure AD Workload Identity is the next iteration of [Azure AD Pod Identity][1] t
 | 1.22               | ✅         |
 | 1.21               | ✅         |
 | 1.20               | ✅         |
-| 1.19               | ✅         |
 
 ## Installation
 

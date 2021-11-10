@@ -4,7 +4,7 @@
 
 *   [Azure CLI][1]
 *   [Helm 3][2]
-*   A Kubernetes cluster with version ≥ v1.19
+*   A Kubernetes cluster with version ≥ v1.20
     *   **Follow the cluster-specific setup guide below before deploying Azure AD Workload Identity:**
 
 | Cluster type         | Steps                                                                                                                                                                                                                    | Guide     |

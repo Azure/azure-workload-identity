@@ -142,7 +142,7 @@ Create a kind cluster with one control plane node and customize various service 
 > The minimum supported Kubernetes version for the webhook is v1.18.0, however, we recommend using Kubernetes version v1.20.0+.
 
 ```bash
-cat <<EOF | kind create cluster --name azure-workload-identity --image kindest/node:v1.21.1 --config=-
+cat <<EOF | kind create cluster --name azure-workload-identity --image kindest/node:v1.22.2 --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
@@ -168,8 +168,8 @@ EOF
 
 ```bash
 Creating cluster "azure-workload-identity" ...
- • Ensuring node image (kindest/node:v1.21.1) 🖼  ...
- ✓ Ensuring node image (kindest/node:v1.21.1) 🖼
+ • Ensuring node image (kindest/node:v1.22.2) 🖼  ...
+ ✓ Ensuring node image (kindest/node:v1.22.2) 🖼
  • Preparing nodes 📦   ...
  ✓ Preparing nodes 📦
  • Writing configuration 📜  ...
@@ -201,7 +201,7 @@ kubectl get nodes
 
 ```bash
 NAME                                     STATUS   ROLES                  AGE     VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE       KERNEL-VERSION     CONTAINER-RUNTIME
-azure-workload-identity-control-plane   Ready    control-plane,master   2m28s   v1.21.1   172.18.0.2    <none>        Ubuntu 21.04   5.4.0-1047-azure   containerd://1.5.2
+azure-workload-identity-control-plane   Ready    control-plane,master   2m28s   v1.22.2   172.18.0.2    <none>        Ubuntu 21.04   5.4.0-1047-azure   containerd://1.5.2
 ```
 
 </details>
