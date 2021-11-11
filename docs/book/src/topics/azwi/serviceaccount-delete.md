@@ -54,10 +54,10 @@ azwi sa delete \
 
 </details>
 
-## Invokes a single phase of the delete workflow
+## Invoke a single phase of the delete workflow
 
-To Invokes a single phase of the delete workflow:
+To invoke a single phase of the delete workflow:
 
 ```
-azwi sa create phase <phase name>
+azwi sa delete phase <phase name>
 ```

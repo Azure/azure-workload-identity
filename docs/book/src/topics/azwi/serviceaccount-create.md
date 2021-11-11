@@ -60,9 +60,9 @@ azwi serviceaccount create \
 
 </details>
 
-## Invokes a single phase of the create workflow
+## Invoke a single phase of the create workflow
 
-To Invokes a single phase of the create workflow:
+To invoke a single phase of the create workflow:
 
 ```
 azwi sa create phase <phase name>
