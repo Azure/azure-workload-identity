@@ -617,7 +617,7 @@ mutatingwebhookconfiguration.admissionregistration.k8s.io/azure-wi-webhook-mutat
 <ul>
 <li>You are logged in with the Azure CLI as a user.
 <ul>
-<li>If you are logged in with a Service Principal, ensure that it has the correct <a href="../known-issues.html#user-tried-to-log-in-to-a-device-from-a-platform-unknown-thats-currently-not-supported-through-conditional-access-policy">API permissions</a> enabled.</li>
+<li>If you are logged in with a Service Principal, ensure that it has the correct <a href="./known-issues.html#user-tried-to-log-in-to-a-device-from-a-platform-unknown-thats-currently-not-supported-through-conditional-access-policy">API permissions</a> enabled.</li>
 </ul>
 </li>
 <li>Your logged in account must have sufficient permissions to create applications and service principals in Azure AD.</li>
@@ -897,12 +897,12 @@ az ad sp delete --id &quot;${APPLICATION_CLIENT_ID}&quot;
 <ul>
 <li>one-to-one (a service account referencing an AAD object)</li>
 <li>many-to-one (multiple service accounts referencing the same AAD object).</li>
-<li>one-to-many (a service account referencing multiple AAD objects by changing the <a href="../topics/service-account-labels-and-annotations.html#annotations">client ID annotation</a>).</li>
+<li>one-to-many (a service account referencing multiple AAD objects by changing the <a href="./topics/service-account-labels-and-annotations.html#annotations">client ID annotation</a>).</li>
 </ul>
 <blockquote>
 <p>Note: if the service account annotations are updated, you need to restart the pod for the changes to take effect.</p>
 </blockquote>
-<p>Users who used <a href="https://github.com/Azure/aad-pod-identity">aad-pod-identity</a> can think of a service account as an <a href="https://azure.github.io/aad-pod-identity/docs/concepts/azureidentity/">AzureIdentity</a>, except service account is part of the core Kubernetes API, rather than a CRD. This <a href="../topics/service-account-labels-and-annotations.html">doc</a> describes a list of available labels and annotations to configure.</p>
+<p>Users who used <a href="https://github.com/Azure/aad-pod-identity">aad-pod-identity</a> can think of a service account as an <a href="https://azure.github.io/aad-pod-identity/docs/concepts/azureidentity/">AzureIdentity</a>, except service account is part of the core Kubernetes API, rather than a CRD. This <a href="./topics/service-account-labels-and-annotations.html">doc</a> describes a list of available labels and annotations to configure.</p>
 <h2 id="workload-identity-federation"><a class="header" href="#workload-identity-federation">Workload Identity Federation</a></h2>
 <p>Using workload identity federation allows you to access Azure Active Directory (Azure AD) protected resources without needing to manage secrets. This <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/workload-identity-federation">doc</a> describes in detail on workload identity federation works and steps to create, delete, get or update federated identity credentials.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="topics"><a class="header" href="#topics">Topics</a></h1>
@@ -1337,7 +1337,7 @@ rm sa.*
 <li><a href="topics/self-managed-clusters/examples/kind.html#1-complete-the-self-managed-cluster-installation-guide">1. Complete the self-managed cluster installation guide</a></li>
 <li><a href="topics/self-managed-clusters/examples/kind.html#2-create-a-kind-cluster">2. Create a kind cluster</a></li>
 </ul>
-<p>This document shows you how to create a kind cluster and customize the required <a href="topics/self-managed-clusters/examples/../../../../installation/self-managed-clusters/configurations.html">configuration</a> for the kube-apiserver.</p>
+<p>This document shows you how to create a kind cluster and customize the required <a href="topics/self-managed-clusters/examples/../../../installation/self-managed-clusters/configurations.html">configuration</a> for the kube-apiserver.</p>
 <h2 id="1-complete-the-self-managed-cluster-installation-guide"><a class="header" href="#1-complete-the-self-managed-cluster-installation-guide">1. Complete the self-managed cluster installation guide</a></h2>
 <ul>
 <li><a href="topics/self-managed-clusters/examples/../../../installation/self-managed-clusters/service-account-key-generation.html">Service Account Key Generation</a></li>
@@ -1408,11 +1408,11 @@ Have a question, bug, or feature request? Let us know! https://kind.sigs.k8s.io/
 azure-workload-identity-control-plane   Ready    control-plane,master   2m28s   v1.22.2   172.18.0.2    &lt;none&gt;        Ubuntu 21.04   5.4.0-1047-azure   containerd://1.5.2
 </code></pre>
 </details>
-<p>Now that we have confirmed the cluster is up and running with the required configuration, you can follow the tutorial in <a href="topics/self-managed-clusters/examples/../../../quick-start.html">Quick Start</a> to learn the basics of how to use the Azure AD Workload Identity webhook to acquire a token to access a secret in an <a href="topics/self-managed-clusters/examples/../../../../installation/self-managed-clusters/configurations.html">Azure Key Vault</a>.</p>
+<p>Now that we have confirmed the cluster is up and running with the required configuration, you can follow the tutorial in <a href="topics/self-managed-clusters/examples/../../../quick-start.html">Quick Start</a> to learn the basics of how to use the Azure AD Workload Identity webhook to acquire a token to access a secret in an <a href="topics/self-managed-clusters/examples/../../../installation/self-managed-clusters/configurations.html">Azure Key Vault</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="language-specific-examples"><a class="header" href="#language-specific-examples">Language-Specific Examples</a></h1>
 <p>Azure AD Workload Identity works especially well with the <a href="https://azure.microsoft.com/en-us/downloads/">Azure SDK</a> and the <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-overview">Microsoft Authentication Library (MSAL)</a>. Your workload can leverage any of these library to seamlessly access Azure cloud resources. This section contains example projects using both libraries in different programming languages.</p>
 <blockquote>
-<p>You can swap the demo image used in the <a href="topics/../../quick-start.html#6-deploy-workload">quick start</a> with images built from these example projects.</p>
+<p>You can swap the demo image used in the <a href="topics/../quick-start.html#7-deploy-workload">quick start</a> with images built from these example projects.</p>
 </blockquote>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="azure-identity-sdk"><a class="header" href="#azure-identity-sdk">Azure Identity SDK</a></h1>
 <p><em>Coming soon</em></p>
@@ -1529,7 +1529,7 @@ az rest --method post --uri &quot;${URI}&quot; --body &quot;${BODY}&quot; --head
 <h2 id="setting-up"><a class="header" href="#setting-up">Setting up</a></h2>
 <h3 id="base-requirements"><a class="header" href="#base-requirements">Base requirements</a></h3>
 <ol>
-<li>Prerequisites from <a href="./quick-start.html#prerequisites">Quick Start</a></li>
+<li>Prerequisites from <a href="./installation.html#prerequisites">Installation</a></li>
 <li>Install <a href="https://golang.org/dl/">go</a>
 <ul>
 <li>Get the latest patch version for go 1.17.</li>

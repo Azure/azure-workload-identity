@@ -156,12 +156,12 @@
 <ul>
 <li>one-to-one (a service account referencing an AAD object)</li>
 <li>many-to-one (multiple service accounts referencing the same AAD object).</li>
-<li>one-to-many (a service account referencing multiple AAD objects by changing the <a href="../topics/service-account-labels-and-annotations.html#annotations">client ID annotation</a>).</li>
+<li>one-to-many (a service account referencing multiple AAD objects by changing the <a href="./topics/service-account-labels-and-annotations.html#annotations">client ID annotation</a>).</li>
 </ul>
 <blockquote>
 <p>Note: if the service account annotations are updated, you need to restart the pod for the changes to take effect.</p>
 </blockquote>
-<p>Users who used <a href="https://github.com/Azure/aad-pod-identity">aad-pod-identity</a> can think of a service account as an <a href="https://azure.github.io/aad-pod-identity/docs/concepts/azureidentity/">AzureIdentity</a>, except service account is part of the core Kubernetes API, rather than a CRD. This <a href="../topics/service-account-labels-and-annotations.html">doc</a> describes a list of available labels and annotations to configure.</p>
+<p>Users who used <a href="https://github.com/Azure/aad-pod-identity">aad-pod-identity</a> can think of a service account as an <a href="https://azure.github.io/aad-pod-identity/docs/concepts/azureidentity/">AzureIdentity</a>, except service account is part of the core Kubernetes API, rather than a CRD. This <a href="./topics/service-account-labels-and-annotations.html">doc</a> describes a list of available labels and annotations to configure.</p>
 <h2 id="workload-identity-federation"><a class="header" href="#workload-identity-federation">Workload Identity Federation</a></h2>
 <p>Using workload identity federation allows you to access Azure Active Directory (Azure AD) protected resources without needing to manage secrets. This <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/workload-identity-federation">doc</a> describes in detail on workload identity federation works and steps to create, delete, get or update federated identity credentials.</p>
 
