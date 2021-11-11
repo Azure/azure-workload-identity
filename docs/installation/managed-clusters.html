@@ -165,7 +165,7 @@
 <h2 id="azure-kubernetes-service-aks"><a class="header" href="#azure-kubernetes-service-aks">Azure Kubernetes Service (AKS)</a></h2>
 <pre><code class="language-bash">az aks [create|update] --resource-group &lt;resource_group&gt; --name &lt;cluster_name&gt; --enable-oidc-issuer
 # Output the OIDC issuer URL
-az aks show --resource-group &lt;resource_group&gt; --name &lt;cluster_name&gt; --query &quot;.oidcIssuerProfile.issuerUrl&quot; -otsv
+az aks show --resource-group &lt;resource_group&gt; --name &lt;cluster_name&gt; --query &quot;oidcIssuerProfile.issuerUrl&quot; -otsv
 </code></pre>
 <h2 id="amazon-elastic-kubernetes-service-eks"><a class="header" href="#amazon-elastic-kubernetes-service-eks">Amazon Elastic Kubernetes Service (EKS)</a></h2>
 <p>EKS cluster has an OIDC issuer URL associated with it by default. To get your cluster’s OIDC issuer URL run:</p>
