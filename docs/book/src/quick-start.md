@@ -405,4 +405,4 @@ az ad sp delete --id "${APPLICATION_CLIENT_ID}"
 
 [13]: ./installation.md
 
-[14]: ../known-issues.md#user-tried-to-log-in-to-a-device-from-a-platform-unknown-thats-currently-not-supported-through-conditional-access-policy
+[14]: ./known-issues.md#user-tried-to-log-in-to-a-device-from-a-platform-unknown-thats-currently-not-supported-through-conditional-access-policy

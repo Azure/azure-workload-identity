@@ -28,8 +28,8 @@ Using workload identity federation allows you to access Azure Active Directory (
 
 [4]: https://azure.github.io/aad-pod-identity/docs/concepts/azureidentity/
 
-[5]: ../topics/service-account-labels-and-annotations.html
+[5]: ./topics/service-account-labels-and-annotations.md
 
-[6]: ../topics/service-account-labels-and-annotations.html#annotations
+[6]: ./topics/service-account-labels-and-annotations.md#annotations
 
 [7]: https://docs.microsoft.com/en-us/azure/active-directory/develop/workload-identity-federation
