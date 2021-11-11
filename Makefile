@@ -89,7 +89,11 @@ bin/azwi-$(GOOS)-$(GOARCH)$(EXTENSION):
 	GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o $(BIN_DIR)/azwi-$(GOOS)-$(GOARCH)$(EXTENSION) -ldflags $(LDFLAGS) ./cmd/azwi
 
 bin/azwi: bin/azwi-$(GOOS)-$(GOARCH)$(EXTENSION)
-	ln -sf $(PWD)/bin/azwi-$(GOOS)-$(GOARCH)$(EXTENSION) $(PWD)/bin/azwi
+	@if [ "$(GOOS)" = "windows" ]; then \
+		cmd //c mklink $(subst /,\\,$(BIN_DIR)/azwi) $(subst /,\,$(BIN_DIR)/azwi-$(GOOS)-$(GOARCH)$(EXTENSION)); \
+	else \
+		ln -sf $(BIN_DIR)/azwi-$(GOOS)-$(GOARCH)$(EXTENSION) $(BIN_DIR)/azwi; \
+	fi
 
 ## --------------------------------------
 ## Images
