@@ -11,7 +11,7 @@ Before deploying Azure AD Workload Identity, you will need to enable any **OIDC-
 ```bash
 az aks [create|update] --resource-group <resource_group> --name <cluster_name> --enable-oidc-issuer
 # Output the OIDC issuer URL
-az aks show --resource-group <resource_group> --name <cluster_name> --query ".oidcIssuerProfile.issuerURL" -otsv
+az aks show --resource-group <resource_group> --name <cluster_name> --query ".oidcIssuerProfile.issuerUrl" -otsv
 ```
 
 ## Amazon Elastic Kubernetes Service (EKS)
