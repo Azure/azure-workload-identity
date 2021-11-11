@@ -59,3 +59,11 @@ azwi serviceaccount create \
     INFO[0004] [federated-identity] added federated credential  objectID=19888f97-e0d3-4f61-8eb9-b87bf161e27d subject="system:serviceaccount:default:azwi-sa"
 
 </details>
+
+## Invoke a single phase of the create workflow
+
+To invoke a single phase of the create workflow:
+
+```
+azwi sa create phase <phase name>
+```

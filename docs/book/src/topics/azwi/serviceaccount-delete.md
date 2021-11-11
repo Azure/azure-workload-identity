@@ -53,3 +53,11 @@ azwi sa delete \
     INFO[0001] [aad-application] deleted aad application     objectID=19888f97-e0d3-4f61-8eb9-b87bf161e27d
 
 </details>
+
+## Invoke a single phase of the delete workflow
+
+To invoke a single phase of the delete workflow:
+
+```
+azwi sa delete phase <phase name>
+```
