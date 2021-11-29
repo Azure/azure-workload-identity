@@ -7,7 +7,7 @@ import (
 
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cloud/mock_cloud"
-	"github.com/microsoftgraph/msgraph-sdk-go/models/microsoft/graph"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/go-autorest/autorest/to"

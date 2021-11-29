@@ -6,7 +6,7 @@ import (
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/util"
 
-	"github.com/microsoftgraph/msgraph-sdk-go/models/microsoft/graph"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
 	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
 )

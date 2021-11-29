@@ -6,13 +6,14 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-workload-identity/pkg/cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cloud/mock_cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/util"
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/mock/gomock"
 )
 
@@ -76,14 +77,15 @@ func TestFederatedIdentityRun(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	fic := graph.NewFederatedIdentityCredential()
+	fic.SetAudiences([]string{webhook.DefaultAudience})
+	fic.SetDescription(to.StringPtr(fmt.Sprintf("Federated Service Account for %s/%s", data.serviceAccountNamespace, data.serviceAccountName)))
+	fic.SetIssuer(to.StringPtr(data.serviceAccountIssuerURL))
+	fic.SetSubject(to.StringPtr(util.GetFederatedCredentialSubject(data.serviceAccountNamespace, data.serviceAccountName)))
+	fic.SetName(to.StringPtr("federatedcredential-from-cli"))
+
 	mockAzureClient := mock_cloud.NewMockInterface(ctrl)
-	mockAzureClient.EXPECT().AddFederatedCredential(gomock.Any(), "aad-application-object-id", cloud.FederatedCredential{
-		Name:        "federatedcredential-from-cli",
-		Issuer:      data.serviceAccountIssuerURL,
-		Subject:     util.GetFederatedCredentialSubject(data.serviceAccountNamespace, data.serviceAccountName),
-		Description: fmt.Sprintf("Federated Service Account for %s/%s", data.serviceAccountNamespace, data.serviceAccountName),
-		Audiences:   []string{webhook.DefaultAudience},
-	}).Return(nil)
+	mockAzureClient.EXPECT().AddFederatedCredential(gomock.Any(), "aad-application-object-id", fic).Return(nil)
 	data.azureClient = mockAzureClient
 
 	err := phase.Run(context.Background(), data)

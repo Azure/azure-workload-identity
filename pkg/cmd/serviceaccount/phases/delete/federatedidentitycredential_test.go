@@ -5,12 +5,13 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-workload-identity/pkg/cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cloud/mock_cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/util"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 )
@@ -75,13 +76,16 @@ func TestFederatedIdentityRun(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	fic := graph.NewFederatedIdentityCredential()
+	fic.SetId(to.StringPtr("federated-identity-credential-id"))
+
 	mockAzureClient := mock_cloud.NewMockInterface(ctrl)
 	mockAzureClient.EXPECT().GetFederatedCredential(
 		gomock.Any(),
 		"aad-application-object-id",
 		data.serviceAccountIssuerURL,
 		util.GetFederatedCredentialSubject(data.serviceAccountNamespace, data.serviceAccountName),
-	).Return(cloud.FederatedCredential{ID: "federated-credential-id"}, nil)
+	).Return(fic, nil)
 	mockAzureClient.EXPECT().DeleteFederatedCredential(gomock.Any(), "aad-application-object-id", "federated-credential-id").Return(nil)
 	data.azureClient = mockAzureClient
 
@@ -96,7 +100,7 @@ func TestFederatedIdentityRun(t *testing.T) {
 		"aad-application-object-id",
 		data.serviceAccountIssuerURL,
 		util.GetFederatedCredentialSubject(data.serviceAccountNamespace, data.serviceAccountName),
-	).Return(cloud.FederatedCredential{ID: "federated-credential-id"}, nil)
+	).Return(fic, nil)
 	mockAzureClient.EXPECT().DeleteFederatedCredential(gomock.Any(), "aad-application-object-id", "federated-credential-id").Return(errors.New("random error"))
 	err = phase.Run(context.Background(), data)
 	if err == nil {
@@ -109,7 +113,7 @@ func TestFederatedIdentityRun(t *testing.T) {
 		"aad-application-object-id",
 		data.serviceAccountIssuerURL,
 		util.GetFederatedCredentialSubject(data.serviceAccountNamespace, data.serviceAccountName),
-	).Return(cloud.FederatedCredential{}, autorest.DetailedError{StatusCode: http.StatusNotFound})
+	).Return(nil, autorest.DetailedError{StatusCode: http.StatusNotFound})
 	err = phase.Run(context.Background(), data)
 	if err != nil {
 		t.Errorf("expected no error but got: %s", err.Error())

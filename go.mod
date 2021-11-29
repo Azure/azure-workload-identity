@@ -16,10 +16,9 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/mattn/go-colorable v0.0.9
-	github.com/microsoft/kiota/abstractions/go v0.0.0-20211110153957-004520ec140f
-	github.com/microsoft/kiota/authentication/go/azure v0.0.0-20211110153957-004520ec140f
-	github.com/microsoftgraph/msgraph-beta-sdk-go v0.1.1
-	github.com/microsoftgraph/msgraph-sdk-go v0.1.1
+	github.com/microsoft/kiota/abstractions/go v0.0.0-20211115212215-7478730f2237
+	github.com/microsoft/kiota/authentication/go/azure v0.0.0-20211126182358-a93270f822db
+	github.com/microsoftgraph/msgraph-beta-sdk-go v0.3.0
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.13.0
 	github.com/open-policy-agent/cert-controller v0.2.0
@@ -71,8 +70,8 @@ require (
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/mattn/go-isatty v0.0.4 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
-	github.com/microsoft/kiota/http/go/nethttp v0.0.0-20211110153957-004520ec140f // indirect
-	github.com/microsoft/kiota/serialization/go/json v0.0.0-20211110153957-004520ec140f // indirect
+	github.com/microsoft/kiota/http/go/nethttp v0.0.0-20211116160143-b7566a0a6ee5 // indirect
+	github.com/microsoft/kiota/serialization/go/json v0.0.0-20211116162114-0e3eae106d29 // indirect
 	github.com/microsoftgraph/msgraph-sdk-go-core v0.0.2 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/moby/spdystream v0.2.0 // indirect

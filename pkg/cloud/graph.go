@@ -5,11 +5,17 @@ import (
 	"fmt"
 
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/microsoftgraph/msgraph-sdk-go/applications"
-	"github.com/microsoftgraph/msgraph-sdk-go/models/microsoft/graph"
-	"github.com/microsoftgraph/msgraph-sdk-go/serviceprincipals"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/applications"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/applications/item/federatedidentitycredentials"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/serviceprincipals"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+)
+
+var (
+	// ErrFederatedCredentialNotFound is returned when the federated credential is not found.
+	ErrFederatedCredentialNotFound = errors.New("federated credential not found")
 )
 
 // CreateServicePrincipal creates a service principal for the given application.
@@ -63,7 +69,6 @@ func (c *AzureClient) GetApplication(ctx context.Context, displayName string) (*
 	appGetOptions := &applications.ApplicationsRequestBuilderGetOptions{
 		Q: &applications.ApplicationsRequestBuilderGetQueryParameters{
 			Filter: to.StringPtr(getDisplayNameFilter(displayName)),
-			Search: to.StringPtr(getDisplayNameSearch(displayName)),
 		},
 	}
 
@@ -71,7 +76,6 @@ func (c *AzureClient) GetApplication(ctx context.Context, displayName string) (*
 	if err != nil {
 		return nil, err
 	}
-	log.Infof("Number of application returned: %d", len(resp.GetValue()))
 	if len(resp.GetValue()) == 0 {
 		return nil, errors.Errorf("application with display name '%s' not found", displayName)
 	}
@@ -95,6 +99,48 @@ func getDisplayNameFilter(displayName string) string {
 	return fmt.Sprintf("startswith(displayName, '%s')", displayName)
 }
 
-func getDisplayNameSearch(displayName string) string {
-	return fmt.Sprintf("displayName:%s", displayName)
+// AddFederatedCredential adds a federated credential to the cloud provider.
+func (c *AzureClient) AddFederatedCredential(ctx context.Context, objectID string, fic *graph.FederatedIdentityCredential) error {
+	log.Debugf("Adding federated credential for objectID=%s", objectID)
+
+	ficPostOptions := &federatedidentitycredentials.FederatedIdentityCredentialsRequestBuilderPostOptions{
+		Body: fic,
+	}
+
+	_, err := c.graphServiceClient.ApplicationsById(objectID).FederatedIdentityCredentials().Post(ficPostOptions)
+	return err
+}
+
+// GetFederatedCredential gets a federated credential from the cloud provider.
+func (c *AzureClient) GetFederatedCredential(ctx context.Context, objectID, issuer, subject string) (*graph.FederatedIdentityCredential, error) {
+	log.Infof("Getting federated credential for objectID=%s, issuer=%s, subject=%s", objectID, issuer, subject)
+
+	ficGetOptions := &federatedidentitycredentials.FederatedIdentityCredentialsRequestBuilderGetOptions{
+		Q: &federatedidentitycredentials.FederatedIdentityCredentialsRequestBuilderGetQueryParameters{
+			// TODO(aramase): compound filter with issuer and subject
+			Filter: to.StringPtr(getSubjectFilter(subject, issuer)),
+		},
+	}
+
+	resp, err := c.graphServiceClient.ApplicationsById(objectID).FederatedIdentityCredentials().Get(ficGetOptions)
+	if err != nil {
+		return nil, err
+	}
+	for _, fic := range resp.GetValue() {
+		if *fic.GetIssuer() == issuer {
+			return &fic, nil
+		}
+	}
+	return nil, ErrFederatedCredentialNotFound
+}
+
+// DeleteFederatedCredential deletes a federated credential from the cloud provider.
+func (c *AzureClient) DeleteFederatedCredential(ctx context.Context, objectID, federatedCredentialID string) error {
+	log.Debugf("Deleting federated credential for objectID=%s, federatedCredentialID=%s", objectID, federatedCredentialID)
+	return c.graphServiceClient.ApplicationsById(objectID).FederatedIdentityCredentialsById(federatedCredentialID).Delete(nil)
+}
+
+// getSubjectFilter returns a filter string for the given subject.
+func getSubjectFilter(subject, issuer string) string {
+	return fmt.Sprintf("subject eq '%s'", subject)
 }

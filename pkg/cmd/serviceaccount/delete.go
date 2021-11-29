@@ -12,7 +12,7 @@ import (
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/util"
 	"github.com/Azure/azure-workload-identity/pkg/kuberneteshelper"
 
-	"github.com/microsoftgraph/msgraph-sdk-go/models/microsoft/graph"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/kubernetes"

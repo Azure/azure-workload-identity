@@ -9,9 +9,8 @@ import (
 	reflect "reflect"
 
 	authorization "github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
-	cloud "github.com/Azure/azure-workload-identity/pkg/cloud"
 	gomock "github.com/golang/mock/gomock"
-	graph "github.com/microsoftgraph/msgraph-sdk-go/models/microsoft/graph"
+	graph "github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
 )
 
 // MockInterface is a mock of Interface interface.
@@ -38,17 +37,17 @@ func (m *MockInterface) EXPECT() *MockInterfaceMockRecorder {
 }
 
 // AddFederatedCredential mocks base method.
-func (m *MockInterface) AddFederatedCredential(ctx context.Context, objectID string, fc cloud.FederatedCredential) error {
+func (m *MockInterface) AddFederatedCredential(ctx context.Context, objectID string, fic *graph.FederatedIdentityCredential) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddFederatedCredential", ctx, objectID, fc)
+	ret := m.ctrl.Call(m, "AddFederatedCredential", ctx, objectID, fic)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // AddFederatedCredential indicates an expected call of AddFederatedCredential.
-func (mr *MockInterfaceMockRecorder) AddFederatedCredential(ctx, objectID, fc interface{}) *gomock.Call {
+func (mr *MockInterfaceMockRecorder) AddFederatedCredential(ctx, objectID, fic interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddFederatedCredential", reflect.TypeOf((*MockInterface)(nil).AddFederatedCredential), ctx, objectID, fc)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddFederatedCredential", reflect.TypeOf((*MockInterface)(nil).AddFederatedCredential), ctx, objectID, fic)
 }
 
 // CreateApplication mocks base method.
@@ -169,10 +168,10 @@ func (mr *MockInterfaceMockRecorder) GetApplication(ctx, displayName interface{}
 }
 
 // GetFederatedCredential mocks base method.
-func (m *MockInterface) GetFederatedCredential(ctx context.Context, objectID, issuer, subject string) (cloud.FederatedCredential, error) {
+func (m *MockInterface) GetFederatedCredential(ctx context.Context, objectID, issuer, subject string) (*graph.FederatedIdentityCredential, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFederatedCredential", ctx, objectID, issuer, subject)
-	ret0, _ := ret[0].(cloud.FederatedCredential)
+	ret0, _ := ret[0].(*graph.FederatedIdentityCredential)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

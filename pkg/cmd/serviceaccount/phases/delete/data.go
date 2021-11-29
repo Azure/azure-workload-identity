@@ -3,7 +3,7 @@ package phases
 import (
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
 
-	"github.com/microsoftgraph/msgraph-sdk-go/models/microsoft/graph"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
 	"k8s.io/client-go/kubernetes"
 )
 
