@@ -1353,7 +1353,7 @@ export SERVICE_ACCOUNT_SIGNING_KEY_FILE=&quot;$(pwd)/sa.key&quot;
 <blockquote>
 <p>The minimum supported Kubernetes version for the webhook is v1.18, however, we recommend using Kubernetes version v1.20+.</p>
 </blockquote>
-<pre><code class="language-yaml">cat &lt;&lt;EOF | kind create cluster --name azure-workload-identity --image kindest/node:v1.22.2 --config=-
+<pre><code class="language-yaml">cat &lt;&lt;EOF | kind create cluster --name azure-workload-identity --image kindest/node:v1.22.4 --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
@@ -1379,8 +1379,8 @@ EOF
 <details>
 <summary>Output</summary>
 <pre><code class="language-bash">Creating cluster &quot;azure-workload-identity&quot; ...
- • Ensuring node image (kindest/node:v1.22.2) 🖼  ...
- ✓ Ensuring node image (kindest/node:v1.22.2) 🖼
+ • Ensuring node image (kindest/node:v1.22.4) 🖼  ...
+ ✓ Ensuring node image (kindest/node:v1.22.4) 🖼
  • Preparing nodes 📦   ...
  ✓ Preparing nodes 📦
  • Writing configuration 📜  ...
@@ -1405,7 +1405,7 @@ Have a question, bug, or feature request? Let us know! https://kind.sigs.k8s.io/
 <details>
 <summary>Output</summary>
 <pre><code class="language-bash">NAME                                     STATUS   ROLES                  AGE     VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE       KERNEL-VERSION     CONTAINER-RUNTIME
-azure-workload-identity-control-plane   Ready    control-plane,master   2m28s   v1.22.2   172.18.0.2    &lt;none&gt;        Ubuntu 21.04   5.4.0-1047-azure   containerd://1.5.2
+azure-workload-identity-control-plane   Ready    control-plane,master   2m28s   v1.22.4   172.18.0.2    &lt;none&gt;        Ubuntu 21.04   5.4.0-1047-azure   containerd://1.5.2
 </code></pre>
 </details>
 <p>Now that we have confirmed the cluster is up and running with the required configuration, you can follow the tutorial in <a href="topics/self-managed-clusters/examples/../../../quick-start.html">Quick Start</a> to learn the basics of how to use the Azure AD Workload Identity webhook to acquire a token to access a secret in an <a href="topics/self-managed-clusters/examples/../../../installation/self-managed-clusters/configurations.html">Azure Key Vault</a>.</p>
@@ -1636,7 +1636,7 @@ export SERVICE_ACCOUNT_SIGNING_KEY_FILE=&quot;$(pwd)/sa.key&quot;
 <blockquote>
 <p>The minimum supported Kubernetes version for the webhook is v1.18.0, however, we recommend using Kubernetes version v1.20.0+.</p>
 </blockquote>
-<pre><code class="language-bash">cat &lt;&lt;EOF | kind create cluster --name azure-workload-identity --image kindest/node:v1.22.2 --config=-
+<pre><code class="language-bash">cat &lt;&lt;EOF | kind create cluster --name azure-workload-identity --image kindest/node:v1.22.4 --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
@@ -1659,8 +1659,8 @@ EOF
 <details>
 <summary>Output</summary>
 <pre><code class="language-bash">Creating cluster &quot;azure-workload-identity&quot; ...
- • Ensuring node image (kindest/node:v1.22.2) 🖼  ...
- ✓ Ensuring node image (kindest/node:v1.22.2) 🖼
+ • Ensuring node image (kindest/node:v1.22.4) 🖼  ...
+ ✓ Ensuring node image (kindest/node:v1.22.4) 🖼
  • Preparing nodes 📦   ...
  ✓ Preparing nodes 📦
  • Writing configuration 📜  ...
@@ -1685,7 +1685,7 @@ Have a question, bug, or feature request? Let us know! https://kind.sigs.k8s.io/
 <details>
 <summary>Output</summary>
 <pre><code class="language-bash">NAME                                     STATUS   ROLES                  AGE     VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE       KERNEL-VERSION     CONTAINER-RUNTIME
-azure-workload-identity-control-plane   Ready    control-plane,master   2m28s   v1.22.2   172.18.0.2    &lt;none&gt;        Ubuntu 21.04   5.4.0-1047-azure   containerd://1.5.2
+azure-workload-identity-control-plane   Ready    control-plane,master   2m28s   v1.22.4   172.18.0.2    &lt;none&gt;        Ubuntu 21.04   5.4.0-1047-azure   containerd://1.5.2
 </code></pre>
 </details>
 <h2 id="build-and-deploy-the-webhook"><a class="header" href="#build-and-deploy-the-webhook">Build and deploy the webhook</a></h2>
