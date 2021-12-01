@@ -11,10 +11,14 @@ jobs:
     workspace:
       clean: all
     variables:
-      # we can enable actual tenant id for functional e2e
-      AZURE_TENANT_ID: "fake tenant id"
-      REGISTRY: upstreamk8sci.azurecr.io/azure-workload-identity
-      GINKGO_SKIP: \[KindOnly\]
+      # contains the following environment variables:
+      # - APPLICATION_CLIENT_ID
+      # - AZURE_TENANT_ID
+      # - KEYVAULT_NAME
+      # - KEYVAULT_SECRET_NAME
+      - group: e2e-environment-variables
+      - name: REGISTRY
+        value: upstreamk8sci.azurecr.io/azure-workload-identity
     strategy:
       matrix: ${{ parameters.matrix }}
     steps:
@@ -24,6 +28,10 @@ jobs:
         displayName: Webhook E2E test suite
         env:
           SKIP_CLEANUP: "true"
+          APPLICATION_CLIENT_ID: $(APPLICATION_CLIENT_ID)
+          AZURE_TENANT_ID: $(AZURE_TENANT_ID)
+          KEYVAULT_NAME: $(KEYVAULT_NAME)
+          KEYVAULT_SECRET_NAME: $(KEYVAULT_SECRET_NAME)
       - script: |
           # xref: https://github.com/Azure/secrets-store-csi-driver-provider-azure/blob/512316adc9daa2216de10a6288f6c1df8a122654/.pipelines/templates/aks-upgrade.yaml#L3-L8
           MINOR_VERSION="$(az aks get-upgrades --resource-group ${CLUSTER_NAME} --name ${CLUSTER_NAME} --query "controlPlaneProfile.kubernetesVersion" | jq -r 'split(".") | .[:2] | join(".")')"
@@ -35,6 +43,11 @@ jobs:
         displayName: Upgrade cluster
       - script: make test-e2e
         displayName: Webhook E2E test suite
+        env:
+          APPLICATION_CLIENT_ID: $(APPLICATION_CLIENT_ID)
+          AZURE_TENANT_ID: $(AZURE_TENANT_ID)
+          KEYVAULT_NAME: $(KEYVAULT_NAME)
+          KEYVAULT_SECRET_NAME: $(KEYVAULT_SECRET_NAME)
       - script: az group delete --name "${CLUSTER_NAME}" --yes --no-wait || true
         displayName: Cleanup
         condition: always()

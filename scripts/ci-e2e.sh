@@ -47,9 +47,8 @@ create_cluster() {
       az role assignment create --assignee-object-id "${ASSIGNEE_OBJECT_ID}" --role AcrPull --scope "${REGISTRY_SCOPE}" > /dev/null
     fi
 
-    echo "Building controller and deploying webhook to the cluster"
-    # only build webhook since AKS clusters don't have support for proxy and proxy init
-    ALL_IMAGES=webhook make docker-build docker-push-manifest
+    # build webhook manager and msal-go-e2e images
+    ALL_LINUX_ARCH="amd64" make docker-build docker-push-manifest docker-build-e2e-msal-go
   fi
   ${KUBECTL} get nodes -owide
 }
