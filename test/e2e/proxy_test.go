@@ -17,9 +17,10 @@ import (
 	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
 )
 
-// Only kind cluster supports custom service account issuer for now.
 // The proxy implementation is only for Linux.
-var _ = ginkgo.Describe("Proxy [KindOnly] [LinuxOnly]", func() {
+// Run this test in nightly jobs only because we can't establish federated
+// identity under the Microsoft tenant at runtime at the moment.
+var _ = ginkgo.Describe("Proxy [LinuxOnly] [AKSSoakOnly] [Exclude:Arc]", func() {
 	f := framework.NewDefaultFramework("proxy")
 
 	ginkgo.It("should get a valid AAD token with the proxy sidecar", func() {
