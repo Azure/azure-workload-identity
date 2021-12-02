@@ -79,7 +79,8 @@ func (p *federatedIdentityPhase) run(ctx context.Context, data workflow.RunData)
 
 	err := createData.AzureClient().AddFederatedCredential(ctx, objectID, fic)
 	if err != nil {
-		if cloud.IsAlreadyExists(err) {
+		log.Infof("Failed to create federated identity credential: %v", err)
+		if cloud.IsFederatedCredentialAlreadyExists(err) {
 			log.WithFields(log.Fields{
 				"objectID": objectID,
 				"subject":  subject,

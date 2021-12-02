@@ -96,19 +96,29 @@ func (c *AzureClient) DeleteApplication(ctx context.Context, objectID string) er
 
 // getDisplayNameFilter returns a filter string for the given display name.
 func getDisplayNameFilter(displayName string) string {
-	return fmt.Sprintf("startswith(displayName, '%s')", displayName)
+	return fmt.Sprintf("displayName eq '%s'", displayName)
 }
 
 // AddFederatedCredential adds a federated credential to the cloud provider.
 func (c *AzureClient) AddFederatedCredential(ctx context.Context, objectID string, fic *graph.FederatedIdentityCredential) error {
-	log.Debugf("Adding federated credential for objectID=%s", objectID)
+	log.Infof("Adding federated credential for objectID=%s", objectID)
 
 	ficPostOptions := &federatedidentitycredentials.FederatedIdentityCredentialsRequestBuilderPostOptions{
 		Body: fic,
 	}
 
-	_, err := c.graphServiceClient.ApplicationsById(objectID).FederatedIdentityCredentials().Post(ficPostOptions)
-	return err
+	fic, err := c.graphServiceClient.ApplicationsById(objectID).FederatedIdentityCredentials().Post(ficPostOptions)
+	if err != nil {
+		return err
+	}
+	graphErr, err := GetGraphError(fic.GetAdditionalData())
+	if err != nil {
+		return err
+	}
+	if graphErr != nil {
+		return *graphErr
+	}
+	return nil
 }
 
 // GetFederatedCredential gets a federated credential from the cloud provider.
@@ -118,6 +128,7 @@ func (c *AzureClient) GetFederatedCredential(ctx context.Context, objectID, issu
 	ficGetOptions := &federatedidentitycredentials.FederatedIdentityCredentialsRequestBuilderGetOptions{
 		Q: &federatedidentitycredentials.FederatedIdentityCredentialsRequestBuilderGetQueryParameters{
 			// TODO(aramase): compound filter with issuer and subject
+			// Filtering on more than one resource is currently not supported.
 			Filter: to.StringPtr(getSubjectFilter(subject, issuer)),
 		},
 	}
@@ -125,6 +136,13 @@ func (c *AzureClient) GetFederatedCredential(ctx context.Context, objectID, issu
 	resp, err := c.graphServiceClient.ApplicationsById(objectID).FederatedIdentityCredentials().Get(ficGetOptions)
 	if err != nil {
 		return nil, err
+	}
+	graphErr, err := GetGraphError(resp.GetAdditionalData())
+	if err != nil {
+		return nil, err
+	}
+	if graphErr != nil {
+		return nil, *graphErr
 	}
 	for _, fic := range resp.GetValue() {
 		if *fic.GetIssuer() == issuer {

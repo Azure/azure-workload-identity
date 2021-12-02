@@ -3,7 +3,6 @@ package phases
 import (
 	"context"
 
-	"github.com/Azure/azure-workload-identity/pkg/cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/options"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 
@@ -55,14 +54,9 @@ func (p *aadApplicationPhase) run(ctx context.Context, data workflow.RunData) er
 		"objectID": deleteData.AADApplicationObjectID(),
 	})
 	if err := deleteData.AzureClient().DeleteApplication(ctx, deleteData.AADApplicationObjectID()); err != nil {
-		// TODO(aramase) check if this error is a 404 and type after change to graph sdk
-		if !cloud.IsResourceNotFound(err) {
-			return errors.Wrap(err, "failed to delete application")
-		}
-		l.Warnf("[%s] aad application not found", aadApplicationPhaseName)
-	} else {
-		l.Infof("[%s] deleted aad application", aadApplicationPhaseName)
+		return errors.Wrap(err, "failed to delete application")
 	}
+	l.Infof("[%s] deleted aad application", aadApplicationPhaseName)
 
 	return nil
 }

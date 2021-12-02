@@ -66,38 +66,6 @@ func TestIsRoleAssignmentAlreadyDeleted(t *testing.T) {
 	}
 }
 
-func TestIsResourceNotFound(t *testing.T) {
-	tests := []struct {
-		name      string
-		actualErr error
-		want      bool
-	}{
-		{
-			name:      "not autorest detailed error",
-			actualErr: errors.New("resource not found"),
-			want:      false,
-		},
-		{
-			name:      "status code doesn't match",
-			actualErr: &autorest.DetailedError{StatusCode: 401, Message: "authorization failed"},
-			want:      false,
-		},
-		{
-			name:      "resource not found error",
-			actualErr: autorest.DetailedError{StatusCode: 404, Message: "resource not found"},
-			want:      true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := IsResourceNotFound(tt.actualErr); got != tt.want {
-				t.Errorf("IsResourceNotFound() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestIsAlreadyExists(t *testing.T) {
 	tests := []struct {
 		name      string

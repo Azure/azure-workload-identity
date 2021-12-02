@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"regexp"
@@ -85,7 +86,7 @@ func NewAzureClientWithCLI(env azure.Environment, subscriptionID, tenantID strin
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create credential")
 	}
-	auth, err := kiotaauth.NewAzureIdentityAuthenticationProviderWithScopes(cred, []string{"https://graph.microsoft.com/.default"})
+	auth, err := kiotaauth.NewAzureIdentityAuthenticationProviderWithScopes(cred, []string{getGraphScope(env)})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create authentication provider")
 	}
@@ -109,7 +110,7 @@ func NewAzureClientWithClientSecret(env azure.Environment, subscriptionID, clien
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create credential")
 	}
-	auth, err := kiotaauth.NewAzureIdentityAuthenticationProviderWithScopes(cred, []string{"https://graph.microsoft.com/.default"})
+	auth, err := kiotaauth.NewAzureIdentityAuthenticationProviderWithScopes(cred, []string{getGraphScope(env)})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create authentication provider")
 	}
@@ -189,7 +190,7 @@ func newAzureClientWithCertificate(env azure.Environment, oauthConfig *adal.OAut
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create credential")
 	}
-	auth, err := kiotaauth.NewAzureIdentityAuthenticationProviderWithScopes(cred, []string{"https://graph.microsoft.com/.default"})
+	auth, err := kiotaauth.NewAzureIdentityAuthenticationProviderWithScopes(cred, []string{getGraphScope(env)})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create authentication provider")
 	}
@@ -284,4 +285,8 @@ func parseRsaPrivateKey(path string) (*rsa.PrivateKey, error) {
 	}
 
 	return nil, errors.Errorf("failed to parse private key as Pkcs#1 or Pkcs#8. (%s). (%s)", errPkcs1, errPkcs8)
+}
+
+func getGraphScope(env azure.Environment) string {
+	return fmt.Sprintf("%s.default", msGraphEndpoint[env])
 }
