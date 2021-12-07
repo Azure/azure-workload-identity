@@ -190,6 +190,11 @@ uninstall-deploy: $(KUBECTL) $(KUSTOMIZE) $(ENVSUBST)
 		$(KUSTOMIZE) build config/default | $(ENVSUBST) | $(KUBECTL) delete -f -; \
 	fi
 
+.PHONY: vendor
+vendor:
+	go mod vendor
+	go mod tidy
+
 ## --------------------------------------
 ## Code Generation
 ## --------------------------------------
