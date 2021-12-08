@@ -2,13 +2,11 @@ package phases
 
 import (
 	"context"
-	"net/http"
 	"testing"
 
 	"github.com/Azure/azure-workload-identity/pkg/cloud/mock_cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 
-	"github.com/Azure/go-autorest/autorest"
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 )
@@ -70,7 +68,7 @@ func TestAADApplicationRun(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockAzureClient := mock_cloud.NewMockInterface(ctrl)
-	mockAzureClient.EXPECT().DeleteApplication(gomock.Any(), data.aadApplicationObjectID).Return(autorest.Response{}, nil)
+	mockAzureClient.EXPECT().DeleteApplication(gomock.Any(), data.aadApplicationObjectID).Return(nil)
 	data.azureClient = mockAzureClient
 
 	if err := phase.Run(context.Background(), data); err != nil {
@@ -78,14 +76,8 @@ func TestAADApplicationRun(t *testing.T) {
 	}
 
 	// Test for scenario where it failed to delete aad application
-	mockAzureClient.EXPECT().DeleteApplication(gomock.Any(), data.aadApplicationObjectID).Return(autorest.Response{}, errors.New("random error"))
+	mockAzureClient.EXPECT().DeleteApplication(gomock.Any(), data.aadApplicationObjectID).Return(errors.New("random error"))
 	if err := phase.Run(context.Background(), data); err == nil {
 		t.Errorf("expected error but got nil")
-	}
-
-	// Test for scenario where aad application is not found
-	mockAzureClient.EXPECT().DeleteApplication(gomock.Any(), data.aadApplicationObjectID).Return(autorest.Response{}, autorest.DetailedError{StatusCode: http.StatusNotFound})
-	if err := phase.Run(context.Background(), data); err != nil {
-		t.Errorf("expected no error but got: %s", err.Error())
 	}
 }

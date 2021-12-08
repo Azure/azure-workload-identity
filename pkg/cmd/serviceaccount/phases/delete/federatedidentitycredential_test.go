@@ -2,17 +2,16 @@ package phases
 
 import (
 	"context"
-	"net/http"
 	"testing"
 
+	"github.com/Azure/azure-workload-identity/pkg/cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cloud/mock_cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/util"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
 
-	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/mock/gomock"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
 	"github.com/pkg/errors"
 )
 
@@ -86,7 +85,7 @@ func TestFederatedIdentityRun(t *testing.T) {
 		data.serviceAccountIssuerURL,
 		util.GetFederatedCredentialSubject(data.serviceAccountNamespace, data.serviceAccountName),
 	).Return(fic, nil)
-	mockAzureClient.EXPECT().DeleteFederatedCredential(gomock.Any(), "aad-application-object-id", "federated-credential-id").Return(nil)
+	mockAzureClient.EXPECT().DeleteFederatedCredential(gomock.Any(), "aad-application-object-id", "federated-identity-credential-id").Return(nil)
 	data.azureClient = mockAzureClient
 
 	err := phase.Run(context.Background(), data)
@@ -101,19 +100,22 @@ func TestFederatedIdentityRun(t *testing.T) {
 		data.serviceAccountIssuerURL,
 		util.GetFederatedCredentialSubject(data.serviceAccountNamespace, data.serviceAccountName),
 	).Return(fic, nil)
-	mockAzureClient.EXPECT().DeleteFederatedCredential(gomock.Any(), "aad-application-object-id", "federated-credential-id").Return(errors.New("random error"))
+	mockAzureClient.EXPECT().DeleteFederatedCredential(gomock.Any(), "aad-application-object-id", "federated-identity-credential-id").Return(errors.New("random error"))
 	err = phase.Run(context.Background(), data)
 	if err == nil {
 		t.Errorf("expected error but got nil")
 	}
 
 	// Test for scenario where federated credential is not found
+	graphError := cloud.GraphError{PublicError: &graph.PublicError{}}
+	graphError.PublicError.SetCode(to.StringPtr(cloud.GraphErrorCodeResourceNotFound))
+	graphError.PublicError.SetMessage(to.StringPtr("FederatedIdentityCredential with name federatedcredential-from-cli not found."))
 	mockAzureClient.EXPECT().GetFederatedCredential(
 		gomock.Any(),
 		"aad-application-object-id",
 		data.serviceAccountIssuerURL,
 		util.GetFederatedCredentialSubject(data.serviceAccountNamespace, data.serviceAccountName),
-	).Return(nil, autorest.DetailedError{StatusCode: http.StatusNotFound})
+	).Return(nil, graphError)
 	err = phase.Run(context.Background(), data)
 	if err != nil {
 		t.Errorf("expected no error but got: %s", err.Error())

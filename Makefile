@@ -190,11 +190,6 @@ uninstall-deploy: $(KUBECTL) $(KUSTOMIZE) $(ENVSUBST)
 		$(KUSTOMIZE) build config/default | $(ENVSUBST) | $(KUBECTL) delete -f -; \
 	fi
 
-.PHONY: vendor
-vendor:
-	go mod vendor
-	go mod tidy
-
 ## --------------------------------------
 ## Code Generation
 ## --------------------------------------
@@ -305,7 +300,7 @@ vet:
 # Run tests
 .PHONY: test
 test: generate fmt vet manifests
-	go test ./... -coverprofile cover.out
+	go test -v ./... -coverprofile cover.out
 
 $(E2E_TEST):
 	go test -tags=e2e -c ./test/e2e -o $(E2E_TEST)

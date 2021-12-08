@@ -4,11 +4,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/azure-workload-identity/pkg/cloud/mock_cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
+
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/mock/gomock"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
 )
 
 func TestAADApplicationPreRun(t *testing.T) {
@@ -68,21 +69,29 @@ func TestAADApplicationRun(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockAzureClient := mock_cloud.NewMockInterface(ctrl)
-	mockAzureClient.EXPECT().CreateApplication(gomock.Any(), data.AADApplicationName()).Return(&graphrbac.Application{
-		DisplayName: to.StringPtr(data.AADApplicationName()),
-		AppID:       to.StringPtr("client-id"),
-		ObjectID:    to.StringPtr("object-id"),
-	}, nil)
+	mockAzureClient.EXPECT().CreateApplication(gomock.Any(), data.AADApplicationName()).Return(testApplication("client-id", "object-id", data.AADApplicationName()), nil)
 	mockAzureClient.EXPECT().CreateServicePrincipal(gomock.Any(), "client-id", []string{
 		"azwi version: , commit: ",
-	}).Return(&graphrbac.ServicePrincipal{
-		DisplayName: to.StringPtr(data.AADApplicationName()),
-		AppID:       to.StringPtr("client-id"),
-		ObjectID:    to.StringPtr("object-id"),
-	}, nil)
+	}).Return(testServicePrincipal("client-id", "object-id", data.AADApplicationName()), nil)
 	data.azureClient = mockAzureClient
 
 	if err := phase.Run(context.Background(), data); err != nil {
 		t.Errorf("expected no error but got: %s", err.Error())
 	}
+}
+
+func testApplication(appID, objectID, displayName string) *graph.Application {
+	app := graph.NewApplication()
+	app.SetAppId(to.StringPtr(appID))
+	app.SetId(to.StringPtr(objectID))
+	app.SetDisplayName(to.StringPtr(displayName))
+	return app
+}
+
+func testServicePrincipal(appID, objectID, displayName string) *graph.ServicePrincipal {
+	sp := graph.NewServicePrincipal()
+	sp.SetAppId(to.StringPtr(appID))
+	sp.SetId(to.StringPtr(objectID))
+	sp.SetDisplayName(to.StringPtr(displayName))
+	return sp
 }

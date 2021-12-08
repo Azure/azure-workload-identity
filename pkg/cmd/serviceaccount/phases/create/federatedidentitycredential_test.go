@@ -3,18 +3,17 @@ package phases
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
+	"github.com/Azure/azure-workload-identity/pkg/cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cloud/mock_cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/util"
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
 
-	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/mock/gomock"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
 )
 
 func TestFederatedIdentityPreRun(t *testing.T) {
@@ -94,7 +93,10 @@ func TestFederatedIdentityRun(t *testing.T) {
 	}
 
 	// Test for scenario where federated credential already exists
-	mockAzureClient.EXPECT().AddFederatedCredential(gomock.Any(), "aad-application-object-id", gomock.Any()).Return(autorest.DetailedError{StatusCode: http.StatusConflict})
+	graphError := cloud.GraphError{PublicError: &graph.PublicError{}}
+	graphError.PublicError.SetCode(to.StringPtr(cloud.GraphErrorCodeMultipleObjectsWithSameKeyValue))
+	graphError.PublicError.SetMessage(to.StringPtr("FederatedIdentityCredential with name federatedcredential-from-cli already exists."))
+	mockAzureClient.EXPECT().AddFederatedCredential(gomock.Any(), "aad-application-object-id", gomock.Any()).Return(graphError)
 	err = phase.Run(context.Background(), data)
 	if err != nil {
 		t.Errorf("expected no error but got: %s", err.Error())

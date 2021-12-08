@@ -9,9 +9,9 @@ import (
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/util"
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
+
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
-
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -79,7 +79,6 @@ func (p *federatedIdentityPhase) run(ctx context.Context, data workflow.RunData)
 
 	err := createData.AzureClient().AddFederatedCredential(ctx, objectID, fic)
 	if err != nil {
-		log.Infof("Failed to create federated identity credential: %v", err)
 		if cloud.IsFederatedCredentialAlreadyExists(err) {
 			log.WithFields(log.Fields{
 				"objectID": objectID,

@@ -64,7 +64,7 @@ func (c *AzureClient) GetServicePrincipal(ctx context.Context, displayName strin
 
 // GetApplication gets an application by its display name.
 func (c *AzureClient) GetApplication(ctx context.Context, displayName string) (*graph.Application, error) {
-	log.Infof("Getting application with display name=%s filter=%s", displayName, getDisplayNameFilter(displayName))
+	log.Debugf("Getting application with display name=%s", displayName)
 
 	appGetOptions := &applications.ApplicationsRequestBuilderGetOptions{
 		Q: &applications.ApplicationsRequestBuilderGetQueryParameters{
@@ -94,19 +94,13 @@ func (c *AzureClient) DeleteApplication(ctx context.Context, objectID string) er
 	return c.graphServiceClient.ApplicationsById(objectID).Delete(nil)
 }
 
-// getDisplayNameFilter returns a filter string for the given display name.
-func getDisplayNameFilter(displayName string) string {
-	return fmt.Sprintf("displayName eq '%s'", displayName)
-}
-
 // AddFederatedCredential adds a federated credential to the cloud provider.
 func (c *AzureClient) AddFederatedCredential(ctx context.Context, objectID string, fic *graph.FederatedIdentityCredential) error {
-	log.Infof("Adding federated credential for objectID=%s", objectID)
+	log.Debugf("Adding federated credential for objectID=%s", objectID)
 
 	ficPostOptions := &federatedidentitycredentials.FederatedIdentityCredentialsRequestBuilderPostOptions{
 		Body: fic,
 	}
-
 	fic, err := c.graphServiceClient.ApplicationsById(objectID).FederatedIdentityCredentials().Post(ficPostOptions)
 	if err != nil {
 		return err
@@ -123,13 +117,12 @@ func (c *AzureClient) AddFederatedCredential(ctx context.Context, objectID strin
 
 // GetFederatedCredential gets a federated credential from the cloud provider.
 func (c *AzureClient) GetFederatedCredential(ctx context.Context, objectID, issuer, subject string) (*graph.FederatedIdentityCredential, error) {
-	log.Infof("Getting federated credential for objectID=%s, issuer=%s, subject=%s", objectID, issuer, subject)
+	log.Debugf("Getting federated credential for objectID=%s, issuer=%s, subject=%s", objectID, issuer, subject)
 
 	ficGetOptions := &federatedidentitycredentials.FederatedIdentityCredentialsRequestBuilderGetOptions{
 		Q: &federatedidentitycredentials.FederatedIdentityCredentialsRequestBuilderGetQueryParameters{
-			// TODO(aramase): compound filter with issuer and subject
 			// Filtering on more than one resource is currently not supported.
-			Filter: to.StringPtr(getSubjectFilter(subject, issuer)),
+			Filter: to.StringPtr(getSubjectFilter(subject)),
 		},
 	}
 
@@ -158,7 +151,12 @@ func (c *AzureClient) DeleteFederatedCredential(ctx context.Context, objectID, f
 	return c.graphServiceClient.ApplicationsById(objectID).FederatedIdentityCredentialsById(federatedCredentialID).Delete(nil)
 }
 
+// getDisplayNameFilter returns a filter string for the given display name.
+func getDisplayNameFilter(displayName string) string {
+	return fmt.Sprintf("displayName eq '%s'", displayName)
+}
+
 // getSubjectFilter returns a filter string for the given subject.
-func getSubjectFilter(subject, issuer string) string {
+func getSubjectFilter(subject string) string {
 	return fmt.Sprintf("subject eq '%s'", subject)
 }

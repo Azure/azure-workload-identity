@@ -35,14 +35,6 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: "^1.17"
-      - uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
       - name: Install Azure CLI latest
         run: |
           curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
@@ -81,9 +73,6 @@ jobs:
 
           # get the service account object
           kubectl describe serviceaccount "${SERVICE_ACCOUNT_NAME}" --namespace "${SERVICE_ACCOUNT_NAMESPACE}" > sa.yaml
-
-          # debug
-          az ad sp list --display-name "${AAD_APPLICATION_NAME}" --query '[0].appId' -otsv --debug
 
           cat sa.yaml | grep "azure.workload.identity/use=true"
           APPLICATION_CLIENT_ID="$(az ad sp list --display-name "${AAD_APPLICATION_NAME}" --query '[0].appId' -otsv)"
