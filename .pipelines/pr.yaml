@@ -103,6 +103,10 @@ jobs:
           KIND_NODE_VERSION: v1.22.4
           LOCAL_ONLY: "true"
           TEST_HELM_CHART: "true"
+        kind_v1_23_0:
+          KIND_NODE_VERSION: v1.23.0
+          LOCAL_ONLY: "true"
+          TEST_HELM_CHART: "true"
     steps:
       - script: echo "##vso[task.setvariable variable=CLUSTER_NAME]azwi-e2e-$(openssl rand -hex 2)"
         displayName: Set CLUSTER_NAME
