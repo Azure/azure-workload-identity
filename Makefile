@@ -299,7 +299,7 @@ vet:
 
 # Run tests
 .PHONY: test
-test: generate fmt vet manifests
+test: generate manifests
 	go test -v ./... -coverprofile cover.out
 
 $(E2E_TEST):

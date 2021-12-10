@@ -75,7 +75,7 @@ func (p *federatedIdentityPhase) run(ctx context.Context, data workflow.RunData)
 	fic.SetDescription(to.StringPtr(description))
 	fic.SetIssuer(to.StringPtr(createData.ServiceAccountIssuerURL()))
 	fic.SetSubject(to.StringPtr(subject))
-	fic.SetName(to.StringPtr("federatedcredential-from-cli"))
+	fic.SetName(to.StringPtr("federatedcredential-from-azwi-cli"))
 
 	err := createData.AzureClient().AddFederatedCredential(ctx, objectID, fic)
 	if err != nil {

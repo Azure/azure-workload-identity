@@ -55,7 +55,7 @@ func IsFederatedCredentialAlreadyExists(err error) bool {
 	return errors.As(err, &gerr) && *gerr.PublicError.GetCode() == GraphErrorCodeMultipleObjectsWithSameKeyValue
 }
 
-// GetPublicError returns the public error message from the additional info.
+// GetGraphError returns the public error message from the additional info.
 // ref: https://docs.microsoft.com/en-us/graph/errors#error-resource-type
 // errors returned by the graph API aren't serialized today and this is a known issue: https://github.com/microsoftgraph/msgraph-sdk-go-core/issues/1
 func GetGraphError(additionalData map[string]interface{}) (*GraphError, error) {

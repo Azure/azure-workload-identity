@@ -81,7 +81,7 @@ func TestFederatedIdentityRun(t *testing.T) {
 	fic.SetDescription(to.StringPtr(fmt.Sprintf("Federated Service Account for %s/%s", data.serviceAccountNamespace, data.serviceAccountName)))
 	fic.SetIssuer(to.StringPtr(data.serviceAccountIssuerURL))
 	fic.SetSubject(to.StringPtr(util.GetFederatedCredentialSubject(data.serviceAccountNamespace, data.serviceAccountName)))
-	fic.SetName(to.StringPtr("federatedcredential-from-cli"))
+	fic.SetName(to.StringPtr("federatedcredential-from-azwi-cli"))
 
 	mockAzureClient := mock_cloud.NewMockInterface(ctrl)
 	mockAzureClient.EXPECT().AddFederatedCredential(gomock.Any(), "aad-application-object-id", fic).Return(nil)
@@ -95,7 +95,7 @@ func TestFederatedIdentityRun(t *testing.T) {
 	// Test for scenario where federated credential already exists
 	graphError := cloud.GraphError{PublicError: &graph.PublicError{}}
 	graphError.PublicError.SetCode(to.StringPtr(cloud.GraphErrorCodeMultipleObjectsWithSameKeyValue))
-	graphError.PublicError.SetMessage(to.StringPtr("FederatedIdentityCredential with name federatedcredential-from-cli already exists."))
+	graphError.PublicError.SetMessage(to.StringPtr("FederatedIdentityCredential with name federatedcredential-from-azwi-cli already exists."))
 	mockAzureClient.EXPECT().AddFederatedCredential(gomock.Any(), "aad-application-object-id", gomock.Any()).Return(graphError)
 	err = phase.Run(context.Background(), data)
 	if err != nil {

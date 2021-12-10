@@ -109,7 +109,7 @@ func TestFederatedIdentityRun(t *testing.T) {
 	// Test for scenario where federated credential is not found
 	graphError := cloud.GraphError{PublicError: &graph.PublicError{}}
 	graphError.PublicError.SetCode(to.StringPtr(cloud.GraphErrorCodeResourceNotFound))
-	graphError.PublicError.SetMessage(to.StringPtr("FederatedIdentityCredential with name federatedcredential-from-cli not found."))
+	graphError.PublicError.SetMessage(to.StringPtr("FederatedIdentityCredential with name federatedcredential-from-azwi-cli not found."))
 	mockAzureClient.EXPECT().GetFederatedCredential(
 		gomock.Any(),
 		"aad-application-object-id",

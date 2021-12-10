@@ -42,7 +42,7 @@ jobs:
           fi
         displayName: make manifests
   - job: unit_test
-    timeoutInMinutes: 35
+    timeoutInMinutes: 30
     workspace:
       clean: all
     steps:
