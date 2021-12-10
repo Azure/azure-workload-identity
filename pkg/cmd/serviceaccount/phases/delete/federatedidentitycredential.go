@@ -65,13 +65,13 @@ func (p *federatedIdentityPhase) run(ctx context.Context, data workflow.RunData)
 		"subject":   subject,
 		"issuerURL": deleteData.ServiceAccountIssuerURL(),
 	})
-	if fc, err := deleteData.AzureClient().GetFederatedCredential(ctx, deleteData.AADApplicationObjectID(), deleteData.ServiceAccountIssuerURL(), subject); err != nil {
-		if !cloud.IsResourceNotFound(err) {
+	if fic, err := deleteData.AzureClient().GetFederatedCredential(ctx, deleteData.AADApplicationObjectID(), deleteData.ServiceAccountIssuerURL(), subject); err != nil {
+		if !cloud.IsFederatedCredentialNotFound(err) {
 			return errors.Wrap(err, "failed to get federated identity credential")
 		}
 		l.Warnf("[%s] federated identity credential not found", federatedIdentityPhaseName)
 	} else {
-		if err = deleteData.AzureClient().DeleteFederatedCredential(ctx, deleteData.AADApplicationObjectID(), fc.ID); err != nil {
+		if err = deleteData.AzureClient().DeleteFederatedCredential(ctx, deleteData.AADApplicationObjectID(), *fic.GetId()); err != nil {
 			return errors.Wrap(err, "failed to delete federated identity credential")
 		}
 		l.Infof("[%s] deleted federated identity credential", federatedIdentityPhaseName)

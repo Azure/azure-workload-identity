@@ -10,6 +10,8 @@ import (
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/util"
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
 
+	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -68,10 +70,16 @@ func (p *federatedIdentityPhase) run(ctx context.Context, data workflow.RunData)
 	audiences := []string{webhook.DefaultAudience}
 
 	objectID := createData.AADApplicationObjectID()
-	fc := cloud.NewFederatedCredential(objectID, createData.ServiceAccountIssuerURL(), subject, description, audiences)
-	err := createData.AzureClient().AddFederatedCredential(ctx, objectID, fc)
+	fic := graph.NewFederatedIdentityCredential()
+	fic.SetAudiences(audiences)
+	fic.SetDescription(to.StringPtr(description))
+	fic.SetIssuer(to.StringPtr(createData.ServiceAccountIssuerURL()))
+	fic.SetSubject(to.StringPtr(subject))
+	fic.SetName(to.StringPtr("federatedcredential-from-azwi-cli"))
+
+	err := createData.AzureClient().AddFederatedCredential(ctx, objectID, fic)
 	if err != nil {
-		if cloud.IsAlreadyExists(err) {
+		if cloud.IsFederatedCredentialAlreadyExists(err) {
 			log.WithFields(log.Fields{
 				"objectID": objectID,
 				"subject":  subject,

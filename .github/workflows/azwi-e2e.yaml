@@ -52,6 +52,8 @@ jobs:
           echo ${{ secrets.SERVICE_ACCOUNT_SIGNING_KEY }} | base64 -d > sa.key
           echo ${{ secrets.SERVICE_ACCOUNT_KEY }} | base64 -d > sa.pub
           make kind-create
+      - name: Build azwi
+        run: make bin/azwi
       - uses: azure/login@v1.4.0
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
@@ -61,7 +63,6 @@ jobs:
         run: |
           kubectl create namespace "${SERVICE_ACCOUNT_NAMESPACE}"
 
-          make bin/azwi
           ./bin/azwi serviceaccount create \
             --aad-application-name "${AAD_APPLICATION_NAME}" \
             --service-account-namespace "${SERVICE_ACCOUNT_NAMESPACE}" \

@@ -5,8 +5,6 @@ import (
 
 	"github.com/Azure/azure-workload-identity/pkg/cloud/mock_cloud"
 
-	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
-	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 )
@@ -68,10 +66,7 @@ func TestDeleteDataAADApplication(t *testing.T) {
 				aadApplicationName: appName,
 			},
 			expect: func(m *mock_cloud.MockInterfaceMockRecorder) {
-				m.GetApplication(gomock.Any(), appName).Return(&graphrbac.Application{
-					AppID:    to.StringPtr(appID),
-					ObjectID: to.StringPtr(objectID),
-				}, nil)
+				m.GetApplication(gomock.Any(), appName).Return(testApplication(appID, objectID), nil)
 			},
 			verify: func(t *testing.T, deleteData *deleteData) {
 				if _, err := deleteData.AADApplication(); err != nil {
@@ -86,10 +81,7 @@ func TestDeleteDataAADApplication(t *testing.T) {
 			name: "cache",
 			deleteData: &deleteData{
 				aadApplicationName: appName,
-				aadApplication: &graphrbac.Application{
-					AppID:    to.StringPtr(appID),
-					ObjectID: to.StringPtr(objectID),
-				},
+				aadApplication:     testApplication(appID, objectID),
 			},
 			expect: func(m *mock_cloud.MockInterfaceMockRecorder) {},
 			verify: func(t *testing.T, deleteData *deleteData) {

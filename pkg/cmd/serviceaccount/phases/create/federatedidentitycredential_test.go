@@ -3,7 +3,6 @@ package phases
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
@@ -12,8 +11,9 @@ import (
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/util"
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
 
-	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/mock/gomock"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
 )
 
 func TestFederatedIdentityPreRun(t *testing.T) {
@@ -76,14 +76,15 @@ func TestFederatedIdentityRun(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	fic := graph.NewFederatedIdentityCredential()
+	fic.SetAudiences([]string{webhook.DefaultAudience})
+	fic.SetDescription(to.StringPtr(fmt.Sprintf("Federated Service Account for %s/%s", data.serviceAccountNamespace, data.serviceAccountName)))
+	fic.SetIssuer(to.StringPtr(data.serviceAccountIssuerURL))
+	fic.SetSubject(to.StringPtr(util.GetFederatedCredentialSubject(data.serviceAccountNamespace, data.serviceAccountName)))
+	fic.SetName(to.StringPtr("federatedcredential-from-azwi-cli"))
+
 	mockAzureClient := mock_cloud.NewMockInterface(ctrl)
-	mockAzureClient.EXPECT().AddFederatedCredential(gomock.Any(), "aad-application-object-id", cloud.FederatedCredential{
-		Name:        "federatedcredential-from-cli",
-		Issuer:      data.serviceAccountIssuerURL,
-		Subject:     util.GetFederatedCredentialSubject(data.serviceAccountNamespace, data.serviceAccountName),
-		Description: fmt.Sprintf("Federated Service Account for %s/%s", data.serviceAccountNamespace, data.serviceAccountName),
-		Audiences:   []string{webhook.DefaultAudience},
-	}).Return(nil)
+	mockAzureClient.EXPECT().AddFederatedCredential(gomock.Any(), "aad-application-object-id", fic).Return(nil)
 	data.azureClient = mockAzureClient
 
 	err := phase.Run(context.Background(), data)
@@ -92,7 +93,10 @@ func TestFederatedIdentityRun(t *testing.T) {
 	}
 
 	// Test for scenario where federated credential already exists
-	mockAzureClient.EXPECT().AddFederatedCredential(gomock.Any(), "aad-application-object-id", gomock.Any()).Return(autorest.DetailedError{StatusCode: http.StatusConflict})
+	graphError := cloud.GraphError{PublicError: &graph.PublicError{}}
+	graphError.PublicError.SetCode(to.StringPtr(cloud.GraphErrorCodeMultipleObjectsWithSameKeyValue))
+	graphError.PublicError.SetMessage(to.StringPtr("FederatedIdentityCredential with name federatedcredential-from-azwi-cli already exists."))
+	mockAzureClient.EXPECT().AddFederatedCredential(gomock.Any(), "aad-application-object-id", gomock.Any()).Return(graphError)
 	err = phase.Run(context.Background(), data)
 	if err != nil {
 		t.Errorf("expected no error but got: %s", err.Error())

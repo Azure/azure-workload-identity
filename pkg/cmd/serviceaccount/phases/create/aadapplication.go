@@ -65,9 +65,9 @@ func (p *aadApplicationPhase) run(ctx context.Context, data workflow.RunData) er
 	}
 
 	log.WithFields(log.Fields{
-		"name":     *app.DisplayName,
-		"clientID": *app.AppID,
-		"objectID": *app.ObjectID,
+		"name":     *app.GetDisplayName(),
+		"clientID": *app.GetAppId(),
+		"objectID": *app.GetId(),
 	}).Infof("[%s] created an AAD application", aadApplicationPhaseName)
 
 	// Check if the service principal with the same name already exists
@@ -82,16 +82,16 @@ func (p *aadApplicationPhase) run(ctx context.Context, data workflow.RunData) er
 			fmt.Sprintf("azwi version: %s, commit: %s", version.BuildVersion, version.Vcs),
 		}
 
-		sp, err = createData.AzureClient().CreateServicePrincipal(ctx, *app.AppID, tags)
+		sp, err = createData.AzureClient().CreateServicePrincipal(ctx, *app.GetAppId(), tags)
 		if sp == nil || err != nil {
 			return errors.Wrap(err, "failed to create service principal")
 		}
 	}
 
 	log.WithFields(log.Fields{
-		"name":     *sp.DisplayName,
-		"clientID": *sp.AppID,
-		"objectID": *sp.ObjectID,
+		"name":     *sp.GetDisplayName(),
+		"clientID": *sp.GetAppId(),
+		"objectID": *sp.GetId(),
 	}).Infof("[%s] created service principal", aadApplicationPhaseName)
 
 	return nil

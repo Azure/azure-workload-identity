@@ -4,81 +4,159 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
-	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/applications"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/applications/item/federatedidentitycredentials"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/serviceprincipals"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
+var (
+	// ErrFederatedCredentialNotFound is returned when the federated credential is not found.
+	ErrFederatedCredentialNotFound = errors.New("federated credential not found")
+)
+
 // CreateServicePrincipal creates a service principal for the given application.
 // No secret or certificate is generated.
-func (c *AzureClient) CreateServicePrincipal(ctx context.Context, appID string, tags []string) (*graphrbac.ServicePrincipal, error) {
-	spCreateParameters := graphrbac.ServicePrincipalCreateParameters{
-		AppID: &appID,
-		Tags:  &tags,
+func (c *AzureClient) CreateServicePrincipal(ctx context.Context, appID string, tags []string) (*graph.ServicePrincipal, error) {
+	spPostOptions := &serviceprincipals.ServicePrincipalsRequestBuilderPostOptions{
+		Body: graph.NewServicePrincipal(),
 	}
+	spPostOptions.Body.SetAppId(to.StringPtr(appID))
+	spPostOptions.Body.SetTags(tags)
+
 	log.Debugf("Creating service principal for application with id=%s", appID)
-	sp, err := c.servicePrincipalsClient.Create(ctx, spCreateParameters)
-	return &sp, err
+	return c.graphServiceClient.ServicePrincipals().Post(spPostOptions)
 }
 
 // CreateApplication creates an application.
-func (c *AzureClient) CreateApplication(ctx context.Context, displayName string) (*graphrbac.Application, error) {
-	appCreateParameters := graphrbac.ApplicationCreateParameters{
-		DisplayName: to.StringPtr(displayName),
+func (c *AzureClient) CreateApplication(ctx context.Context, displayName string) (*graph.Application, error) {
+	appPostOptions := &applications.ApplicationsRequestBuilderPostOptions{
+		Body: graph.NewApplication(),
 	}
+	appPostOptions.Body.SetDisplayName(to.StringPtr(displayName))
+
 	log.Debugf("Creating application with display name=%s", displayName)
-	application, err := c.applicationsClient.Create(ctx, appCreateParameters)
-	return &application, err
+	return c.graphServiceClient.Applications().Post(appPostOptions)
 }
 
 // GetServicePrincipal gets a service principal by its display name.
-func (c *AzureClient) GetServicePrincipal(ctx context.Context, displayName string) (*graphrbac.ServicePrincipal, error) {
-	retServicePrincipal := graphrbac.ServicePrincipal{}
-
+func (c *AzureClient) GetServicePrincipal(ctx context.Context, displayName string) (*graph.ServicePrincipal, error) {
 	log.Debugf("Getting service principal with display name=%s", displayName)
-	filter := getDisplayNameFilter(displayName)
-	spList, err := c.servicePrincipalsClient.List(ctx, filter)
+
+	spGetOptions := &serviceprincipals.ServicePrincipalsRequestBuilderGetOptions{
+		Q: &serviceprincipals.ServicePrincipalsRequestBuilderGetQueryParameters{
+			Filter: to.StringPtr(getDisplayNameFilter(displayName)),
+		},
+	}
+
+	resp, err := c.graphServiceClient.ServicePrincipals().Get(spGetOptions)
 	if err != nil {
-		return &retServicePrincipal, err
+		return nil, err
 	}
-	if len(spList.Values()) == 0 {
-		return &retServicePrincipal, errors.Errorf("service principal %s not found", displayName)
+	if len(resp.GetValue()) == 0 {
+		return nil, errors.Errorf("service principal %s not found", displayName)
 	}
-	return &spList.Values()[0], nil
+	return &resp.GetValue()[0], nil
 }
 
 // GetApplication gets an application by its display name.
-func (c *AzureClient) GetApplication(ctx context.Context, displayName string) (*graphrbac.Application, error) {
-	retApplication := graphrbac.Application{}
-
+func (c *AzureClient) GetApplication(ctx context.Context, displayName string) (*graph.Application, error) {
 	log.Debugf("Getting application with display name=%s", displayName)
-	filter := getDisplayNameFilter(displayName)
-	appList, err := c.applicationsClient.List(ctx, filter)
-	if err != nil {
-		return &retApplication, err
-	}
-	if len(appList.Values()) == 0 {
-		return &retApplication, errors.Errorf("application with display name '%s' not found", displayName)
+
+	appGetOptions := &applications.ApplicationsRequestBuilderGetOptions{
+		Q: &applications.ApplicationsRequestBuilderGetQueryParameters{
+			Filter: to.StringPtr(getDisplayNameFilter(displayName)),
+		},
 	}
 
-	return &appList.Values()[0], nil
+	resp, err := c.graphServiceClient.Applications().Get(appGetOptions)
+	if err != nil {
+		return nil, err
+	}
+	if len(resp.GetValue()) == 0 {
+		return nil, errors.Errorf("application with display name '%s' not found", displayName)
+	}
+	return &resp.GetValue()[0], nil
 }
 
 // DeleteServicePrincipal deletes a service principal.
-func (c *AzureClient) DeleteServicePrincipal(ctx context.Context, objectID string) (autorest.Response, error) {
+func (c *AzureClient) DeleteServicePrincipal(ctx context.Context, objectID string) error {
 	log.Debugf("Deleting service principal with object id=%s", objectID)
-	return c.servicePrincipalsClient.Delete(ctx, objectID)
+	return c.graphServiceClient.ServicePrincipalsById(objectID).Delete(nil)
 }
 
 // DeleteApplication deletes an application.
-func (c *AzureClient) DeleteApplication(ctx context.Context, objectID string) (autorest.Response, error) {
+func (c *AzureClient) DeleteApplication(ctx context.Context, objectID string) error {
 	log.Debugf("Deleting application with object id=%s", objectID)
-	return c.applicationsClient.Delete(ctx, objectID)
+	return c.graphServiceClient.ApplicationsById(objectID).Delete(nil)
+}
+
+// AddFederatedCredential adds a federated credential to the cloud provider.
+func (c *AzureClient) AddFederatedCredential(ctx context.Context, objectID string, fic *graph.FederatedIdentityCredential) error {
+	log.Debugf("Adding federated credential for objectID=%s", objectID)
+
+	ficPostOptions := &federatedidentitycredentials.FederatedIdentityCredentialsRequestBuilderPostOptions{
+		Body: fic,
+	}
+	fic, err := c.graphServiceClient.ApplicationsById(objectID).FederatedIdentityCredentials().Post(ficPostOptions)
+	if err != nil {
+		return err
+	}
+	graphErr, err := GetGraphError(fic.GetAdditionalData())
+	if err != nil {
+		return err
+	}
+	if graphErr != nil {
+		return *graphErr
+	}
+	return nil
+}
+
+// GetFederatedCredential gets a federated credential from the cloud provider.
+func (c *AzureClient) GetFederatedCredential(ctx context.Context, objectID, issuer, subject string) (*graph.FederatedIdentityCredential, error) {
+	log.Debugf("Getting federated credential for objectID=%s, issuer=%s, subject=%s", objectID, issuer, subject)
+
+	ficGetOptions := &federatedidentitycredentials.FederatedIdentityCredentialsRequestBuilderGetOptions{
+		Q: &federatedidentitycredentials.FederatedIdentityCredentialsRequestBuilderGetQueryParameters{
+			// Filtering on more than one resource is currently not supported.
+			Filter: to.StringPtr(getSubjectFilter(subject)),
+		},
+	}
+
+	resp, err := c.graphServiceClient.ApplicationsById(objectID).FederatedIdentityCredentials().Get(ficGetOptions)
+	if err != nil {
+		return nil, err
+	}
+	graphErr, err := GetGraphError(resp.GetAdditionalData())
+	if err != nil {
+		return nil, err
+	}
+	if graphErr != nil {
+		return nil, *graphErr
+	}
+	for _, fic := range resp.GetValue() {
+		if *fic.GetIssuer() == issuer {
+			return &fic, nil
+		}
+	}
+	return nil, ErrFederatedCredentialNotFound
+}
+
+// DeleteFederatedCredential deletes a federated credential from the cloud provider.
+func (c *AzureClient) DeleteFederatedCredential(ctx context.Context, objectID, federatedCredentialID string) error {
+	log.Debugf("Deleting federated credential for objectID=%s, federatedCredentialID=%s", objectID, federatedCredentialID)
+	return c.graphServiceClient.ApplicationsById(objectID).FederatedIdentityCredentialsById(federatedCredentialID).Delete(nil)
 }
 
 // getDisplayNameFilter returns a filter string for the given display name.
 func getDisplayNameFilter(displayName string) string {
-	return fmt.Sprintf("startswith(displayName, '%s')", displayName)
+	return fmt.Sprintf("displayName eq '%s'", displayName)
+}
+
+// getSubjectFilter returns a filter string for the given subject.
+func getSubjectFilter(subject string) string {
+	return fmt.Sprintf("subject eq '%s'", subject)
 }

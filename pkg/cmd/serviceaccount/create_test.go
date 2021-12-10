@@ -8,9 +8,9 @@ import (
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cloud/mock_cloud"
 
-	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/mock/gomock"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
 	"github.com/spf13/pflag"
 )
 
@@ -102,10 +102,7 @@ func TestCreateDataAADApplication(t *testing.T) {
 				aadApplicationName: appName,
 			},
 			expect: func(m *mock_cloud.MockInterfaceMockRecorder) {
-				m.GetApplication(gomock.Any(), appName).Return(&graphrbac.Application{
-					AppID:    to.StringPtr(appID),
-					ObjectID: to.StringPtr(objectID),
-				}, nil)
+				m.GetApplication(gomock.Any(), appName).Return(testApplication(appID, objectID), nil)
 			},
 			verify: func(t *testing.T, createData *createData) {
 				if _, err := createData.AADApplication(); err != nil {
@@ -123,10 +120,7 @@ func TestCreateDataAADApplication(t *testing.T) {
 			name: "cache",
 			createData: &createData{
 				aadApplicationName: appName,
-				aadApplication: &graphrbac.Application{
-					AppID:    to.StringPtr(appID),
-					ObjectID: to.StringPtr(objectID),
-				},
+				aadApplication:     testApplication(appID, objectID),
 			},
 			expect: func(m *mock_cloud.MockInterfaceMockRecorder) {},
 			verify: func(t *testing.T, createData *createData) {
@@ -220,9 +214,7 @@ func TestCreateDataServicePrincipal(t *testing.T) {
 			name: "cache",
 			createData: &createData{
 				servicePrincipalName: "service-principal-name",
-				servicePrincipal: &graphrbac.ServicePrincipal{
-					ObjectID: to.StringPtr(objectID),
-				},
+				servicePrincipal:     testServicePrincipal("", objectID),
 			},
 			expect: func(m *mock_cloud.MockInterfaceMockRecorder) {},
 			verify: func(t *testing.T, createData *createData) {
@@ -240,9 +232,7 @@ func TestCreateDataServicePrincipal(t *testing.T) {
 				servicePrincipalName: "service-principal-name",
 			},
 			expect: func(m *mock_cloud.MockInterfaceMockRecorder) {
-				m.GetServicePrincipal(gomock.Any(), "service-principal-name").Return(&graphrbac.ServicePrincipal{
-					ObjectID: to.StringPtr(objectID),
-				}, nil)
+				m.GetServicePrincipal(gomock.Any(), "service-principal-name").Return(testServicePrincipal("", objectID), nil)
 			},
 			verify: func(t *testing.T, createData *createData) {
 				if _, err := createData.ServicePrincipal(); err != nil {
@@ -320,4 +310,18 @@ func TestCreateDataAzureTenantID(t *testing.T) {
 	if createData.AzureTenantID() != "azure-tenant-id" {
 		t.Errorf("Expected AzureTenantID() to be 'azure-tenant-id', got %s", createData.AzureTenantID())
 	}
+}
+
+func testApplication(appID, objectID string) *graph.Application {
+	app := graph.NewApplication()
+	app.SetAppId(to.StringPtr(appID))
+	app.SetId(to.StringPtr(objectID))
+	return app
+}
+
+func testServicePrincipal(appID, objectID string) *graph.ServicePrincipal {
+	sp := graph.NewServicePrincipal()
+	sp.SetAppId(to.StringPtr(appID))
+	sp.SetId(to.StringPtr(objectID))
+	return sp
 }

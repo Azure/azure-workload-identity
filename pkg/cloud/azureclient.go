@@ -5,18 +5,23 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
+	azidentity "github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/cli"
+	"github.com/microsoft/kiota/abstractions/go/authentication"
+	kiotaauth "github.com/microsoft/kiota/authentication/go/azure"
+	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -30,12 +35,12 @@ var msGraphEndpoint = map[azure.Environment]string{
 }
 
 type Interface interface {
-	CreateServicePrincipal(ctx context.Context, appID string, tags []string) (*graphrbac.ServicePrincipal, error)
-	CreateApplication(ctx context.Context, displayName string) (*graphrbac.Application, error)
-	DeleteServicePrincipal(ctx context.Context, objectID string) (autorest.Response, error)
-	DeleteApplication(ctx context.Context, objectID string) (autorest.Response, error)
-	GetServicePrincipal(ctx context.Context, displayName string) (*graphrbac.ServicePrincipal, error)
-	GetApplication(ctx context.Context, displayName string) (*graphrbac.Application, error)
+	CreateServicePrincipal(ctx context.Context, appID string, tags []string) (*graph.ServicePrincipal, error)
+	CreateApplication(ctx context.Context, displayName string) (*graph.Application, error)
+	DeleteServicePrincipal(ctx context.Context, objectID string) error
+	DeleteApplication(ctx context.Context, objectID string) error
+	GetServicePrincipal(ctx context.Context, displayName string) (*graph.ServicePrincipal, error)
+	GetApplication(ctx context.Context, displayName string) (*graph.Application, error)
 
 	// Role assignment methods
 	CreateRoleAssignment(ctx context.Context, scope, roleName, principalID string) (authorization.RoleAssignment, error)
@@ -45,8 +50,8 @@ type Interface interface {
 	GetRoleDefinitionIDByName(ctx context.Context, scope, roleName string) (authorization.RoleDefinition, error)
 
 	// Federation methods
-	AddFederatedCredential(ctx context.Context, objectID string, fc FederatedCredential) error
-	GetFederatedCredential(ctx context.Context, objectID, issuer, subject string) (FederatedCredential, error)
+	AddFederatedCredential(ctx context.Context, objectID string, fic *graph.FederatedIdentityCredential) error
+	GetFederatedCredential(ctx context.Context, objectID, issuer, subject string) (*graph.FederatedIdentityCredential, error)
 	DeleteFederatedCredential(ctx context.Context, objectID, federatedCredentialID string) error
 }
 
@@ -54,13 +59,10 @@ type AzureClient struct {
 	environment    azure.Environment
 	subscriptionID string
 
+	graphServiceClient *msgraphbetasdk.GraphServiceClient
+
 	roleAssignmentsClient authorization.RoleAssignmentsClient
 	roleDefinitionsClient authorization.RoleDefinitionsClient
-
-	applicationsClient      graphrbac.ApplicationsClient
-	servicePrincipalsClient graphrbac.ServicePrincipalsClient
-
-	federatedCredentialsClient FederatedCredentialsClient
 }
 
 // NewAzureClientWithCLI creates an AzureClient configured from Azure CLI 2.0 for local development scenarios.
@@ -80,27 +82,16 @@ func NewAzureClientWithCLI(env azure.Environment, subscriptionID, tenantID strin
 		return nil, err
 	}
 
-	aadGraphToken, err := cli.GetTokenFromCLI(env.GraphEndpoint)
+	cred, err := azidentity.NewAzureCLICredential(&azidentity.AzureCLICredentialOptions{TenantID: tenantID})
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to create credential")
+	}
+	auth, err := kiotaauth.NewAzureIdentityAuthenticationProviderWithScopes(cred, []string{getGraphScope(env)})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create authentication provider")
 	}
 
-	adalAADGraphToken, err := aadGraphToken.ToADALToken()
-	if err != nil {
-		return nil, err
-	}
-
-	msGraphToken, err := cli.GetTokenFromCLI(msGraphEndpoint[env])
-	if err != nil {
-		return nil, err
-	}
-
-	adalMSGraphToken, err := msGraphToken.ToADALToken()
-	if err != nil {
-		return nil, err
-	}
-
-	return getClient(env, subscriptionID, tenantID, autorest.NewBearerAuthorizer(&adalToken), autorest.NewBearerAuthorizer(&adalAADGraphToken), autorest.NewBearerAuthorizer(&adalMSGraphToken)), nil
+	return getClient(env, subscriptionID, tenantID, autorest.NewBearerAuthorizer(&adalToken), auth)
 }
 
 // NewAzureClientWithClientSecret returns an AzureClient via client_id and client_secret
@@ -114,22 +105,17 @@ func NewAzureClientWithClientSecret(env azure.Environment, subscriptionID, clien
 	if err != nil {
 		return nil, err
 	}
-	aadGraphSpt, err := adal.NewServicePrincipalToken(*oauthConfig, clientID, clientSecret, env.GraphEndpoint)
+
+	cred, err := azidentity.NewClientSecretCredential(tenantID, clientID, clientSecret, nil)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to create credential")
 	}
-	if err = aadGraphSpt.Refresh(); err != nil {
-		log.Error(err)
-	}
-	msGraphSpt, err := adal.NewServicePrincipalToken(*oauthConfig, clientID, clientSecret, msGraphEndpoint[env])
+	auth, err := kiotaauth.NewAzureIdentityAuthenticationProviderWithScopes(cred, []string{getGraphScope(env)})
 	if err != nil {
-		return nil, err
-	}
-	if err = msGraphSpt.Refresh(); err != nil {
-		log.Error(err)
+		return nil, errors.Wrap(err, "failed to create authentication provider")
 	}
 
-	return getClient(env, subscriptionID, tenantID, autorest.NewBearerAuthorizer(armSpt), autorest.NewBearerAuthorizer(aadGraphSpt), autorest.NewBearerAuthorizer(msGraphSpt)), nil
+	return getClient(env, subscriptionID, tenantID, autorest.NewBearerAuthorizer(armSpt), auth)
 }
 
 // NewAzureClientWithClientCertificateFile returns an AzureClient via client_id and jwt certificate assertion
@@ -199,46 +185,39 @@ func newAzureClientWithCertificate(env azure.Environment, oauthConfig *adal.OAut
 	if err != nil {
 		return nil, err
 	}
-	aadGraphSpt, err := adal.NewServicePrincipalTokenFromCertificate(*oauthConfig, clientID, certificate, privateKey, env.GraphEndpoint)
+
+	cred, err := azidentity.NewClientCertificateCredential(tenantID, clientID, []*x509.Certificate{certificate}, privateKey, nil)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to create credential")
 	}
-	if err = aadGraphSpt.Refresh(); err != nil {
-		log.Error(err)
-	}
-	msGraphSpt, err := adal.NewServicePrincipalTokenFromCertificate(*oauthConfig, clientID, certificate, privateKey, msGraphEndpoint[env])
+	auth, err := kiotaauth.NewAzureIdentityAuthenticationProviderWithScopes(cred, []string{getGraphScope(env)})
 	if err != nil {
-		return nil, err
-	}
-	if err = msGraphSpt.Refresh(); err != nil {
-		log.Error(err)
+		return nil, errors.Wrap(err, "failed to create authentication provider")
 	}
 
-	return getClient(env, subscriptionID, tenantID, autorest.NewBearerAuthorizer(armSpt), autorest.NewBearerAuthorizer(aadGraphSpt), autorest.NewBearerAuthorizer(msGraphSpt)), nil
+	return getClient(env, subscriptionID, tenantID, autorest.NewBearerAuthorizer(armSpt), auth)
 }
 
-func getClient(env azure.Environment, subscriptionID, tenantID string, armAuthorizer, aadGraphAuthorizer, msGraphAuthorizer autorest.Authorizer) *AzureClient {
+func getClient(env azure.Environment, subscriptionID, tenantID string, armAuthorizer autorest.Authorizer, auth authentication.AuthenticationProvider) (*AzureClient, error) {
+	adapter, err := msgraphbetasdk.NewGraphRequestAdapter(auth)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create request adapter")
+	}
+
 	azClient := &AzureClient{
 		environment:    env,
 		subscriptionID: subscriptionID,
 
+		graphServiceClient: msgraphbetasdk.NewGraphServiceClient(adapter),
+
 		roleAssignmentsClient: authorization.NewRoleAssignmentsClientWithBaseURI(env.ResourceManagerEndpoint, subscriptionID),
 		roleDefinitionsClient: authorization.NewRoleDefinitionsClientWithBaseURI(env.ResourceManagerEndpoint, subscriptionID),
-
-		applicationsClient:      graphrbac.NewApplicationsClientWithBaseURI(env.GraphEndpoint, tenantID),
-		servicePrincipalsClient: graphrbac.NewServicePrincipalsClientWithBaseURI(env.GraphEndpoint, tenantID),
-
-		federatedCredentialsClient: NewFederatedCredentialsClient(msGraphEndpoint[env]),
 	}
 
 	azClient.roleAssignmentsClient.Authorizer = armAuthorizer
 	azClient.roleDefinitionsClient.Authorizer = armAuthorizer
 
-	azClient.applicationsClient.Authorizer = aadGraphAuthorizer
-	azClient.servicePrincipalsClient.Authorizer = aadGraphAuthorizer
-
-	azClient.federatedCredentialsClient.Authorizer = msGraphAuthorizer
-	return azClient
+	return azClient, nil
 }
 
 // GetTenantID figures out the AAD tenant ID of the subscription by making an
@@ -306,4 +285,8 @@ func parseRsaPrivateKey(path string) (*rsa.PrivateKey, error) {
 	}
 
 	return nil, errors.Errorf("failed to parse private key as Pkcs#1 or Pkcs#8. (%s). (%s)", errPkcs1, errPkcs8)
+}
+
+func getGraphScope(env azure.Environment) string {
+	return fmt.Sprintf("%s.default", msGraphEndpoint[env])
 }
