@@ -5,21 +5,21 @@ go 1.17
 require (
 	github.com/Azure/azure-sdk-for-go v57.3.0+incompatible
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v0.12.0
-	github.com/Azure/go-autorest/autorest v0.11.18
-	github.com/Azure/go-autorest/autorest/adal v0.9.13
+	github.com/Azure/go-autorest/autorest v0.11.19
+	github.com/Azure/go-autorest/autorest/adal v0.9.14
 	github.com/Azure/go-autorest/autorest/azure/cli v0.4.2
 	github.com/Azure/go-autorest/autorest/to v0.4.0
-	github.com/AzureAD/microsoft-authentication-library-for-go v0.3.1
+	github.com/AzureAD/microsoft-authentication-library-for-go v0.4.0
 	github.com/go-logr/logr v0.4.0
-	github.com/golang/mock v1.4.4
+	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/mattn/go-colorable v0.0.9
-	github.com/microsoft/kiota/abstractions/go v0.0.0-20211115212215-7478730f2237
-	github.com/microsoft/kiota/authentication/go/azure v0.0.0-20211126182358-a93270f822db
-	github.com/microsoft/kiota/serialization/go/json v0.0.0-20211116162114-0e3eae106d29
-	github.com/microsoftgraph/msgraph-beta-sdk-go v0.3.0
+	github.com/microsoft/kiota/abstractions/go v0.0.0-20211202082735-099f3c37853a
+	github.com/microsoft/kiota/authentication/go/azure v0.0.0-20211201125630-3501743a5dc5
+	github.com/microsoft/kiota/serialization/go/json v0.0.0-20211112084539-17ac73ffdc7c
+	github.com/microsoftgraph/msgraph-beta-sdk-go v0.4.2
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.13.0
 	github.com/open-policy-agent/cert-controller v0.2.0
@@ -28,7 +28,7 @@ require (
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
 	gopkg.in/ini.v1 v1.51.0
-	gopkg.in/square/go-jose.v2 v2.2.2
+	gopkg.in/square/go-jose.v2 v2.6.0
 	k8s.io/api v0.22.3
 	k8s.io/apimachinery v0.22.3
 	k8s.io/client-go v0.22.3
@@ -39,7 +39,7 @@ require (
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v0.20.0 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/internal v0.8.1 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/internal v0.8.2 // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
 	github.com/Azure/go-autorest/autorest/date v0.3.0 // indirect
 	github.com/Azure/go-autorest/autorest/validation v0.1.0 // indirect
@@ -71,8 +71,8 @@ require (
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/mattn/go-isatty v0.0.4 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
-	github.com/microsoft/kiota/http/go/nethttp v0.0.0-20211116160143-b7566a0a6ee5 // indirect
-	github.com/microsoftgraph/msgraph-sdk-go-core v0.0.2 // indirect
+	github.com/microsoft/kiota/http/go/nethttp v0.0.0-20211203130928-8449c9e67101 // indirect
+	github.com/microsoftgraph/msgraph-sdk-go-core v0.0.5 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/moby/spdystream v0.2.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
@@ -100,12 +100,13 @@ require (
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.17.0 // indirect
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
-	golang.org/x/net v0.0.0-20211029224645-99673261e6eb // indirect
+	golang.org/x/net v0.0.0-20211123203042-d83791d6bcd9 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
 	golang.org/x/sys v0.0.0-20211025201205-69cdffdb9359 // indirect
 	golang.org/x/term v0.0.0-20210220032956-6a3ed077a48d // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
+	golang.org/x/tools v0.1.7 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20210602131652-f16073e35f0c // indirect
