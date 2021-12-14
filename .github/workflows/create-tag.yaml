@@ -30,47 +30,49 @@ jobs:
           git tag ${{ steps.get-tag.outputs.tag }}
           go install github.com/git-chglog/git-chglog/cmd/git-chglog@v0.15.0
           git-chglog ${{ steps.get-tag.outputs.tag }} > CHANGELOG.md
-      - name: Build azwi-cli
-        run: |
-          build() {
-            export GOOS="$(echo ${1} | cut -d '-' -f 1)"
-            export GOARCH="$(echo ${1} | cut -d '-' -f 2)"
+      # the following step is taking way too long, so we're skipping it for now
+      # and investigating a way to speed it up with goreleaser
+      # - name: Build azwi-cli
+      #   run: |
+      #     build() {
+      #       export GOOS="$(echo ${1} | cut -d '-' -f 1)"
+      #       export GOARCH="$(echo ${1} | cut -d '-' -f 2)"
 
-            # in case of windows, we need to append .exe to the file name
-            EXTENSION="$(echo ${1} | cut -d '-' -f 3)"
-            EXTENSION=${EXTENSION/exe/.exe}
+      #       # in case of windows, we need to append .exe to the file name
+      #       EXTENSION="$(echo ${1} | cut -d '-' -f 3)"
+      #       EXTENSION=${EXTENSION/exe/.exe}
 
-            # build the binary
-            make bin/azwi-${GOOS}-${GOARCH}${EXTENSION}
+      #       # build the binary
+      #       make bin/azwi-${GOOS}-${GOARCH}${EXTENSION}
 
-            # rename the binary to azwi
-            tmp_dir=$(mktemp -d)
-            cp bin/azwi-${GOOS}-${GOARCH}${EXTENSION} ${tmp_dir}/azwi${EXTENSION}
+      #       # rename the binary to azwi
+      #       tmp_dir=$(mktemp -d)
+      #       cp bin/azwi-${GOOS}-${GOARCH}${EXTENSION} ${tmp_dir}/azwi${EXTENSION}
 
-            pushd ${tmp_dir}
-            if [[ ${EXTENSION} == ".exe" ]]; then
-              zip ${GITHUB_WORKSPACE}/_dist/azwi-$${{ steps.get-tag.outputs.tag }}-${GOOS}-${GOARCH}.zip azwi*.exe
-            else
-              tar -czf ${GITHUB_WORKSPACE}/_dist/azwi-${{ steps.get-tag.outputs.tag }}-${GOOS}-${GOARCH}.tar.gz azwi*
-            fi
-            popd
-            rm -rf ${tmp_dir}
-          }
+      #       pushd ${tmp_dir}
+      #       if [[ ${EXTENSION} == ".exe" ]]; then
+      #         zip ${GITHUB_WORKSPACE}/_dist/azwi-$${{ steps.get-tag.outputs.tag }}-${GOOS}-${GOARCH}.zip azwi*.exe
+      #       else
+      #         tar -czf ${GITHUB_WORKSPACE}/_dist/azwi-${{ steps.get-tag.outputs.tag }}-${GOOS}-${GOARCH}.tar.gz azwi*
+      #       fi
+      #       popd
+      #       rm -rf ${tmp_dir}
+      #     }
 
-          mkdir -p _dist
-          make clean
-          for os_arch_extension in linux-amd64 linux-arm64 darwin-amd64 darwin-arm64 windows-amd64-exe; do
-            build ${os_arch_extension} &
-          done
-          wait
+      #     mkdir -p _dist
+      #     make clean
+      #     for os_arch_extension in linux-amd64 linux-arm64 darwin-amd64 darwin-arm64 windows-amd64-exe; do
+      #       build ${os_arch_extension} &
+      #     done
+      #     wait
 
-          pushd _dist
-          # consolidate tar and zip's sha256sum into a single file
-          find . -type f -name '*.tar.gz' -o -name '*.zip' | sort | xargs sha256sum >> sha256sums.txt
-          popd
+      #     pushd _dist
+      #     # consolidate tar and zip's sha256sum into a single file
+      #     find . -type f -name '*.tar.gz' -o -name '*.zip' | sort | xargs sha256sum >> sha256sums.txt
+      #     popd
       - uses: ncipollo/release-action@v1
         with:
           tag: ${{ steps.get-tag.outputs.tag }}
           bodyFile: CHANGELOG.md
           token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: "deploy/*.yaml,_dist/*"
+          artifacts: "deploy/*.yaml"
