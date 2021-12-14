@@ -12,7 +12,7 @@
 ### `go install`
 
 ```bash
-go install github.com/Azure/azure-workload-identity/cmd/azwi@v0.6.0
+go install github.com/Azure/azure-workload-identity/cmd/azwi@v0.7.0
 ```
 
 ### Homebrew (MacOS only)
