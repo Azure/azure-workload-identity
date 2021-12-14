@@ -100,8 +100,8 @@ subjects:
 ---
 apiVersion: v1
 data:
-  AZURE_ENVIRONMENT: <replace with Azure Environment Name>
-  AZURE_TENANT_ID: <replace with Azure Tenant ID>
+  AZURE_ENVIRONMENT: ${AZURE_ENVIRONMENT:-AzurePublicCloud}
+  AZURE_TENANT_ID: ${AZURE_TENANT_ID}
 kind: ConfigMap
 metadata:
   labels:
@@ -150,7 +150,7 @@ spec:
     spec:
       containers:
       - args:
-        - --arc-cluster=false
+        - --arc-cluster=${ARC_CLUSTER:-false}
         command:
         - /manager
         env:
@@ -162,7 +162,7 @@ spec:
         envFrom:
         - configMapRef:
             name: azure-wi-webhook-config
-        image: mcr.microsoft.com/oss/azure/workload-identity/webhook:v0.6.0
+        image: mcr.microsoft.com/oss/azure/workload-identity/webhook:v0.7.0
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:

@@ -2,8 +2,8 @@ apiVersion: v2
 name: workload-identity-webhook
 description: A Helm chart to install the azure-workload-identity webhook
 type: application
-version: 0.6.0
-appVersion: v0.6.0
+version: 0.7.0
+appVersion: v0.7.0
 home: https://github.com/Azure/azure-workload-identity
 sources:
   - https://github.com/Azure/azure-workload-identity
