@@ -69,6 +69,13 @@ nodes:
       containerPath: /etc/kubernetes/pki/sa.key
   kubeadmConfigPatches:
   - |
+    kind: InitConfiguration
+    nodeRegistration:
+    taints:
+    - key: "kubeadmNode"
+      value: "master"
+      effect: "NoSchedule"
+  - |
     kind: ClusterConfiguration
     apiServer:
       extraArgs:
@@ -78,6 +85,9 @@ nodes:
     controllerManager:
       extraArgs:
         service-account-private-key-file: /etc/kubernetes/pki/sa.key
+- role: worker
+- role: worker
+- role: worker
 EOF
 
   ${KUBECTL} wait node "${KIND_CLUSTER_NAME}-control-plane" --for=condition=Ready --timeout=90s

@@ -47,7 +47,7 @@ main() {
       --enable-managed-identity \
       --network-plugin azure \
       --kubernetes-version "${KUBERNETES_VERSION}" \
-      --node-count 1 \
+      --node-count 3 \
       --generate-ssh-keys > /dev/null
     if [[ "${WINDOWS_CLUSTER:-}" == "true" ]]; then
       if [[ "${WINDOWS_CONTAINERD:-}" == "true" ]]; then
@@ -57,7 +57,7 @@ main() {
         EXTRA_ARGS="--aks-custom-headers WindowsContainerRuntime=containerd"
       fi
       # shellcheck disable=SC2086
-      az aks nodepool add --resource-group "${CLUSTER_NAME}" --cluster-name "${CLUSTER_NAME}" --os-type Windows --name npwin --kubernetes-version "${KUBERNETES_VERSION}" --node-count 1 ${EXTRA_ARGS:-} > /dev/null
+      az aks nodepool add --resource-group "${CLUSTER_NAME}" --cluster-name "${CLUSTER_NAME}" --os-type Windows --name npwin --kubernetes-version "${KUBERNETES_VERSION}" --node-count 3 ${EXTRA_ARGS:-} > /dev/null
     fi
   fi
 }

@@ -19,7 +19,7 @@ jobs:
     steps:
       - template: templates/scan-images.yaml
   - job: lint
-    timeoutInMinutes: 15
+    timeoutInMinutes: 30
     workspace:
       clean: all
     steps:
@@ -61,7 +61,6 @@ jobs:
     - lint
     - scan_images
     - shellcheck
-    - unit_test
     workspace:
       clean: all
     variables:
