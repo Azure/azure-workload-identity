@@ -565,7 +565,7 @@ TEST SUITE: None
 <h3 id="install-envsubst"><a class="header" href="#install-envsubst">Install <code>envsubst</code></a></h3>
 <p>The deployment YAML contains the environment variables we defined above and we rely on the <code>envsubst</code> binary to substitute them for their respective values before deploying. See <a href="https://github.com/a8m/envsubst#installation">the <code>envsubst</code>‘s installation guide</a> on how to install it.</p>
 <p>Install the webhook using the deployment YAML via <code>kubectl apply -f</code> and <code>envsubst</code>:</p>
-<pre><code class="language-bash">curl -s https://github.com/Azure/azure-workload-identity/releases/download/v0.6.0/azure-wi-webhook.yaml | envsubst | kubectl apply -f -
+<pre><code class="language-bash">curl -s https://github.com/Azure/azure-workload-identity/releases/download/v0.7.0/azure-wi-webhook.yaml | envsubst | kubectl apply -f -
 </code></pre>
 <details>
 <summary>Output</summary>
@@ -596,7 +596,7 @@ mutatingwebhookconfiguration.admissionregistration.k8s.io/azure-wi-webhook-mutat
 </li>
 </ul>
 <h3 id="go-install"><a class="header" href="#go-install"><code>go install</code></a></h3>
-<pre><code class="language-bash">go install github.com/Azure/azure-workload-identity/cmd/azwi@v0.6.0
+<pre><code class="language-bash">go install github.com/Azure/azure-workload-identity/cmd/azwi@v0.7.0
 </code></pre>
 <h3 id="homebrew-macos-only"><a class="header" href="#homebrew-macos-only">Homebrew (MacOS only)</a></h3>
 <pre><code class="language-bash">brew install Azure/azure-workload-identity/azwi
