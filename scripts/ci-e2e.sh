@@ -103,8 +103,7 @@ test_helm_chart() {
     --create-namespace \
     --wait
   poll_webhook_readiness
-  # TODO(aramase) remove the service account token expiration after v0.7.0 release
-  E2E_EXTRA_ARGS=-e2e.service-account-token-expiration=24h make test-e2e-run
+  make test-e2e-run
 
   ${HELM} upgrade --install workload-identity-webhook "${REPO_ROOT}/manifest_staging/charts/workload-identity-webhook" \
     --set image.repository="${REGISTRY:-mcr.microsoft.com/oss/azure/workload-identity/webhook}" \
