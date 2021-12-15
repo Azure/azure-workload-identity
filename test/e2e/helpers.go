@@ -312,10 +312,7 @@ func validateUnmutatedContainers(f *framework.Framework, pod *corev1.Pod, skipCo
 }
 
 func getVolumeProjectionSources(serviceAccountName string) []corev1.VolumeProjection {
-	// This is only required because webhook v0.6.0 uses 86400 for default token expiration
-	// and we are running upgrade tests.
-	// TODO(aramase): remove this after next release
-	expirationSeconds := int64(serviceAccountTokenExpiration.Seconds())
+	expirationSeconds := webhook.DefaultServiceAccountTokenExpiration
 
 	if arcCluster {
 		return []corev1.VolumeProjection{{
