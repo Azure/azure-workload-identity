@@ -60,9 +60,6 @@ func NewProxy(port int, logger logr.Logger) (Proxy, error) {
 	if authorityHost == "" {
 		return nil, errors.Errorf("%s not set", webhook.AzureAuthorityHostEnvVar)
 	}
-	if logger == nil {
-		return nil, errors.New("logger not set")
-	}
 	return &proxy{
 		port:          port,
 		tenantID:      tenantID,
