@@ -22,22 +22,28 @@ should_create_aks_cluster() {
 }
 
 register_feature() {
-  # https://docs.microsoft.com/en-us/azure/aks/windows-container-cli#add-a-windows-server-node-pool-with-containerd-preview
   az extension add --name aks-preview
   az extension update --name aks-preview
+  # register enable oidc preview feature
+  az feature register --namespace Microsoft.ContainerService --name EnableOIDCIssuerPreview > /dev/null
+  # https://docs.microsoft.com/en-us/azure/aks/windows-container-cli#add-a-windows-server-node-pool-with-containerd-preview
   az feature register --namespace Microsoft.ContainerService --name UseCustomizedWindowsContainerRuntime > /dev/null
-  while [[ "$(az feature list --query "[?contains(name, 'Microsoft.ContainerService/UseCustomizedWindowsContainerRuntime')].{Name:name,State:properties.state}" | jq -r '.[].State')" != "Registered" ]]; do
-    sleep 20
+  while [[ "$(az feature list --query "[?contains(name, 'Microsoft.ContainerService/EnableOIDCIssuerPreview')].{Name:name,State:properties.state}" | jq -r '.[].State')" != "Registered" ]] &&
+    [[ "$(az feature list --query "[?contains(name, 'Microsoft.ContainerService/UseCustomizedWindowsContainerRuntime')].{Name:name,State:properties.state}" | jq -r '.[].State')" != "Registered" ]]; do
+      sleep 20
   done
   az provider register --namespace Microsoft.ContainerService
 }
 
 main() {
   if [[ "$(should_create_aks_cluster)" == "true" ]]; then
+    export -f register_feature
+    # might take around 20 minutes to register
+    timeout --foreground 1200 bash -c register_feature
     echo "Creating an AKS cluster '${CLUSTER_NAME}'"
     LOCATION="$(get_random_region)"
-    # get the latest patch version of 1.20
-    KUBERNETES_VERSION="$(az aks get-versions --location "${LOCATION}" --query 'orchestrators[*].orchestratorVersion' -otsv | grep '1.20' | tail -1)"
+    # get the latest patch version of 1.21
+    KUBERNETES_VERSION="$(az aks get-versions --location "${LOCATION}" --query 'orchestrators[*].orchestratorVersion' -otsv | grep '1.21' | tail -1)"
     az group create --name "${CLUSTER_NAME}" --location "${LOCATION}" > /dev/null
     # TODO(chewong): ability to create an arc-enabled cluster
     az aks create \
@@ -52,9 +58,6 @@ main() {
       --enable-oidc-issuer > /dev/null
     if [[ "${WINDOWS_CLUSTER:-}" == "true" ]]; then
       if [[ "${WINDOWS_CONTAINERD:-}" == "true" ]]; then
-        export -f register_feature
-        # might take around 20 minutes to register
-        timeout --foreground 1200 bash -c register_feature
         EXTRA_ARGS="--aks-custom-headers WindowsContainerRuntime=containerd"
       fi
       # shellcheck disable=SC2086
