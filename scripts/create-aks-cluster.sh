@@ -48,7 +48,8 @@ main() {
       --network-plugin azure \
       --kubernetes-version "${KUBERNETES_VERSION}" \
       --node-count 3 \
-      --generate-ssh-keys > /dev/null
+      --generate-ssh-keys \
+      --enable-oidc-issuer > /dev/null
     if [[ "${WINDOWS_CLUSTER:-}" == "true" ]]; then
       if [[ "${WINDOWS_CONTAINERD:-}" == "true" ]]; then
         export -f register_feature
