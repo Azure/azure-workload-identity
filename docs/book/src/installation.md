@@ -3,6 +3,7 @@
 ## Prerequisites
 
 *   [Azure CLI][1]
+    *   with [aks-preview][7] CLI extension installed (≥0.5.50)
 *   [Helm 3][2]
 *   A Kubernetes cluster with version ≥ v1.20
     *   **Follow the cluster-specific setup guide below before deploying Azure AD Workload Identity:**
@@ -30,3 +31,5 @@
 [5]: ./installation/mutating-admission-webhook.md
 
 [6]: ./installation/azwi.md
+
+[7]: https://github.com/Azure/azure-cli-extensions/tree/main/src/aks-preview
