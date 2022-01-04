@@ -17,7 +17,6 @@ Before we get started, ensure the following:
 - obtained your cluster's OIDC issuer URL
 - [optional] installed the Azure AD Workload Identity CLI
 
-
 ## 2. Export environment variables
 
 ```bash
