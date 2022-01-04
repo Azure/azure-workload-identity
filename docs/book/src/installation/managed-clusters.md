@@ -9,6 +9,7 @@ Before deploying Azure AD Workload Identity, you will need to enable any **OIDC-
 ## Azure Kubernetes Service (AKS)
 
 ```bash
+az extension add --name aks-preview
 az aks [create|update] --resource-group <resource_group> --name <cluster_name> --enable-oidc-issuer
 # Output the OIDC issuer URL
 az aks show --resource-group <resource_group> --name <cluster_name> --query "oidcIssuerProfile.issuerUrl" -otsv

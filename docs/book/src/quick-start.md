@@ -12,7 +12,11 @@ Before we get started, ensure the following:
 
 ## 1. Complete the installation guide
 
-[Installation guide][13]
+[Installation guide][13]. At this point, you should have already:
+- installed the mutating admission webhook
+- obtained your cluster's OIDC issuer URL
+- [optional] installed the Azure AD Workload Identity CLI
+
 
 ## 2. Export environment variables
 
@@ -85,7 +89,7 @@ INFO[0005] [aad-application] created service principal   clientID=REDACTED name=
 <summary>Azure CLI</summary>
 
 ```bash
-az ad sp create-for-rbac --skip-assignment --name "${APPLICATION_NAME}"
+az ad sp create-for-rbac --name "${APPLICATION_NAME}"
 ```
 
 </details>
@@ -196,9 +200,6 @@ Login to [Azure Cloud Shell][8] and run the following commands:
 ```bash
 # Get the object ID of the AAD application
 export APPLICATION_OBJECT_ID="$(az ad app show --id ${APPLICATION_CLIENT_ID} --query objectId -otsv)"
-export SERVICE_ACCOUNT_ISSUER="<your service account issuer url>"
-export SERVICE_ACCOUNT_NAME="workload-identity-sa"
-export SERVICE_ACCOUNT_NAMESPACE="default"
 ```
 
 Add the federated identity credential:
@@ -235,8 +236,7 @@ metadata:
 spec:
   serviceAccountName: ${SERVICE_ACCOUNT_NAME}
   containers:
-    - image: ghcr.io/azure/azure-workload-identity/msal-go:latest
-      imagePullPolicy: IfNotPresent
+    - image: aramase/msal-go:v0.6.0
       name: oidc
       env:
       - name: KEYVAULT_NAME
@@ -248,14 +248,27 @@ spec:
 EOF
 ```
 
-<details>
-<summary>Output</summary>
-
-```bash
-pod/quick-start created
-```
-
-</details>
+<!-- ```bash
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: quick-start
+  namespace: ${SERVICE_ACCOUNT_NAMESPACE}
+spec:
+  serviceAccountName: ${SERVICE_ACCOUNT_NAME}
+  containers:
+    - image: ghcr.io/azure/azure-workload-identity/msal-go:latest
+      name: oidc
+      env:
+      - name: KEYVAULT_NAME
+        value: ${KEYVAULT_NAME}
+      - name: SECRET_NAME
+        value: ${KEYVAULT_SECRET_NAME}
+  nodeSelector:
+    kubernetes.io/os: linux
+EOF
+``` -->
 
 To check whether all properties are injected properly by the webhook:
 

@@ -12,7 +12,7 @@ Azure AD Workload Identity for Kubernetes integrates with the capabilities nativ
 
 ## Limitations
 
-*   Workload Identity Federation is currently only supported for Azure AD Applications.
+*   Workload Identity Federation is currently only supported for Azure AD Applications. Managed identity support will be coming soon.
 
 ## Getting started
 
