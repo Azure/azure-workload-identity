@@ -9,7 +9,7 @@ Before deploying Azure AD Workload Identity, you will need to enable any **OIDC-
 ## Azure Kubernetes Service (AKS)
 
 ```bash
-az extension add --name aks-preview
+az extension [add|update] --name aks-preview
 
 # Register the feature on the Microsoft.ContainerService namespace to have the EnableOIDCIssuerPreview feature
 az feature register --name EnableOIDCIssuerPreview --namespace Microsoft.ContainerService
