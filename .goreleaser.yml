@@ -25,18 +25,19 @@ builds:
       - -s 
       - -w
       - -X {{.ModulePath}}/pkg/version.BuildTime={{.Date}}
-      - -X {{.ModulePath}}/pkg/version.BuildVersion={{.Version}}
+      - -X {{.ModulePath}}/pkg/version.BuildVersion={{.Tag}}
       - -X {{.ModulePath}}/pkg/version.Vcs={{.ShortCommit}}
 release:
   prerelease: auto
   header: |
-    ## {{ .Tag }} - {{ time "2006-01-02" }}
+    ## {{.Tag}} - {{ time "2006-01-02" }}
   extra_files:
     - glob: deploy/*.yaml
 archives:
   - format_overrides:
       - goos: windows
         format: zip
+    name_template: "azwi-{{.Tag}}-{{.Os}}-{{.Arch}}"
 checksum:
   name_template: 'sha256sums.txt'
   algorithm: sha256
