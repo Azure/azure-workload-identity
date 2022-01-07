@@ -8,17 +8,11 @@ Before deploying Azure AD Workload Identity, you will need to enable any **OIDC-
 
 ## Azure Kubernetes Service (AKS)
 
+To create a new AKS cluster with OIDC Issuer URL enabled or update an existing cluster, follow the instructions in the [Azure Kubernetes Service (AKS) documentation][4].
+
+To get your cluster's OIDC issuer URL run:
+
 ```bash
-az extension [add|update] --name aks-preview
-
-# Register the feature on the Microsoft.ContainerService namespace to have the EnableOIDCIssuerPreview feature
-az feature register --name EnableOIDCIssuerPreview --namespace Microsoft.ContainerService
-
-# Check the status of the feature. This should show as "Registered".
-az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/EnableOIDCIssuerPreview')].{Name:name,State:properties.state}"
-
-az aks [create|update] --resource-group <resource_group> --name <cluster_name> --enable-oidc-issuer
-
 # Output the OIDC issuer URL
 az aks show --resource-group <resource_group> --name <cluster_name> --query "oidcIssuerProfile.issuerUrl" -otsv
 ```
@@ -178,3 +172,5 @@ kubectl delete serviceaccount ${SERVICE_ACCOUNT_NAME} -n ${NAMESPACE}
 [2]: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-token-volume-projection
 
 [3]: https://smallstep.com/cli/
+
+[4]: https://docs.microsoft.com/en-us/azure/aks/cluster-configuration#oidc-issuer-preview
