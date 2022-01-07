@@ -1,0 +1,37 @@
+name: create_release
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+      - release-**
+    types: [closed]
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.title, 'update manifest and helm charts')
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+          fetch-depth: 0
+      - uses: actions/setup-go@v2
+        with:
+          go-version: "^1.17"
+      - id: get-tag
+        name: Get tag
+        run: echo "::set-output name=tag::$(echo ${{ github.event.pull_request.head.ref }} | tr -d release-)"
+      - name: Create tag
+        run: |
+          git tag ${{ steps.get-tag.outputs.tag }}
+      - name: Goreleaser
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          version: latest
+          args: release --rm-dist --timeout 60m --debug
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
