@@ -217,17 +217,9 @@
 <p>For managed clusters, the service account signing keys will be set up and managed by the cloud provider.</p>
 <p>Before deploying Azure AD Workload Identity, you will need to enable any <strong>OIDC-specific</strong> feature flags and obtain the <strong>OIDC issuer URL</strong> when setting up the federated identity credentials.</p>
 <h2 id="azure-kubernetes-service-aks"><a class="header" href="#azure-kubernetes-service-aks">Azure Kubernetes Service (AKS)</a></h2>
-<pre><code class="language-bash">az extension [add|update] --name aks-preview
-
-# Register the feature on the Microsoft.ContainerService namespace to have the EnableOIDCIssuerPreview feature
-az feature register --name EnableOIDCIssuerPreview --namespace Microsoft.ContainerService
-
-# Check the status of the feature. This should show as &quot;Registered&quot;.
-az feature list -o table --query &quot;[?contains(name, 'Microsoft.ContainerService/EnableOIDCIssuerPreview')].{Name:name,State:properties.state}&quot;
-
-az aks [create|update] --resource-group &lt;resource_group&gt; --name &lt;cluster_name&gt; --enable-oidc-issuer
-
-# Output the OIDC issuer URL
+<p>To create a new AKS cluster with OIDC Issuer URL enabled or update an existing cluster, follow the instructions in the <a href="https://docs.microsoft.com/en-us/azure/aks/cluster-configuration#oidc-issuer-preview">Azure Kubernetes Service (AKS) documentation</a>.</p>
+<p>To get your cluster’s OIDC issuer URL run:</p>
+<pre><code class="language-bash"># Output the OIDC issuer URL
 az aks show --resource-group &lt;resource_group&gt; --name &lt;cluster_name&gt; --query &quot;oidcIssuerProfile.issuerUrl&quot; -otsv
 </code></pre>
 <h2 id="amazon-elastic-kubernetes-service-eks"><a class="header" href="#amazon-elastic-kubernetes-service-eks">Amazon Elastic Kubernetes Service (EKS)</a></h2>
