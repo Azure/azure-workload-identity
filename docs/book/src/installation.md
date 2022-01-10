@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-*   [Azure CLI][1]
+*   [Azure CLI][1] (≥2.32.0)
     *   with [aks-preview][7] CLI extension installed (≥0.5.50)
 *   [Helm 3][2]
 *   A Kubernetes cluster with version ≥ v1.20

@@ -235,28 +235,6 @@ metadata:
 spec:
   serviceAccountName: ${SERVICE_ACCOUNT_NAME}
   containers:
-    - image: aramase/msal-go:v0.6.0
-      name: oidc
-      env:
-      - name: KEYVAULT_NAME
-        value: ${KEYVAULT_NAME}
-      - name: SECRET_NAME
-        value: ${KEYVAULT_SECRET_NAME}
-  nodeSelector:
-    kubernetes.io/os: linux
-EOF
-```
-
-<!-- ```bash
-cat <<EOF | kubectl apply -f -
-apiVersion: v1
-kind: Pod
-metadata:
-  name: quick-start
-  namespace: ${SERVICE_ACCOUNT_NAMESPACE}
-spec:
-  serviceAccountName: ${SERVICE_ACCOUNT_NAME}
-  containers:
     - image: ghcr.io/azure/azure-workload-identity/msal-go:latest
       name: oidc
       env:
@@ -267,7 +245,7 @@ spec:
   nodeSelector:
     kubernetes.io/os: linux
 EOF
-``` -->
+```
 
 To check whether all properties are injected properly by the webhook:
 
