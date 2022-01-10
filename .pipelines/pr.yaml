@@ -102,8 +102,8 @@ jobs:
           KIND_NODE_VERSION: v1.22.4
           LOCAL_ONLY: "true"
           TEST_HELM_CHART: "true"
-        kind_v1_23_0:
-          KIND_NODE_VERSION: v1.23.0
+        kind_v1_23_1:
+          KIND_NODE_VERSION: v1.23.1
           LOCAL_ONLY: "true"
           TEST_HELM_CHART: "true"
     steps:
