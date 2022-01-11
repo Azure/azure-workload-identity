@@ -13,7 +13,7 @@ Azure AD Workload Identity is the next iteration of [Azure AD Pod Identity][1] t
 
 ## Installation
 
-Check out the [installation guide][16] on how to deploy the Azure AD Workload Identity webhook.
+Check out the [installation guide][12] on how to deploy the Azure AD Workload Identity webhook.
 
 ## Quick Start
 
@@ -35,13 +35,9 @@ Azure AD Workload Identity is an open source project that is [**not** covered by
 
 [3]: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
 
-[4]: https://azure.github.io/azure-workload-identity/quick-start.html
+[4]: https://azure.github.io/azure-workload-identity/docs/quick-start.html
 
-[5]: https://azure.github.io/azure-workload-identity/topics/mutating-admission-webhook.html
-
-[6]: https://azure.github.io/azure-workload-identity/concepts.html#proxy-init
-
-[7]: https://azure.github.io/azure-workload-identity/concepts.html#proxy
+[5]: https://azure.github.io/azure-workload-identity/docs/installation/mutating-admission-webhook.html
 
 [8]: https://azure.github.io/aad-pod-identity/docs/getting-started/role-assignment/
 
@@ -51,15 +47,13 @@ Azure AD Workload Identity is an open source project that is [**not** covered by
 
 [11]: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-token-volume-projection
 
-[12]: https://azure.github.io/azure-workload-identity/installation.html
+[12]: https://azure.github.io/azure-workload-identity/docs/installation.html
 
 [13]: https://dev.azure.com/AzureContainerUpstream/Azure%20Workload%20Identity/_build/latest?definitionId=365&branchName=main
 
 [14]: https://dev.azure.com/AzureContainerUpstream/Azure%20Workload%20Identity/_apis/build/status/Azure%20Workload%20Identity%20Nightly?branchName=main
 
-[15]: https://azure.github.io/azure-workload-identity/known-issues.html#permission-denied-when-reading-the-projected-service-account-token-file
-
-[16]: https://azure.github.io/azure-workload-identity/installation
+[15]: https://azure.github.io/azure-workload-identity/docs/known-issues.html#permission-denied-when-reading-the-projected-service-account-token-file
 
 [17]: https://opensource.microsoft.com/codeofconduct/
 
