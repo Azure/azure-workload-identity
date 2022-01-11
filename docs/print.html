@@ -179,7 +179,7 @@
 <div style="break-before: page; page-break-before: always;"></div><h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
 <h2 id="prerequisites"><a class="header" href="#prerequisites">Prerequisites</a></h2>
 <ul>
-<li><a href="https://docs.microsoft.com/en-us/cli/azure/install-azure-cli">Azure CLI</a>
+<li><a href="https://docs.microsoft.com/en-us/cli/azure/install-azure-cli">Azure CLI</a> (≥2.32.0)
 <ul>
 <li>with <a href="https://github.com/Azure/azure-cli-extensions/tree/main/src/aks-preview">aks-preview</a> CLI extension installed (≥0.5.50)</li>
 </ul>
@@ -548,21 +548,13 @@ EOF
 <p>The tenant ID above will be the default tenant ID that the webhook uses when configuring the <code>AZURE_TENANT_ID</code> environment variable in the pod. In the case of a multi-tenant cluster, you can override the tenant ID by adding the <code>azure.workload.identity/tenant-id</code> annotation to your service account.</p>
 <p>You can install the mutating admission webhook with one of the following methods:</p>
 <h2 id="helm-3-recommended"><a class="header" href="#helm-3-recommended">Helm 3 (Recommended)</a></h2>
-<pre><code class="language-bash">git clone https://github.com/Azure/azure-workload-identity
-cd azure-workload-identity
-helm install workload-identity-webhook charts/workload-identity-webhook \
-   --namespace azure-workload-identity-system \
-   --create-namespace \
-   --set azureTenantID=&quot;${AZURE_TENANT_ID}&quot;
-</code></pre>
-<!-- ```bash
-helm repo add azure-workload-identity https://azure.github.io/azure-workload-identity/charts
+<pre><code class="language-bash">helm repo add azure-workload-identity https://azure.github.io/azure-workload-identity/charts
 helm repo update
 helm install workload-identity-webhook azure-workload-identity/workload-identity-webhook \
    --namespace azure-workload-identity-system \
    --create-namespace \
-   --set azureTenantID="${AZURE_TENANT_ID}"
-``` -->
+   --set azureTenantID=&quot;${AZURE_TENANT_ID}&quot;
+</code></pre>
 <details>
 <summary>Output</summary>
 <pre><code class="language-bash">namespace/azure-workload-identity-system created
@@ -787,27 +779,6 @@ metadata:
 spec:
   serviceAccountName: ${SERVICE_ACCOUNT_NAME}
   containers:
-    - image: aramase/msal-go:v0.6.0
-      name: oidc
-      env:
-      - name: KEYVAULT_NAME
-        value: ${KEYVAULT_NAME}
-      - name: SECRET_NAME
-        value: ${KEYVAULT_SECRET_NAME}
-  nodeSelector:
-    kubernetes.io/os: linux
-EOF
-</code></pre>
-<!-- ```bash
-cat <<EOF | kubectl apply -f -
-apiVersion: v1
-kind: Pod
-metadata:
-  name: quick-start
-  namespace: ${SERVICE_ACCOUNT_NAMESPACE}
-spec:
-  serviceAccountName: ${SERVICE_ACCOUNT_NAME}
-  containers:
     - image: ghcr.io/azure/azure-workload-identity/msal-go:latest
       name: oidc
       env:
@@ -818,7 +789,7 @@ spec:
   nodeSelector:
     kubernetes.io/os: linux
 EOF
-``` -->
+</code></pre>
 <p>To check whether all properties are injected properly by the webhook:</p>
 <pre><code class="language-bash">kubectl describe pod quick-start
 </code></pre>
