@@ -28,9 +28,16 @@ jobs:
         env: [ubuntu-20.04]
     runs-on: ${{ matrix.env }}
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        if: github.event_name == 'pull_request_target'
+        uses: actions/checkout@v2
         with:
-          submodules: true
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Checkout
+        if: github.event_name != 'pull_request_target'
+        uses: actions/checkout@v2
+        with:
           fetch-depth: 0
       - uses: actions/setup-go@v2
         with:
@@ -103,9 +110,16 @@ jobs:
         env: [ubuntu-20.04, macos-11]
     runs-on: ${{ matrix.env }}
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        if: github.event_name == 'pull_request_target'
+        uses: actions/checkout@v2
         with:
-          submodules: true
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Checkout
+        if: github.event_name != 'pull_request_target'
+        uses: actions/checkout@v2
+        with:
           fetch-depth: 0
       - uses: actions/setup-go@v2
         with:
