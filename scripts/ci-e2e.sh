@@ -92,12 +92,9 @@ main() {
 test_helm_chart() {
   readonly HELM="${REPO_ROOT}/hack/tools/bin/helm"
 
-  # test helm upgrade from the latest released chart to manifest_staging/chart
-  # TODO(chewong) switch to https://azure.github.io/azure-workload-identity/charts once it is available
-  git checkout origin/gh-pages -- "${REPO_ROOT}/charts/"
-  # shellcheck disable=SC2086
-  LATEST_CHART_TARBALL="$(find ${REPO_ROOT}/charts/workload-identity-webhook-*.tgz | sort | tail -n 1)"
-  ${HELM} install workload-identity-webhook "${LATEST_CHART_TARBALL}" \
+  ${HELM} repo add azure-workload-identity https://azure.github.io/azure-workload-identity/charts
+  ${HELM} repo update
+  ${HELM} install workload-identity-webhook azure-workload-identity/workload-identity-webhook \
     --set azureTenantID="${AZURE_TENANT_ID}" \
     --namespace azure-workload-identity-system \
     --create-namespace \
