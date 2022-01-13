@@ -3,6 +3,7 @@ package phases
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/options"
@@ -66,6 +67,7 @@ func (p *federatedIdentityPhase) run(ctx context.Context, data workflow.RunData)
 
 	serviceAccountNamespace, serviceAccountName := createData.ServiceAccountNamespace(), createData.ServiceAccountName()
 	subject := util.GetFederatedCredentialSubject(serviceAccountNamespace, serviceAccountName)
+	name := strings.Join([]string{createData.ServiceAccountNamespace(), createData.ServiceAccountName(), util.GetIssuerHash(createData.ServiceAccountIssuerURL())}, "-")
 	description := fmt.Sprintf("Federated Service Account for %s/%s", serviceAccountNamespace, serviceAccountName)
 	audiences := []string{webhook.DefaultAudience}
 
@@ -75,7 +77,7 @@ func (p *federatedIdentityPhase) run(ctx context.Context, data workflow.RunData)
 	fic.SetDescription(to.StringPtr(description))
 	fic.SetIssuer(to.StringPtr(createData.ServiceAccountIssuerURL()))
 	fic.SetSubject(to.StringPtr(subject))
-	fic.SetName(to.StringPtr("federatedcredential-from-azwi-cli"))
+	fic.SetName(to.StringPtr(name))
 
 	err := createData.AzureClient().AddFederatedCredential(ctx, objectID, fic)
 	if err != nil {
