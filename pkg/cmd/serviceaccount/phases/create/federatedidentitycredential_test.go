@@ -3,6 +3,7 @@ package phases
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
@@ -81,7 +82,7 @@ func TestFederatedIdentityRun(t *testing.T) {
 	fic.SetDescription(to.StringPtr(fmt.Sprintf("Federated Service Account for %s/%s", data.serviceAccountNamespace, data.serviceAccountName)))
 	fic.SetIssuer(to.StringPtr(data.serviceAccountIssuerURL))
 	fic.SetSubject(to.StringPtr(util.GetFederatedCredentialSubject(data.serviceAccountNamespace, data.serviceAccountName)))
-	fic.SetName(to.StringPtr("federatedcredential-from-azwi-cli"))
+	fic.SetName(to.StringPtr(strings.Join([]string{data.ServiceAccountNamespace(), data.ServiceAccountName(), util.GetIssuerHash(data.ServiceAccountIssuerURL())}, "-")))
 
 	mockAzureClient := mock_cloud.NewMockInterface(ctrl)
 	mockAzureClient.EXPECT().AddFederatedCredential(gomock.Any(), "aad-application-object-id", fic).Return(nil)
