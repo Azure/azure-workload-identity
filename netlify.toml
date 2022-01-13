@@ -1,0 +1,6 @@
+[build]
+base = "docs/book/"
+publish = "/book"
+
+[context.deploy-preview]
+command = "make build"
