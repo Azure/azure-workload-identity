@@ -27,6 +27,7 @@
   - [Language-Specific Examples](./topics/language-specific-examples.md)
     - [Azure Identity SDK](./topics/language-specific-examples/azure-identity-sdk.md)
     - [Microsoft Authentication Library (MSAL)](./topics/language-specific-examples/msal.md)
+- [Frequently Asked Questions](./faq.md)
 - [Troubleshooting](./troubleshooting.md)
 - [Known Issues](./known-issues.md)
 - [Development](./development.md)
