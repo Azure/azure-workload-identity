@@ -35,7 +35,7 @@ jobs:
           submodules: true
           fetch-depth: 0
       - name: Login to ghcr.io
-        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        uses: docker/login-action@42d299face0c5c43a0487c477f595ac9cf22f1a7
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -62,7 +62,7 @@ jobs:
           submodules: true
           fetch-depth: 0
       - name: Login to ghcr.io
-        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        uses: docker/login-action@42d299face0c5c43a0487c477f595ac9cf22f1a7
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
