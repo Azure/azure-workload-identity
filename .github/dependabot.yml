@@ -3,18 +3,23 @@ updates:
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     commit-message:
       prefix: "security"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+        - "version-update: major"
+        - "version-update: minor"
   - package-ecosystem: "npm"
     directory: "/example/msal-node"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     commit-message:
       prefix: "security"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     commit-message:
       prefix: "security"
