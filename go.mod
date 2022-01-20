@@ -19,7 +19,7 @@ require (
 	github.com/microsoft/kiota/abstractions/go v0.0.0-20211202082735-099f3c37853a
 	github.com/microsoft/kiota/authentication/go/azure v0.0.0-20211201125630-3501743a5dc5
 	github.com/microsoft/kiota/serialization/go/json v0.0.0-20211112084539-17ac73ffdc7c
-	github.com/microsoftgraph/msgraph-beta-sdk-go v0.4.2
+	github.com/microsoftgraph/msgraph-beta-sdk-go v0.7.0
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.17.0
 	github.com/open-policy-agent/cert-controller v0.2.0
