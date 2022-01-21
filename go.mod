@@ -19,21 +19,21 @@ require (
 	github.com/microsoft/kiota/abstractions/go v0.0.0-20211202082735-099f3c37853a
 	github.com/microsoft/kiota/authentication/go/azure v0.0.0-20211201125630-3501743a5dc5
 	github.com/microsoft/kiota/serialization/go/json v0.0.0-20211112084539-17ac73ffdc7c
-	github.com/microsoftgraph/msgraph-beta-sdk-go v0.4.2
+	github.com/microsoftgraph/msgraph-beta-sdk-go v0.7.0
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.17.0
 	github.com/open-policy-agent/cert-controller v0.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
-	github.com/spf13/cobra v1.1.3
+	github.com/spf13/cobra v1.2.1
 	github.com/spf13/pflag v1.0.5
-	gopkg.in/ini.v1 v1.51.0
+	gopkg.in/ini.v1 v1.62.0
 	gopkg.in/square/go-jose.v2 v2.6.0
 	k8s.io/api v0.23.0
 	k8s.io/apimachinery v0.23.0
 	k8s.io/client-go v0.23.0
 	k8s.io/klog/v2 v2.30.0
-	k8s.io/kubernetes v1.22.3
+	k8s.io/kubernetes v1.23.2
 	sigs.k8s.io/controller-runtime v0.11.0
 )
 
@@ -99,8 +99,8 @@ require (
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.19.1 // indirect
-	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
-	golang.org/x/net v0.0.0-20211123203042-d83791d6bcd9 // indirect
+	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
+	golang.org/x/net v0.0.0-20211209124913-491a49abca63 // indirect
 	golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f // indirect
 	golang.org/x/sys v0.0.0-20211029165221-6e7872819dc8 // indirect
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
@@ -108,8 +108,8 @@ require (
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20210602131652-f16073e35f0c // indirect
-	google.golang.org/grpc v1.38.0 // indirect
+	google.golang.org/genproto v0.0.0-20210831024726-fe130286e0e2 // indirect
+	google.golang.org/grpc v1.40.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
@@ -124,7 +124,7 @@ require (
 	k8s.io/kubelet v0.0.0 // indirect
 	k8s.io/utils v0.0.0-20210930125809-cb0fa318a74b // indirect
 	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.22 // indirect
-	sigs.k8s.io/structured-merge-diff/v4 v4.2.0 // indirect
+	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
