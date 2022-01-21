@@ -27,7 +27,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
-	gopkg.in/ini.v1 v1.51.0
+	gopkg.in/ini.v1 v1.66.3
 	gopkg.in/square/go-jose.v2 v2.6.0
 	k8s.io/api v0.23.0
 	k8s.io/apimachinery v0.23.0
