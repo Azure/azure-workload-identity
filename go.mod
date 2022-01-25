@@ -7,7 +7,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v0.13.0
 	github.com/Azure/go-autorest/autorest v0.11.24
 	github.com/Azure/go-autorest/autorest/adal v0.9.18
-	github.com/Azure/go-autorest/autorest/azure/cli v0.4.2
+	github.com/Azure/go-autorest/autorest/azure/cli v0.4.5
 	github.com/Azure/go-autorest/autorest/to v0.4.0
 	github.com/AzureAD/microsoft-authentication-library-for-go v0.4.0
 	github.com/go-logr/logr v1.2.2
