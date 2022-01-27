@@ -57,6 +57,8 @@ spec:
           HELMSUBST_DEPLOYMENT_CONTAINER_RESOURCES: ""
       nodeSelector:
         HELMSUBST_DEPLOYMENT_NODE_SELECTOR: ""
+      tolerations:
+        HELMSUBST_DEPLOYMENT_TOLERATIONS: ""
       volumes:
       - name: cert
         secret:
