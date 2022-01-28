@@ -82,13 +82,7 @@ az storage blob upload \
   --name .well-known/openid-configuration
 ```
 
-Install `azwi`:
-
-`azwi` is a CLI tool that helps generate the JWKS document in JSON.
-
-```bash
-go install github.com/Azure/azure-workload-identity/cmd/azwi
-```
+Download `azwi` from our [latest GitHub releases][4], which is a CLI tool that helps generate the JWKS document in JSON.
 
 Generate and upload the JWKS:
 
@@ -244,3 +238,5 @@ Optional settings are:
 [2]: https://golang.org/dl/
 
 [3]: https://stedolan.github.io/jq/
+
+[4]: https://github.com/Azure/azure-workload-identity/releases

@@ -91,13 +91,7 @@ done
 
 In the case of service account tokens generated before you initiated the key rotation, you would need a time period where the old and new public keys exist in the JWKS. The relying party can then validate service account tokens signed by both the old and new private key.
 
-Install `azwi`:
-
-`azwi` is a CLI tool that helps generate the JWKS document in JSON.
-
-```bash
-go install github.com/Azure/azure-workload-identity/cmd/azwi
-```
+Download `azwi` from our [latest GitHub releases][4], which is a CLI tool that helps generate the JWKS document in JSON.
 
 Generate and upload the JWKS:
 
@@ -215,3 +209,5 @@ rm sa.*
 [2]: ../../quick-start.md
 
 [3]: https://jwt.io/
+
+[4]: https://github.com/Azure/azure-workload-identity/releases
