@@ -9,14 +9,14 @@
     *   Federated identities
     *   Azure role assignments
 
-### `go install`
+### GitHub Releases
 
-```bash
-go install github.com/Azure/azure-workload-identity/cmd/azwi@v0.7.0
-```
+You can download `azwi` from our [latest GitHub releases][1].
 
 ### Homebrew (MacOS only)
 
 ```bash
 brew install Azure/azure-workload-identity/azwi
 ```
+
+[1]: https://github.com/Azure/azure-workload-identity/releases
