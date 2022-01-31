@@ -600,9 +600,8 @@ mutatingwebhookconfiguration.admissionregistration.k8s.io/azure-wi-webhook-mutat
 </ul>
 </li>
 </ul>
-<h3 id="go-install"><a class="header" href="#go-install"><code>go install</code></a></h3>
-<pre><code class="language-bash">go install github.com/Azure/azure-workload-identity/cmd/azwi@v0.7.0
-</code></pre>
+<h3 id="github-releases"><a class="header" href="#github-releases">GitHub Releases</a></h3>
+<p>You can download <code>azwi</code> from our <a href="https://github.com/Azure/azure-workload-identity/releases">latest GitHub releases</a>.</p>
 <h3 id="homebrew-macos-only"><a class="header" href="#homebrew-macos-only">Homebrew (MacOS only)</a></h3>
 <pre><code class="language-bash">brew install Azure/azure-workload-identity/azwi
 </code></pre>
@@ -1239,10 +1238,7 @@ done
 </code></pre>
 <h3 id="3-update-the-jwks"><a class="header" href="#3-update-the-jwks">3. Update the JWKS</a></h3>
 <p>In the case of service account tokens generated before you initiated the key rotation, you would need a time period where the old and new public keys exist in the JWKS. The relying party can then validate service account tokens signed by both the old and new private key.</p>
-<p>Install <code>azwi</code>:</p>
-<p><code>azwi</code> is a CLI tool that helps generate the JWKS document in JSON.</p>
-<pre><code class="language-bash">go install github.com/Azure/azure-workload-identity/cmd/azwi
-</code></pre>
+<p>Download <code>azwi</code> from our <a href="https://github.com/Azure/azure-workload-identity/releases">latest GitHub releases</a>, which is a CLI tool that helps generate the JWKS document in JSON.</p>
 <p>Generate and upload the JWKS:</p>
 <blockquote>
 <p>Assuming you followed our <a href="topics/self-managed-clusters/../../quick-start.html">Quick Start</a> and store your OIDC discovery document and JWKS in an Azure storage account.</p>
@@ -1618,10 +1614,7 @@ az storage blob upload \
   --file openid-configuration.json \
   --name .well-known/openid-configuration
 </code></pre>
-<p>Install <code>azwi</code>:</p>
-<p><code>azwi</code> is a CLI tool that helps generate the JWKS document in JSON.</p>
-<pre><code class="language-bash">go install github.com/Azure/azure-workload-identity/cmd/azwi
-</code></pre>
+<p>Download <code>azwi</code> from our <a href="https://github.com/Azure/azure-workload-identity/releases">latest GitHub releases</a>, which is a CLI tool that helps generate the JWKS document in JSON.</p>
 <p>Generate and upload the JWKS:</p>
 <pre><code class="language-bash">azwi jwks --public-keys sa.pub --output-file jwks.json
 az storage blob upload \
