@@ -15,7 +15,7 @@ func NewServiceAccountCmd() *cobra.Command {
 		Long:    "Manage the workload identity",
 		Aliases: []string{"sa"},
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			// run root command pre-run to registry the debug flag
+			// run root command pre-run to register the debug flag
 			if cmd.Root() != nil && cmd.Root().PersistentPreRun != nil {
 				cmd.Root().PersistentPreRun(cmd.Root(), args)
 			}
