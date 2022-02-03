@@ -206,7 +206,7 @@ func createSecretForArcCluster(c kubernetes.Interface, namespace, serviceAccount
 // 1. verify that all containers except the one in skipContainers have expected environment variables injected;
 // 2. verify that all containers except the one in skipContainers have azure-identity-token mounted;
 // 3. verify that the pod has a service account token volume projected;
-// 4. verify that the pod has access to token file via `cat /var/run/secrets/tokens/azure-identity-token`.
+// 4. verify that the pod has access to token file via `cat /var/run/secrets/azure/tokens/azure-identity-token`.
 func validateMutatedPod(f *framework.Framework, pod *corev1.Pod, skipContainers []string) {
 	withoutSkipContainers := []corev1.Container{}
 	// consider init containers as well
@@ -249,7 +249,7 @@ func validateMutatedPod(f *framework.Framework, pod *corev1.Pod, skipContainers 
 				found = true
 				gomega.Expect(volumeMount).To(gomega.Equal(corev1.VolumeMount{
 					Name:      webhook.TokenFilePathName,
-					MountPath: webhook.TokenFileMountPath,
+					MountPath: volumeMountPathToCheck,
 					ReadOnly:  true,
 				}))
 				break
@@ -285,7 +285,7 @@ func validateMutatedPod(f *framework.Framework, pod *corev1.Pod, skipContainers 
 	if len(withoutSkipContainers) > 0 {
 		err := e2epod.WaitForPodNameRunningInNamespace(f.ClientSet, pod.Name, pod.Namespace)
 		framework.ExpectNoError(err, "failed to start pod %s", pod.Name)
-		_ = f.ExecCommandInContainer(pod.Name, withoutSkipContainers[0].Name, "cat", filepath.Join(webhook.TokenFileMountPath, webhook.TokenFilePathName))
+		_ = f.ExecCommandInContainer(pod.Name, withoutSkipContainers[0].Name, "cat", filepath.Join(volumeMountPathToCheck, webhook.TokenFilePathName))
 	}
 }
 

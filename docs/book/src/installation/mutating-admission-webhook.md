@@ -16,9 +16,9 @@ Azure AD Workload Identity uses a [mutating admission webhook][1] to project a s
 | ---------------------- | ------------------------------------- |
 | `azure-identity-token` | The projected service account volume. |
 
-| Volume mount                                   | Description                                           |
-| ---------------------------------------------- | ----------------------------------------------------- |
-| `/var/run/secrets/tokens/azure-identity-token` | The path of the projected service account token file. |
+| Volume mount                                         | Description                                           |
+| ---------------------------------------------------- | ----------------------------------------------------- |
+| `/var/run/secrets/azure/tokens/azure-identity-token` | The path of the projected service account token file. |
 
 </details>
 
