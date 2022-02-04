@@ -640,7 +640,7 @@ func TestAddProjectServiceAccountTokenVolumeMount(t *testing.T) {
 				VolumeMounts: []corev1.VolumeMount{
 					{
 						Name:      TokenFilePathName,
-						MountPath: "/var/run/secrets/tokens",
+						MountPath: TokenFileMountPath,
 						ReadOnly:  true,
 					},
 				},
@@ -691,7 +691,7 @@ func TestAddProjectServiceAccountTokenVolumeMount(t *testing.T) {
 					},
 					{
 						Name:      TokenFilePathName,
-						MountPath: "/var/run/secrets/tokens",
+						MountPath: TokenFileMountPath,
 						ReadOnly:  true,
 					},
 				},
@@ -1074,7 +1074,7 @@ func TestMutateContainers(t *testing.T) {
 			VolumeMounts: []corev1.VolumeMount{
 				{
 					Name:      TokenFilePathName,
-					MountPath: "/var/run/secrets/tokens",
+					MountPath: TokenFileMountPath,
 					ReadOnly:  true,
 				},
 			},
@@ -1115,7 +1115,7 @@ func TestMutateContainers(t *testing.T) {
 			VolumeMounts: []corev1.VolumeMount{
 				{
 					Name:      TokenFilePathName,
-					MountPath: "/var/run/secrets/tokens",
+					MountPath: TokenFileMountPath,
 					ReadOnly:  true,
 				},
 			},

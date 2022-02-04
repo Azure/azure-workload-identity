@@ -267,9 +267,9 @@ You can verify the following injected properties in the output:
 
 <br/>
 
-| Volume mount                                   | Description                                           |
-| ---------------------------------------------- | ----------------------------------------------------- |
-| `/var/run/secrets/tokens/azure-identity-token` | The path of the projected service account token file. |
+| Volume mount                                         | Description                                           |
+| ---------------------------------------------------- | ----------------------------------------------------- |
+| `/var/run/secrets/azure/tokens/azure-identity-token` | The path of the projected service account token file. |
 
 <br/>
 
@@ -309,7 +309,7 @@ Containers:
       AZURE_FEDERATED_TOKEN_FILE: (Injected by the webhook)
     Mounts:
       /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-844ns (ro)
-      /var/run/secrets/tokens from azure-identity-token (ro) (Injected by the webhook)
+      /var/run/secrets/azure/tokens from azure-identity-token (ro) (Injected by the webhook)
 Conditions:
   Type              Status
   Initialized       True
