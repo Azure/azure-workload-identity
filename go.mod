@@ -38,6 +38,7 @@ require (
 )
 
 require (
+	cloud.google.com/go v0.81.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v0.21.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v0.8.3 // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
