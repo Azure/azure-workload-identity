@@ -344,7 +344,7 @@ EOF
 </tbody></table>
 <br/>
 <table><thead><tr><th>Volume mount</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>/var/run/secrets/tokens/azure-identity-token</code></td><td>The path of the projected service account token file.</td></tr>
+<tr><td><code>/var/run/secrets/azure/tokens/azure-identity-token</code></td><td>The path of the projected service account token file.</td></tr>
 </tbody></table>
 <br/>
 <table><thead><tr><th>Volume</th><th>Description</th></tr></thead><tbody>
@@ -381,7 +381,7 @@ Containers:
       AZURE_FEDERATED_TOKEN_FILE: (Injected by the webhook)
     Mounts:
       /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-844ns (ro)
-      /var/run/secrets/tokens from azure-identity-token (ro) (Injected by the webhook)
+      /var/run/secrets/azure/tokens from azure-identity-token (ro) (Injected by the webhook)
 Conditions:
   Type              Status
   Initialized       True

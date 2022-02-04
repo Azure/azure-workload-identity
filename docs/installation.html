@@ -167,7 +167,7 @@
 </tbody></table>
 <h2 id="azure-ad-workload-identity-components"><a class="header" href="#azure-ad-workload-identity-components">Azure AD Workload Identity Components</a></h2>
 <table><thead><tr><th>Component</th><th>Description</th><th>Guide</th></tr></thead><tbody>
-<tr><td>Mutating Admission Webhook</td><td>Projects a signed service account token to a well-known path (<code>/var/run/secrets/tokens/azure-identity-token</code>) and inject authentication-related environment variables to your pods based on annotated service account.</td><td><a href="./installation/mutating-admission-webhook.html">Link</a></td></tr>
+<tr><td>Mutating Admission Webhook</td><td>Projects a signed service account token to a well-known path (<code>/var/run/secrets/azure/tokens/azure-identity-token</code>) and inject authentication-related environment variables to your pods based on annotated service account.</td><td><a href="./installation/mutating-admission-webhook.html">Link</a></td></tr>
 <tr><td>Azure AD Workload Identity CLI (<code>azwi</code>)</td><td>A utility CLI that helps manage Azure AD Workload Identity and automate error-prone operations.</td><td><a href="./installation/azwi.html">Link</a></td></tr>
 </tbody></table>
 

@@ -197,7 +197,7 @@
 </tbody></table>
 <h2 id="azure-ad-workload-identity-components"><a class="header" href="#azure-ad-workload-identity-components">Azure AD Workload Identity Components</a></h2>
 <table><thead><tr><th>Component</th><th>Description</th><th>Guide</th></tr></thead><tbody>
-<tr><td>Mutating Admission Webhook</td><td>Projects a signed service account token to a well-known path (<code>/var/run/secrets/tokens/azure-identity-token</code>) and inject authentication-related environment variables to your pods based on annotated service account.</td><td><a href="./installation/mutating-admission-webhook.html">Link</a></td></tr>
+<tr><td>Mutating Admission Webhook</td><td>Projects a signed service account token to a well-known path (<code>/var/run/secrets/azure/tokens/azure-identity-token</code>) and inject authentication-related environment variables to your pods based on annotated service account.</td><td><a href="./installation/mutating-admission-webhook.html">Link</a></td></tr>
 <tr><td>Azure AD Workload Identity CLI (<code>azwi</code>)</td><td>A utility CLI that helps manage Azure AD Workload Identity and automate error-prone operations.</td><td><a href="./installation/azwi.html">Link</a></td></tr>
 </tbody></table>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="managed-clusters"><a class="header" href="#managed-clusters">Managed Clusters</a></h1>
@@ -537,7 +537,7 @@ EOF
 <tr><td><code>azure-identity-token</code></td><td>The projected service account volume.</td></tr>
 </tbody></table>
 <table><thead><tr><th>Volume mount</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>/var/run/secrets/tokens/azure-identity-token</code></td><td>The path of the projected service account token file.</td></tr>
+<tr><td><code>/var/run/secrets/azure/tokens/azure-identity-token</code></td><td>The path of the projected service account token file.</td></tr>
 </tbody></table>
 </details>
 <p>The webhook allows pods to use a <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-token-volume-projection">service account token</a> projected to a well-known volume path to exchange for an Azure AD access token by leveraging the above properties with the Azure Identity SDKs or the <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-overview">Microsoft Authentication Library</a> (MSAL).</p>
@@ -803,7 +803,7 @@ EOF
 </tbody></table>
 <br/>
 <table><thead><tr><th>Volume mount</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>/var/run/secrets/tokens/azure-identity-token</code></td><td>The path of the projected service account token file.</td></tr>
+<tr><td><code>/var/run/secrets/azure/tokens/azure-identity-token</code></td><td>The path of the projected service account token file.</td></tr>
 </tbody></table>
 <br/>
 <table><thead><tr><th>Volume</th><th>Description</th></tr></thead><tbody>
@@ -840,7 +840,7 @@ Containers:
       AZURE_FEDERATED_TOKEN_FILE: (Injected by the webhook)
     Mounts:
       /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-844ns (ro)
-      /var/run/secrets/tokens from azure-identity-token (ro) (Injected by the webhook)
+      /var/run/secrets/azure/tokens from azure-identity-token (ro) (Injected by the webhook)
 Conditions:
   Type              Status
   Initialized       True
@@ -1294,7 +1294,7 @@ spec:
 EOF
 </code></pre>
 <p>Output the projected service account token:</p>
-<pre><code class="language-bash">kubectl exec dummy-pod -- cat /var/run/secrets/tokens/azure-identity-token
+<pre><code class="language-bash">kubectl exec dummy-pod -- cat /var/run/secrets/azure/tokens/azure-identity-token
 </code></pre>
 <p>Decode your token using <a href="https://jwt.io/">jwt.io</a>. The <code>kid</code> field in the token header should be the same as the <code>kid</code> of <code>azwi jwks --public-keys sa-new.pub | jq -r '.keys[0].kid'</code>. This means that the service account token is signed by the new private key.</p>
 <h3 id="6-cleanup"><a class="header" href="#6-cleanup">6. Cleanup</a></h3>
@@ -1484,7 +1484,7 @@ E0120 22:55:12.472912       1 token_credential.go:70] &quot;failed to acquire to
 <div style="break-before: page; page-break-before: always;"></div><h1 id="known-issues"><a class="header" href="#known-issues">Known Issues</a></h1>
 <h2 id="permission-denied-when-reading-the-projected-service-account-token-file"><a class="header" href="#permission-denied-when-reading-the-projected-service-account-token-file">Permission denied when reading the projected service account token file</a></h2>
 <p>In Kubernetes 1.18, the default mode for the projected service account token file is <code>0600</code>. This causes containers running as non-root to fail while trying to read the token file:</p>
-<pre><code class="language-bash">F0826 20:03:20.113998 1 main.go:27] failed to get secret from keyvault, err: autorest/Client#Do: Preparing request failed: StatusCode=0 -- Original Error: failed to read service account token: open /var/run/secrets/tokens/azure-identity-token: permission denied
+<pre><code class="language-bash">F0826 20:03:20.113998 1 main.go:27] failed to get secret from keyvault, err: autorest/Client#Do: Preparing request failed: StatusCode=0 -- Original Error: failed to read service account token: open /var/run/secrets/azure/tokens/azure-identity-token: permission denied
 </code></pre>
 <p>The default mode was changed to <code>0644</code> in Kubernetes v1.19, which allows containers running as non-root to read the projected service account token.</p>
 <p>If you ran into this issue, you can either:</p>
