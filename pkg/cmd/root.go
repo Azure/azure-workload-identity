@@ -7,6 +7,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	_ "k8s.io/client-go/plugin/pkg/client/auth" // import auth plugins. See https://github.com/Azure/azure-workload-identity/issues/362.
 )
 
 const (
