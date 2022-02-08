@@ -249,7 +249,7 @@ func validateMutatedPod(f *framework.Framework, pod *corev1.Pod, skipContainers 
 				found = true
 				gomega.Expect(volumeMount).To(gomega.Equal(corev1.VolumeMount{
 					Name:      webhook.TokenFilePathName,
-					MountPath: volumeMountPathToCheck,
+					MountPath: webhook.TokenFileMountPath,
 					ReadOnly:  true,
 				}))
 				break
@@ -285,7 +285,7 @@ func validateMutatedPod(f *framework.Framework, pod *corev1.Pod, skipContainers 
 	if len(withoutSkipContainers) > 0 {
 		err := e2epod.WaitForPodNameRunningInNamespace(f.ClientSet, pod.Name, pod.Namespace)
 		framework.ExpectNoError(err, "failed to start pod %s", pod.Name)
-		_ = f.ExecCommandInContainer(pod.Name, withoutSkipContainers[0].Name, "cat", filepath.Join(volumeMountPathToCheck, webhook.TokenFilePathName))
+		_ = f.ExecCommandInContainer(pod.Name, withoutSkipContainers[0].Name, "cat", filepath.Join(webhook.TokenFileMountPath, webhook.TokenFilePathName))
 	}
 }
 
