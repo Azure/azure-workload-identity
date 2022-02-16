@@ -161,7 +161,7 @@ EOF
 Output the projected service account token:
 
 ```bash
-kubectl exec dummy-pod -- cat /var/run/secrets/tokens/azure-identity-token
+kubectl exec dummy-pod -- cat /var/run/secrets/azure/tokens/azure-identity-token
 ```
 
 Decode your token using [jwt.io][3]. The `kid` field in the token header should be the same as the `kid` of `azwi jwks --public-keys sa-new.pub | jq -r '.keys[0].kid'`. This means that the service account token is signed by the new private key.

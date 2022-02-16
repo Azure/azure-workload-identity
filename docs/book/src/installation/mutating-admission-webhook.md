@@ -16,9 +16,9 @@ Azure AD Workload Identity uses a [mutating admission webhook][1] to project a s
 | ---------------------- | ------------------------------------- |
 | `azure-identity-token` | The projected service account volume. |
 
-| Volume mount                                   | Description                                           |
-| ---------------------------------------------- | ----------------------------------------------------- |
-| `/var/run/secrets/tokens/azure-identity-token` | The path of the projected service account token file. |
+| Volume mount                                         | Description                                           |
+| ---------------------------------------------------- | ----------------------------------------------------- |
+| `/var/run/secrets/azure/tokens/azure-identity-token` | The path of the projected service account token file. |
 
 </details>
 
@@ -71,7 +71,7 @@ The deployment YAML contains the environment variables we defined above and we r
 Install the webhook using the deployment YAML via `kubectl apply -f` and `envsubst`:
 
 ```bash
-curl -s https://github.com/Azure/azure-workload-identity/releases/download/v0.7.0/azure-wi-webhook.yaml | envsubst | kubectl apply -f -
+curl -sL https://github.com/Azure/azure-workload-identity/releases/download/v0.8.0/azure-wi-webhook.yaml | envsubst | kubectl apply -f -
 ```
 
 <details>

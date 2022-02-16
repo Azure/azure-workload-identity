@@ -28,7 +28,18 @@ func (c *AzureClient) CreateServicePrincipal(ctx context.Context, appID string, 
 	spPostOptions.Body.SetTags(tags)
 
 	log.Debugf("Creating service principal for application with id=%s", appID)
-	return c.graphServiceClient.ServicePrincipals().Post(spPostOptions)
+	sp, err := c.graphServiceClient.ServicePrincipals().Post(spPostOptions)
+	if err != nil {
+		return nil, err
+	}
+	graphErr, err := GetGraphError(sp.GetAdditionalData())
+	if err != nil {
+		return nil, err
+	}
+	if graphErr != nil {
+		return nil, *graphErr
+	}
+	return sp, nil
 }
 
 // CreateApplication creates an application.
@@ -39,7 +50,18 @@ func (c *AzureClient) CreateApplication(ctx context.Context, displayName string)
 	appPostOptions.Body.SetDisplayName(to.StringPtr(displayName))
 
 	log.Debugf("Creating application with display name=%s", displayName)
-	return c.graphServiceClient.Applications().Post(appPostOptions)
+	app, err := c.graphServiceClient.Applications().Post(appPostOptions)
+	if err != nil {
+		return nil, err
+	}
+	graphErr, err := GetGraphError(app.GetAdditionalData())
+	if err != nil {
+		return nil, err
+	}
+	if graphErr != nil {
+		return nil, *graphErr
+	}
+	return app, nil
 }
 
 // GetServicePrincipal gets a service principal by its display name.
@@ -55,6 +77,13 @@ func (c *AzureClient) GetServicePrincipal(ctx context.Context, displayName strin
 	resp, err := c.graphServiceClient.ServicePrincipals().Get(spGetOptions)
 	if err != nil {
 		return nil, err
+	}
+	graphErr, err := GetGraphError(resp.GetAdditionalData())
+	if err != nil {
+		return nil, err
+	}
+	if graphErr != nil {
+		return nil, *graphErr
 	}
 	if len(resp.GetValue()) == 0 {
 		return nil, errors.Errorf("service principal %s not found", displayName)
@@ -75,6 +104,13 @@ func (c *AzureClient) GetApplication(ctx context.Context, displayName string) (*
 	resp, err := c.graphServiceClient.Applications().Get(appGetOptions)
 	if err != nil {
 		return nil, err
+	}
+	graphErr, err := GetGraphError(resp.GetAdditionalData())
+	if err != nil {
+		return nil, err
+	}
+	if graphErr != nil {
+		return nil, *graphErr
 	}
 	if len(resp.GetValue()) == 0 {
 		return nil, errors.Errorf("application with display name '%s' not found", displayName)

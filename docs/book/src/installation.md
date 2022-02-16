@@ -17,7 +17,7 @@
 
 | Component                               | Description                                                                                                                                                                                                            | Guide     |
 | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| Mutating Admission Webhook              | Projects a signed service account token to a well-known path (`/var/run/secrets/tokens/azure-identity-token`) and inject authentication-related environment variables to your pods based on annotated service account. | [Link][5] |
+| Mutating Admission Webhook              | Projects a signed service account token to a well-known path (`/var/run/secrets/azure/tokens/azure-identity-token`) and inject authentication-related environment variables to your pods based on annotated service account. | [Link][5] |
 | Azure AD Workload Identity CLI (`azwi`) | A utility CLI that helps manage Azure AD Workload Identity and automate error-prone operations.                                                                                                                        | [Link][6] |
 
 [1]: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli
