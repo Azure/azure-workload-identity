@@ -3,7 +3,6 @@ package phases
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/options"
@@ -67,7 +66,7 @@ func (p *federatedIdentityPhase) run(ctx context.Context, data workflow.RunData)
 
 	serviceAccountNamespace, serviceAccountName := createData.ServiceAccountNamespace(), createData.ServiceAccountName()
 	subject := util.GetFederatedCredentialSubject(serviceAccountNamespace, serviceAccountName)
-	name := strings.Join([]string{createData.ServiceAccountNamespace(), createData.ServiceAccountName(), util.GetIssuerHash(createData.ServiceAccountIssuerURL())}, "-")
+	name := util.GetFederatedCredentialName(serviceAccountNamespace, serviceAccountName, createData.ServiceAccountIssuerURL())
 	description := fmt.Sprintf("Federated Service Account for %s/%s", serviceAccountNamespace, serviceAccountName)
 	audiences := []string{webhook.DefaultAudience}
 
