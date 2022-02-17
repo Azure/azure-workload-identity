@@ -5,7 +5,7 @@ ADD . /app
 WORKDIR /app
 RUN npm install
 
-FROM gcr.io/distroless/nodejs:14
+FROM gcr.io/distroless/nodejs:16
 COPY --from=build-env /app /app
 WORKDIR /app
 # Kubernetes runAsNonRoot requires USER to be numeric

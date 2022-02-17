@@ -54,7 +54,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dir: [examples/msal-go, examples/msal-net/akvdotnet, examples/msal-node, examples/msal-python]
+        dir: [examples/msal-go, examples/msal-net/akvdotnet, examples/msal-node, examples/msal-python, examples/msal-java]
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2

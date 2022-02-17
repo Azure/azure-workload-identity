@@ -235,7 +235,7 @@ metadata:
 spec:
   serviceAccountName: ${SERVICE_ACCOUNT_NAME}
   containers:
-    - image: ghcr.io/azure/azure-workload-identity/msal-go:latest
+    - image: ghcr.io/azure/azure-workload-identity/msal-go
       name: oidc
       env:
       - name: KEYVAULT_NAME
@@ -246,6 +246,8 @@ spec:
     kubernetes.io/os: linux
 EOF
 ```
+
+> Feel free to swap the msal-go example image above with a list of [language-specific examples](./topics/language-specific-examples/msal.md) we provide.
 
 To check whether all properties are injected properly by the webhook:
 
