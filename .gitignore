@@ -34,3 +34,6 @@ _artifacts/
 
 # Makefile output
 .image-*
+
+# java target from msal-java example
+target/
