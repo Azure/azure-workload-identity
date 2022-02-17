@@ -77,7 +77,19 @@ az rest --method DELETE --uri "https://graph.microsoft.com/beta/applications/${A
 
 ## Azure Portal UI
 
-Coming soon.
+1. Sign in to the [Azure portal](https://portal.azure.com). 
+1. Go to **App registrations** and open the app you want to configure.
+1. Go to **Certificates and secrets**. 
+1. In the **Federated credentials** tab, select **Add credential**. The **Add a credential** blade opens.
+1. In the **Federated credential scenario** drop-down box select **Kubernetes accessing Azure resources**.
+1. Specify the **Cluster issuer URL**.
+1. Specify the **Namespace**.
+1. Specify the **Service account name**.
+1. The **Subject identifier** field autopopulate based on the values you entered.
+1. Add a **Name** for the federated credential.
+1. Click **Add** to configure the federated credential.
+
+![Screenshot showing Azure Portal app registration federated credential screen for Kubernetes scenario](../images/azure-portal-federated-credential-kubernetes.png)
 
 [1]: https://portal.azure.com/#cloudshell/
 
