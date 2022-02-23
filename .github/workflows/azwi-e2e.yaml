@@ -21,7 +21,7 @@ jobs:
     env:
       AZURE_CLIENT_ID: 0dcfc182-7b36-4e23-b53f-a27c929a9e4e
       AZURE_TENANT_ID: bc2d60ab-9b1d-45bd-8a3b-3a18ae865e3a
-      SERVICE_ACCOUNT_ISSUER: https://chuwon.blob.core.windows.net/oidc-test/"
+      SERVICE_ACCOUNT_ISSUER: "https://chuwon.blob.core.windows.net/oidc-test/"
     strategy:
       fail-fast: false
       matrix:
