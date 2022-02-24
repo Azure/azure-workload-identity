@@ -5,7 +5,7 @@ updates:
     schedule:
       interval: "weekly"
     commit-message:
-      prefix: "security"
+      prefix: "chore"
     ignore:
       - dependency-name: "*"
         update-types:
@@ -16,10 +16,10 @@ updates:
     schedule:
       interval: "weekly"
     commit-message:
-      prefix: "security"
+      prefix: "chore"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
     commit-message:
-      prefix: "security"
+      prefix: "chore"
