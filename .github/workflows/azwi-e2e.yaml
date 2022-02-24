@@ -1,16 +1,13 @@
-name: Azure Workload Identity CI
+name: Azure Workload Identity E2E
 
 on:
   workflow_dispatch:
   schedule:
     - cron: '0 0 * * *' # nightly
-  pull_request:
+  push:
     branches:
       - main
       - release-**
-    paths-ignore:
-      - docs/**
-      - README.md
 
 permissions:
   id-token: write
