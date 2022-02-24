@@ -1,0 +1,41 @@
+name: Azure Workload Identity CI
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *' # nightly
+  pull_request:
+    branches:
+      - main
+      - release-**
+    paths-ignore:
+      - docs/**
+      - README.md
+
+jobs:
+  azwi_build:
+    strategy:
+      fail-fast: false
+      matrix:
+        # TODO(aramase): add windows test env
+        env: [ubuntu-20.04, macos-11]
+    runs-on: ${{ matrix.env }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v2
+        with:
+          go-version: "^1.17"
+      - name: Build azwi
+        run: |
+          make bin/azwi
+      - name: Validate azwi commands
+        run: |
+          ./bin/azwi version
+          ./bin/azwi -h
+          ./bin/azwi serviceaccount -h
+          ./bin/azwi serviceaccount create -h
+          ./bin/azwi serviceaccount delete -h
+          ./bin/azwi jwks -h
