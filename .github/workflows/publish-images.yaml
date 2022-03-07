@@ -30,7 +30,7 @@ jobs:
         image: [webhook, proxy, proxy-init]
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true
           fetch-depth: 0
@@ -57,7 +57,7 @@ jobs:
         dir: [examples/msal-go, examples/msal-net/akvdotnet, examples/msal-node, examples/msal-python, examples/msal-java]
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true
           fetch-depth: 0
