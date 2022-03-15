@@ -82,7 +82,7 @@ func NewAzureClientWithCLI(env azure.Environment, subscriptionID, tenantID strin
 		return nil, err
 	}
 
-	cred, err := azidentity.NewAzureCLICredential(&azidentity.AzureCLICredentialOptions{TenantID: tenantID})
+	cred, err := azidentity.NewAzureCLICredential(nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create credential")
 	}
