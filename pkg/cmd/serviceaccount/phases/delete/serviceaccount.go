@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/client-go/kubernetes"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -18,7 +18,7 @@ const (
 )
 
 type serviceAccountPhase struct {
-	kubeClient kubernetes.Interface
+	kubeClient client.Client
 }
 
 // NewServiceAccountPhase creates a new phase to delete the Kubernetes service account

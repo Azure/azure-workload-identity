@@ -10,29 +10,12 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
-
-// GetKubeConfig returns the kubeconfig
-func GetKubeConfig() (*rest.Config, error) {
-	return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(clientcmd.NewDefaultClientConfigLoadingRules(), &clientcmd.ConfigOverrides{}).ClientConfig()
-}
-
-// GetKubeClient returns a Kubernetes clientset.
-func GetKubeClient() (kubernetes.Interface, error) {
-	kubeConfig, err := GetKubeConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	return kubernetes.NewForConfigOrDie(kubeConfig), nil
-}
 
 // Create ServiceAccount in the cluster
 // If the ServiceAccount already exists, error is returned
-func CreateOrUpdateServiceAccount(ctx context.Context, kubeClient kubernetes.Interface, namespace, name, clientID, tenantID string, tokenExpiration time.Duration) error {
+func CreateOrUpdateServiceAccount(ctx context.Context, kubeClient client.Client, namespace, name, clientID, tenantID string, tokenExpiration time.Duration) error {
 	sa := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -52,16 +35,18 @@ func CreateOrUpdateServiceAccount(ctx context.Context, kubeClient kubernetes.Int
 		sa.ObjectMeta.Annotations[webhook.ServiceAccountTokenExpiryAnnotation] = fmt.Sprintf("%.0f", tokenExpiration.Round(time.Second).Seconds())
 	}
 
-	serviceAccount, err := kubeClient.CoreV1().ServiceAccounts(namespace).Create(ctx, sa, metav1.CreateOptions{})
+	err := kubeClient.Create(ctx, sa)
 	if apierrors.IsAlreadyExists(err) {
-		// Update the existing service account
-		sa.ObjectMeta.ResourceVersion = serviceAccount.ObjectMeta.ResourceVersion
-		_, err = kubeClient.CoreV1().ServiceAccounts(namespace).Update(ctx, sa, metav1.UpdateOptions{})
+		err = kubeClient.Update(ctx, sa)
 	}
 	return err
 }
 
 // Delete ServiceAccount in the cluster
-func DeleteServiceAccount(ctx context.Context, kubeClient kubernetes.Interface, namespace, name string) error {
-	return kubeClient.CoreV1().ServiceAccounts(namespace).Delete(ctx, name, metav1.DeleteOptions{})
+func DeleteServiceAccount(ctx context.Context, kubeClient client.Client, namespace, name string) error {
+	sa := &corev1.ServiceAccount{}
+	if err := kubeClient.Get(ctx, client.ObjectKey{Name: name, Namespace: namespace}, sa); err != nil {
+		return err
+	}
+	return kubeClient.Delete(ctx, sa)
 }

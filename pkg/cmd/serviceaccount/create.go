@@ -17,7 +17,7 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"k8s.io/client-go/kubernetes"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func newCreateCmd(authProvider auth.Provider) *cobra.Command {
@@ -214,6 +214,6 @@ func (c *createData) AzureClient() cloud.Interface {
 }
 
 // KubeClient returns the Kubernetes client.
-func (c *createData) KubeClient() (kubernetes.Interface, error) {
+func (c *createData) KubeClient() (client.Client, error) {
 	return kuberneteshelper.GetKubeClient()
 }

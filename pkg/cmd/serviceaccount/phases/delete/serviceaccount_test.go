@@ -8,8 +8,9 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes/fake"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestServiceAccountPreRun(t *testing.T) {
@@ -39,7 +40,7 @@ func TestServiceAccountPreRun(t *testing.T) {
 			data: &mockDeleteData{
 				serviceAccountNamespace: "test",
 				serviceAccountName:      "test",
-				kubeClient:              fake.NewSimpleClientset(),
+				kubeClient:              fake.NewClientBuilder().Build(),
 			},
 			errorMsg: "",
 		},
@@ -66,31 +67,32 @@ func TestServiceAccountRun(t *testing.T) {
 		serviceAccountName:      "service-account-name",
 	}
 
-	kubeClient := fake.NewSimpleClientset([]runtime.Object{
+	kubeClient := fake.NewClientBuilder().WithObjects([]client.Object{
 		&corev1.ServiceAccount{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      data.serviceAccountName,
 				Namespace: data.serviceAccountNamespace,
 			},
 		},
-	}...)
+	}...).Build()
 	data.kubeClient = kubeClient
 
 	err := phase.PreRun(data)
 	if err != nil {
 		t.Errorf("expected no error but got: %s", err.Error())
 	}
-	err = phase.Run(context.Background(), data)
+	err = phase.Run(context.TODO(), data)
 	if err != nil {
 		t.Errorf("expected no error but got: %s", err.Error())
 	}
-	if _, err := kubeClient.CoreV1().ServiceAccounts("service-account-namespace").Get(context.Background(), "service-account-name", metav1.GetOptions{}); err == nil {
+	sa := &corev1.ServiceAccount{}
+	if err := kubeClient.Get(context.TODO(), types.NamespacedName{Namespace: data.serviceAccountNamespace, Name: data.serviceAccountName}, sa); err == nil {
 		t.Errorf("expected service account to be deleted")
 	}
 
 	// Test for service account not found
 	phase = NewServiceAccountPhase()
-	kubeClient = fake.NewSimpleClientset()
+	kubeClient = fake.NewClientBuilder().Build()
 	data.kubeClient = kubeClient
 	err = phase.PreRun(data)
 	if err != nil {

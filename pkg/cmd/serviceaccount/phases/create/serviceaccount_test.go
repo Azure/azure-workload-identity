@@ -9,8 +9,8 @@ import (
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
 
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes/fake"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestServiceAccountPreRun(t *testing.T) {
@@ -41,7 +41,7 @@ func TestServiceAccountPreRun(t *testing.T) {
 				serviceAccountNamespace:       "test",
 				serviceAccountName:            "test",
 				serviceAccountTokenExpiration: 1 * time.Hour,
-				kubeClient:                    fake.NewSimpleClientset(),
+				kubeClient:                    fake.NewClientBuilder().Build(),
 			},
 			errorMsg: "",
 		},
@@ -69,7 +69,7 @@ func TestServiceAccountPreRun(t *testing.T) {
 				serviceAccountNamespace:       "test",
 				serviceAccountName:            "test",
 				serviceAccountTokenExpiration: 1 * time.Hour,
-				kubeClient:                    fake.NewSimpleClientset(),
+				kubeClient:                    fake.NewClientBuilder().Build(),
 			},
 			errorMsg: "",
 		},
@@ -91,7 +91,7 @@ func TestServiceAccountPreRun(t *testing.T) {
 
 func TestServiceAccountRun(t *testing.T) {
 	phase := NewServiceAccountPhase()
-	kubeClient := fake.NewSimpleClientset()
+	kubeClient := fake.NewClientBuilder().Build()
 	data := &mockCreateData{
 		serviceAccountNamespace:       "service-account-namespace",
 		serviceAccountName:            "service-account-name",
@@ -109,8 +109,8 @@ func TestServiceAccountRun(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
-	var sa *corev1.ServiceAccount
-	if sa, err = kubeClient.CoreV1().ServiceAccounts("service-account-namespace").Get(context.Background(), "service-account-name", metav1.GetOptions{}); err != nil {
+	sa := &corev1.ServiceAccount{}
+	if err = kubeClient.Get(context.TODO(), types.NamespacedName{Name: "service-account-name", Namespace: "service-account-namespace"}, sa); err != nil {
 		t.Errorf("expected service account to be created")
 	}
 	if sa.Labels[webhook.UseWorkloadIdentityLabel] != "true" {

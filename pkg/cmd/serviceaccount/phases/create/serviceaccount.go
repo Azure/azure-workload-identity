@@ -8,10 +8,10 @@ import (
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 	"github.com/Azure/azure-workload-identity/pkg/kuberneteshelper"
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
-	"k8s.io/client-go/kubernetes"
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -19,7 +19,7 @@ const (
 )
 
 type serviceAccountPhase struct {
-	kubeClient kubernetes.Interface
+	kubeClient client.Client
 }
 
 // NewServiceAccountPhase creates a new phase to create a Kubernetes service account
