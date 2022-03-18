@@ -50,3 +50,10 @@ func DeleteServiceAccount(ctx context.Context, kubeClient client.Client, namespa
 	}
 	return kubeClient.Delete(ctx, sa)
 }
+
+// Get ServiceAccount in the cluster
+func GetServiceAccount(ctx context.Context, kubeClient client.Client, namespace, name string) (*corev1.ServiceAccount, error) {
+	sa := &corev1.ServiceAccount{}
+	kubeClient.Get(ctx, client.ObjectKey{Name: name, Namespace: namespace}, sa)
+	return sa, nil
+}
