@@ -18,7 +18,7 @@ jobs:
       # - KEYVAULT_SECRET_NAME
       - group: e2e-environment-variables
       - name: REGISTRY
-        value: upstreamk8sci.azurecr.io/azure-workload-identity
+        value: upstream.azurecr.io/azure-workload-identity
     strategy:
       matrix: ${{ parameters.matrix }}
     steps:
