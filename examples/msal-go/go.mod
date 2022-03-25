@@ -1,6 +1,6 @@
 module github.com/Azure/azure-workload-identity/example/msal-go
 
-go 1.17
+go 1.18
 
 require (
 	github.com/Azure/azure-sdk-for-go v57.3.0+incompatible
