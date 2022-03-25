@@ -8,7 +8,7 @@
 
 1.  Prerequisites from [Installation][1]
 2.  Install [go][2]
-    *   Get the latest patch version for go 1.17.
+    *   Get the latest patch version for go 1.18.
 3.  Install [jq][3]
     *   `brew install jq` on macOS.
     *   `chocolatey install jq` on Windows.
