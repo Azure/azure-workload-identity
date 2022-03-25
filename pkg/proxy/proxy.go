@@ -9,12 +9,10 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/Azure/azure-workload-identity/pkg/version"
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
 
-	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/AzureAD/microsoft-authentication-library-for-go/apps/confidential"
 	"github.com/go-logr/logr"
 	"github.com/gorilla/mux"
@@ -24,11 +22,6 @@ import (
 const (
 	// "/metadata" portion is case-insensitive in IMDS
 	tokenPathPrefix = "/{type:(?i:metadata)}/identity/oauth2/token" // #nosec
-
-	// the format for expires_on in UTC with AM/PM
-	expiresOnDateFormatPM = "1/2/2006 15:04:05 PM +00:00"
-	// the format for expires_on in UTC without AM/PM
-	expiresOnDateFormat = "1/2/2006 15:04:05 +00:00"
 
 	// metadataIPAddress is the IP address of the metadata service
 	metadataIPAddress = "169.254.169.254"
@@ -45,6 +38,22 @@ type proxy struct {
 	tenantID      string
 	authorityHost string
 	logger        logr.Logger
+}
+
+// using this from https://github.com/Azure/go-autorest/blob/b3899c1057425994796c92293e931f334af63b4e/autorest/adal/token.go#L1055-L1067
+// this struct works with the adal sdks used in clients and azure-cli token requests
+type token struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+
+	// AAD returns expires_in as a string, ADFS returns it as an int
+	ExpiresIn json.Number `json:"expires_in"`
+	// expires_on can be in two formats, a UTC time stamp or the number of seconds.
+	ExpiresOn string      `json:"expires_on"`
+	NotBefore json.Number `json:"not_before"`
+
+	Resource string `json:"resource"`
+	Type     string `json:"token_type"`
 }
 
 // NewProxy returns a proxy instance
@@ -144,7 +153,7 @@ func (p *proxy) defaultPathHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(body)
 }
 
-func doTokenRequest(ctx context.Context, clientID, resource, tenantID, authorityHost string) (*adal.Token, error) {
+func doTokenRequest(ctx context.Context, clientID, resource, tenantID, authorityHost string) (*token, error) {
 	tokenFilePath := os.Getenv(webhook.AzureFederatedTokenFileEnvVar)
 	signedAssertion, err := readJWTFromFS(tokenFilePath)
 	if err != nil {
@@ -171,36 +180,15 @@ func doTokenRequest(ctx context.Context, clientID, resource, tenantID, authority
 		return nil, errors.Wrap(err, "failed to acquire token")
 	}
 
-	token := &adal.Token{}
-	token.AccessToken = result.AccessToken
-	token.Resource = resource
-	token.Type = "Bearer"
-	token.ExpiresOn, err = parseExpiresOn(result.ExpiresOn.UTC().Local().Format(expiresOnDateFormat))
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse expires_on")
-	}
-	return token, nil
-}
-
-// Vendored from https://github.com/Azure/go-autorest/blob/def88ef859fb980eff240c755a70597bc9b490d0/autorest/adal/token.go
-// converts expires_on to the number of seconds
-func parseExpiresOn(s string) (json.Number, error) {
-	// convert the expiration date to the number of seconds from now
-	timeToDuration := func(t time.Time) json.Number {
-		dur := t.Sub(time.Now().UTC())
-		return json.Number(strconv.FormatInt(int64(dur.Round(time.Second).Seconds()), 10))
-	}
-	if _, err := strconv.ParseInt(s, 10, 64); err == nil {
-		// this is the number of seconds case, no conversion required
-		return json.Number(s), nil
-	} else if eo, err := time.Parse(expiresOnDateFormatPM, s); err == nil {
-		return timeToDuration(eo), nil
-	} else if eo, err := time.Parse(expiresOnDateFormat, s); err == nil {
-		return timeToDuration(eo), nil
-	} else {
-		// unknown format
-		return json.Number(""), err
-	}
+	return &token{
+		AccessToken: result.AccessToken,
+		Resource:    resource,
+		Type:        "Bearer",
+		// There is a difference in parsing between the azure sdks and how azure-cli works
+		// Using the unix time to be consistent with response from IMDS which works with
+		// all the clients.
+		ExpiresOn: strconv.FormatInt(result.ExpiresOn.UTC().Unix(), 10),
+	}, nil
 }
 
 func parseTokenRequest(r *http.Request) (string, string) {
