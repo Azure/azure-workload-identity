@@ -24,6 +24,6 @@ FROM --platform=${TARGETPLATFORM:-linux/amd64} gcr.io/distroless/static:nonroot
 WORKDIR /
 COPY --from=builder /workspace/proxy .
 # Kubernetes runAsNonRoot requires USER to be numeric
-USER 65532:65532
+USER 1501:1501
 
 ENTRYPOINT [ "/proxy" ]
