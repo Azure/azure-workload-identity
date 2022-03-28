@@ -7,8 +7,8 @@ steps:
       ALL_LINUX_ARCH: amd64 # build amd64 only to speed up PR gate
       OUTPUT_TYPE: type=docker
   - script: |
-      wget https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION:-0.23.0}/trivy_${TRIVY_VERSION:-0.23.0}_Linux-64bit.tar.gz
-      tar zxvf trivy_${TRIVY_VERSION:-0.23.0}_Linux-64bit.tar.gz
+      wget https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION:-0.24.4}/trivy_${TRIVY_VERSION:-0.24.4}_Linux-64bit.tar.gz
+      tar zxvf trivy_${TRIVY_VERSION:-0.24.4}_Linux-64bit.tar.gz
       # show all vulnerabilities in the logs
       ./trivy image --reset
       for IMAGE_NAME in "proxy" "proxy-init" "webhook"; do
