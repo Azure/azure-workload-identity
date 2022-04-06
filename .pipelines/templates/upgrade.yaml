@@ -16,7 +16,7 @@ jobs:
       # - AZURE_TENANT_ID
       # - KEYVAULT_NAME
       # - KEYVAULT_SECRET_NAME
-      - group: e2e-environment-variables
+      - group: e2e-environment-variables-update
       - name: REGISTRY
         value: upstream.azurecr.io/azure-workload-identity
     strategy:

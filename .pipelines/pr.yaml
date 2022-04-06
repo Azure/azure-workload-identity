@@ -71,7 +71,7 @@ jobs:
       # - KEYVAULT_SECRET_NAME
       # - SERVICE_ACCOUNT_ISSUER
       # - SERVICE_ACCOUNT_KEYVAULT_NAME
-      - group: e2e-environment-variables
+      - group: e2e-environment-variables-update
     strategy:
       matrix:
         aks_windows_dockershim:
