@@ -1,13 +1,7 @@
-FROM --platform=${TARGETPLATFORM:-linux/amd64} k8s.gcr.io/build-image/debian-iptables:bullseye-v1.2.0
+FROM --platform=${TARGETPLATFORM:-linux/amd64} k8s.gcr.io/build-image/debian-iptables:bullseye-v1.3.0
 
-# upgrading libssl1.1 due to CVE-2021-3711 and CVE-2021-3712
-# upgrading libgmp10 due to CVE-2021-43618
-# upgrading bsdutils due to CVE-2021-3995 and CVE-2021-3996
-# upgrading libc-bin due to CVE-2021-33574, CVE-2022-23218 and CVE-2022-23219
-# upgrading libc6 due to CVE-2021-33574, CVE-2022-23218 and CVE-2022-23219
-# upgrading libsystemd0 and libudev1 due to CVE-2021-3997
 # upgrading zlib1g due to CVE-2018-25032
-RUN clean-install ca-certificates libssl1.1 libgmp10 bsdutils libc-bin libc6 libsystemd0 libudev1 zlib1g
+RUN clean-install ca-certificates zlib1g
 COPY ./init/init-iptables.sh /bin/
 RUN chmod +x /bin/init-iptables.sh
 # Kubernetes runAsNonRoot requires USER to be numeric
