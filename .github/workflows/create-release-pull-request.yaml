@@ -27,7 +27,7 @@ jobs:
           submodules: true
           fetch-depth: 0
           ref: "${{ github.event.inputs.based_on_branch }}"
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@v3
         with:
           go-version: "^1.18"
       - run: make release-manifest
