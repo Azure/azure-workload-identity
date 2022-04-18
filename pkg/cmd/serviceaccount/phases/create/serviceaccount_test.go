@@ -113,8 +113,8 @@ func TestServiceAccountRun(t *testing.T) {
 	if sa, err = kubeClient.CoreV1().ServiceAccounts("service-account-namespace").Get(context.Background(), "service-account-name", metav1.GetOptions{}); err != nil {
 		t.Errorf("expected service account to be created")
 	}
-	if sa.Labels[webhook.UsePodIdentityLabel] != "true" {
-		t.Errorf("expected service account to have pod identity label but got: %s", sa.Labels[webhook.UsePodIdentityLabel])
+	if sa.Labels[webhook.UseWorkloadIdentityLabel] != "true" {
+		t.Errorf("expected service account to have workload identity label but got: %s", sa.Labels[webhook.UseWorkloadIdentityLabel])
 	}
 	if sa.Annotations[webhook.ClientIDAnnotation] != "aad-application-client-id" {
 		t.Errorf("expected service account to have client id annotation but got: %s", sa.Annotations[webhook.ClientIDAnnotation])

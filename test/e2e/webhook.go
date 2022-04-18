@@ -19,7 +19,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 	f := framework.NewDefaultFramework("webhook")
 
 	ginkgo.It("should mutate a pod with a labeled service account", func() {
-		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{webhook.UsePodIdentityLabel: "true"}, nil)
+		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{webhook.UseWorkloadIdentityLabel: "true"}, nil)
 		pod, err := createPodWithServiceAccount(
 			f.ClientSet,
 			f.Namespace.Name,
@@ -35,7 +35,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 	})
 
 	ginkgo.It("should mutate the init containers within a pod", func() {
-		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{webhook.UsePodIdentityLabel: "true"}, nil)
+		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{webhook.UseWorkloadIdentityLabel: "true"}, nil)
 		if arcCluster {
 			createSecretForArcCluster(f.ClientSet, f.Namespace.Name, serviceAccount)
 		}
@@ -65,14 +65,14 @@ var _ = ginkgo.Describe("Webhook", func() {
 	})
 
 	ginkgo.It("should mutate a deployment pod with a labeled service account", func() {
-		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{webhook.UsePodIdentityLabel: "true"}, nil)
+		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{webhook.UseWorkloadIdentityLabel: "true"}, nil)
 		pod := createPodUsingDeploymentWithServiceAccount(f, serviceAccount)
 		validateMutatedPod(f, pod, nil)
 	})
 
 	ginkgo.It(fmt.Sprintf("should not mutate selected containers if the pod has %s annotated", webhook.SkipContainersAnnotation), func() {
 		const skipContainers = busybox1 + ";"
-		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{webhook.UsePodIdentityLabel: "true"}, nil)
+		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{webhook.UseWorkloadIdentityLabel: "true"}, nil)
 		pod, err := createPodWithServiceAccount(
 			f.ClientSet,
 			f.Namespace.Name,
@@ -93,7 +93,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 		{webhook.ServiceAccountTokenExpiryAnnotation: "invalid"}, // non-numeric value
 	} {
 		ginkgo.It(fmt.Sprintf("should not mutate a pod if '%s: \"%s\"' is annotated to the service account", webhook.ServiceAccountTokenExpiryAnnotation, annotations[webhook.ServiceAccountTokenExpiryAnnotation]), func() {
-			serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{webhook.UsePodIdentityLabel: "true"}, annotations)
+			serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{webhook.UseWorkloadIdentityLabel: "true"}, annotations)
 			_, err := createPodWithServiceAccount(
 				f.ClientSet,
 				f.Namespace.Name,
@@ -109,7 +109,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 		})
 
 		ginkgo.It(fmt.Sprintf("should not mutate a pod if '%s: \"%s\"' is annotated to the pod", webhook.ServiceAccountTokenExpiryAnnotation, annotations[webhook.ServiceAccountTokenExpiryAnnotation]), func() {
-			serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{webhook.UsePodIdentityLabel: "true"}, nil)
+			serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{webhook.UseWorkloadIdentityLabel: "true"}, nil)
 			_, err := createPodWithServiceAccount(
 				f.ClientSet,
 				f.Namespace.Name,

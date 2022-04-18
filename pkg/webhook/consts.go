@@ -2,8 +2,8 @@ package webhook
 
 // Annotations and labels defined in service account
 const (
-	// UsePodIdentityLabel represents the service account is to be used for workload identity
-	UsePodIdentityLabel = "azure.workload.identity/use"
+	// UseWorkloadIdentityLabel represents the service account is to be used for workload identity
+	UseWorkloadIdentityLabel = "azure.workload.identity/use"
 	// ClientIDAnnotation represents the clientID to be used with pod
 	ClientIDAnnotation = "azure.workload.identity/client-id"
 	// TenantIDAnnotation represent the tenantID to be used with pod

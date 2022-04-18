@@ -20,7 +20,7 @@ var (
 	debug bool
 )
 
-// NewRootCmd returns the root command for Azure Pod Identity.
+// NewRootCmd returns the root command for Azure Workload Identity.
 func NewRootCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   rootName,

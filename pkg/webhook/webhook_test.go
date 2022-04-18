@@ -43,7 +43,7 @@ func TestIsServiceAccountAnnotated(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "sa",
 					Namespace: "default",
-					Labels:    map[string]string{UsePodIdentityLabel: "true"},
+					Labels:    map[string]string{UseWorkloadIdentityLabel: "true"},
 				},
 			},
 			expected: true,
@@ -714,7 +714,7 @@ func TestHandle(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "sa",
 			Namespace: "ns1",
-			Labels:    map[string]string{UsePodIdentityLabel: "true"},
+			Labels:    map[string]string{UseWorkloadIdentityLabel: "true"},
 			Annotations: map[string]string{
 				ClientIDAnnotation:                  "clientID",
 				ServiceAccountTokenExpiryAnnotation: "4800",
