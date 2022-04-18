@@ -173,7 +173,7 @@ func isServiceAccountAnnotated(sa *corev1.ServiceAccount) bool {
 	if len(sa.Labels) == 0 {
 		return false
 	}
-	_, ok := sa.Labels[UsePodIdentityLabel]
+	_, ok := sa.Labels[UseWorkloadIdentityLabel]
 	return ok
 }
 

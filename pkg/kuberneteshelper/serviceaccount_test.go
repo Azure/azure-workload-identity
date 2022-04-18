@@ -42,8 +42,8 @@ func TestCreateOrUpdateServiceAccount(t *testing.T) {
 	if sa.Annotations[webhook.ServiceAccountTokenExpiryAnnotation] != "3601" {
 		t.Errorf("CreateServiceAccount() token expiry annotation = %v, want %v", sa.Annotations[webhook.ServiceAccountTokenExpiryAnnotation], "3601")
 	}
-	if sa.Labels[webhook.UsePodIdentityLabel] != "true" {
-		t.Errorf("CreateServiceAccount() usePodIdentity label = %v, want %v", sa.Labels[webhook.UsePodIdentityLabel], "true")
+	if sa.Labels[webhook.UseWorkloadIdentityLabel] != "true" {
+		t.Errorf("CreateServiceAccount() useWorkloadIdentity label = %v, want %v", sa.Labels[webhook.UseWorkloadIdentityLabel], "true")
 	}
 }
 
@@ -69,8 +69,8 @@ func TestCreateOrUpdateServiceAccountDefaultTokenExpiration(t *testing.T) {
 	if _, ok := sa.Annotations[webhook.ServiceAccountTokenExpiryAnnotation]; ok {
 		t.Errorf("CreateServiceAccount() token expiry annotation should not be set")
 	}
-	if sa.Labels[webhook.UsePodIdentityLabel] != "true" {
-		t.Errorf("CreateServiceAccount() usePodIdentity label = %v, want %v", sa.Labels[webhook.UsePodIdentityLabel], "true")
+	if sa.Labels[webhook.UseWorkloadIdentityLabel] != "true" {
+		t.Errorf("CreateServiceAccount() useWorkloadIdentity label = %v, want %v", sa.Labels[webhook.UseWorkloadIdentityLabel], "true")
 	}
 }
 

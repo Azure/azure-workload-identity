@@ -36,7 +36,7 @@ var _ = ginkgo.Describe("TokenExchange [AKSSoakOnly] [Exclude:Arc]", func() {
 
 		// trust is only set up for 'pod-identity-sa' service account in the default namespace for now
 		const namespace = "default"
-		serviceAccount := createServiceAccount(f.ClientSet, namespace, "pod-identity-sa", map[string]string{webhook.UsePodIdentityLabel: "true"}, map[string]string{webhook.ClientIDAnnotation: clientID})
+		serviceAccount := createServiceAccount(f.ClientSet, namespace, "pod-identity-sa", map[string]string{webhook.UseWorkloadIdentityLabel: "true"}, map[string]string{webhook.ClientIDAnnotation: clientID})
 		defer f.ClientSet.CoreV1().ServiceAccounts(namespace).Delete(context.TODO(), serviceAccount, metav1.DeleteOptions{})
 
 		pod, err := createPodWithServiceAccount(
