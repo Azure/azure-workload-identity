@@ -37,3 +37,6 @@ _artifacts/
 
 # java target from msal-java example
 target/
+
+# test data
+testdata/
