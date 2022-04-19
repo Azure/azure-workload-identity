@@ -39,6 +39,18 @@ jobs:
           UPGRADE_VERSION="$(az aks get-upgrades --resource-group ${CLUSTER_NAME} --name ${CLUSTER_NAME} --query "max(controlPlaneProfile.upgrades[?isPreview==null && !(starts_with(kubernetesVersion, '${MINOR_VERSION}'))].kubernetesVersion)" -otsv)"
           echo "Upgrading to Kubernetes ${UPGRADE_VERSION}"
 
+          # Wait 10 minutes in case the agent pool is still in updating state
+          COUNTER=0
+          while [[ ${COUNTER} -lt 10 ]]; do
+            echo "Waiting for the agent pool to be in succeeded provisioning state (attempt ${COUNTER})"
+            if [[ $(az aks show --resource-group ${CLUSTER_NAME} --name ${CLUSTER_NAME} --query 'agentPoolProfiles[0].provisioningState' -otsv) == "Succeeded" ]]; then
+              echo "Agent pool is in succeeded provisioning state"
+              break
+            fi
+            COUNTER=$((COUNTER+1))
+            sleep 60
+          done
+
           az aks upgrade --resource-group "${CLUSTER_NAME}" --name "${CLUSTER_NAME}" --kubernetes-version "${UPGRADE_VERSION}" --yes > /dev/null
         displayName: Upgrade cluster
       - script: make test-e2e
