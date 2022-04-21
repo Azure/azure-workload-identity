@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 
+	"github.com/Azure/azure-workload-identity/pkg/cmd/podidentity/k8s"
 	"github.com/Azure/azure-workload-identity/pkg/kuberneteshelper"
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
 
@@ -34,6 +36,7 @@ type detectCmd struct {
 	namespace  string
 	outputDir  string
 	kubeClient client.Client
+	serializer *json.Serializer
 }
 
 func newDetectCmd() *cobra.Command {
@@ -63,13 +66,22 @@ func newDetectCmd() *cobra.Command {
 func (dc *detectCmd) prerun() error {
 	var err error
 	dc.kubeClient, err = kuberneteshelper.GetKubeClient()
+	dc.serializer = json.NewSerializerWithOptions(
+		json.DefaultMetaFactory, scheme, scheme,
+		json.SerializerOptions{
+			Yaml:   true,
+			Pretty: true,
+			Strict: true,
+		},
+	)
+
 	return err
 }
 
 func (dc *detectCmd) run() error {
 	log.Debugf("detecting aad-pod-identity configuration in namespace: %s", dc.namespace)
 
-	// Implementing force namespaced mode for now
+	// Implementing force namespaced mode
 	// 1. Get AzureIdentityBinding in the namespace
 	// 2. Get AzureIdentity referenced by AzureIdentityBinding and store in map with aadpodidbinding label value as key and AzureIdentity as value
 	// 3. Get all pods in the namespace that have aadpodidbinding label
@@ -101,6 +113,7 @@ func (dc *detectCmd) run() error {
 
 	ownerReferences := make(map[metav1.OwnerReference]string)
 	results := make(map[client.Object]string)
+
 	for selector, azureIdentity := range labelsToAzureIdentityMap {
 		log.Debugf("getting pods with selector: %s", selector)
 		pods, err := kuberneteshelper.ListPods(context.TODO(), dc.kubeClient, dc.namespace, map[string]string{"aadpodidbinding": selector})
@@ -110,257 +123,141 @@ func (dc *detectCmd) run() error {
 		for _, pod := range pods {
 			// for pods created by higher level constructors like deployment, statefulset, cronjob, job, daemonset, replicaset, replicationcontroller
 			// we can get the owner reference with pod.OwnerReferences
-			if len(pod.OwnerReferences) > 0 && pod.OwnerReferences[0].Controller != nil && *pod.OwnerReferences[0].Controller {
-				ownerReferences[pod.OwnerReferences[0]] = azureIdentity.Spec.ClientID
-			} else {
-				// this is a standalone pod, so add it to the results
+			ownerFound := false
+			if len(pod.OwnerReferences) > 0 {
+				for _, ownerReference := range pod.OwnerReferences {
+					// only get the owner reference that was set by the parent controller
+					if ownerReference.Controller != nil && *ownerReference.Controller {
+						ownerReferences[ownerReference] = azureIdentity.Spec.ClientID
+						ownerFound = true
+						break
+					}
+				}
+			}
+			// this is a standalone pod, so add it to the results
+			if !ownerFound {
 				results[&pod] = azureIdentity.Spec.ClientID
 			}
 		}
 	}
 
 	for ownerReference, clientID := range ownerReferences {
-		owner, err := dc.getActualOwner(ownerReference)
+		owner, err := dc.getOwner(ownerReference)
 		if err != nil {
 			return err
 		}
 		results[owner] = clientID
 	}
 
-	// results contains all the pods and parents that we need to generate a config for
-	// now get the service account for each entry in result and generate the config
-	for obj, clientID := range results {
-		serviceAccountName := getServiceAccountName(obj)
-		sa := &corev1.ServiceAccount{}
-		if serviceAccountName == "" || serviceAccountName == "default" {
-			log.Debugf("%s is using default service account, generating a new service account", obj.GetName())
-			// generate a new service account yaml file with owner name as service account name
-			sa.SetName(obj.GetName())
-			sa.SetNamespace(dc.namespace)
-		} else {
-			// get service account and generate config file with it
-			sa, err = kuberneteshelper.GetServiceAccount(context.TODO(), dc.kubeClient, dc.namespace, serviceAccountName)
-			if err != nil {
-				return err
-			}
-		}
+	// results contains all the resources that we need to generate a config file
+	// for each entry in the results map, we will generate a service account yaml file
+	// and a resource file
+	for o, clientID := range results {
+		localObject := k8s.NewLocalObject(o)
+		log.Debugf("generating config for %s, clientID: %s", localObject.GetName(), clientID)
+
 		// make directory in output dir with object name
-		err = os.MkdirAll(dc.outputDir+"/"+obj.GetName(), 0755)
+		dir := filepath.Join(dc.outputDir, localObject.GetName())
+		if err = os.MkdirAll(dir, 0755); err != nil {
+			return err
+		}
+		sa, err := dc.createServiceAccountFile(dir, localObject.GetServiceAccountName(), localObject.GetName(), clientID)
 		if err != nil {
 			return err
 		}
-		// write modified service account yaml file
-		saLabels := make(map[string]string)
-		if sa.GetLabels() != nil {
-			saLabels = sa.GetLabels()
-		}
-		saLabels[webhook.UseWorkloadIdentityLabel] = "true"
-		sa.SetLabels(saLabels)
-
-		// set the annotations for the service account
-		saAnnotations := make(map[string]string)
-		if sa.GetAnnotations() != nil {
-			saAnnotations = sa.GetAnnotations()
-		}
-		saAnnotations[webhook.ClientIDAnnotation] = clientID
-		sa.SetAnnotations(saAnnotations)
-
-		e := json.NewSerializerWithOptions(
-			json.DefaultMetaFactory, scheme, scheme,
-			json.SerializerOptions{
-				Yaml:   true,
-				Pretty: true,
-				Strict: true,
-			},
-		)
-
-		sa.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "ServiceAccount"})
-		file, err := os.Create(dc.outputDir + "/" + obj.GetName() + "/" + sa.GetName() + "-serviceaccount.yaml")
-		if err != nil {
+		if err = dc.createResourceFile(dir, localObject, sa); err != nil {
 			return err
 		}
-		defer file.Close()
-
-		err = e.Encode(sa, file)
-		if err != nil {
-			return err
-		}
-
-		// mutate object with new containers and write that also to the output dir
-		initContainers, containers := getContainers(obj)
-		// add the init container to the container list
-		initContainers = addProxyInitContainer(initContainers)
-		// add the proxy container to the container list
-		containers = addProxyContainer(containers)
-
-		// set the new containers
-		mutateObject(obj, initContainers, containers, sa.Name)
-		// set the service account name
-
-		obj.SetManagedFields(nil)
-		obj.SetResourceVersion("")
-		obj.SetUID("")
-		obj.SetSelfLink("")
-		obj.SetGeneration(0)
-		obj.SetCreationTimestamp(metav1.Time{})
-		obj.SetDeletionTimestamp(nil)
-		annotations := obj.GetAnnotations()
-		if annotations != nil {
-			delete(annotations, "kubectl.kubernetes.io/last-applied-configuration")
-			obj.SetAnnotations(annotations)
-		}
-
-		setGVK(obj)
-		// write the modified object to the output dir
-		file, err = os.Create(dc.outputDir + "/" + obj.GetName() + "/" + obj.GetName() + ".yaml")
-		if err != nil {
-			return err
-		}
-		defer file.Close()
-
-		err = e.Encode(obj, file)
-		if err != nil {
-			return err
-		}
-		log.Debugf("generated config for %s, clientID: %s", obj.GetName(), clientID)
+		log.Debugf("generated config for %s, clientID: %s", localObject.GetName(), clientID)
 	}
 
 	return nil
 }
 
-func (dc *detectCmd) getOwner(ownerRef metav1.OwnerReference) (client.Object, error) {
-	switch ownerRef.Kind {
-	case "Deployment":
-		return kuberneteshelper.GetObject(context.TODO(), dc.kubeClient, dc.namespace, ownerRef.Name, &appsv1.Deployment{})
-	case "StatefulSet":
-		return kuberneteshelper.GetObject(context.TODO(), dc.kubeClient, dc.namespace, ownerRef.Name, &appsv1.StatefulSet{})
-	case "CronJob":
-		return kuberneteshelper.GetObject(context.TODO(), dc.kubeClient, dc.namespace, ownerRef.Name, &batchv1.CronJob{})
-	case "Job":
-		return kuberneteshelper.GetObject(context.TODO(), dc.kubeClient, dc.namespace, ownerRef.Name, &batchv1.Job{})
-	case "DaemonSet":
-		return kuberneteshelper.GetObject(context.TODO(), dc.kubeClient, dc.namespace, ownerRef.Name, &appsv1.DaemonSet{})
-	case "ReplicaSet":
-		return kuberneteshelper.GetObject(context.TODO(), dc.kubeClient, dc.namespace, ownerRef.Name, &appsv1.ReplicaSet{})
-	case "ReplicationController":
-		return kuberneteshelper.GetObject(context.TODO(), dc.kubeClient, dc.namespace, ownerRef.Name, &corev1.ReplicationController{})
-	default:
-		return nil, fmt.Errorf("unsupported owner kind: %s", ownerRef.Kind)
+// createServiceAccountFile will create a service account yaml file
+// 1. If the resource is using default service account, then a new service account yaml is generated
+//    with the resource name as service account name
+// 2. If the resource is already using a non-default service account, then we modify that service account
+//    to generate the desired yaml file
+// The service account yaml will contain the workload identity use label ("azure.workload.identity/use: true")
+// and the client-id annotation ("azure.workload.identity/client-id: <client-id from AzureIdentity>")
+func (dc *detectCmd) createServiceAccountFile(dir, name, ownerName, clientID string) (*corev1.ServiceAccount, error) {
+	sa := &corev1.ServiceAccount{}
+	var err error
+	if name == "" || name == "default" {
+		log.Debugf("%s is using default service account, generating a new service account", ownerName)
+		// generate a new service account yaml file with owner name as service account name
+		sa.SetName(ownerName)
+		sa.SetNamespace(dc.namespace)
+	} else {
+		// get service account referenced by the owner
+		if sa, err = kuberneteshelper.GetServiceAccount(context.TODO(), dc.kubeClient, dc.namespace, name); err != nil {
+			return nil, err
+		}
 	}
+
+	saLabels := make(map[string]string)
+	if sa.GetLabels() != nil {
+		saLabels = sa.GetLabels()
+	}
+	saLabels[webhook.UseWorkloadIdentityLabel] = "true"
+	sa.SetLabels(saLabels)
+
+	// set the annotations for the service account
+	saAnnotations := make(map[string]string)
+	if sa.GetAnnotations() != nil {
+		saAnnotations = sa.GetAnnotations()
+	}
+	saAnnotations[webhook.ClientIDAnnotation] = clientID
+	sa.SetAnnotations(saAnnotations)
+	sa.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "ServiceAccount"})
+
+	// write the service account yaml file
+	file, err := os.Create(filepath.Join(dir, sa.GetName()+"-serviceaccount.yaml"))
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	return sa, dc.serializer.Encode(sa, file)
 }
 
-func getServiceAccountName(obj client.Object) string {
-	switch obj.(type) {
-	case *corev1.Pod:
-		return obj.(*corev1.Pod).Spec.ServiceAccountName
-	case *appsv1.Deployment:
-		return obj.(*appsv1.Deployment).Spec.Template.Spec.ServiceAccountName
-	case *appsv1.StatefulSet:
-		return obj.(*appsv1.StatefulSet).Spec.Template.Spec.ServiceAccountName
-	case *appsv1.DaemonSet:
-		return obj.(*appsv1.DaemonSet).Spec.Template.Spec.ServiceAccountName
-	case *appsv1.ReplicaSet:
-		return obj.(*appsv1.ReplicaSet).Spec.Template.Spec.ServiceAccountName
-	case *corev1.ReplicationController:
-		return obj.(*corev1.ReplicationController).Spec.Template.Spec.ServiceAccountName
-	case *batchv1.CronJob:
-		return obj.(*batchv1.CronJob).Spec.JobTemplate.Spec.Template.Spec.ServiceAccountName
-	case *batchv1.Job:
-		return obj.(*batchv1.Job).Spec.Template.Spec.ServiceAccountName
-	default:
-		return ""
+// createResourceFile will create a resource yaml file
+//   If the resource is using default service account, then the service account name is updated to the resource name
+//   to match the service account yaml we generated in createServiceAccountFile()
+// The resource yaml will contain:
+// 1. proxy container that is required for migration
+// 2. proxy-init init container that sets up iptables rules to redirect IMDS traffic to proxy
+func (dc *detectCmd) createResourceFile(dir string, localObject k8s.LocalObject, sa *corev1.ServiceAccount) error {
+	// add the init container to the container list
+	localObject.SetInitContainers(addProxyInitContainer(localObject.GetInitContainers()))
+	// add the proxy container to the container list
+	localObject.SetContainers(addProxyContainer(localObject.GetContainers()))
+	// set the service account name for the object
+	localObject.SetServiceAccountName(sa.GetName())
+	// reset the managed fields to reduce clutter in the output yaml
+	localObject.SetManagedFields(nil)
+	// reset the resource version, uid and other metdata to make the yaml file applyable
+	localObject.SetResourceVersion("")
+	localObject.SetUID("")
+	localObject.SetCreationTimestamp(metav1.Time{})
+	localObject.SetSelfLink("")
+	localObject.SetGeneration(0)
+	localObject.ResetStatus()
+	// set the group version kind explicitly before serializing the object
+	localObject.SetGVK()
+
+	// write the modified object to the output dir
+	file, err := os.Create(filepath.Join(dir, localObject.GetName()+".yaml"))
+	if err != nil {
+		return err
 	}
+	defer file.Close()
+
+	return dc.serializer.Encode(localObject, file)
 }
 
-func getContainers(obj client.Object) ([]corev1.Container, []corev1.Container) {
-	switch obj.(type) {
-	case *corev1.Pod:
-		return obj.(*corev1.Pod).Spec.InitContainers, obj.(*corev1.Pod).Spec.Containers
-	case *appsv1.Deployment:
-		return obj.(*appsv1.Deployment).Spec.Template.Spec.InitContainers, obj.(*appsv1.Deployment).Spec.Template.Spec.Containers
-	case *appsv1.StatefulSet:
-		return obj.(*appsv1.StatefulSet).Spec.Template.Spec.InitContainers, obj.(*appsv1.StatefulSet).Spec.Template.Spec.Containers
-	case *appsv1.DaemonSet:
-		return obj.(*appsv1.DaemonSet).Spec.Template.Spec.InitContainers, obj.(*appsv1.DaemonSet).Spec.Template.Spec.Containers
-	case *appsv1.ReplicaSet:
-		return obj.(*appsv1.ReplicaSet).Spec.Template.Spec.InitContainers, obj.(*appsv1.ReplicaSet).Spec.Template.Spec.Containers
-	case *corev1.ReplicationController:
-		return obj.(*corev1.ReplicationController).Spec.Template.Spec.InitContainers, obj.(*corev1.ReplicationController).Spec.Template.Spec.Containers
-	case *batchv1.CronJob:
-		return obj.(*batchv1.CronJob).Spec.JobTemplate.Spec.Template.Spec.InitContainers, obj.(*batchv1.CronJob).Spec.JobTemplate.Spec.Template.Spec.Containers
-	case *batchv1.Job:
-		return obj.(*batchv1.Job).Spec.Template.Spec.InitContainers, obj.(*batchv1.Job).Spec.Template.Spec.Containers
-	default:
-		return nil, nil
-	}
-}
-
-func setGVK(obj client.Object) {
-	switch obj.(type) {
-	case *corev1.Pod:
-		obj.(*corev1.Pod).SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Pod"})
-	case *appsv1.Deployment:
-		obj.(*appsv1.Deployment).SetGroupVersionKind(schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"})
-	case *appsv1.StatefulSet:
-		obj.(*appsv1.StatefulSet).SetGroupVersionKind(schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "StatefulSet"})
-	case *appsv1.DaemonSet:
-		obj.(*appsv1.DaemonSet).SetGroupVersionKind(schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "DaemonSet"})
-	case *appsv1.ReplicaSet:
-		obj.(*appsv1.ReplicaSet).SetGroupVersionKind(schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "ReplicaSet"})
-	case *corev1.ReplicationController:
-		obj.(*corev1.ReplicationController).SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "ReplicationController"})
-	case *batchv1.CronJob:
-		obj.(*batchv1.CronJob).SetGroupVersionKind(schema.GroupVersionKind{Group: "batch", Version: "v1", Kind: "CronJob"})
-	case *batchv1.Job:
-		obj.(*batchv1.Job).SetGroupVersionKind(schema.GroupVersionKind{Group: "batch", Version: "v1", Kind: "Job"})
-	}
-}
-
-func mutateObject(obj client.Object, initContainers, containers []corev1.Container, serviceAccountName string) {
-	switch obj.(type) {
-	case *corev1.Pod:
-		obj.(*corev1.Pod).Spec.InitContainers = initContainers
-		obj.(*corev1.Pod).Spec.Containers = containers
-		obj.(*corev1.Pod).Status = corev1.PodStatus{}
-		obj.(*corev1.Pod).Spec.ServiceAccountName = serviceAccountName
-	case *appsv1.Deployment:
-		obj.(*appsv1.Deployment).Spec.Template.Spec.InitContainers = initContainers
-		obj.(*appsv1.Deployment).Spec.Template.Spec.Containers = containers
-		obj.(*appsv1.Deployment).Status = appsv1.DeploymentStatus{}
-		obj.(*appsv1.Deployment).Spec.Template.Spec.ServiceAccountName = serviceAccountName
-	case *appsv1.StatefulSet:
-		obj.(*appsv1.StatefulSet).Spec.Template.Spec.InitContainers = initContainers
-		obj.(*appsv1.StatefulSet).Spec.Template.Spec.Containers = containers
-		obj.(*appsv1.StatefulSet).Status = appsv1.StatefulSetStatus{}
-		obj.(*appsv1.StatefulSet).Spec.Template.Spec.ServiceAccountName = serviceAccountName
-	case *appsv1.DaemonSet:
-		obj.(*appsv1.DaemonSet).Spec.Template.Spec.InitContainers = initContainers
-		obj.(*appsv1.DaemonSet).Spec.Template.Spec.Containers = containers
-		obj.(*appsv1.DaemonSet).Status = appsv1.DaemonSetStatus{}
-		obj.(*appsv1.DaemonSet).Spec.Template.Spec.ServiceAccountName = serviceAccountName
-	case *appsv1.ReplicaSet:
-		obj.(*appsv1.ReplicaSet).Spec.Template.Spec.InitContainers = initContainers
-		obj.(*appsv1.ReplicaSet).Spec.Template.Spec.Containers = containers
-		obj.(*appsv1.ReplicaSet).Status = appsv1.ReplicaSetStatus{}
-		obj.(*appsv1.ReplicaSet).Spec.Template.Spec.ServiceAccountName = serviceAccountName
-	case *corev1.ReplicationController:
-		obj.(*corev1.ReplicationController).Spec.Template.Spec.InitContainers = initContainers
-		obj.(*corev1.ReplicationController).Spec.Template.Spec.Containers = containers
-		obj.(*corev1.ReplicationController).Status = corev1.ReplicationControllerStatus{}
-		obj.(*corev1.ReplicationController).Spec.Template.Spec.ServiceAccountName = serviceAccountName
-	case *batchv1.CronJob:
-		obj.(*batchv1.CronJob).Spec.JobTemplate.Spec.Template.Spec.InitContainers = initContainers
-		obj.(*batchv1.CronJob).Spec.JobTemplate.Spec.Template.Spec.Containers = containers
-		obj.(*batchv1.CronJob).Status = batchv1.CronJobStatus{}
-		obj.(*batchv1.CronJob).Spec.JobTemplate.Spec.Template.Spec.ServiceAccountName = serviceAccountName
-	case *batchv1.Job:
-		obj.(*batchv1.Job).Spec.Template.Spec.InitContainers = initContainers
-		obj.(*batchv1.Job).Spec.Template.Spec.Containers = containers
-		obj.(*batchv1.Job).Status = batchv1.JobStatus{}
-		obj.(*batchv1.Job).Spec.Template.Spec.ServiceAccountName = serviceAccountName
-	}
-}
-
+// addProxyInitContainer adds the proxy-init container to the list of init containers
 func addProxyInitContainer(initContainers []corev1.Container) []corev1.Container {
 	if initContainers == nil {
 		initContainers = make([]corev1.Container, 0)
@@ -394,6 +291,7 @@ func addProxyInitContainer(initContainers []corev1.Container) []corev1.Container
 	return initContainers
 }
 
+// addProxyContainer adds the proxy container to the list of containers
 func addProxyContainer(containers []corev1.Container) []corev1.Container {
 	if containers == nil {
 		containers = make([]corev1.Container, 0)
@@ -416,15 +314,41 @@ func addProxyContainer(containers []corev1.Container) []corev1.Container {
 	return containers
 }
 
-func (dc *detectCmd) getActualOwner(ownerRef metav1.OwnerReference) (owner client.Object, err error) {
+// getOwner returns the owner of the resource
+// It makes a recursive call to get the top level owner of the resource
+func (dc *detectCmd) getOwner(ownerRef metav1.OwnerReference) (owner client.Object, err error) {
 	log.Debugf("getting owner reference: %s", ownerRef.Name)
-	or, err := dc.getOwner(ownerRef)
+	or, err := dc.getOwnerObject(ownerRef)
 	if err != nil {
 		return nil, err
 	}
 	owners := or.GetOwnerReferences()
-	if len(owners) > 0 && owners[0].Controller != nil && *owners[0].Controller {
-		return dc.getActualOwner(owners[0])
+	for _, o := range owners {
+		if o.Controller != nil && *o.Controller {
+			return dc.getOwner(o)
+		}
 	}
 	return or, nil
+}
+
+// getOwnerObject gets the owner object based on the owner reference kind
+func (dc *detectCmd) getOwnerObject(ownerRef metav1.OwnerReference) (client.Object, error) {
+	switch ownerRef.Kind {
+	case "Deployment":
+		return kuberneteshelper.GetObject(context.TODO(), dc.kubeClient, dc.namespace, ownerRef.Name, &appsv1.Deployment{})
+	case "StatefulSet":
+		return kuberneteshelper.GetObject(context.TODO(), dc.kubeClient, dc.namespace, ownerRef.Name, &appsv1.StatefulSet{})
+	case "CronJob":
+		return kuberneteshelper.GetObject(context.TODO(), dc.kubeClient, dc.namespace, ownerRef.Name, &batchv1.CronJob{})
+	case "Job":
+		return kuberneteshelper.GetObject(context.TODO(), dc.kubeClient, dc.namespace, ownerRef.Name, &batchv1.Job{})
+	case "DaemonSet":
+		return kuberneteshelper.GetObject(context.TODO(), dc.kubeClient, dc.namespace, ownerRef.Name, &appsv1.DaemonSet{})
+	case "ReplicaSet":
+		return kuberneteshelper.GetObject(context.TODO(), dc.kubeClient, dc.namespace, ownerRef.Name, &appsv1.ReplicaSet{})
+	case "ReplicationController":
+		return kuberneteshelper.GetObject(context.TODO(), dc.kubeClient, dc.namespace, ownerRef.Name, &corev1.ReplicationController{})
+	default:
+		return nil, fmt.Errorf("unsupported owner kind: %s", ownerRef.Kind)
+	}
 }
