@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 
 	"github.com/Azure/azure-workload-identity/pkg/cmd/podidentity/k8s"
 	"github.com/Azure/azure-workload-identity/pkg/kuberneteshelper"
@@ -26,6 +28,21 @@ import (
 
 var (
 	scheme = runtime.NewScheme()
+)
+
+const (
+	imageRepository        = "mcr.microsoft.com/oss/azure/workload-identity"
+	imageTag               = "v0.9.0"
+	proxyInitImageName     = "proxy-init"
+	proxyImageName         = "proxy"
+	proxyInitContainerName = "azwi-proxy-init"
+	proxyContainerName     = "azwi-proxy"
+	proxyContainerPort     = 8000
+)
+
+var (
+	proxyInitImage = fmt.Sprintf("%s/%s:%s", imageRepository, proxyInitImageName, imageTag)
+	proxyImage     = fmt.Sprintf("%s/%s:%s", imageRepository, proxyImageName, imageTag)
 )
 
 func init() {
@@ -56,7 +73,7 @@ func newDetectCmd() *cobra.Command {
 
 	f := cmd.Flags()
 	f.StringVar(&detectCmd.namespace, "namespace", "default", "Namespace to detect the configuration")
-	f.StringVar(&detectCmd.outputDir, "output-dir", "", "Output directory to write the configuration files")
+	f.StringVarP(&detectCmd.outputDir, "output-dir", "o", "", "Output directory to write the configuration files")
 
 	_ = cmd.MarkFlagRequired("output-dir")
 
@@ -110,6 +127,7 @@ func (dc *detectCmd) run() error {
 			labelsToAzureIdentityMap[azureIdentityBinding.Spec.Selector] = azureIdentity
 		}
 	}
+	log.Debugf("found %d valid aad-pod-identity bindings", len(labelsToAzureIdentityMap))
 
 	ownerReferences := make(map[metav1.OwnerReference]string)
 	results := make(map[client.Object]string)
@@ -120,12 +138,12 @@ func (dc *detectCmd) run() error {
 		if err != nil {
 			return err
 		}
-		for _, pod := range pods {
+		for i := range pods {
 			// for pods created by higher level constructors like deployment, statefulset, cronjob, job, daemonset, replicaset, replicationcontroller
 			// we can get the owner reference with pod.OwnerReferences
 			ownerFound := false
-			if len(pod.OwnerReferences) > 0 {
-				for _, ownerReference := range pod.OwnerReferences {
+			if len(pods[i].OwnerReferences) > 0 {
+				for _, ownerReference := range pods[i].OwnerReferences {
 					// only get the owner reference that was set by the parent controller
 					if ownerReference.Controller != nil && *ownerReference.Controller {
 						ownerReferences[ownerReference] = azureIdentity.Spec.ClientID
@@ -136,7 +154,8 @@ func (dc *detectCmd) run() error {
 			}
 			// this is a standalone pod, so add it to the results
 			if !ownerFound {
-				results[&pod] = azureIdentity.Spec.ClientID
+				p := pods[i]
+				results[&p] = azureIdentity.Spec.ClientID
 			}
 		}
 	}
@@ -149,23 +168,17 @@ func (dc *detectCmd) run() error {
 		results[owner] = clientID
 	}
 
-	// results contains all the resources that we need to generate a config file
+	// results contains all the resources that we need to generate a config file.
 	// for each entry in the results map, we will generate a service account yaml file
 	// and a resource file
 	for o, clientID := range results {
 		localObject := k8s.NewLocalObject(o)
-		log.Debugf("generating config for %s, clientID: %s", localObject.GetName(), clientID)
 
-		// make directory in output dir with object name
-		dir := filepath.Join(dc.outputDir, localObject.GetName())
-		if err = os.MkdirAll(dir, 0755); err != nil {
-			return err
-		}
-		sa, err := dc.createServiceAccountFile(dir, localObject.GetServiceAccountName(), localObject.GetName(), clientID)
+		sa, err := dc.createServiceAccountFile(localObject.GetServiceAccountName(), localObject.GetName(), clientID)
 		if err != nil {
 			return err
 		}
-		if err = dc.createResourceFile(dir, localObject, sa); err != nil {
+		if err = dc.createResourceFile(localObject, sa); err != nil {
 			return err
 		}
 		log.Debugf("generated config for %s, clientID: %s", localObject.GetName(), clientID)
@@ -181,7 +194,7 @@ func (dc *detectCmd) run() error {
 //    to generate the desired yaml file
 // The service account yaml will contain the workload identity use label ("azure.workload.identity/use: true")
 // and the client-id annotation ("azure.workload.identity/client-id: <client-id from AzureIdentity>")
-func (dc *detectCmd) createServiceAccountFile(dir, name, ownerName, clientID string) (*corev1.ServiceAccount, error) {
+func (dc *detectCmd) createServiceAccountFile(name, ownerName, clientID string) (*corev1.ServiceAccount, error) {
 	sa := &corev1.ServiceAccount{}
 	var err error
 	if name == "" || name == "default" {
@@ -211,9 +224,11 @@ func (dc *detectCmd) createServiceAccountFile(dir, name, ownerName, clientID str
 	saAnnotations[webhook.ClientIDAnnotation] = clientID
 	sa.SetAnnotations(saAnnotations)
 	sa.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "ServiceAccount"})
+	sa.SetResourceVersion("")
 
+	fileName := filepath.Join(dc.getServiceAccountFileName(ownerName))
 	// write the service account yaml file
-	file, err := os.Create(filepath.Join(dir, sa.GetName()+"-serviceaccount.yaml"))
+	file, err := os.Create(fileName)
 	if err != nil {
 		return nil, err
 	}
@@ -228,7 +243,7 @@ func (dc *detectCmd) createServiceAccountFile(dir, name, ownerName, clientID str
 // The resource yaml will contain:
 // 1. proxy container that is required for migration
 // 2. proxy-init init container that sets up iptables rules to redirect IMDS traffic to proxy
-func (dc *detectCmd) createResourceFile(dir string, localObject k8s.LocalObject, sa *corev1.ServiceAccount) error {
+func (dc *detectCmd) createResourceFile(localObject k8s.LocalObject, sa *corev1.ServiceAccount) error {
 	// add the init container to the container list
 	localObject.SetInitContainers(addProxyInitContainer(localObject.GetInitContainers()))
 	// add the proxy container to the container list
@@ -248,13 +263,13 @@ func (dc *detectCmd) createResourceFile(dir string, localObject k8s.LocalObject,
 	localObject.SetGVK()
 
 	// write the modified object to the output dir
-	file, err := os.Create(filepath.Join(dir, localObject.GetName()+".yaml"))
+	file, err := os.Create(dc.getResourceFileName(localObject))
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	return dc.serializer.Encode(localObject, file)
+	return dc.serializer.Encode(localObject.GetObject(), file)
 }
 
 // addProxyInitContainer adds the proxy-init container to the list of init containers
@@ -263,13 +278,19 @@ func addProxyInitContainer(initContainers []corev1.Container) []corev1.Container
 		initContainers = make([]corev1.Container, 0)
 	}
 
+	for _, container := range initContainers {
+		if strings.Contains(container.Image, fmt.Sprintf("%s/%s", imageRepository, proxyInitImageName)) {
+			return initContainers
+		}
+	}
+
 	trueVal := true
 	// proxy-init needs to be run as root
 	runAsRoot := int64(0)
 	// add the init container to the container list
 	proxyInitContainer := corev1.Container{
-		Name:            "azwi-proxy-init",
-		Image:           "mcr.microsoft.com/oss/azure/workload-identity/proxy-init:v0.9.0",
+		Name:            proxyInitContainerName,
+		Image:           proxyInitImage,
 		ImagePullPolicy: corev1.PullIfNotPresent,
 		SecurityContext: &corev1.SecurityContext{
 			Privileged: &trueVal,
@@ -282,7 +303,7 @@ func addProxyInitContainer(initContainers []corev1.Container) []corev1.Container
 		Env: []corev1.EnvVar{
 			{
 				Name:  "PROXY_PORT",
-				Value: "8000",
+				Value: strconv.Itoa(proxyContainerPort),
 			},
 		},
 	}
@@ -297,15 +318,21 @@ func addProxyContainer(containers []corev1.Container) []corev1.Container {
 		containers = make([]corev1.Container, 0)
 	}
 
+	for _, container := range containers {
+		if strings.Contains(container.Image, fmt.Sprintf("%s/%s", imageRepository, proxyImageName)) {
+			return containers
+		}
+	}
+
 	proxyContainer := corev1.Container{
-		Name:            "azwi-proxy",
-		Image:           "mcr.microsoft.com/oss/azure/workload-identity/proxy:v0.9.0",
+		Name:            proxyContainerName,
+		Image:           proxyImage,
 		ImagePullPolicy: corev1.PullIfNotPresent,
 		Args:            []string{"--log-encoder=json"},
 		Ports: []corev1.ContainerPort{
 			{
 				Name:          "http",
-				ContainerPort: 8000,
+				ContainerPort: proxyContainerPort,
 			},
 		},
 	}
@@ -351,4 +378,12 @@ func (dc *detectCmd) getOwnerObject(ownerRef metav1.OwnerReference) (client.Obje
 	default:
 		return nil, fmt.Errorf("unsupported owner kind: %s", ownerRef.Kind)
 	}
+}
+
+func (dc *detectCmd) getResourceFileName(obj k8s.LocalObject) string {
+	return filepath.Join(dc.outputDir, obj.GetName()+".yaml")
+}
+
+func (dc *detectCmd) getServiceAccountFileName(prefix string) string {
+	return filepath.Join(dc.outputDir, fmt.Sprintf("%s-serviceaccount.yaml", prefix))
 }
