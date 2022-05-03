@@ -13,7 +13,8 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/mock/gomock"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
 )
 
 func TestFederatedIdentityPreRun(t *testing.T) {
@@ -76,7 +77,7 @@ func TestFederatedIdentityRun(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	fic := graph.NewFederatedIdentityCredential()
+	fic := models.NewFederatedIdentityCredential()
 	fic.SetAudiences([]string{webhook.DefaultAudience})
 	fic.SetDescription(to.StringPtr(fmt.Sprintf("Federated Service Account for %s/%s", data.serviceAccountNamespace, data.serviceAccountName)))
 	fic.SetIssuer(to.StringPtr(data.serviceAccountIssuerURL))
@@ -93,9 +94,9 @@ func TestFederatedIdentityRun(t *testing.T) {
 	}
 
 	// Test for scenario where federated credential already exists
-	graphError := cloud.GraphError{PublicError: &graph.PublicError{}}
-	graphError.PublicError.SetCode(to.StringPtr(cloud.GraphErrorCodeMultipleObjectsWithSameKeyValue))
-	graphError.PublicError.SetMessage(to.StringPtr("FederatedIdentityCredential with name federatedcredential-from-azwi-cli already exists."))
+	graphError := cloud.GraphError{MainErrorable: odataerrors.NewMainError()}
+	graphError.SetCode(to.StringPtr(cloud.GraphErrorCodeMultipleObjectsWithSameKeyValue))
+	graphError.SetMessage(to.StringPtr("FederatedIdentityCredential with name federatedcredential-from-azwi-cli already exists."))
 	mockAzureClient.EXPECT().AddFederatedCredential(gomock.Any(), "aad-application-object-id", gomock.Any()).Return(graphError)
 	err = phase.Run(context.Background(), data)
 	if err != nil {

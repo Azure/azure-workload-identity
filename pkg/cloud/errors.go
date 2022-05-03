@@ -6,9 +6,7 @@ import (
 	"strings"
 
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/microsoft/kiota/abstractions/go/serialization"
-	jsonserialization "github.com/microsoft/kiota/serialization/go/json"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
 	"github.com/pkg/errors"
 )
 
@@ -21,7 +19,7 @@ const (
 
 // GraphError is a custom error type for Graph API errors.
 type GraphError struct {
-	PublicError *graph.PublicError
+	odataerrors.MainErrorable
 }
 
 // IsNotFound returns true if the given error is a NotFound error.
@@ -45,54 +43,27 @@ func IsAlreadyExists(err error) bool {
 // IsFederatedCredentialNotFound returns true if the given error is a federated credential not found error.
 func IsFederatedCredentialNotFound(err error) bool {
 	gerr := GraphError{}
-	return errors.As(err, &gerr) && *gerr.PublicError.GetCode() == GraphErrorCodeResourceNotFound
+	return errors.As(err, &gerr) && *gerr.GetCode() == GraphErrorCodeResourceNotFound
 }
 
 // IsFederatedCredentialAlreadyExists returns true if the given error is a federated credential already exists error.
 // E1202 22:40:05.500821  867104 main.go:57] "failed to add federated identity credential" err="code: Request_MultipleObjectsWithSameKeyValue, message: FederatedIdentityCredential with name aramase-default-cred already exists."
 func IsFederatedCredentialAlreadyExists(err error) bool {
 	gerr := GraphError{}
-	return errors.As(err, &gerr) && *gerr.PublicError.GetCode() == GraphErrorCodeMultipleObjectsWithSameKeyValue
+	return errors.As(err, &gerr) && *gerr.GetCode() == GraphErrorCodeMultipleObjectsWithSameKeyValue
 }
 
 // GetGraphError returns the public error message from the additional info.
 // ref: https://docs.microsoft.com/en-us/graph/errors#error-resource-type
 // errors returned by the graph API aren't serialized today and this is a known issue: https://github.com/microsoftgraph/msgraph-sdk-go-core/issues/1
-func GetGraphError(additionalData map[string]interface{}) (*GraphError, error) {
-	if additionalData == nil || additionalData["error"] == nil {
-		return nil, nil
+func GetGraphError(err error) error {
+	if odataErr, ok := err.(odataerrors.ODataErrorable); ok {
+		return &GraphError{odataErr.GetError()}
 	}
-	e := graph.NewPublicError()
-	e.SetAdditionalData(additionalData)
-
-	ad := additionalData["error"].(map[string]*jsonserialization.JsonParseNode)
-	// error code string for the error that occurred
-	code, err := ad["code"].GetStringValue()
-	if err != nil {
-		return nil, err
-	}
-	// developer ready message about the error that occurred. This should not be displayed to the user directly.
-	message, err := ad["message"].GetStringValue()
-	if err != nil {
-		return nil, err
-	}
-	// Optional. Additional error objects that may be more specific than the top level error.
-	innerError, err := ad["innerError"].GetObjectValue(func() serialization.Parsable { return graph.NewPublicInnerError() })
-	if err != nil {
-		return nil, err
-	}
-
-	e.SetCode(code)
-	e.SetMessage(message)
-	e.SetInnerError(innerError.(*graph.PublicInnerError))
-
-	return &GraphError{e}, nil
+	return err
 }
 
 // Error returns the error message.
 func (e GraphError) Error() string {
-	if e.PublicError == nil {
-		return ""
-	}
-	return fmt.Sprintf("code: %s, message: %s", *e.PublicError.GetCode(), *e.PublicError.GetMessage())
+	return fmt.Sprintf("code: %s, message: %s", *e.GetCode(), *e.GetMessage())
 }

@@ -12,7 +12,7 @@ import (
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/util"
 	"github.com/Azure/azure-workload-identity/pkg/kuberneteshelper"
 
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -57,7 +57,7 @@ type deleteData struct {
 	serviceAccountName      string
 	serviceAccountNamespace string
 	serviceAccountIssuerURL string
-	aadApplication          *graph.Application // cache
+	aadApplication          models.Applicationable // cache
 	aadApplicationName      string
 	aadApplicationObjectID  string
 	roleAssignmentID        string
@@ -83,7 +83,7 @@ func (d *deleteData) ServiceAccountIssuerURL() string {
 
 // AADApplication returns the AAD application object.
 // This will return the cached value if it has been created.
-func (d *deleteData) AADApplication() (*graph.Application, error) {
+func (d *deleteData) AADApplication() (models.Applicationable, error) {
 	if d.aadApplication == nil {
 		app, err := d.AzureClient().GetApplication(context.Background(), d.AADApplicationName())
 		if err != nil {
