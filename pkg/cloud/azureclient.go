@@ -18,10 +18,10 @@ import (
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/cli"
-	"github.com/microsoft/kiota/abstractions/go/authentication"
-	kiotaauth "github.com/microsoft/kiota/authentication/go/azure"
-	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
+	"github.com/microsoft/kiota-abstractions-go/authentication"
+	kiotaauth "github.com/microsoft/kiota-authentication-azure-go"
+	msgraphbetasdk "github.com/microsoftgraph/msgraph-sdk-go"
+	"github.com/microsoftgraph/msgraph-sdk-go/models"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -35,12 +35,12 @@ var msGraphEndpoint = map[azure.Environment]string{
 }
 
 type Interface interface {
-	CreateServicePrincipal(ctx context.Context, appID string, tags []string) (*graph.ServicePrincipal, error)
-	CreateApplication(ctx context.Context, displayName string) (*graph.Application, error)
+	CreateServicePrincipal(ctx context.Context, appID string, tags []string) (models.ServicePrincipalable, error)
+	CreateApplication(ctx context.Context, displayName string) (models.Applicationable, error)
 	DeleteServicePrincipal(ctx context.Context, objectID string) error
 	DeleteApplication(ctx context.Context, objectID string) error
-	GetServicePrincipal(ctx context.Context, displayName string) (*graph.ServicePrincipal, error)
-	GetApplication(ctx context.Context, displayName string) (*graph.Application, error)
+	GetServicePrincipal(ctx context.Context, displayName string) (models.ServicePrincipalable, error)
+	GetApplication(ctx context.Context, displayName string) (models.Applicationable, error)
 
 	// Role assignment methods
 	CreateRoleAssignment(ctx context.Context, scope, roleName, principalID string) (authorization.RoleAssignment, error)
@@ -50,8 +50,8 @@ type Interface interface {
 	GetRoleDefinitionIDByName(ctx context.Context, scope, roleName string) (authorization.RoleDefinition, error)
 
 	// Federation methods
-	AddFederatedCredential(ctx context.Context, objectID string, fic *graph.FederatedIdentityCredential) error
-	GetFederatedCredential(ctx context.Context, objectID, issuer, subject string) (*graph.FederatedIdentityCredential, error)
+	AddFederatedCredential(ctx context.Context, objectID string, fic models.FederatedIdentityCredentialable) error
+	GetFederatedCredential(ctx context.Context, objectID, issuer, subject string) (models.FederatedIdentityCredentialable, error)
 	DeleteFederatedCredential(ctx context.Context, objectID, federatedCredentialID string) error
 }
 

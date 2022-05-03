@@ -6,7 +6,7 @@ import (
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/util"
 
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
+	"github.com/microsoftgraph/msgraph-sdk-go/models"
 	"github.com/pkg/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -15,7 +15,7 @@ type mockDeleteData struct {
 	serviceAccountName      string
 	serviceAccountNamespace string
 	serviceAccountIssuerURL string
-	aadApplication          *graph.Application // cache
+	aadApplication          models.Applicationable // cache
 	aadApplicationName      string
 	aadApplicationObjectID  string
 	roleAssignmentID        string
@@ -37,7 +37,7 @@ func (d *mockDeleteData) ServiceAccountIssuerURL() string {
 	return d.serviceAccountIssuerURL
 }
 
-func (d *mockDeleteData) AADApplication() (*graph.Application, error) {
+func (d *mockDeleteData) AADApplication() (models.Applicationable, error) {
 	if d.aadApplication == nil {
 		return nil, errors.New("not found")
 	}

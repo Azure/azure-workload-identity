@@ -7,7 +7,7 @@ import (
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/util"
 
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
+	"github.com/microsoftgraph/msgraph-sdk-go/models"
 	"github.com/pkg/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -17,11 +17,11 @@ type mockCreateData struct {
 	serviceAccountNamespace       string
 	serviceAccountIssuerURL       string
 	serviceAccountTokenExpiration time.Duration
-	aadApplication                *graph.Application // cache
+	aadApplication                models.Applicationable // cache
 	aadApplicationName            string
 	aadApplicationClientID        string
 	aadApplicationObjectID        string
-	servicePrincipal              *graph.ServicePrincipal
+	servicePrincipal              models.ServicePrincipalable
 	servicePrincipalObjectID      string
 	servicePrincipalName          string
 	azureRole                     string
@@ -49,7 +49,7 @@ func (c *mockCreateData) ServiceAccountTokenExpiration() time.Duration {
 	return c.serviceAccountTokenExpiration
 }
 
-func (c *mockCreateData) AADApplication() (*graph.Application, error) {
+func (c *mockCreateData) AADApplication() (models.Applicationable, error) {
 	if c.aadApplication == nil {
 		return nil, errors.New("not found")
 	}
@@ -71,7 +71,7 @@ func (c *mockCreateData) AADApplicationObjectID() string {
 	return c.aadApplicationObjectID
 }
 
-func (c *mockCreateData) ServicePrincipal() (*graph.ServicePrincipal, error) {
+func (c *mockCreateData) ServicePrincipal() (models.ServicePrincipalable, error) {
 	if c.servicePrincipal == nil {
 		return nil, errors.New("not found")
 	}

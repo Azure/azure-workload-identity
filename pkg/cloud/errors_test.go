@@ -5,7 +5,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
+	"github.com/microsoftgraph/msgraph-sdk-go/models/odataerrors"
 	"github.com/pkg/errors"
 )
 
@@ -114,8 +114,8 @@ func TestIsFederatedCredentialNotFound(t *testing.T) {
 		{
 			name: "graph error code doesn't match",
 			actualErr: func() error {
-				err := GraphError{PublicError: &graph.PublicError{}}
-				err.PublicError.SetCode(to.StringPtr("random_error_code"))
+				err := GraphError{MainErrorable: odataerrors.NewMainError()}
+				err.SetCode(to.StringPtr("random_error_code"))
 				return err
 			},
 			want: false,
@@ -123,8 +123,8 @@ func TestIsFederatedCredentialNotFound(t *testing.T) {
 		{
 			name: "graph error resource not found",
 			actualErr: func() error {
-				err := GraphError{PublicError: &graph.PublicError{}}
-				err.PublicError.SetCode(to.StringPtr(GraphErrorCodeResourceNotFound))
+				err := GraphError{MainErrorable: odataerrors.NewMainError()}
+				err.SetCode(to.StringPtr(GraphErrorCodeResourceNotFound))
 				return err
 			},
 			want: true,
@@ -154,8 +154,8 @@ func TestIsFederatedCredentialAlreadyExists(t *testing.T) {
 		{
 			name: "graph error code doesn't match",
 			actualErr: func() error {
-				err := GraphError{PublicError: &graph.PublicError{}}
-				err.PublicError.SetCode(to.StringPtr("random_error_code"))
+				err := GraphError{MainErrorable: odataerrors.NewMainError()}
+				err.SetCode(to.StringPtr("random_error_code"))
 				return err
 			},
 			want: false,
@@ -163,8 +163,8 @@ func TestIsFederatedCredentialAlreadyExists(t *testing.T) {
 		{
 			name: "graph error resource already exists",
 			actualErr: func() error {
-				err := GraphError{PublicError: &graph.PublicError{}}
-				err.PublicError.SetCode(to.StringPtr(GraphErrorCodeMultipleObjectsWithSameKeyValue))
+				err := GraphError{MainErrorable: odataerrors.NewMainError()}
+				err.SetCode(to.StringPtr(GraphErrorCodeMultipleObjectsWithSameKeyValue))
 				return err
 			},
 			want: true,
