@@ -1,10 +1,10 @@
 # ref: https://github.com/GoogleContainerTools/distroless/blob/main/examples/python3-requirements/Dockerfile
 
-FROM debian:buster-slim AS build
+FROM debian:11-slim AS build
 RUN apt-get update && \
     apt-get install --no-install-suggests --no-install-recommends --yes python3-venv gcc libpython3-dev && \
     python3 -m venv /venv && \
-    /venv/bin/pip install --upgrade pip
+    /venv/bin/pip install --upgrade pip setuptools wheel
 
 # Build the virtualenv as a separate step: Only re-execute this step when requirements.txt changes
 FROM build AS build-venv
