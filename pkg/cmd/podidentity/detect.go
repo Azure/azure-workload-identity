@@ -7,12 +7,15 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-workload-identity/pkg/cmd/podidentity/k8s"
+	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/options"
 	"github.com/Azure/azure-workload-identity/pkg/kuberneteshelper"
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
 
 	aadpodv1 "github.com/Azure/aad-pod-identity/pkg/apis/aadpodidentity/v1"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	appsv1 "k8s.io/api/apps/v1"
@@ -31,13 +34,19 @@ var (
 )
 
 const (
-	imageRepository        = "mcr.microsoft.com/oss/azure/workload-identity"
-	imageTag               = "v0.9.0"
+	imageRepository = "mcr.microsoft.com/oss/azure/workload-identity"
+	imageTag        = "v0.9.0"
+
 	proxyInitImageName     = "proxy-init"
 	proxyImageName         = "proxy"
 	proxyInitContainerName = "azwi-proxy-init"
 	proxyContainerName     = "azwi-proxy"
-	proxyContainerPort     = 8000
+
+	nextStepsLogMessage = `
+Next steps:
+1. Install the Azure Workload Identity Webhook. Refer to https://azure.github.io/azure-workload-identity/docs/installation.html.
+2. Create federated identity credential for all identities used in this namespace. Refer to https://azure.github.io/azure-workload-identity/docs/topics/federated-identity-credential.html.
+3. Review the generated config files and apply them with 'kubectl apply -f <generated file>'.`
 )
 
 var (
@@ -50,10 +59,13 @@ func init() {
 }
 
 type detectCmd struct {
-	namespace  string
-	outputDir  string
-	kubeClient client.Client
-	serializer *json.Serializer
+	namespace                     string
+	outputDir                     string
+	proxyPort                     int
+	serviceAccountTokenExpiration time.Duration
+	tenantID                      string
+	kubeClient                    client.Client
+	serializer                    *json.Serializer
 }
 
 func newDetectCmd() *cobra.Command {
@@ -74,6 +86,9 @@ func newDetectCmd() *cobra.Command {
 	f := cmd.Flags()
 	f.StringVar(&detectCmd.namespace, "namespace", "default", "Namespace to detect the configuration")
 	f.StringVarP(&detectCmd.outputDir, "output-dir", "o", "", "Output directory to write the configuration files")
+	f.IntVarP(&detectCmd.proxyPort, "proxy-port", "p", 8000, "Proxy port to use for the proxy container")
+	f.DurationVar(&detectCmd.serviceAccountTokenExpiration, options.ServiceAccountTokenExpiration.Flag, time.Duration(webhook.DefaultServiceAccountTokenExpiration)*time.Second, options.ServiceAccountTokenExpiration.Description)
+	f.StringVar(&detectCmd.tenantID, "tenant-id", "", "Managed identity tenant id. If specified, the tenant id will be set as an annotation on the service account.")
 
 	_ = cmd.MarkFlagRequired("output-dir")
 
@@ -81,8 +96,6 @@ func newDetectCmd() *cobra.Command {
 }
 
 func (dc *detectCmd) prerun() error {
-	var err error
-	dc.kubeClient, err = kuberneteshelper.GetKubeClient()
 	dc.serializer = json.NewSerializerWithOptions(
 		json.DefaultMetaFactory, scheme, scheme,
 		json.SerializerOptions{
@@ -91,8 +104,28 @@ func (dc *detectCmd) prerun() error {
 			Strict: true,
 		},
 	)
+	// TODO(aramase): this validation can be refactored to a common function as it's used in multiple places
+	minTokenExpirationDuration := time.Duration(webhook.MinServiceAccountTokenExpiration) * time.Second
+	maxTokenExpirationDuration := time.Duration(webhook.MaxServiceAccountTokenExpiration) * time.Second
+	if dc.serviceAccountTokenExpiration < minTokenExpirationDuration {
+		return errors.Errorf("--service-account-token-expiration must be greater than or equal to %s", minTokenExpirationDuration.String())
+	}
+	if dc.serviceAccountTokenExpiration > maxTokenExpirationDuration {
+		return errors.Errorf("--service-account-token-expiration must be less than or equal to %s", maxTokenExpirationDuration.String())
+	}
 
-	return err
+	var err error
+	dc.kubeClient, err = kuberneteshelper.GetKubeClient()
+	if err != nil {
+		return errors.Wrap(err, "failed to get Kubernetes client")
+	}
+
+	// create output directory if it doesn't exist
+	if _, err := os.Stat(dc.outputDir); os.IsNotExist(err) {
+		return os.MkdirAll(dc.outputDir, 0755)
+	}
+
+	return nil
 }
 
 func (dc *detectCmd) run() error {
@@ -106,7 +139,7 @@ func (dc *detectCmd) run() error {
 	// 5. If there is an owner reference, get the owner reference object and add to map with aadpodidbinding label value as key and owner reference as value
 	// 6. If no owner reference, then assume it's a static pod and add to map with aadpodidbinding label value as key and pod as value
 	// 7. Loop through the first map and generate new config file for each owner reference and service account
-	//    1. If owner using service account, get service account and generate config file with it
+	//    1. If owner is using a service account, get the service account and generate a config file with it
 	//    2. If owner doesn't use service account, generate a new service account yaml file with owner name as service account name
 
 	azureIdentityBindings, err := kuberneteshelper.ListAzureIdentityBinding(context.TODO(), dc.kubeClient, dc.namespace)
@@ -123,6 +156,17 @@ func (dc *detectCmd) run() error {
 		if azureIdentityBinding.Spec.Selector == "" || azureIdentityBinding.Spec.AzureIdentity == "" {
 			continue
 		}
+		// this can happen when multiple AzureIdentityBinding exist in the namespace with same selector
+		// Multiple AzureIdentityBinding with same selector are configured in AAD Pod Identity to enable a
+		// a single pod to have access to multiple identities.
+		// In case of workload identity, we can only annotate with a single client id and there can only
+		// be one AZURE_CLIENT_ID environment variable. The client id annotation will be configured to the first
+		// AzureIdentityBinding with the selector. The workload will use the client id of the specific identity
+		// to get a token and will not really use the AZURE_CLIENT_ID environment variable.
+		if b, ok := labelsToAzureIdentityMap[azureIdentityBinding.Spec.Selector]; ok {
+			log.Debugf("multiple AzureIdentityBinding with same selector: %s found, using the first one: %s", azureIdentityBinding.Spec.Selector, b.Name)
+			continue
+		}
 		if azureIdentity, ok := azureIdentities[azureIdentityBinding.Spec.AzureIdentity]; ok {
 			labelsToAzureIdentityMap[azureIdentityBinding.Spec.Selector] = azureIdentity
 		}
@@ -134,7 +178,7 @@ func (dc *detectCmd) run() error {
 
 	for selector, azureIdentity := range labelsToAzureIdentityMap {
 		log.Debugf("getting pods with selector: %s", selector)
-		pods, err := kuberneteshelper.ListPods(context.TODO(), dc.kubeClient, dc.namespace, map[string]string{"aadpodidbinding": selector})
+		pods, err := kuberneteshelper.ListPods(context.TODO(), dc.kubeClient, dc.namespace, map[string]string{aadpodv1.CRDLabelKey: selector})
 		if err != nil {
 			return err
 		}
@@ -181,9 +225,15 @@ func (dc *detectCmd) run() error {
 		if err = dc.createResourceFile(localObject, sa); err != nil {
 			return err
 		}
-		log.Debugf("generated config for %s, clientID: %s", localObject.GetName(), clientID)
+		log.Debugf("generated config for %s/%s, clientID: %s", strings.ToLower(localObject.GetObjectKind().GroupVersionKind().Kind), localObject.GetName(), clientID)
 	}
 
+	if len(results) == 0 {
+		log.Debugf("no aad-pod-identity configuration found in namespace: %s", dc.namespace)
+		return nil
+	}
+
+	log.Infof("generated resource and service account files in output directory: %s\n%s", dc.outputDir, nextStepsLogMessage)
 	return nil
 }
 
@@ -222,6 +272,11 @@ func (dc *detectCmd) createServiceAccountFile(name, ownerName, clientID string) 
 		saAnnotations = sa.GetAnnotations()
 	}
 	saAnnotations[webhook.ClientIDAnnotation] = clientID
+	// Round to the nearest second before converting to a string
+	saAnnotations[webhook.ServiceAccountTokenExpiryAnnotation] = fmt.Sprintf("%.0f", dc.serviceAccountTokenExpiration.Round(time.Second).Seconds())
+	if dc.tenantID != "" {
+		saAnnotations[webhook.TenantIDAnnotation] = dc.tenantID
+	}
 	sa.SetAnnotations(saAnnotations)
 	sa.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "ServiceAccount"})
 	sa.SetResourceVersion("")
@@ -245,14 +300,14 @@ func (dc *detectCmd) createServiceAccountFile(name, ownerName, clientID string) 
 // 2. proxy-init init container that sets up iptables rules to redirect IMDS traffic to proxy
 func (dc *detectCmd) createResourceFile(localObject k8s.LocalObject, sa *corev1.ServiceAccount) error {
 	// add the init container to the container list
-	localObject.SetInitContainers(addProxyInitContainer(localObject.GetInitContainers()))
+	localObject.SetInitContainers(dc.addProxyInitContainer(localObject.GetInitContainers()))
 	// add the proxy container to the container list
-	localObject.SetContainers(addProxyContainer(localObject.GetContainers()))
+	localObject.SetContainers(dc.addProxyContainer(localObject.GetContainers()))
 	// set the service account name for the object
 	localObject.SetServiceAccountName(sa.GetName())
 	// reset the managed fields to reduce clutter in the output yaml
 	localObject.SetManagedFields(nil)
-	// reset the resource version, uid and other metdata to make the yaml file applyable
+	// reset the resource version, uid and other metadata to make the yaml file applyable
 	localObject.SetResourceVersion("")
 	localObject.SetUID("")
 	localObject.SetCreationTimestamp(metav1.Time{})
@@ -273,13 +328,13 @@ func (dc *detectCmd) createResourceFile(localObject k8s.LocalObject, sa *corev1.
 }
 
 // addProxyInitContainer adds the proxy-init container to the list of init containers
-func addProxyInitContainer(initContainers []corev1.Container) []corev1.Container {
+func (dc *detectCmd) addProxyInitContainer(initContainers []corev1.Container) []corev1.Container {
 	if initContainers == nil {
 		initContainers = make([]corev1.Container, 0)
 	}
 
 	for _, container := range initContainers {
-		if strings.Contains(container.Image, fmt.Sprintf("%s/%s", imageRepository, proxyInitImageName)) {
+		if strings.HasPrefix(container.Image, fmt.Sprintf("%s/%s", imageRepository, proxyInitImageName)) {
 			return initContainers
 		}
 	}
@@ -303,7 +358,7 @@ func addProxyInitContainer(initContainers []corev1.Container) []corev1.Container
 		Env: []corev1.EnvVar{
 			{
 				Name:  "PROXY_PORT",
-				Value: strconv.Itoa(proxyContainerPort),
+				Value: strconv.Itoa(dc.proxyPort),
 			},
 		},
 	}
@@ -313,13 +368,13 @@ func addProxyInitContainer(initContainers []corev1.Container) []corev1.Container
 }
 
 // addProxyContainer adds the proxy container to the list of containers
-func addProxyContainer(containers []corev1.Container) []corev1.Container {
+func (dc *detectCmd) addProxyContainer(containers []corev1.Container) []corev1.Container {
 	if containers == nil {
 		containers = make([]corev1.Container, 0)
 	}
 
 	for _, container := range containers {
-		if strings.Contains(container.Image, fmt.Sprintf("%s/%s", imageRepository, proxyImageName)) {
+		if strings.HasPrefix(container.Image, fmt.Sprintf("%s/%s", imageRepository, proxyImageName)) {
 			return containers
 		}
 	}
@@ -332,7 +387,7 @@ func addProxyContainer(containers []corev1.Container) []corev1.Container {
 		Ports: []corev1.ContainerPort{
 			{
 				Name:          "http",
-				ContainerPort: proxyContainerPort,
+				ContainerPort: int32(dc.proxyPort),
 			},
 		},
 	}

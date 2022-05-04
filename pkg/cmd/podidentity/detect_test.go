@@ -3,10 +3,12 @@ package podidentity
 import (
 	"os"
 	"reflect"
-	"strconv"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/Azure/azure-workload-identity/pkg/cmd/podidentity/k8s"
+	"github.com/Azure/azure-workload-identity/pkg/webhook"
 
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
@@ -36,7 +38,7 @@ var (
 		Env: []corev1.EnvVar{
 			{
 				Name:  "PROXY_PORT",
-				Value: strconv.Itoa(proxyContainerPort),
+				Value: "8000",
 			},
 		},
 	}
@@ -49,11 +51,49 @@ var (
 		Ports: []corev1.ContainerPort{
 			{
 				Name:          "http",
-				ContainerPort: proxyContainerPort,
+				ContainerPort: 8000,
 			},
 		},
 	}
 )
+
+func TestDetectCmdPreRunError(t *testing.T) {
+	tests := []struct {
+		name      string
+		detectCmd *detectCmd
+		errorMsg  string
+	}{
+		{
+			name: "token expiration >= minimum token expiration",
+			detectCmd: &detectCmd{
+				serviceAccountTokenExpiration: 1 * time.Hour,
+			},
+			errorMsg: "",
+		},
+		{
+			name: "token expiration < minimum token expiration",
+			detectCmd: &detectCmd{
+				serviceAccountTokenExpiration: 1 * time.Minute,
+			},
+			errorMsg: "--service-account-token-expiration must be greater than or equal to 1h0m0s",
+		},
+		{
+			name: "token expiration > maximum token expiration",
+			detectCmd: &detectCmd{
+				serviceAccountTokenExpiration: 25 * time.Hour,
+			},
+			errorMsg: "--service-account-token-expiration must be less than or equal to 24h0m0s",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if err := test.detectCmd.prerun(); err == nil {
+				t.Errorf("preRun() error is nil, want error %v", test.errorMsg)
+			}
+		})
+	}
+}
 
 func TestAddProxyInitContainers(t *testing.T) {
 	tests := []struct {
@@ -101,7 +141,10 @@ func TestAddProxyInitContainers(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotContainers := addProxyInitContainer(tt.actualContainers)
+			dc := &detectCmd{
+				proxyPort: 8000,
+			}
+			gotContainers := dc.addProxyInitContainer(tt.actualContainers)
 			if !reflect.DeepEqual(gotContainers, tt.wantContainers) {
 				t.Errorf("addProxyInitContainers() = %v, want %v", gotContainers, tt.wantContainers)
 			}
@@ -155,7 +198,10 @@ func TestAddProxyContainer(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotContainers := addProxyContainer(tt.actualContainers)
+			dc := &detectCmd{
+				proxyPort: 8000,
+			}
+			gotContainers := dc.addProxyContainer(tt.actualContainers)
 			if !reflect.DeepEqual(gotContainers, tt.wantContainers) {
 				t.Errorf("addProxyContainer() = %v, want %v", gotContainers, tt.wantContainers)
 			}
@@ -174,20 +220,21 @@ func TestCreateServiceAccountFileError(t *testing.T) {
 
 func TestCreateServiceAccountFile(t *testing.T) {
 	tests := []struct {
-		name                   string
-		saName                 string
-		ownerName              string
-		clientID               string
-		initObjects            []client.Object
-		wantServiceAccountFile string
+		name              string
+		saName            string
+		ownerName         string
+		clientID          string
+		tenantID          string
+		initObjects       []client.Object
+		wantedAnnotations []string
 	}{
 		{
-			name:                   "using default service account",
-			saName:                 "default",
-			ownerName:              "deployment",
-			clientID:               "client-id",
-			initObjects:            []client.Object{},
-			wantServiceAccountFile: "apiVersion: v1\nkind: ServiceAccount\nmetadata:\n  annotations:\n    azure.workload.identity/client-id: client-id\n  creationTimestamp: null\n  labels:\n    azure.workload.identity/use: \"true\"\n  name: deployment\n  namespace: default\n",
+			name:              "using default service account",
+			saName:            "default",
+			ownerName:         "deployment",
+			clientID:          "client-id",
+			initObjects:       []client.Object{},
+			wantedAnnotations: []string{webhook.ClientIDAnnotation, webhook.ServiceAccountTokenExpiryAnnotation},
 		},
 		{
 			name:      "using custom service account",
@@ -202,7 +249,23 @@ func TestCreateServiceAccountFile(t *testing.T) {
 					},
 				},
 			},
-			wantServiceAccountFile: "apiVersion: v1\nkind: ServiceAccount\nmetadata:\n  annotations:\n    azure.workload.identity/client-id: client-id\n  creationTimestamp: null\n  labels:\n    azure.workload.identity/use: \"true\"\n  name: deployment-sa\n  namespace: default\n",
+			wantedAnnotations: []string{webhook.ClientIDAnnotation, webhook.ServiceAccountTokenExpiryAnnotation},
+		},
+		{
+			name:      "using custom service account with tenant id",
+			saName:    "deployment-sa",
+			ownerName: "deployment",
+			clientID:  "client-id",
+			tenantID:  "tenant-id",
+			initObjects: []client.Object{
+				&corev1.ServiceAccount{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "deployment-sa",
+						Namespace: "default",
+					},
+				},
+			},
+			wantedAnnotations: []string{webhook.ClientIDAnnotation, webhook.ServiceAccountTokenExpiryAnnotation, webhook.TenantIDAnnotation},
 		},
 	}
 
@@ -222,7 +285,9 @@ func TestCreateServiceAccountFile(t *testing.T) {
 						Strict: true,
 					},
 				),
-				outputDir: outDir,
+				serviceAccountTokenExpiration: 3600 * time.Second,
+				tenantID:                      tt.tenantID,
+				outputDir:                     outDir,
 			}
 			if _, err := dc.createServiceAccountFile(tt.saName, tt.ownerName, tt.clientID); err != nil {
 				t.Errorf("createServiceAccountFile() error = %v, want nil", err)
@@ -237,8 +302,14 @@ func TestCreateServiceAccountFile(t *testing.T) {
 			if err != nil {
 				t.Errorf("createServiceAccountFile() error = %v, want nil", err)
 			}
-			if string(gotServiceAccountFile) != tt.wantServiceAccountFile {
-				t.Errorf("createServiceAccountFile() =\n%v, want %v", string(gotServiceAccountFile), tt.wantServiceAccountFile)
+
+			if !strings.Contains(string(gotServiceAccountFile), webhook.UseWorkloadIdentityLabel) {
+				t.Errorf("createServiceAccountFile() file %s does not contain %s, want it to contain it", saFile, webhook.UseWorkloadIdentityLabel)
+			}
+			for _, annotation := range tt.wantedAnnotations {
+				if !strings.Contains(string(gotServiceAccountFile), annotation) {
+					t.Errorf("createServiceAccountFile() file %s does not contain annotation %s, want it to contain it", saFile, annotation)
+				}
 			}
 		})
 	}

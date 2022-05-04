@@ -27,8 +27,6 @@ func init() {
 		&aadpodv1.AzureIdentityList{},
 		&aadpodv1.AzureIdentityBinding{},
 		&aadpodv1.AzureIdentityBindingList{},
-		&aadpodv1.AzurePodIdentityException{},
-		&aadpodv1.AzurePodIdentityExceptionList{},
 	)
 	metav1.AddToGroupVersion(scheme, aadPodIdentityGroupVersion)
 }
