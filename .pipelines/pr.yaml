@@ -20,7 +20,7 @@ jobs:
     steps:
       - template: templates/scan-images.yaml
   - job: lint
-    timeoutInMinutes: 30
+    timeoutInMinutes: 45
     workspace:
       clean: all
     steps:
@@ -43,7 +43,7 @@ jobs:
           fi
         displayName: make manifests
   - job: unit_test
-    timeoutInMinutes: 30
+    timeoutInMinutes: 45
     workspace:
       clean: all
     steps:

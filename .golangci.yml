@@ -1,5 +1,5 @@
 run:
-  deadline: 20m
+  timeout: 45m
   # some of the linters don't work correctly with 1.18
   # xref: https://github.com/golangci/golangci-lint/issues/2649
   # we are not using generics, so we can pin this to 1.17
