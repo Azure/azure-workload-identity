@@ -166,7 +166,10 @@ func doTokenRequest(ctx context.Context, clientID, resource, tenantID, authority
 	}
 
 	confidentialClientApp, err := confidential.New(clientID, cred,
-		confidential.WithAuthority(fmt.Sprintf("%s%s/oauth2/token", authorityHost, tenantID)))
+		confidential.WithAuthority(fmt.Sprintf("%s%s/oauth2/token", authorityHost, tenantID)),
+		// using regional endpoint to increase reliability, availability and perf
+		// xref: https://github.com/AzureAD/microsoft-authentication-library-for-go/wiki/How-to-use-ests-r-support-in-code
+		confidential.WithAzureRegion(confidential.AutoDetectRegion()))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create confidential client app")
 	}
