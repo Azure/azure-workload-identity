@@ -8,16 +8,11 @@ import (
 )
 
 // ListAzureIdentity returns a list of AzureIdentity
-func ListAzureIdentity(ctx context.Context, kubeClient client.Client, namespace string) (map[string]aadpodv1.AzureIdentity, error) {
+func ListAzureIdentity(ctx context.Context, kubeClient client.Client, namespace string) ([]aadpodv1.AzureIdentity, error) {
 	list := &aadpodv1.AzureIdentityList{}
 	if err := kubeClient.List(ctx, list, client.InNamespace(namespace)); err != nil {
 		return nil, err
 	}
 
-	azureIdentityMap := make(map[string]aadpodv1.AzureIdentity)
-	for _, identity := range list.Items {
-		azureIdentityMap[identity.Name] = identity
-	}
-
-	return azureIdentityMap, nil
+	return list.Items, nil
 }

@@ -150,27 +150,14 @@ func (dc *detectCmd) run() error {
 	if err != nil {
 		return err
 	}
-
-	labelsToAzureIdentityMap := make(map[string]aadpodv1.AzureIdentity)
-	for _, azureIdentityBinding := range azureIdentityBindings {
-		if azureIdentityBinding.Spec.Selector == "" || azureIdentityBinding.Spec.AzureIdentity == "" {
-			continue
-		}
-		// this can happen when multiple AzureIdentityBinding exist in the namespace with same selector
-		// Multiple AzureIdentityBinding with same selector are configured in AAD Pod Identity to enable a
-		// a single pod to have access to multiple identities.
-		// In case of workload identity, we can only annotate with a single client id and there can only
-		// be one AZURE_CLIENT_ID environment variable. The client id annotation will be configured to the first
-		// AzureIdentityBinding with the selector. The workload will use the client id of the specific identity
-		// to get a token and will not really use the AZURE_CLIENT_ID environment variable.
-		if b, ok := labelsToAzureIdentityMap[azureIdentityBinding.Spec.Selector]; ok {
-			log.Debugf("multiple AzureIdentityBinding with same selector: %s found, using the first one: %s", azureIdentityBinding.Spec.Selector, b.Name)
-			continue
-		}
-		if azureIdentity, ok := azureIdentities[azureIdentityBinding.Spec.AzureIdentity]; ok {
-			labelsToAzureIdentityMap[azureIdentityBinding.Spec.Selector] = azureIdentity
+	azureIdentityMap := make(map[string]aadpodv1.AzureIdentity)
+	for _, azureIdentity := range azureIdentities {
+		if azureIdentity.Spec.Type == aadpodv1.UserAssignedMSI {
+			azureIdentityMap[azureIdentity.Name] = azureIdentity
 		}
 	}
+
+	labelsToAzureIdentityMap := filterAzureIdentities(azureIdentityBindings, azureIdentityMap)
 	log.Debugf("found %d valid aad-pod-identity bindings", len(labelsToAzureIdentityMap))
 
 	ownerReferences := make(map[metav1.OwnerReference]string)
@@ -441,4 +428,31 @@ func (dc *detectCmd) getResourceFileName(obj k8s.LocalObject) string {
 
 func (dc *detectCmd) getServiceAccountFileName(prefix string) string {
 	return filepath.Join(dc.outputDir, fmt.Sprintf("%s-serviceaccount.yaml", prefix))
+}
+
+// filterAzureIdentities will filter out the Azure identities referenced in AzureIdentityBinding
+// the return value is a map of selector used in AzureIdentityBinding to the AzureIdentity
+func filterAzureIdentities(bindings []aadpodv1.AzureIdentityBinding, identities map[string]aadpodv1.AzureIdentity) map[string]aadpodv1.AzureIdentity {
+	labelsToAzureIdentityMap := make(map[string]aadpodv1.AzureIdentity)
+	for _, binding := range bindings {
+		if binding.Spec.Selector == "" || binding.Spec.AzureIdentity == "" {
+			continue
+		}
+		// this can happen when multiple AzureIdentityBinding exist in the namespace with same selector
+		// Multiple AzureIdentityBinding with same selector are configured in AAD Pod Identity to enable a
+		// a single pod to have access to multiple identities.
+		// In case of workload identity, we can only annotate with a single client id and there can only
+		// be one AZURE_CLIENT_ID environment variable. The client id annotation will be configured to the first
+		// AzureIdentityBinding with the selector. The workload will use the client id of the specific identity
+		// to get a token and will not really use the AZURE_CLIENT_ID environment variable.
+		if b, ok := labelsToAzureIdentityMap[binding.Spec.Selector]; ok {
+			log.Debugf("multiple AzureIdentityBinding with same selector: %s found, using the first one: %s", binding.Spec.Selector, b.Name)
+			continue
+		}
+		if azureIdentity, ok := identities[binding.Spec.AzureIdentity]; ok {
+			labelsToAzureIdentityMap[binding.Spec.Selector] = azureIdentity
+		}
+	}
+
+	return labelsToAzureIdentityMap
 }

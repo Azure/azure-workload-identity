@@ -26,17 +26,12 @@ func (a azureIdentityBindings) Less(i, j int) bool {
 }
 
 // ListAzureIdentityBinding returns a list of AzureIdentityBinding
-func ListAzureIdentityBinding(ctx context.Context, kubeClient client.Client, namespace string) (map[string]aadpodv1.AzureIdentityBinding, error) {
+func ListAzureIdentityBinding(ctx context.Context, kubeClient client.Client, namespace string) ([]aadpodv1.AzureIdentityBinding, error) {
 	list := &aadpodv1.AzureIdentityBindingList{}
 	if err := kubeClient.List(ctx, list, client.InNamespace(namespace)); err != nil {
 		return nil, err
 	}
 
 	sort.Sort(azureIdentityBindings(list.Items))
-	azureIdentityBindingMap := make(map[string]aadpodv1.AzureIdentityBinding)
-	for _, binding := range list.Items {
-		azureIdentityBindingMap[binding.Name] = binding
-	}
-
-	return azureIdentityBindingMap, nil
+	return list.Items, nil
 }

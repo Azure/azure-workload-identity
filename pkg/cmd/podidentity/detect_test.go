@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/azure-workload-identity/pkg/cmd/podidentity/k8s"
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
 
+	aadpodv1 "github.com/Azure/aad-pod-identity/pkg/apis/aadpodidentity/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -485,6 +486,156 @@ func TestCreateResourceFile(t *testing.T) {
 
 			if _, err := os.ReadFile(resourceFile); err != nil {
 				t.Errorf("createResourceFile() error = %v, want nil", err)
+			}
+		})
+	}
+}
+
+func TestFilterAzureIdentities(t *testing.T) {
+	tests := []struct {
+		name                  string
+		azureIdentityBindings []aadpodv1.AzureIdentityBinding
+		azureIdentities       map[string]aadpodv1.AzureIdentity
+		expected              map[string]aadpodv1.AzureIdentity
+	}{
+		{
+			name: "no azure identities",
+			azureIdentityBindings: []aadpodv1.AzureIdentityBinding{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "binding-1",
+						Namespace: "default",
+					},
+					Spec: aadpodv1.AzureIdentityBindingSpec{
+						AzureIdentity: "identity-1",
+					},
+				},
+			},
+			expected: map[string]aadpodv1.AzureIdentity{},
+		},
+		{
+			name: "invalid azureidentitybinding selector",
+			azureIdentityBindings: []aadpodv1.AzureIdentityBinding{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "binding-1",
+						Namespace: "default",
+					},
+					Spec: aadpodv1.AzureIdentityBindingSpec{
+						AzureIdentity: "identity-1",
+						Selector:      "",
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "binding-2",
+						Namespace: "default",
+					},
+					Spec: aadpodv1.AzureIdentityBindingSpec{
+						AzureIdentity: "identity-2",
+						Selector:      "selector-2",
+					},
+				},
+			},
+			azureIdentities: map[string]aadpodv1.AzureIdentity{
+				"identity-1": {
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "identity-1",
+						Namespace: "default",
+					},
+				},
+				"identity-2": {
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "identity-2",
+						Namespace: "default",
+					},
+				},
+			},
+			expected: map[string]aadpodv1.AzureIdentity{
+				"selector-2": {
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "identity-2",
+						Namespace: "default",
+					},
+				},
+			},
+		},
+		{
+			name: "multiple azureidentitybindings with same selector",
+			azureIdentityBindings: []aadpodv1.AzureIdentityBinding{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "binding-1",
+						Namespace: "default",
+					},
+					Spec: aadpodv1.AzureIdentityBindingSpec{
+						AzureIdentity: "identity-1",
+						Selector:      "selector-1",
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "binding-2",
+						Namespace: "default",
+					},
+					Spec: aadpodv1.AzureIdentityBindingSpec{
+						AzureIdentity: "identity-2",
+						Selector:      "selector-2",
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "binding-3",
+						Namespace: "default",
+					},
+					Spec: aadpodv1.AzureIdentityBindingSpec{
+						AzureIdentity: "identity-3",
+						Selector:      "selector-1",
+					},
+				},
+			},
+			azureIdentities: map[string]aadpodv1.AzureIdentity{
+				"identity-1": {
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "identity-1",
+						Namespace: "default",
+					},
+				},
+				"identity-2": {
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "identity-2",
+						Namespace: "default",
+					},
+				},
+				"identity-3": {
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "identity-3",
+						Namespace: "default",
+					},
+				},
+			},
+			expected: map[string]aadpodv1.AzureIdentity{
+				"selector-1": {
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "identity-1",
+						Namespace: "default",
+					},
+				},
+				"selector-2": {
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "identity-2",
+						Namespace: "default",
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual := filterAzureIdentities(tt.azureIdentityBindings, tt.azureIdentities)
+			if !reflect.DeepEqual(actual, tt.expected) {
+				t.Errorf("filterAzureIdentities() = %v, want %v", actual, tt.expected)
 			}
 		})
 	}
