@@ -22,13 +22,9 @@ This project is composed by the following Terraform modules:
 
 ## Deployment Steps
 
-### 1 - Enable OIDC Issuer Preview
+### 1 - Pre-Requisites
 
-Head over to this Microsoft Docs section: **[Register the `EnableOIDCIssuerPreview` feature flag](https://docs.microsoft.com/en-us/azure/aks/cluster-configuration#register-the-enableoidcissuerpreview-feature-flag)**
-
-Enable the feature (`az feature register`) and propagate it (`az provider register`).
-
-Then return here and continue. You don't need to install or create anything else as everything will be configured and managed by the Terraform modules.
+Check the installation docs in [Managed Azure Kubernetes Service (AKS)](https://azure.github.io/azure-workload-identity/docs/installation/managed-clusters.html#azure-kubernetes-service-aks) and make sure the required feature flags are enabled.
 
 ### 2 - Prepare the local variables
 
