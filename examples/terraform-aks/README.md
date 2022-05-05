@@ -1,6 +1,6 @@
 # Azure Workload Identity w/ Terraform + AKS
 
-Terraform modules to create an AKS Cluster with active OIDC that integrates with Workload Identity, allowing your pods to connect to Azure resources using Managed Identity.
+Terraform modules to create an AKS Cluster with active OIDC that integrates with Workload Identity, allowing your pods to connect to Azure resources using Azure AD Application.
 
 This example is a Terraform implementation of the Workload Identity [Quick Start](https://azure.github.io/azure-workload-identity/docs/quick-start.html) guideline.
 
