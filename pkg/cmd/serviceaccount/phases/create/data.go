@@ -6,7 +6,7 @@ import (
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
 
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
-	"k8s.io/client-go/kubernetes"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // CreateData is the interface to use for create phase.
@@ -63,5 +63,5 @@ type CreateData interface {
 	AzureClient() cloud.Interface
 
 	// KubeClient returns the Kubernetes client.
-	KubeClient() (kubernetes.Interface, error)
+	KubeClient() (client.Client, error)
 }

@@ -398,6 +398,7 @@ release-manifest: $(KUSTOMIZE)
 	@sed -i -e 's/proxy:[^"]*/proxy:${NEW_VERSION}/' ./test/e2e/e2e_test.go
 	@sed -i -e 's|download/v.*/azure-wi-webhook.yaml|download/${NEW_VERSION}/azure-wi-webhook.yaml|' ./docs/book/src/installation/mutating-admission-webhook.md
 	@sed -i -e 's|azwi@v.*|azwi@${NEW_VERSION}|' ./docs/book/src/installation/azwi.md
+	@sed -i -e 's|imageTag        = .*|imageTag        = "${NEW_VERSION}"|' ./pkg/cmd/podidentity/detect.go
 	$(MAKE) manifests
 
 .PHONY: promote-staging-manifest

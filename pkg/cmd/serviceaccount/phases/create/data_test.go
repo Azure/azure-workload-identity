@@ -9,7 +9,7 @@ import (
 
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
 	"github.com/pkg/errors"
-	"k8s.io/client-go/kubernetes"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type mockCreateData struct {
@@ -28,7 +28,7 @@ type mockCreateData struct {
 	azureScope                    string
 	azureTenantID                 string
 	azureClient                   cloud.Interface
-	kubeClient                    kubernetes.Interface
+	kubeClient                    client.Client
 }
 
 var _ CreateData = &mockCreateData{}
@@ -105,7 +105,7 @@ func (c *mockCreateData) AzureClient() cloud.Interface {
 	return c.azureClient
 }
 
-func (c *mockCreateData) KubeClient() (kubernetes.Interface, error) {
+func (c *mockCreateData) KubeClient() (client.Client, error) {
 	if c.kubeClient == nil {
 		return nil, errors.New("not found")
 	}

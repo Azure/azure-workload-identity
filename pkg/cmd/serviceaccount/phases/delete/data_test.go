@@ -8,7 +8,7 @@ import (
 
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
 	"github.com/pkg/errors"
-	"k8s.io/client-go/kubernetes"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type mockDeleteData struct {
@@ -20,7 +20,7 @@ type mockDeleteData struct {
 	aadApplicationObjectID  string
 	roleAssignmentID        string
 	azureClient             cloud.Interface
-	kubeClient              kubernetes.Interface
+	kubeClient              client.Client
 }
 
 var _ DeleteData = &mockDeleteData{}
@@ -63,7 +63,7 @@ func (d *mockDeleteData) AzureClient() cloud.Interface {
 	return d.azureClient
 }
 
-func (d *mockDeleteData) KubeClient() (kubernetes.Interface, error) {
+func (d *mockDeleteData) KubeClient() (client.Client, error) {
 	if d.kubeClient == nil {
 		return nil, errors.New("not found")
 	}

@@ -4,7 +4,7 @@ import (
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
 
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
-	"k8s.io/client-go/kubernetes"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // DeleteData is the interface to use for create phase.
@@ -37,5 +37,5 @@ type DeleteData interface {
 	AzureClient() cloud.Interface
 
 	// KubeClient returns the Kubernetes client.
-	KubeClient() (kubernetes.Interface, error)
+	KubeClient() (client.Client, error)
 }

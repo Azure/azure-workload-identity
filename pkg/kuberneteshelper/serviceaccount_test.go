@@ -2,7 +2,6 @@ package kuberneteshelper
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -10,8 +9,9 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes/fake"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 const (
@@ -21,14 +21,14 @@ const (
 
 func TestCreateOrUpdateServiceAccount(t *testing.T) {
 	// create fake client
-	k8sClient := fake.NewSimpleClientset()
+	k8sClient := fake.NewClientBuilder().Build()
 
 	if err := CreateOrUpdateServiceAccount(context.TODO(), k8sClient, testNamespace, testServiceAccountName, "client-id", "tenant-id", 3600*time.Second+500*time.Millisecond); err != nil {
 		t.Errorf("CreateServiceAccount() error = %v, wantErr %v", err, false)
 	}
+	sa := &corev1.ServiceAccount{}
 	// check if service account was created and has correct annotations
-	sa, err := k8sClient.CoreV1().ServiceAccounts(testNamespace).Get(context.TODO(), testServiceAccountName, metav1.GetOptions{})
-	fmt.Printf("sa %+v\n", sa)
+	err := k8sClient.Get(context.TODO(), types.NamespacedName{Name: testServiceAccountName, Namespace: testNamespace}, sa)
 	if err != nil {
 		t.Errorf("CreateServiceAccount() error = %v, wantErr %v", err, false)
 	}
@@ -49,14 +49,14 @@ func TestCreateOrUpdateServiceAccount(t *testing.T) {
 
 func TestCreateOrUpdateServiceAccountDefaultTokenExpiration(t *testing.T) {
 	// create fake client
-	k8sClient := fake.NewSimpleClientset()
+	k8sClient := fake.NewClientBuilder().Build()
 
 	if err := CreateOrUpdateServiceAccount(context.TODO(), k8sClient, testNamespace, testServiceAccountName, "client-id", "tenant-id", time.Duration(webhook.DefaultServiceAccountTokenExpiration)*time.Second); err != nil {
 		t.Errorf("CreateServiceAccount() error = %v, wantErr %v", err, false)
 	}
+	sa := &corev1.ServiceAccount{}
 	// check if service account was created and has correct annotations
-	sa, err := k8sClient.CoreV1().ServiceAccounts(testNamespace).Get(context.TODO(), testServiceAccountName, metav1.GetOptions{})
-	fmt.Printf("sa %+v\n", sa)
+	err := k8sClient.Get(context.TODO(), types.NamespacedName{Name: testServiceAccountName, Namespace: testNamespace}, sa)
 	if err != nil {
 		t.Errorf("CreateServiceAccount() error = %v, wantErr %v", err, false)
 	}
@@ -77,17 +77,17 @@ func TestCreateOrUpdateServiceAccountDefaultTokenExpiration(t *testing.T) {
 func TestDeleteServiceAccount(t *testing.T) {
 	tests := []struct {
 		name        string
-		initObjects []runtime.Object
+		initObjects []client.Object
 		wantErr     bool
 	}{
 		{
 			name:        "service account does not exist",
-			initObjects: []runtime.Object{},
+			initObjects: []client.Object{},
 			wantErr:     true,
 		},
 		{
 			name: "no error",
-			initObjects: []runtime.Object{
+			initObjects: []client.Object{
 				&corev1.ServiceAccount{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      testServiceAccountName,
@@ -102,7 +102,7 @@ func TestDeleteServiceAccount(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// create fake client
-			k8sClient := fake.NewSimpleClientset(tt.initObjects...)
+			k8sClient := fake.NewClientBuilder().WithObjects(tt.initObjects...).Build()
 
 			if err := DeleteServiceAccount(context.TODO(), k8sClient, testNamespace, testServiceAccountName); (err != nil) != tt.wantErr {
 				t.Errorf("DeleteService Account() error = %v, wantErr %v", err, tt.wantErr)
