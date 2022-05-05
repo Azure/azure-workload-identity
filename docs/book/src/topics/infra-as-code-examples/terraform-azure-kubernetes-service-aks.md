@@ -23,12 +23,14 @@ This project is composed by the following Terraform modules:
 
 ## Deployment Steps
 
-### 1 - Pre-Requisites
+You can deploy this example solution following these steps:
+
+### 1. Pre-Requisites
 
 Check the installation docs in [Managed Azure Kubernetes Service (AKS)](https://azure.github.io/azure-workload-identity/docs/installation/managed-clusters.html#azure-kubernetes-service-aks) and make sure the required feature flags are enabled.
 
 
-### 2 - Project Setup
+### 2. Project Setup
 
 To run the example clone the repository and `cd` into the example root directory:
 
@@ -52,7 +54,7 @@ You might want to change the `app_name` value to avoid conflict with existing re
 
 All other variables are optional and have default values, but you may edit to fit your needs.
 
-### 3 - Deploy the Resources
+### 3. Deploy the Resources
 
 Create the Azure Cloud resources:
 
@@ -82,7 +84,7 @@ On your own solutions you might choose to use `yaml` files, but here we are maki
 That's it, you can now copy the output `aks_get_credentials_command` variable to test Workload Identity with the `quick-start` container.
 
 
-### 4 - Test with Workload
+### 4. Test with Workload
 
 Connect using `kubectl` and check the response:
 
