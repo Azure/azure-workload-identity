@@ -1,4 +1,4 @@
-# Azure Workload Identity w/ Terraform + AKS
+# Terraform - Azure Kubernetes Service (AKS)
 
 Terraform modules to create an AKS Cluster with active OIDC that integrates with Workload Identity, allowing your pods to connect to Azure resources using Azure AD Application.
 
@@ -6,9 +6,10 @@ This example is a Terraform implementation of the Workload Identity [Quick Start
 
 ## Architecture
 
-The overall architecture of the solution and it's main components. All components are managed by Terraform.
+The overall architecture of the solution and it's main components that are managed by Terraform.
 
-<img src=".docs/solution.drawio.svg" width=800>
+![Terraform Managed Solution][1]
+
 
 ## Project Structure
 
@@ -18,7 +19,7 @@ This project is composed by the following Terraform modules:
 - **Helm** - Install the Azure Workload Identity System objects.
 - **Kubernetes** - Create the Service Account and deploy a quick-start workload.
 
-ℹ️ Modules are isolated for individual `apply` commands, following [this warning](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs#stacking-with-managed-kubernetes-cluster-resources) from the Kubernetes provider.
+> Modules are isolated for individual `apply` commands, following [this warning](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs#stacking-with-managed-kubernetes-cluster-resources) from the Kubernetes provider.
 
 ## Deployment Steps
 
@@ -26,11 +27,20 @@ This project is composed by the following Terraform modules:
 
 Check the installation docs in [Managed Azure Kubernetes Service (AKS)](https://azure.github.io/azure-workload-identity/docs/installation/managed-clusters.html#azure-kubernetes-service-aks) and make sure the required feature flags are enabled.
 
-### 2 - Prepare the local variables
+
+### 2 - Project Setup
+
+To run the example clone the repository and `cd` into the example root directory:
+
+```bash
+git clone git@github.com:Azure/azure-workload-identity.git
+
+cd azure-workload-identity/examples/terraform-aks
+```
 
 Create the local variables from the example file:
 
-```sh
+```bash
 # Copy from the template
 cp .config/example.local.tfvars .local.tfvars
 
@@ -72,7 +82,7 @@ On your own solutions you might choose to use `yaml` files, but here we are maki
 That's it, you can now copy the output `aks_get_credentials_command` variable to test Workload Identity with the `quick-start` container.
 
 
-### 4 - Test the workload
+### 4 - Test with Workload
 
 Connect using `kubectl` and check the response:
 
@@ -93,3 +103,5 @@ Delete the resources to avoid unwanted costs:
 ```bash
 terraform -chdir='azure' destroy -var-file=$tfvars -auto-approve
 ```
+
+[1]: ../../images/terraform-aks.drawio.svg

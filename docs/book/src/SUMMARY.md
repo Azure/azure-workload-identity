@@ -27,6 +27,8 @@
   - [Language-Specific Examples](./topics/language-specific-examples.md)
     - [Azure Identity SDK](./topics/language-specific-examples/azure-identity-sdk.md)
     - [Microsoft Authentication Library (MSAL)](./topics/language-specific-examples/msal.md)
+  - [Infra-as-Code Examples](./topics/infra-as-code-examples.md)
+    - [Terraform - Azure Kubernetes Service (AKS)](./topics/infra-as-code-examples/terraform-azure-kubernetes-service-aks.md)
 - [Frequently Asked Questions](./faq.md)
 - [Troubleshooting](./troubleshooting.md)
 - [Known Issues](./known-issues.md)
