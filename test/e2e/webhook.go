@@ -13,6 +13,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/kubernetes/test/e2e/framework"
+	"k8s.io/utils/pointer"
 )
 
 var _ = ginkgo.Describe("Webhook", func() {
@@ -29,6 +30,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 			[]string{"3600"},
 			nil,
 			nil,
+			false,
 		)
 		framework.ExpectNoError(err, "failed to create pod %s in %s", pod.Name, f.Namespace.Name)
 		validateMutatedPod(f, pod, nil)
@@ -49,6 +51,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 			[]string{"3600"},
 			nil,
 			nil,
+			false,
 		)
 		pod.Spec.InitContainers = []corev1.Container{{
 			Name:            "init-container",
@@ -56,6 +59,17 @@ var _ = ginkgo.Describe("Webhook", func() {
 			ImagePullPolicy: corev1.PullIfNotPresent,
 			Command:         []string{"sleep"},
 			Args:            []string{"5"},
+			SecurityContext: &corev1.SecurityContext{
+				AllowPrivilegeEscalation: pointer.BoolPtr(false),
+				Capabilities: &corev1.Capabilities{
+					Drop: []corev1.Capability{"ALL"},
+				},
+				RunAsNonRoot: pointer.BoolPtr(true),
+				SeccompProfile: &corev1.SeccompProfile{
+					Type: corev1.SeccompProfileTypeRuntimeDefault,
+				},
+				RunAsUser: pointer.Int64Ptr(1000),
+			},
 		}}
 		pod, err := createPod(f.ClientSet, pod)
 		framework.ExpectNoError(err, "failed to create pod %s in %s", pod.Name, f.Namespace.Name)
@@ -82,6 +96,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 			[]string{"3600"},
 			nil,
 			map[string]string{webhook.SkipContainersAnnotation: skipContainers},
+			false,
 		)
 		framework.ExpectNoError(err, "failed to create pod %s in %s", pod.Name, f.Namespace.Name)
 		validateMutatedPod(f, pod, strings.Split(skipContainers, ";"))
@@ -103,6 +118,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 				[]string{"3600"},
 				nil,
 				nil,
+				false,
 			)
 			framework.Logf("ensuring that the creation of pod is denied by the webhook")
 			framework.ExpectError(err, "creation of pod should be denied by the webhook")
@@ -119,6 +135,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 				[]string{"3600"},
 				nil,
 				annotations,
+				false,
 			)
 			framework.Logf("ensuring that the creation of pod is denied by the webhook")
 			framework.ExpectError(err, "creation of pod should be denied by the webhook")

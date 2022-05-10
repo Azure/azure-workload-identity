@@ -54,6 +54,7 @@ var _ = ginkgo.Describe("TokenExchange [AKSSoakOnly] [Exclude:Arc]", func() {
 				Value: keyvaultSecretName,
 			}},
 			nil,
+			false,
 		)
 		framework.ExpectNoError(err, "failed to create pod %s in %s", pod.Name, namespace)
 		defer f.ClientSet.CoreV1().Pods(namespace).Delete(context.TODO(), pod.Name, metav1.DeleteOptions{})

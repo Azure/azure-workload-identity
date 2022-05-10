@@ -18,6 +18,7 @@ import (
 	"k8s.io/kubernetes/test/e2e/framework"
 	e2edeploy "k8s.io/kubernetes/test/e2e/framework/deployment"
 	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
+	"k8s.io/utils/pointer"
 )
 
 const (
@@ -56,19 +57,35 @@ func createServiceAccount(c kubernetes.Interface, namespace, name string, labels
 
 // createPodWithServiceAccount creates a pod with two containers, busybox-1 and busybox-2 with customizable
 // namespace, service account, image, command, arguments, environment variables, and annotations.
-func createPodWithServiceAccount(c kubernetes.Interface, namespace, serviceAccount, image string, command, args []string, env []corev1.EnvVar, annotations map[string]string) (*corev1.Pod, error) {
+func createPodWithServiceAccount(c kubernetes.Interface, namespace, serviceAccount, image string, command, args []string, env []corev1.EnvVar, annotations map[string]string, runAsRoot bool) (*corev1.Pod, error) {
 	if arcCluster {
 		createSecretForArcCluster(c, namespace, serviceAccount)
 	}
 
-	pod := generatePodWithServiceAccount(c, namespace, serviceAccount, image, command, args, env, annotations)
+	pod := generatePodWithServiceAccount(c, namespace, serviceAccount, image, command, args, env, annotations, runAsRoot)
 	return createPod(c, pod)
 }
 
 // generatePodWithServiceAccount generates a pod with two containers, busybox-1 and busybox-2 with customizable
 // namespace, service account, image, command, arguments, environment variables, and annotations.
-func generatePodWithServiceAccount(c kubernetes.Interface, namespace, serviceAccount, image string, command, args []string, env []corev1.EnvVar, annotations map[string]string) *corev1.Pod {
-	zero := int64(0)
+func generatePodWithServiceAccount(c kubernetes.Interface, namespace, serviceAccount, image string, command, args []string, env []corev1.EnvVar, annotations map[string]string, runAsRoot bool) *corev1.Pod {
+	// this is required for pod to be admitted in kubernetes 1.24+
+	contSecurityContext := &corev1.SecurityContext{
+		AllowPrivilegeEscalation: pointer.BoolPtr(false),
+		Capabilities: &corev1.Capabilities{
+			Drop: []corev1.Capability{"ALL"},
+		},
+		SeccompProfile: &corev1.SeccompProfile{
+			Type: corev1.SeccompProfileTypeRuntimeDefault,
+		},
+		RunAsNonRoot: pointer.BoolPtr(true),
+		RunAsUser:    pointer.Int64Ptr(1000),
+	}
+	if runAsRoot {
+		contSecurityContext.RunAsNonRoot = pointer.BoolPtr(false)
+		contSecurityContext.RunAsUser = pointer.Int64Ptr(0)
+	}
+
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: namespace + "-",
@@ -76,7 +93,7 @@ func generatePodWithServiceAccount(c kubernetes.Interface, namespace, serviceAcc
 			Annotations:  annotations,
 		},
 		Spec: corev1.PodSpec{
-			TerminationGracePeriodSeconds: &zero,
+			TerminationGracePeriodSeconds: pointer.Int64Ptr(0),
 			Containers: []corev1.Container{{
 				Name:            busybox1,
 				Image:           image, // this image should support both Linux and Windows
@@ -84,6 +101,7 @@ func generatePodWithServiceAccount(c kubernetes.Interface, namespace, serviceAcc
 				Args:            args,
 				Env:             env,
 				ImagePullPolicy: corev1.PullIfNotPresent,
+				SecurityContext: contSecurityContext,
 			}, {
 				Name:            busybox2,
 				Image:           image, // this image should support both Linux and Windows
@@ -91,6 +109,7 @@ func generatePodWithServiceAccount(c kubernetes.Interface, namespace, serviceAcc
 				Args:            args,
 				Env:             env,
 				ImagePullPolicy: corev1.PullIfNotPresent,
+				SecurityContext: contSecurityContext,
 			}},
 			RestartPolicy:      corev1.RestartPolicyNever,
 			ServiceAccountName: serviceAccount,
@@ -120,9 +139,8 @@ func createPod(c kubernetes.Interface, pod *corev1.Pod) (*corev1.Pod, error) {
 func createPodUsingDeploymentWithServiceAccount(f *framework.Framework, serviceAccount string) *corev1.Pod {
 	framework.Logf("creating a deployment in %s namespace with service account %s", f.Namespace.Name, serviceAccount)
 
-	replicas := int32(1)
-	zero := int64(0)
 	podLabels := map[string]string{"app": "busybox"}
+	nonRootUser := int64(1000)
 
 	d := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -131,14 +149,14 @@ func createPodUsingDeploymentWithServiceAccount(f *framework.Framework, serviceA
 			Labels:       podLabels,
 		},
 		Spec: appsv1.DeploymentSpec{
-			Replicas: &replicas,
+			Replicas: pointer.Int32Ptr(1),
 			Selector: &metav1.LabelSelector{MatchLabels: podLabels},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: podLabels,
 				},
 				Spec: corev1.PodSpec{
-					TerminationGracePeriodSeconds: &zero,
+					TerminationGracePeriodSeconds: pointer.Int64Ptr(0),
 					Containers: []corev1.Container{
 						{
 							Name:            "busybox",
@@ -146,6 +164,17 @@ func createPodUsingDeploymentWithServiceAccount(f *framework.Framework, serviceA
 							Command:         []string{"sleep"},
 							Args:            []string{"3600"},
 							ImagePullPolicy: corev1.PullIfNotPresent,
+							SecurityContext: &corev1.SecurityContext{
+								AllowPrivilegeEscalation: pointer.BoolPtr(false),
+								Capabilities: &corev1.Capabilities{
+									Drop: []corev1.Capability{"ALL"},
+								},
+								RunAsNonRoot: pointer.BoolPtr(true),
+								SeccompProfile: &corev1.SeccompProfile{
+									Type: corev1.SeccompProfileTypeRuntimeDefault,
+								},
+								RunAsUser: &nonRootUser,
+							},
 						},
 					},
 					ServiceAccountName: serviceAccount,
