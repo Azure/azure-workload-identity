@@ -79,17 +79,24 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) admissio
 	// for daemonset/deployment pods the namespace field is not set in objectMeta
 	// explicitly set the namespace to request namespace
 	pod.Namespace = req.Namespace
+	serviceAccountName := pod.Spec.ServiceAccountName
+	// When you create a pod, if you do not specify a service account, it is automatically
+	// assigned the default service account in the same namespace.
+	// xref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#use-the-default-service-account-to-access-the-api-server
+	if serviceAccountName == "" {
+		serviceAccountName = "default"
+	}
 
-	logger := log.Log.WithName("handler").WithValues("pod", pod.Name, "namespace", pod.Namespace, "service-account", pod.Spec.ServiceAccountName)
+	logger := log.Log.WithName("handler").WithValues("pod", pod.Name, "namespace", pod.Namespace, "service-account", serviceAccountName)
 	// get service account associated with the pod
 	serviceAccount := &corev1.ServiceAccount{}
-	if err = m.client.Get(ctx, types.NamespacedName{Name: pod.Spec.ServiceAccountName, Namespace: pod.Namespace}, serviceAccount); err != nil {
+	if err = m.client.Get(ctx, types.NamespacedName{Name: serviceAccountName, Namespace: pod.Namespace}, serviceAccount); err != nil {
 		if !apierrors.IsNotFound(err) {
 			logger.Error(err, "failed to get service account")
 			return admission.Errored(http.StatusBadRequest, err)
 		}
 		// bypass cache and get from the API server as it's not found in cache
-		err = m.reader.Get(ctx, types.NamespacedName{Name: pod.Spec.ServiceAccountName, Namespace: pod.Namespace}, serviceAccount)
+		err = m.reader.Get(ctx, types.NamespacedName{Name: serviceAccountName, Namespace: pod.Namespace}, serviceAccount)
 		if err != nil {
 			logger.Error(err, "failed to get service account")
 			return admission.Errored(http.StatusBadRequest, err)

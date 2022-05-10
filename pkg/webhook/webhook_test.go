@@ -2,6 +2,7 @@ package webhook
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 	"reflect"
 	"testing"
@@ -710,34 +711,50 @@ func TestAddProjectServiceAccountTokenVolumeMount(t *testing.T) {
 }
 
 func TestHandle(t *testing.T) {
-	serviceAccount := &corev1.ServiceAccount{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "sa",
-			Namespace: "ns1",
-			Labels:    map[string]string{UseWorkloadIdentityLabel: "true"},
-			Annotations: map[string]string{
-				ClientIDAnnotation:                  "clientID",
-				ServiceAccountTokenExpiryAnnotation: "4800",
+	serviceAccounts := []client.Object{}
+	for _, name := range []string{"default", "sa"} {
+		serviceAccounts = append(serviceAccounts, &corev1.ServiceAccount{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      name,
+				Namespace: "ns1",
+				Labels:    map[string]string{UseWorkloadIdentityLabel: "true"},
+				Annotations: map[string]string{
+					ClientIDAnnotation:                  "clientID",
+					ServiceAccountTokenExpiryAnnotation: "4800",
+				},
 			},
-		},
+		})
 	}
 
 	decoder, _ := atypes.NewDecoder(runtime.NewScheme())
 
 	tests := []struct {
-		name          string
-		clientObjects []client.Object
-		readerObjects []client.Object
+		name               string
+		serviceAccountName string
+		clientObjects      []client.Object
+		readerObjects      []client.Object
 	}{
 		{
-			name:          "service account in cache",
-			clientObjects: []client.Object{serviceAccount},
+			name:               "service account in cache",
+			serviceAccountName: "sa",
+			clientObjects:      serviceAccounts,
+			readerObjects:      nil,
+		},
+		{
+			name:               "service account not in cache",
+			serviceAccountName: "sa",
+			clientObjects:      nil,
+			readerObjects:      serviceAccounts,
+		},
+		{
+			name:          "default service account in cache",
+			clientObjects: serviceAccounts,
 			readerObjects: nil,
 		},
 		{
-			name:          "service account not in cache",
+			name:          "default service account not in cache",
 			clientObjects: nil,
-			readerObjects: []client.Object{serviceAccount},
+			readerObjects: serviceAccounts,
 		},
 	}
 
@@ -750,7 +767,7 @@ func TestHandle(t *testing.T) {
 				decoder: decoder,
 			}
 
-			raw := []byte(`{"apiVersion":"v1","kind":"Pod","metadata":{"name":"pod","namespace":"ns1"},"spec":{"initContainers":[{"image":"image","name":"cont1"}],"containers":[{"image":"image","name":"cont1"}],"serviceAccountName":"sa"}}`)
+			raw := []byte(fmt.Sprintf(`{"apiVersion":"v1","kind":"Pod","metadata":{"name":"pod","namespace":"ns1"},"spec":{"initContainers":[{"image":"image","name":"cont1"}],"containers":[{"image":"image","name":"cont1"}],"serviceAccountName":"%s"}}`, test.serviceAccountName))
 
 			req := atypes.Request{
 				AdmissionRequest: admissionv1.AdmissionRequest{
