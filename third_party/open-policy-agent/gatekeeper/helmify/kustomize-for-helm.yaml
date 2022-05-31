@@ -59,6 +59,8 @@ spec:
         HELMSUBST_DEPLOYMENT_NODE_SELECTOR: ""
       tolerations:
         HELMSUBST_DEPLOYMENT_TOLERATIONS: ""
+      affinity:
+        HELMSUBST_DEPLOYMENT_AFFINITY: ""
       volumes:
       - name: cert
         secret:
