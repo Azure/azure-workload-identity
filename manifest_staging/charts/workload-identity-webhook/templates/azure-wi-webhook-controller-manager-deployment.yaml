@@ -24,6 +24,8 @@ spec:
         chart: '{{ template "workload-identity-webhook.name" . }}'
         release: '{{ .Release.Name }}'
     spec:
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}
       containers:
       - args:
         - --arc-cluster={{ .Values.arcCluster }}
