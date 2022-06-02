@@ -148,8 +148,8 @@ jobs:
           KIND_NODE_VERSION: v1.22.7
         kind_v1_23_5:
           KIND_NODE_VERSION: v1.23.5
-        kind_v1_24_0:
-          KIND_NODE_VERSION: v1.24.0
+        kind_v1_24_1:
+          KIND_NODE_VERSION: v1.24.1
     steps:
       - script: make test-e2e
         displayName: Webhook E2E test suite
