@@ -198,7 +198,7 @@ Login to [Azure Cloud Shell][8] and run the following commands:
 
 ```bash
 # Get the object ID of the AAD application
-export APPLICATION_OBJECT_ID="$(az ad app show --id ${APPLICATION_CLIENT_ID} --query objectId -otsv)"
+export APPLICATION_OBJECT_ID="$(az ad app show --id ${APPLICATION_CLIENT_ID} --query id -otsv)"
 ```
 
 Add the federated identity credential:
