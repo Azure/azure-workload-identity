@@ -78,7 +78,7 @@ jobs:
           cat sa.yaml | grep "azure.workload.identity/tenant-id: ${AZURE_TENANT_ID}"
 
           # get the federated identity
-          APPLICATION_OBJECT_ID="$(az ad app show --id "${APPLICATION_CLIENT_ID}" --query objectId -otsv)"
+          APPLICATION_OBJECT_ID="$(az ad app show --id "${APPLICATION_CLIENT_ID}" --query id -otsv)"
           az rest --method GET --uri "https://graph.microsoft.com/beta/applications/${APPLICATION_OBJECT_ID}/federatedIdentityCredentials"
       - name: Cleanup
         if: ${{ always() }}

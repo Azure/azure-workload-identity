@@ -46,7 +46,7 @@ To create a federated identity credential, login to [Azure Cloud Shell][1] and r
 ```bash
 # Get the client and object ID of the AAD application
 export APPLICATION_CLIENT_ID="$(az ad sp list --display-name "${APPLICATION_NAME}" --query '[0].appId' -otsv)"
-export APPLICATION_OBJECT_ID="$(az ad app show --id "${APPLICATION_CLIENT_ID}" --query objectId -otsv)"
+export APPLICATION_OBJECT_ID="$(az ad app show --id "${APPLICATION_CLIENT_ID}" --query id -otsv)"
 
 cat <<EOF > body.json
 {

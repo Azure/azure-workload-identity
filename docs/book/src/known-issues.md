@@ -49,8 +49,8 @@ In the case of service principal, you will have to grant the `Application.ReadWr
 
 ```bash
 # get the app role ID of `Application.ReadWrite.All`
-APPLICATION_OBJECT_ID="$(az ad app show --id ${APPLICATION_CLIENT_ID} --query objectId -otsv)"
-GRAPH_RESOURCE_ID="$(az ad sp list --display-name "Microsoft Graph" --query '[0].objectId' -otsv)"
+APPLICATION_OBJECT_ID="$(az ad app show --id ${APPLICATION_CLIENT_ID} --query id -otsv)"
+GRAPH_RESOURCE_ID="$(az ad sp list --display-name "Microsoft Graph" --query '[0].id' -otsv)"
 APPLICATION_READWRITE_ALL_ID="$(az ad sp list --display-name "Microsoft Graph" --query "[0].appRoles[?value=='Application.ReadWrite.All' && contains(allowedMemberTypes, 'Application')].id" --output tsv)"
 
 URI="https://graph.microsoft.com/v1.0/servicePrincipals/${APPLICATION_OBJECT_ID}/appRoleAssignments"
