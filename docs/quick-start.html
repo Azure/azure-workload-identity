@@ -290,7 +290,7 @@ INFO[0032] [federated-identity] added federated credential  objectID=REDACTED su
 <summary>Azure CLI</summary>
 <p>Login to <a href="https://portal.azure.com/#cloudshell/">Azure Cloud Shell</a> and run the following commands:</p>
 <pre><code class="language-bash"># Get the object ID of the AAD application
-export APPLICATION_OBJECT_ID=&quot;$(az ad app show --id ${APPLICATION_CLIENT_ID} --query objectId -otsv)&quot;
+export APPLICATION_OBJECT_ID=&quot;$(az ad app show --id ${APPLICATION_CLIENT_ID} --query id -otsv)&quot;
 </code></pre>
 <p>Add the federated identity credential:</p>
 <pre><code class="language-bash">cat &lt;&lt;EOF &gt; body.json

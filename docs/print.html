@@ -749,7 +749,7 @@ INFO[0032] [federated-identity] added federated credential  objectID=REDACTED su
 <summary>Azure CLI</summary>
 <p>Login to <a href="https://portal.azure.com/#cloudshell/">Azure Cloud Shell</a> and run the following commands:</p>
 <pre><code class="language-bash"># Get the object ID of the AAD application
-export APPLICATION_OBJECT_ID=&quot;$(az ad app show --id ${APPLICATION_CLIENT_ID} --query objectId -otsv)&quot;
+export APPLICATION_OBJECT_ID=&quot;$(az ad app show --id ${APPLICATION_CLIENT_ID} --query id -otsv)&quot;
 </code></pre>
 <p>Add the federated identity credential:</p>
 <pre><code class="language-bash">cat &lt;&lt;EOF &gt; body.json
@@ -978,7 +978,7 @@ export SERVICE_ACCOUNT_ISSUER=&quot;...&quot; # see section 1.1 on how to get th
 <p>To create a federated identity credential, login to <a href="https://portal.azure.com/#cloudshell/">Azure Cloud Shell</a> and run the following commands:</p>
 <pre><code class="language-bash"># Get the client and object ID of the AAD application
 export APPLICATION_CLIENT_ID=&quot;$(az ad sp list --display-name &quot;${APPLICATION_NAME}&quot; --query '[0].appId' -otsv)&quot;
-export APPLICATION_OBJECT_ID=&quot;$(az ad app show --id &quot;${APPLICATION_CLIENT_ID}&quot; --query objectId -otsv)&quot;
+export APPLICATION_OBJECT_ID=&quot;$(az ad app show --id &quot;${APPLICATION_CLIENT_ID}&quot; --query id -otsv)&quot;
 
 cat &lt;&lt;EOF &gt; body.json
 {
@@ -1534,8 +1534,8 @@ az login --scope https://graph.microsoft.com//.default
 </ul>
 <p>In the case of service principal, you will have to grant the <code>Application.ReadWrite.All</code> API permission:</p>
 <pre><code class="language-bash"># get the app role ID of `Application.ReadWrite.All`
-APPLICATION_OBJECT_ID=&quot;$(az ad app show --id ${APPLICATION_CLIENT_ID} --query objectId -otsv)&quot;
-GRAPH_RESOURCE_ID=&quot;$(az ad sp list --display-name &quot;Microsoft Graph&quot; --query '[0].objectId' -otsv)&quot;
+APPLICATION_OBJECT_ID=&quot;$(az ad app show --id ${APPLICATION_CLIENT_ID} --query id -otsv)&quot;
+GRAPH_RESOURCE_ID=&quot;$(az ad sp list --display-name &quot;Microsoft Graph&quot; --query '[0].id' -otsv)&quot;
 APPLICATION_READWRITE_ALL_ID=&quot;$(az ad sp list --display-name &quot;Microsoft Graph&quot; --query &quot;[0].appRoles[?value=='Application.ReadWrite.All' &amp;&amp; contains(allowedMemberTypes, 'Application')].id&quot; --output tsv)&quot;
 
 URI=&quot;https://graph.microsoft.com/v1.0/servicePrincipals/${APPLICATION_OBJECT_ID}/appRoleAssignments&quot;
