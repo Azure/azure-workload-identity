@@ -7,7 +7,7 @@ set -o pipefail
 : "${CLUSTER_NAME:?Environment variable empty or not defined.}"
 
 get_random_region() {
-    local REGIONS=("eastus" "eastus2" "westus2" "westeurope" "uksouth" "northeurope" "francecentral")
+    local REGIONS=("eastus" "eastus2" "southcentralus" "westeurope" "uksouth" "northeurope" "francecentral")
     echo "${REGIONS[${RANDOM} % ${#REGIONS[@]}]}"
 }
 

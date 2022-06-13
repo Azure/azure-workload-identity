@@ -16,9 +16,15 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+)
+
+var (
+	// ProxySidecarVersion is the version of the proxy sidecar
+	ProxySidecarVersion string
 )
 
 // +kubebuilder:webhook:path=/mutate-v1-pod,mutating=true,failurePolicy=ignore,groups="",resources=pods,verbs=create;update,versions=v1,name=mutation.azure-workload-identity.io,sideEffects=None,admissionReviewVersions=v1;v1beta1,matchPolicy=Equivalent
@@ -108,6 +114,18 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) admissio
 		logger.Info("service account not annotated")
 		return admission.Allowed("service account not annotated")
 	}
+
+	if shouldInjectProxySidecar(pod) {
+		proxyPort, err := getProxyPort(pod)
+		if err != nil {
+			logger.Error(err, "failed to get proxy port")
+			return admission.Errored(http.StatusBadRequest, err)
+		}
+
+		pod.Spec.InitContainers = m.injectProxyInitContainer(pod.Spec.InitContainers, proxyPort)
+		pod.Spec.Containers = m.injectProxySidecarContainer(pod.Spec.Containers, proxyPort)
+	}
+
 	// get service account token expiration
 	serviceAccountTokenExpiration, err := getServiceAccountTokenExpiration(pod, serviceAccount)
 	if err != nil {
@@ -174,6 +192,66 @@ func (m *podMutator) mutateContainers(containers []corev1.Container, clientID st
 	return containers
 }
 
+func (m *podMutator) injectProxyInitContainer(containers []corev1.Container, proxyPort int32) []corev1.Container {
+	shouldInject := true
+	for _, container := range containers {
+		if strings.HasPrefix(container.Image, ProxyInitImageRepository) || container.Name == ProxyInitContainerName {
+			shouldInject = false
+			break
+		}
+	}
+
+	if !shouldInject {
+		return containers
+	}
+
+	containers = append(containers, corev1.Container{
+		Name:  ProxyInitContainerName,
+		Image: strings.Join([]string{ProxyInitImageRepository, ProxySidecarVersion}, ":"),
+		SecurityContext: &corev1.SecurityContext{
+			Capabilities: &corev1.Capabilities{
+				Add:  []corev1.Capability{"NET_ADMIN"},
+				Drop: []corev1.Capability{"ALL"},
+			},
+			Privileged: pointer.BoolPtr(true),
+			RunAsUser:  pointer.Int64Ptr(0),
+		},
+		Env: []corev1.EnvVar{{
+			Name:  ProxyPortEnvVar,
+			Value: strconv.FormatInt(int64(proxyPort), 10),
+		}},
+	})
+
+	return containers
+}
+
+func (m *podMutator) injectProxySidecarContainer(containers []corev1.Container, proxyPort int32) []corev1.Container {
+	shouldInject := true
+	for _, container := range containers {
+		if strings.HasPrefix(container.Image, ProxySidecarImageRepository) || container.Name == ProxySidecarContainerName {
+			shouldInject = false
+			break
+		}
+	}
+
+	if !shouldInject {
+		return containers
+	}
+
+	containers = append(containers, corev1.Container{
+		Name:  ProxySidecarContainerName,
+		Image: strings.Join([]string{ProxySidecarImageRepository, ProxySidecarVersion}, ":"),
+		Args: []string{
+			fmt.Sprintf("--proxy-port=%d", proxyPort),
+		},
+		Ports: []corev1.ContainerPort{{
+			ContainerPort: proxyPort,
+		}},
+	})
+
+	return containers
+}
+
 // isServiceAccountAnnotated checks if the service account has been annotated
 // to use with workload identity
 func isServiceAccountAnnotated(sa *corev1.ServiceAccount) bool {
@@ -181,6 +259,14 @@ func isServiceAccountAnnotated(sa *corev1.ServiceAccount) bool {
 		return false
 	}
 	_, ok := sa.Labels[UseWorkloadIdentityLabel]
+	return ok
+}
+
+func shouldInjectProxySidecar(pod *corev1.Pod) bool {
+	if len(pod.Annotations) == 0 {
+		return false
+	}
+	_, ok := pod.Annotations[InjectProxySidecarAnnotation]
 	return ok
 }
 
@@ -221,6 +307,25 @@ func getServiceAccountTokenExpiration(pod *corev1.Pod, sa *corev1.ServiceAccount
 		return 0, errors.Errorf("token expiration %d not valid. Expected value to be between 3600 and 86400", serviceAccountTokenExpiration)
 	}
 	return serviceAccountTokenExpiration, nil
+}
+
+// getProxyPort returns the port for the proxy init container and the proxy sidecar container
+func getProxyPort(pod *corev1.Pod) (int32, error) {
+	if pod.Annotations == nil {
+		return DefaultProxySidecarPort, nil
+	}
+
+	proxyPort, ok := pod.Annotations[ProxySidecarPortAnnotation]
+	if !ok {
+		return DefaultProxySidecarPort, nil
+	}
+
+	parsed, err := strconv.ParseInt(proxyPort, 10, 32)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to parse proxy sidecar port")
+	}
+
+	return int32(parsed), nil
 }
 
 func validServiceAccountTokenExpiry(tokenExpiry int64) bool {

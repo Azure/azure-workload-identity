@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"path/filepath"
 	"reflect"
+	"strconv"
+	"strings"
 	"testing"
 
 	admissionv1 "k8s.io/api/admission/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	atypes "sigs.k8s.io/controller-runtime/pkg/webhook/admission"
@@ -1156,6 +1159,218 @@ func TestMutateContainers(t *testing.T) {
 			containers := m.mutateContainers(test.containers, azureClientID, azureTenantID, test.skipContainers)
 			if !reflect.DeepEqual(containers, test.expectedContainers) {
 				t.Errorf("expected: %v, got: %v", test.expectedContainers, test.containers)
+			}
+		})
+	}
+}
+
+func TestInjectProxyInitContainer(t *testing.T) {
+	proxyPort := int32(8080)
+	ProxySidecarVersion = "v1.0.0"
+	proxyInitContainer := corev1.Container{
+		Name:  ProxyInitContainerName,
+		Image: strings.Join([]string{ProxyInitImageRepository, ProxySidecarVersion}, ":"),
+		SecurityContext: &corev1.SecurityContext{
+			Capabilities: &corev1.Capabilities{
+				Add:  []corev1.Capability{"NET_ADMIN"},
+				Drop: []corev1.Capability{"ALL"},
+			},
+			Privileged: pointer.BoolPtr(true),
+			RunAsUser:  pointer.Int64Ptr(0),
+		},
+		Env: []corev1.EnvVar{{
+			Name:  ProxyPortEnvVar,
+			Value: strconv.FormatInt(int64(proxyPort), 10),
+		}},
+	}
+
+	tests := []struct {
+		name               string
+		containers         []corev1.Container
+		expectedContainers []corev1.Container
+	}{
+		{
+			name:               "no init containers",
+			containers:         []corev1.Container{},
+			expectedContainers: []corev1.Container{proxyInitContainer},
+		},
+		{
+			name:               "proxy init container manually injected",
+			containers:         []corev1.Container{proxyInitContainer},
+			expectedContainers: []corev1.Container{proxyInitContainer},
+		},
+	}
+
+	m := &podMutator{}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			containers := m.injectProxyInitContainer(test.containers, proxyPort)
+			if !reflect.DeepEqual(containers, test.expectedContainers) {
+				t.Errorf("expected: %v, got: %v", test.expectedContainers, test.containers)
+			}
+		})
+	}
+}
+
+func TestInjectProxySidecaarContainer(t *testing.T) {
+	proxyPort := int32(8081)
+	ProxySidecarVersion = "v1.0.0"
+	proxySidecarContainer := corev1.Container{
+		Name:  ProxySidecarContainerName,
+		Image: strings.Join([]string{ProxySidecarImageRepository, ProxySidecarVersion}, ":"),
+		Args: []string{
+			fmt.Sprintf("--proxy-port=%d", proxyPort),
+		},
+		Ports: []corev1.ContainerPort{{
+			ContainerPort: proxyPort,
+		}},
+	}
+
+	tests := []struct {
+		name               string
+		containers         []corev1.Container
+		expectedContainers []corev1.Container
+	}{
+		{
+			name:               "no containers",
+			containers:         []corev1.Container{},
+			expectedContainers: []corev1.Container{proxySidecarContainer},
+		},
+		{
+			name:               "proxy sidecar container manually injected",
+			containers:         []corev1.Container{proxySidecarContainer},
+			expectedContainers: []corev1.Container{proxySidecarContainer},
+		},
+	}
+
+	m := &podMutator{}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			containers := m.injectProxySidecarContainer(test.containers, proxyPort)
+			if !reflect.DeepEqual(containers, test.expectedContainers) {
+				t.Errorf("expected: %v, got: %v", test.expectedContainers, test.containers)
+			}
+		})
+	}
+}
+
+func TestShouldInjectProxySidecar(t *testing.T) {
+	tests := []struct {
+		name     string
+		pod      *corev1.Pod
+		expected bool
+	}{
+		{
+			name: "pod not annotated",
+			pod: &corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "pod",
+				},
+			},
+			expected: false,
+		},
+		{
+			name: "pod is annotated with azure.workload.identity/inject-proxy-sidecar=true",
+			pod: &corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "pod",
+					Annotations: map[string]string{
+						InjectProxySidecarAnnotation: "true",
+					},
+				},
+			},
+			expected: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			actual := shouldInjectProxySidecar(test.pod)
+			if actual != test.expected {
+				t.Fatalf("expected: %v, got: %v", test.expected, actual)
+			}
+		})
+	}
+}
+
+func TestGetProxyPort(t *testing.T) {
+	type args struct {
+		pod *corev1.Pod
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    int32
+		wantErr bool
+	}{
+		{
+
+			name: "pod not annotated",
+			args: args{
+				pod: &corev1.Pod{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "pod",
+					},
+				},
+			},
+			want:    DefaultProxySidecarPort,
+			wantErr: false,
+		},
+		{
+			name: "pod has no azure.workload.identity/proxy-sodecar-port annotation",
+			args: args{
+				pod: &corev1.Pod{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "pod",
+						Annotations: map[string]string{
+							"test": "test",
+						},
+					},
+				},
+			},
+			want:    DefaultProxySidecarPort,
+			wantErr: false,
+		},
+		{
+			name: "pod is annotated with azure.workload.identity/proxy-sodecar-port=8080",
+			args: args{
+				pod: &corev1.Pod{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "pod",
+						Annotations: map[string]string{
+							ProxySidecarPortAnnotation: "8080",
+						},
+					},
+				},
+			},
+			want:    8080,
+			wantErr: false,
+		},
+		{
+			name: "pod is annotated with azure.workload.identity/proxy-sodecar-port=invalid",
+			args: args{
+				pod: &corev1.Pod{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "pod",
+						Annotations: map[string]string{
+							ProxySidecarPortAnnotation: "invalid",
+						},
+					},
+				},
+			},
+			want:    0,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := getProxyPort(tt.args.pod)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("getProxyPort() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("getProxyPort() = %v, want %v", got, tt.want)
 			}
 		})
 	}
