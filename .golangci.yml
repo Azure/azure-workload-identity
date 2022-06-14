@@ -4,6 +4,7 @@ run:
   # xref: https://github.com/golangci/golangci-lint/issues/2649
   # we are not using generics, so we can pin this to 1.17
   go: '1.17'
+  modules-download-mode: vendor
 
 linters:
   disable-all: true
