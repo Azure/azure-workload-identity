@@ -154,6 +154,13 @@
 <p>Azure CLI and AKS are currently working on the above requirements, as well as an Azure CLI extension that natively integrate this project with AKS clusters.</p>
 <h2 id="how-is-azure-workload-identity-different-from-aad-pod-identity-v2"><a class="header" href="#how-is-azure-workload-identity-different-from-aad-pod-identity-v2">How is azure-workload-identity different from aad-pod-identity v2?</a></h2>
 <p>Azure Workload Identity is v2 of the AAD Pod Identity. AAD Pod Identity v2 was a placeholder name and is now rebranded as Azure Workload Identity.</p>
+<h2 id="how-to-federate-multiple-identities-with-a-kubernetes-service-account"><a class="header" href="#how-to-federate-multiple-identities-with-a-kubernetes-service-account">How to federate multiple identities with a Kubernetes service account?</a></h2>
+<p>It is possible to have a many-to-one relationship between multiple identities and a Kubernetes service account, i.e. you can create multiple
+federated identity credentials that reference the same service account in your Kubernetes cluster.</p>
+<p><code>azure.workload.identity/client-id</code> annotation in your service account represents the default identity client ID used by the Azure Identity SDK during authentication. If you would like to use a different identity, you would need to specify the client ID when creating the Azure Credential object.</p>
+<p>For example, if you are using the <a href="https://docs.microsoft.com/en-us/python/api/azure-identity/azure.identity.defaultazurecredential?view=azure-python"><code>DefaultAzureCredential</code></a> from the Azure Identity Python SDK to authenticate your application, you can specify which identity to use by adding the <code>managed_identity_client_id</code> parameter to the <code>DefaultAzureCredential</code> constructor.</p>
+<h2 id="is-there-a-propagation-delay-after-creating-a-federated-identity-credential"><a class="header" href="#is-there-a-propagation-delay-after-creating-a-federated-identity-credential">Is there a propagation delay after creating a federated identity credential?</a></h2>
+<p>It takes a few seconds for the federated identity credential to be propagated after being initially added. If a token request is made immediately after adding the federated identity credential, it <strong>might</strong> lead to failure for a couple of minutes as the cache is populated in the directory with old data. To avoid this issue, you can add a slight delay after adding the federated identity credential.</p>
 
                     </main>
 
