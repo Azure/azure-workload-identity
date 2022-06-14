@@ -193,16 +193,10 @@ func (m *podMutator) mutateContainers(containers []corev1.Container, clientID st
 }
 
 func (m *podMutator) injectProxyInitContainer(containers []corev1.Container, proxyPort int32) []corev1.Container {
-	shouldInject := true
 	for _, container := range containers {
 		if strings.HasPrefix(container.Image, ProxyInitImageRepository) || container.Name == ProxyInitContainerName {
-			shouldInject = false
-			break
+			return containers
 		}
-	}
-
-	if !shouldInject {
-		return containers
 	}
 
 	containers = append(containers, corev1.Container{
@@ -227,16 +221,10 @@ func (m *podMutator) injectProxyInitContainer(containers []corev1.Container, pro
 }
 
 func (m *podMutator) injectProxySidecarContainer(containers []corev1.Container, proxyPort int32) []corev1.Container {
-	shouldInject := true
 	for _, container := range containers {
 		if strings.HasPrefix(container.Image, ProxySidecarImageRepository) || container.Name == ProxySidecarContainerName {
-			shouldInject = false
-			break
+			return containers
 		}
-	}
-
-	if !shouldInject {
-		return containers
 	}
 
 	containers = append(containers, corev1.Container{
