@@ -22,10 +22,8 @@ import (
 )
 
 const (
-	busybox1  = "busybox-1"
-	busybox2  = "busybox-2"
-	proxyInit = "proxy-init"
-	proxy     = "proxy"
+	busybox1 = "busybox-1"
+	busybox2 = "busybox-2"
 )
 
 // createServiceAccount creates a service account with customizable name, namespace, labels and annotations.

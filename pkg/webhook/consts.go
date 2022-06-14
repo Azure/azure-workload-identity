@@ -15,6 +15,10 @@ const (
 	// SkipContainersAnnotation represents list of containers to skip adding projected service account token volume.
 	// By default, the projected service account token volume will be added to all containers if the service account is labeled with `azure.workload.identity/use: true`
 	SkipContainersAnnotation = "azure.workload.identity/skip-containers"
+	// InjectProxySidecarAnnotation represents the annotation to be used to inject proxy sidecar into the pod
+	InjectProxySidecarAnnotation = "azure.workload.identity/inject-proxy-sidecar"
+	// ProxySidecarPortAnnotation represents the annotation to be used to specify the port for proxy sidecar
+	ProxySidecarPortAnnotation = "azure.workload.identity/proxy-sidecar-port"
 
 	// MinServiceAccountTokenExpiration is the minimum service account token expiration in seconds
 	MinServiceAccountTokenExpiration = int64(3600)
@@ -23,6 +27,21 @@ const (
 	// DefaultServiceAccountTokenExpiration is the default service account token expiration in seconds
 	// This is the Kubernetes default value for projected service account token
 	DefaultServiceAccountTokenExpiration = int64(3600)
+	// DefaultProxySidecarPort is the default port for proxy sidecar
+	DefaultProxySidecarPort = int32(8000)
+)
+
+const (
+	// ProxyInitContainerName is the name of the init container that will be used to inject proxy sidecar
+	ProxyInitContainerName = "azwi-proxy-init"
+	// ProxySidecarContainerName is the name of the container that will be used to inject proxy sidecar
+	ProxySidecarContainerName = "azwi-proxy"
+	// ProxyInitImageRepository is the image repository for the proxy init container
+	ProxyInitImageRepository = "mcr.microsoft.com/oss/azure/workload-identity/proxy-init"
+	// ProxySidecarImageRepository is the image repository for the proxy sidecar container
+	ProxySidecarImageRepository = "mcr.microsoft.com/oss/azure/workload-identity/proxy"
+	// ProxyPortEnvVar is the environment variable name for the proxy port
+	ProxyPortEnvVar = "PROXY_PORT"
 )
 
 // Environment variables injected in the pod

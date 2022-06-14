@@ -92,7 +92,8 @@ test_helm_chart() {
     --create-namespace \
     --wait
   poll_webhook_readiness
-  make test-e2e-run
+  # TODO(chewong): remove GINKGO_SKIP once the helm chart is updated to use v0.11.0.
+  GINKGO_SKIP="Proxy" make test-e2e-run
 
   ${HELM} upgrade --install workload-identity-webhook "${REPO_ROOT}/manifest_staging/charts/workload-identity-webhook" \
     --set image.repository="${REGISTRY:-mcr.microsoft.com/oss/azure/workload-identity/webhook}" \
