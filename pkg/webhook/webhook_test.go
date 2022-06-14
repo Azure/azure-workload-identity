@@ -1168,8 +1168,9 @@ func TestInjectProxyInitContainer(t *testing.T) {
 	proxyPort := int32(8080)
 	ProxySidecarVersion = "v1.0.0"
 	proxyInitContainer := corev1.Container{
-		Name:  ProxyInitContainerName,
-		Image: strings.Join([]string{ProxyInitImageRepository, ProxySidecarVersion}, ":"),
+		Name:            ProxyInitContainerName,
+		Image:           strings.Join([]string{ProxyInitImageRepository, ProxySidecarVersion}, ":"),
+		ImagePullPolicy: corev1.PullIfNotPresent,
 		SecurityContext: &corev1.SecurityContext{
 			Capabilities: &corev1.Capabilities{
 				Add:  []corev1.Capability{"NET_ADMIN"},
@@ -1199,6 +1200,22 @@ func TestInjectProxyInitContainer(t *testing.T) {
 			containers:         []corev1.Container{proxyInitContainer},
 			expectedContainers: []corev1.Container{proxyInitContainer},
 		},
+		{
+			name: "inject proxy init container to existing init containers",
+			containers: []corev1.Container{
+				{
+					Name:  "my-container",
+					Image: "my-image",
+				},
+			},
+			expectedContainers: []corev1.Container{
+				{
+					Name:  "my-container",
+					Image: "my-image",
+				},
+				proxyInitContainer,
+			},
+		},
 	}
 
 	m := &podMutator{}
@@ -1212,12 +1229,13 @@ func TestInjectProxyInitContainer(t *testing.T) {
 	}
 }
 
-func TestInjectProxySidecaarContainer(t *testing.T) {
+func TestInjectProxySidecarContainer(t *testing.T) {
 	proxyPort := int32(8081)
 	ProxySidecarVersion = "v1.0.0"
 	proxySidecarContainer := corev1.Container{
-		Name:  ProxySidecarContainerName,
-		Image: strings.Join([]string{ProxySidecarImageRepository, ProxySidecarVersion}, ":"),
+		Name:            ProxySidecarContainerName,
+		Image:           strings.Join([]string{ProxySidecarImageRepository, ProxySidecarVersion}, ":"),
+		ImagePullPolicy: corev1.PullIfNotPresent,
 		Args: []string{
 			fmt.Sprintf("--proxy-port=%d", proxyPort),
 		},
@@ -1240,6 +1258,22 @@ func TestInjectProxySidecaarContainer(t *testing.T) {
 			name:               "proxy sidecar container manually injected",
 			containers:         []corev1.Container{proxySidecarContainer},
 			expectedContainers: []corev1.Container{proxySidecarContainer},
+		},
+		{
+			name: "inject proxy sidecar container to existing containers",
+			containers: []corev1.Container{
+				{
+					Name:  "my-container",
+					Image: "my-image",
+				},
+			},
+			expectedContainers: []corev1.Container{
+				{
+					Name:  "my-container",
+					Image: "my-image",
+				},
+				proxySidecarContainer,
+			},
 		},
 	}
 
@@ -1317,7 +1351,7 @@ func TestGetProxyPort(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "pod has no azure.workload.identity/proxy-sodecar-port annotation",
+			name: "pod has no azure.workload.identity/proxy-sidecar-port annotation",
 			args: args{
 				pod: &corev1.Pod{
 					ObjectMeta: metav1.ObjectMeta{
@@ -1332,7 +1366,7 @@ func TestGetProxyPort(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "pod is annotated with azure.workload.identity/proxy-sodecar-port=8080",
+			name: "pod is annotated with azure.workload.identity/proxy-sidecar-port=8080",
 			args: args{
 				pod: &corev1.Pod{
 					ObjectMeta: metav1.ObjectMeta{
@@ -1347,7 +1381,7 @@ func TestGetProxyPort(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "pod is annotated with azure.workload.identity/proxy-sodecar-port=invalid",
+			name: "pod is annotated with azure.workload.identity/proxy-sidecar-port=invalid",
 			args: args{
 				pod: &corev1.Pod{
 					ObjectMeta: metav1.ObjectMeta{

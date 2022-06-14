@@ -33,9 +33,9 @@ const (
 
 const (
 	// ProxyInitContainerName is the name of the init container that will be used to inject proxy sidecar
-	ProxyInitContainerName = "proxy-init"
+	ProxyInitContainerName = "azwi-proxy-init"
 	// ProxySidecarContainerName is the name of the container that will be used to inject proxy sidecar
-	ProxySidecarContainerName = "proxy"
+	ProxySidecarContainerName = "azwi-proxy"
 	// ProxyInitImageRepository is the image repository for the proxy init container
 	ProxyInitImageRepository = "mcr.microsoft.com/oss/azure/workload-identity/proxy-init"
 	// ProxySidecarImageRepository is the image repository for the proxy sidecar container

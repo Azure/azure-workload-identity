@@ -206,8 +206,9 @@ func (m *podMutator) injectProxyInitContainer(containers []corev1.Container, pro
 	}
 
 	containers = append(containers, corev1.Container{
-		Name:  ProxyInitContainerName,
-		Image: strings.Join([]string{ProxyInitImageRepository, ProxySidecarVersion}, ":"),
+		Name:            ProxyInitContainerName,
+		Image:           strings.Join([]string{ProxyInitImageRepository, ProxySidecarVersion}, ":"),
+		ImagePullPolicy: corev1.PullIfNotPresent,
 		SecurityContext: &corev1.SecurityContext{
 			Capabilities: &corev1.Capabilities{
 				Add:  []corev1.Capability{"NET_ADMIN"},
@@ -239,8 +240,9 @@ func (m *podMutator) injectProxySidecarContainer(containers []corev1.Container, 
 	}
 
 	containers = append(containers, corev1.Container{
-		Name:  ProxySidecarContainerName,
-		Image: strings.Join([]string{ProxySidecarImageRepository, ProxySidecarVersion}, ":"),
+		Name:            ProxySidecarContainerName,
+		Image:           strings.Join([]string{ProxySidecarImageRepository, ProxySidecarVersion}, ":"),
+		ImagePullPolicy: corev1.PullIfNotPresent,
 		Args: []string{
 			fmt.Sprintf("--proxy-port=%d", proxyPort),
 		},
@@ -311,7 +313,7 @@ func getServiceAccountTokenExpiration(pod *corev1.Pod, sa *corev1.ServiceAccount
 
 // getProxyPort returns the port for the proxy init container and the proxy sidecar container
 func getProxyPort(pod *corev1.Pod) (int32, error) {
-	if pod.Annotations == nil {
+	if len(pod.Annotations) == 0 {
 		return DefaultProxySidecarPort, nil
 	}
 
