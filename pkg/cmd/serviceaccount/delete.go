@@ -18,6 +18,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+var (
+	roleAssignmentPhase    = phases.NewRoleAssignmentPhase()
+	federatedIdentityPhase = phases.NewFederatedIdentityPhase()
+	serviceAccountPhase    = phases.NewServiceAccountPhase()
+	aadApplicationPhase    = phases.NewAADApplicationPhase()
+)
+
 func newDeleteCmd(authProvider auth.Provider) *cobra.Command {
 	deleteRunner := workflow.NewPhaseRunner()
 	data := &deleteData{
@@ -27,6 +34,12 @@ func newDeleteCmd(authProvider auth.Provider) *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "delete",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// if we are running the AAD application delete phase, we can
+			// slightly optimize the delete command by skipping the federated-identity
+			// phase because it will get removed when the AAD application is removed.
+			if deleteRunner.IsPhaseActive(aadApplicationPhase) {
+				deleteRunner.AppendSkipPhases(federatedIdentityPhase)
+			}
 			return deleteRunner.Run(data)
 		},
 	}
@@ -41,10 +54,10 @@ func newDeleteCmd(authProvider auth.Provider) *cobra.Command {
 
 	// append phases in order
 	deleteRunner.AppendPhases(
-		phases.NewRoleAssignmentPhase(),
-		phases.NewFederatedIdentityPhase(),
-		phases.NewServiceAccountPhase(),
-		phases.NewAADApplicationPhase(),
+		roleAssignmentPhase,
+		federatedIdentityPhase,
+		serviceAccountPhase,
+		aadApplicationPhase,
 	)
 	deleteRunner.BindToCommand(cmd, data)
 
