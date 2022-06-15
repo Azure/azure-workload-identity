@@ -36,7 +36,7 @@ func TestAppendSkipPhases(t *testing.T) {
 		Name: "phase-3",
 	})
 	if len(r.skipPhases) != 3 {
-		t.Errorf("expected 2 phases, got %d", len(r.skipPhases))
+		t.Errorf("expected 3 phases, got %d", len(r.skipPhases))
 	}
 	for i, phase := range r.skipPhases {
 		if phase != "phase-"+fmt.Sprintf("%d", i+1) {
