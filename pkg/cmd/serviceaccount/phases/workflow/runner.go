@@ -16,8 +16,14 @@ type RunData = interface{}
 
 // Runner is the interface for running phases
 type Runner interface {
-	// AppendPhases adds a phase to the list of phases to run
+	// AppendPhases adds a number of phases to the list of phases to run
 	AppendPhases(phases ...Phase)
+
+	// AppendSkipPhases adds a number of phases to the list of phases to skip
+	AppendSkipPhases(phases ...Phase)
+
+	// IsPhaseActive returns true if the phase is active
+	IsPhaseActive(phase Phase) bool
 
 	// BindToCommand alters the command's help text and flags to include the phase's flags
 	BindToCommand(cmd *cobra.Command, data RunData)
@@ -39,9 +45,26 @@ func NewPhaseRunner() Runner {
 	return &runner{}
 }
 
-// AppendPhases adds a phase to the list of phases to run
+// AppendPhases adds a number of phases to the list of phases to run
 func (r *runner) AppendPhases(phases ...Phase) {
 	r.phases = append(r.phases, phases...)
+}
+
+// AppendSkipPhases adds a number of phases to the list of phases to skip
+func (r *runner) AppendSkipPhases(phases ...Phase) {
+	for _, phase := range phases {
+		r.skipPhases = append(r.skipPhases, phase.Name)
+	}
+}
+
+// IsPhaseActive returns true if the phase is active
+func (r *runner) IsPhaseActive(phase Phase) bool {
+	for _, skip := range r.skipPhases {
+		if skip == phase.Name {
+			return false
+		}
+	}
+	return true
 }
 
 // BindToCommand alters the command's help text and flags to include the phase's flags

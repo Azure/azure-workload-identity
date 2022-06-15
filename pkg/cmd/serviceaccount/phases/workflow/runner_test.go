@@ -26,6 +26,64 @@ func TestAppendPhases(t *testing.T) {
 	}
 }
 
+func TestAppendSkipPhases(t *testing.T) {
+	r := &runner{
+		skipPhases: []string{"phase-1"},
+	}
+	r.AppendSkipPhases(Phase{
+		Name: "phase-2",
+	}, Phase{
+		Name: "phase-3",
+	})
+	if len(r.skipPhases) != 3 {
+		t.Errorf("expected 2 phases, got %d", len(r.skipPhases))
+	}
+	for i, phase := range r.skipPhases {
+		if phase != "phase-"+fmt.Sprintf("%d", i+1) {
+			t.Errorf("expected phase-%d to be named %q, got %q", i+1, "phase-"+fmt.Sprintf("%d", i+1), phase)
+		}
+	}
+}
+
+func TestIsPhaseActive(t *testing.T) {
+	tests := []struct {
+		name       string
+		skipPhases []string
+		phase      string
+		expect     bool
+	}{
+		{
+			name:       "no skip phase",
+			skipPhases: []string{},
+			phase:      "phase-1",
+			expect:     true,
+		},
+		{
+			name:       "skip phase",
+			skipPhases: []string{"phase-1"},
+			phase:      "phase-1",
+			expect:     false,
+		},
+		{
+			name:       "skip phase",
+			skipPhases: []string{"phase-1"},
+			phase:      "phase-2",
+			expect:     true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			r := &runner{
+				skipPhases: test.skipPhases,
+			}
+			if r.IsPhaseActive(Phase{Name: test.phase}) != test.expect {
+				t.Errorf("expected IsPhaseActive to return %v, got %v", test.expect, r.IsPhaseActive(Phase{Name: test.phase}))
+			}
+		})
+	}
+}
+
 func TestRun(t *testing.T) {
 	order := 1
 	r := &runner{
