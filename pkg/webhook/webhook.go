@@ -23,8 +23,12 @@ import (
 )
 
 var (
-	// ProxySidecarVersion is the version of the proxy sidecar
-	ProxySidecarVersion string
+	// ProxyImageRegistry is the image registry for the proxy init and sidecar.
+	// This is injected via LDFLAGS in the Makefile during the build.
+	ProxyImageRegistry string
+	// ProxyImageVersion is the image version of the proxy init and sidecar.
+	// This is injected via LDFLAGS in the Makefile during the build.
+	ProxyImageVersion string
 )
 
 // +kubebuilder:webhook:path=/mutate-v1-pod,mutating=true,failurePolicy=ignore,groups="",resources=pods,verbs=create;update,versions=v1,name=mutation.azure-workload-identity.io,sideEffects=None,admissionReviewVersions=v1;v1beta1,matchPolicy=Equivalent
@@ -193,15 +197,16 @@ func (m *podMutator) mutateContainers(containers []corev1.Container, clientID st
 }
 
 func (m *podMutator) injectProxyInitContainer(containers []corev1.Container, proxyPort int32) []corev1.Container {
+	imageRepository := strings.Join([]string{ProxyImageRegistry, ProxyInitImageName}, "/")
 	for _, container := range containers {
-		if strings.HasPrefix(container.Image, ProxyInitImageRepository) || container.Name == ProxyInitContainerName {
+		if strings.HasPrefix(container.Image, imageRepository) || container.Name == ProxyInitContainerName {
 			return containers
 		}
 	}
 
 	containers = append(containers, corev1.Container{
 		Name:            ProxyInitContainerName,
-		Image:           strings.Join([]string{ProxyInitImageRepository, ProxySidecarVersion}, ":"),
+		Image:           strings.Join([]string{imageRepository, ProxyImageVersion}, ":"),
 		ImagePullPolicy: corev1.PullIfNotPresent,
 		SecurityContext: &corev1.SecurityContext{
 			Capabilities: &corev1.Capabilities{
@@ -221,15 +226,16 @@ func (m *podMutator) injectProxyInitContainer(containers []corev1.Container, pro
 }
 
 func (m *podMutator) injectProxySidecarContainer(containers []corev1.Container, proxyPort int32) []corev1.Container {
+	imageRepository := strings.Join([]string{ProxyImageRegistry, ProxySidecarImageName}, "/")
 	for _, container := range containers {
-		if strings.HasPrefix(container.Image, ProxySidecarImageRepository) || container.Name == ProxySidecarContainerName {
+		if strings.HasPrefix(container.Image, imageRepository) || container.Name == ProxySidecarContainerName {
 			return containers
 		}
 	}
 
 	containers = append(containers, corev1.Container{
 		Name:            ProxySidecarContainerName,
-		Image:           strings.Join([]string{ProxySidecarImageRepository, ProxySidecarVersion}, ":"),
+		Image:           strings.Join([]string{imageRepository, ProxyImageVersion}, ":"),
 		ImagePullPolicy: corev1.PullIfNotPresent,
 		Args: []string{
 			fmt.Sprintf("--proxy-port=%d", proxyPort),
