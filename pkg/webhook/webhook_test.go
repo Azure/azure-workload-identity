@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"reflect"
 	"strconv"
-	"strings"
 	"testing"
 
 	admissionv1 "k8s.io/api/admission/v1"
@@ -1166,10 +1165,12 @@ func TestMutateContainers(t *testing.T) {
 
 func TestInjectProxyInitContainer(t *testing.T) {
 	proxyPort := int32(8080)
-	ProxySidecarVersion = "v1.0.0"
+	ProxyImageRegistry = "my.proxy-image-registry.io/azwi"
+	ProxyImageVersion = "v1.0.0"
+	imageURL := fmt.Sprintf("%s/%s:%s", ProxyImageRegistry, ProxyInitImageName, ProxyImageVersion)
 	proxyInitContainer := corev1.Container{
 		Name:            ProxyInitContainerName,
-		Image:           strings.Join([]string{ProxyInitImageRepository, ProxySidecarVersion}, ":"),
+		Image:           imageURL,
 		ImagePullPolicy: corev1.PullIfNotPresent,
 		SecurityContext: &corev1.SecurityContext{
 			Capabilities: &corev1.Capabilities{
@@ -1231,10 +1232,12 @@ func TestInjectProxyInitContainer(t *testing.T) {
 
 func TestInjectProxySidecarContainer(t *testing.T) {
 	proxyPort := int32(8081)
-	ProxySidecarVersion = "v1.0.0"
+	ProxyImageRegistry = "my.proxy-image-registry.io/azwi"
+	ProxyImageVersion = "v1.0.0"
+	imageURL := fmt.Sprintf("%s/%s:%s", ProxyImageRegistry, ProxySidecarImageName, ProxyImageVersion)
 	proxySidecarContainer := corev1.Container{
 		Name:            ProxySidecarContainerName,
-		Image:           strings.Join([]string{ProxySidecarImageRepository, ProxySidecarVersion}, ":"),
+		Image:           imageURL,
 		ImagePullPolicy: corev1.PullIfNotPresent,
 		Args: []string{
 			fmt.Sprintf("--proxy-port=%d", proxyPort),
