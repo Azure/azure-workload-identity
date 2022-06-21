@@ -8,10 +8,11 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-workload-identity/pkg/config"
-	"github.com/Azure/go-autorest/autorest/azure"
 
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -49,6 +50,7 @@ type podMutator struct {
 	decoder            *admission.Decoder
 	audience           string
 	azureAuthorityHost string
+	reporter           StatsReporter
 }
 
 // NewPodMutator returns a pod mutation handler
@@ -74,12 +76,14 @@ func NewPodMutator(client client.Client, reader client.Reader, arcCluster bool, 
 		isARCCluster:       arcCluster,
 		audience:           audience,
 		azureAuthorityHost: azureAuthorityHost,
+		reporter:           newStatsReporter(),
 	}, nil
 }
 
 // PodMutator adds projected service account volume for incoming pods if service account is annotated
 func (m *podMutator) Handle(ctx context.Context, req admission.Request) admission.Response {
 	pod := &corev1.Pod{}
+	timeStart := time.Now()
 
 	err := m.decoder.Decode(req, pod)
 	if err != nil {
@@ -118,6 +122,13 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) admissio
 		logger.Info("service account not annotated")
 		return admission.Allowed("service account not annotated")
 	}
+
+	// only log metrics for the pods that are actually mutated
+	defer func() {
+		if m.reporter != nil {
+			m.reporter.ReportRequest(ctx, req.Namespace, time.Since(timeStart))
+		}
+	}()
 
 	if shouldInjectProxySidecar(pod) {
 		proxyPort, err := getProxyPort(pod)

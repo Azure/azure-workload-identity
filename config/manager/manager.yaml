@@ -31,6 +31,9 @@ spec:
         - containerPort: 9440
           name: healthz
           protocol: TCP
+        - containerPort: 8095
+          name: metrics
+          protocol: TCP
         readinessProbe:
           httpGet:
             path: /readyz
