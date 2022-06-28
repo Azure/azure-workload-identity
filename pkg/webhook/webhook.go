@@ -250,12 +250,11 @@ func (m *podMutator) injectProxySidecarContainer(containers []corev1.Container, 
 
 // isServiceAccountAnnotated checks if the service account has been annotated
 // to use with workload identity
+// "azure.workload.identity/use" needs to be available either in annotations or labels
 func isServiceAccountAnnotated(sa *corev1.ServiceAccount) bool {
-	if len(sa.Labels) == 0 {
-		return false
-	}
-	_, ok := sa.Labels[UseWorkloadIdentityLabel]
-	return ok
+	_, isLabeled := sa.Labels[UseWorkloadIdentityLabel]
+	_, isAnnotated := sa.Annotations[UseWorkloadIdentityLabel]
+	return isLabeled || isAnnotated
 }
 
 func shouldInjectProxySidecar(pod *corev1.Pod) bool {
