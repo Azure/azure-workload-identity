@@ -84,6 +84,12 @@ var _ = ginkgo.Describe("Webhook", func() {
 		validateMutatedPod(f, pod, nil)
 	})
 
+	ginkgo.It("should mutate a deployment pod with a annotated service account", func() {
+		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", nil, map[string]string{webhook.UseWorkloadIdentityLabel: "true"})
+		pod := createPodUsingDeploymentWithServiceAccount(f, serviceAccount)
+		validateMutatedPod(f, pod, nil)
+	})
+
 	ginkgo.It(fmt.Sprintf("should not mutate selected containers if the pod has %s annotated", webhook.SkipContainersAnnotation), func() {
 		const skipContainers = busybox1 + ";"
 		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{webhook.UseWorkloadIdentityLabel: "true"}, nil)

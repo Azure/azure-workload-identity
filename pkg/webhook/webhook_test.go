@@ -31,7 +31,7 @@ func TestIsServiceAccountAnnotated(t *testing.T) {
 		expected bool
 	}{
 		{
-			name: "service account not annotated",
+			name: "service account not labeled",
 			sa: &corev1.ServiceAccount{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "sa",
@@ -41,12 +41,23 @@ func TestIsServiceAccountAnnotated(t *testing.T) {
 			expected: false,
 		},
 		{
-			name: "service account is annotated with azure.workload.identity/use=true",
+			name: "service account is labeled with azure.workload.identity/use=true",
 			sa: &corev1.ServiceAccount{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "sa",
 					Namespace: "default",
 					Labels:    map[string]string{UseWorkloadIdentityLabel: "true"},
+				},
+			},
+			expected: true,
+		},
+		{
+			name: "service account is annotated with azure.workload.identity/use=true",
+			sa: &corev1.ServiceAccount{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:        "sa",
+					Namespace:   "default",
+					Annotations: map[string]string{UseWorkloadIdentityLabel: "true"},
 				},
 			},
 			expected: true,
