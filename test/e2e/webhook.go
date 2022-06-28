@@ -84,7 +84,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 		validateMutatedPod(f, pod, nil)
 	})
 
-	ginkgo.It("should mutate a deployment pod with a annotated service account", func() {
+	ginkgo.It("should mutate a deployment pod with an annotated service account", func() {
 		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", nil, map[string]string{webhook.UseWorkloadIdentityLabel: "true"})
 		pod := createPodUsingDeploymentWithServiceAccount(f, serviceAccount)
 		validateMutatedPod(f, pod, nil)
