@@ -12,6 +12,9 @@ spec:
         - containerPort: 9443
           name: webhook-server
           protocol: TCP
+        - containerPort: 8095
+          name: metrics
+          protocol: TCP
         volumeMounts:
         - mountPath: /certs
           name: cert

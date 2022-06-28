@@ -35,7 +35,7 @@ helm upgrade -n azure-workload-identity-system [RELEASE_NAME] azure-workload-ide
 | replicaCount       | The number of azure-workload-identity replicas to deploy for the webhook | `2`                                                     |
 | image.repository   | Image repository                                                         | `mcr.microsoft.com/oss/azure/workload-identity/webhook` |
 | image.pullPolicy   | Image pullPolicy                                                         | `IfNotPresent`                                          |
-| image.release      | The image release tag to use                                             | Current release version: `v0.10.0`                       |
+| image.release      | The image release tag to use                                             | Current release version: `v0.10.0`                      |
 | nodeSelector       | The node selector to use for pod scheduling                              | `kubernetes.io/os: linux`                               |
 | arcCluster         | Specify if it runs on Arc cluster                                        | `false`                                                 |
 | resources          | The resource request/limits for the container image                      | limits: 100m CPU, 30Mi, requests: 100m CPU, 20Mi        |
@@ -47,6 +47,8 @@ helm upgrade -n azure-workload-identity-system [RELEASE_NAME] azure-workload-ide
 | azureTenantID      | [**REQUIRED**] Azure tenant ID                                           | ``                                                      |
 | azureEnvironment   | Azure Environment                                                        | `AzurePublicCloud`                                      |
 | logEncoder         | The log encoder to use for the webhook manager (`json`, `console`)       | `console`                                               |
+| metricsAddr        | The address to bind the metrics server to                                | `:8095`                                                 |
+| metricsBackend     | The metrics backend to use (`prometheus`)                                | `prometheus`                                            |
 
 ## Contributing Changes
 

@@ -29,3 +29,5 @@ service:
 azureEnvironment: AzurePublicCloud
 azureTenantID:
 logEncoder: console
+metricsAddr: ":8095"
+metricsBackend: prometheus

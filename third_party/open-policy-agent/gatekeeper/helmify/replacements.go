@@ -18,4 +18,6 @@ var replacements = map[string]string{
 	`HELMSUBST_SERVICE_TYPE: ""`: `{{- if .Values.service }}
   type: {{  .Values.service.type | default "ClusterIP" }}
   {{- end }}`,
+
+	"HELMSUBST_DEPLOYMENT_METRICS_PORT": `{{ trimPrefix ":" .Values.metricsAddr }}`,
 }

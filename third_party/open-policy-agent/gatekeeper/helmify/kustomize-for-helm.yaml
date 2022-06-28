@@ -41,6 +41,8 @@ spec:
       - args:
         - --arc-cluster={{ .Values.arcCluster }}
         - --log-encoder={{ .Values.logEncoder }}
+        - --metrics-addr={{ .Values.metricsAddr }}
+        - --metrics-backend={{ .Values.metricsBackend }}
         command:
         - /manager
         envFrom:
@@ -52,6 +54,9 @@ spec:
         ports:
         - containerPort: 9443
           name: webhook-server
+          protocol: TCP
+        - containerPort: HELMSUBST_DEPLOYMENT_METRICS_PORT
+          name: metrics
           protocol: TCP
         resources:
           HELMSUBST_DEPLOYMENT_CONTAINER_RESOURCES: ""

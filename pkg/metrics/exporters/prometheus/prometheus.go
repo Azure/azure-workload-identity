@@ -6,6 +6,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
 )
 
+const (
+	// ExporterName is the name of the exporter
+	ExporterName = "prometheus"
+)
+
 func InitExporter() error {
 	_, err := otProm.InstallNewPipeline(otProm.Config{
 		Registry: metrics.Registry.(*prometheus.Registry), // using the controller-runtime prometheus metrics registry
