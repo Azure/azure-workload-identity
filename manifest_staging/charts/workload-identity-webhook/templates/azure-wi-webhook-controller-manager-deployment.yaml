@@ -30,6 +30,8 @@ spec:
       - args:
         - --arc-cluster={{ .Values.arcCluster }}
         - --log-encoder={{ .Values.logEncoder }}
+        - --metrics-addr={{ .Values.metricsAddr }}
+        - --metrics-backend={{ .Values.metricsBackend }}
         command:
         - /manager
         env:
@@ -49,6 +51,9 @@ spec:
             port: healthz
         name: manager
         ports:
+        - containerPort: {{ trimPrefix ":" .Values.metricsAddr }}
+          name: metrics
+          protocol: TCP
         - containerPort: 9443
           name: webhook-server
           protocol: TCP

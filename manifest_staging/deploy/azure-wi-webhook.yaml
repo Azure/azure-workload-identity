@@ -173,6 +173,9 @@ spec:
         - containerPort: 9443
           name: webhook-server
           protocol: TCP
+        - containerPort: 8095
+          name: metrics
+          protocol: TCP
         - containerPort: 9440
           name: healthz
           protocol: TCP

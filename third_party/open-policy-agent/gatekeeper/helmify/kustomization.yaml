@@ -7,6 +7,7 @@ bases:
   - "../../../../config/default" # calls ../../default
 patchesStrategicMerge:
   - kustomize-for-helm.yaml
+  - delete-ports.yaml
 patchesJson6902:
   # these are defined in the chart values rather than hard-coded
   - target:

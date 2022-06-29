@@ -21,6 +21,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	"github.com/Azure/azure-workload-identity/pkg/logger"
+	"github.com/Azure/azure-workload-identity/pkg/metrics"
 	"github.com/Azure/azure-workload-identity/pkg/util"
 	"github.com/Azure/azure-workload-identity/pkg/version"
 	wh "github.com/Azure/azure-workload-identity/pkg/webhook"
@@ -46,7 +47,9 @@ var (
 	webhookCertDir      string
 	tlsMinVersion       string
 	healthAddr          string
+	metricsAddr         string
 	disableCertRotation bool
+	metricsBackend      string
 
 	// DNSName is <service name>.<namespace>.svc
 	dnsName = fmt.Sprintf("%s.%s.svc", serviceName, util.GetNamespace())
@@ -73,11 +76,20 @@ func main() {
 	flag.BoolVar(&disableCertRotation, "disable-cert-rotation", false, "disable automatic generation and rotation of webhook TLS certificates/keys")
 	flag.StringVar(&tlsMinVersion, "tls-min-version", "1.3", "Minimum TLS version")
 	flag.StringVar(&healthAddr, "health-addr", ":9440", "The address the health endpoint binds to")
+	flag.StringVar(&metricsAddr, "metrics-addr", ":8095", "The address the metrics endpoint binds to")
+	flag.StringVar(&metricsBackend, "metrics-backend", "prometheus", "Backend used for metrics")
 	flag.Parse()
 
 	log.SetLogger(logger.Get())
 	config := ctrl.GetConfigOrDie()
 	config.UserAgent = version.GetUserAgent("webhook")
+
+	// initialize metrics exporter before creating measurements
+	entryLog.Info("initializing metrics backend", "backend", metricsBackend)
+	if err := metrics.InitMetricsExporter(metricsBackend); err != nil {
+		klog.ErrorS(err, "failed to initialize metrics exporter")
+		os.Exit(1)
+	}
 
 	// log the user agent as it makes it easier to debug issues
 	entryLog.Info("setting up manager", "userAgent", config.UserAgent)
@@ -86,6 +98,7 @@ func main() {
 		Scheme:                 scheme,
 		LeaderElection:         false,
 		HealthProbeBindAddress: healthAddr,
+		MetricsBindAddress:     metricsAddr,
 		CertDir:                webhookCertDir,
 		MapperProvider: func(c *rest.Config) (meta.RESTMapper, error) {
 			return apiutil.NewDynamicRESTMapper(c)

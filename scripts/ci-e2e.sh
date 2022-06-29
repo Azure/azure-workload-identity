@@ -90,7 +90,9 @@ test_helm_chart() {
     --set azureTenantID="${AZURE_TENANT_ID}" \
     --namespace azure-workload-identity-system \
     --create-namespace \
-    --wait
+    --wait \
+    --debug \
+    -v=5
   poll_webhook_readiness
   # TODO(chewong): remove GINKGO_SKIP once the helm chart is updated to use v0.11.0.
   GINKGO_SKIP="Proxy|should mutate a deployment pod with an annotated service account" make test-e2e-run
@@ -101,7 +103,10 @@ test_helm_chart() {
     --set azureTenantID="${AZURE_TENANT_ID}" \
     --namespace azure-workload-identity-system \
     --reuse-values \
-    --wait
+    -f "${REPO_ROOT}/manifest_staging/charts/workload-identity-webhook/values.yaml" \
+    --wait \
+    --debug \
+    -v=5
   poll_webhook_readiness
   make test-e2e-run
 }
