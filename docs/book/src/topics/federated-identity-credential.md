@@ -25,7 +25,7 @@ To create a federated identity credential:
 azwi serviceaccount create phase federated-identity \
   --aad-application-name "${APPLICATION_NAME}" \
   --service-account-namespace "${SERVICE_ACCOUNT_NAMESPACE}" \
-  --aad-application-name "${SERVICE_ACCOUNT_NAME}" \
+  --service-account-name "${SERVICE_ACCOUNT_NAME}" \
   --service-account-issuer-url "${SERVICE_ACCOUNT_ISSUER}"
 ```
 
@@ -35,7 +35,7 @@ To delete a federated identity credential:
 azwi serviceaccount delete phase federated-identity \
   --aad-application-name "${APPLICATION_NAME}" \
   --service-account-namespace "${SERVICE_ACCOUNT_NAMESPACE}" \
-  --aad-application-name "${SERVICE_ACCOUNT_NAME}" \
+  --service-account-name "${SERVICE_ACCOUNT_NAME}" \
   --service-account-issuer-url "${SERVICE_ACCOUNT_ISSUER}"
 ```
 
