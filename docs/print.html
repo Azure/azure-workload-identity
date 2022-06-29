@@ -964,14 +964,14 @@ export SERVICE_ACCOUNT_ISSUER=&quot;...&quot; # see section 1.1 on how to get th
 <pre><code class="language-bash">azwi serviceaccount create phase federated-identity \
   --aad-application-name &quot;${APPLICATION_NAME}&quot; \
   --service-account-namespace &quot;${SERVICE_ACCOUNT_NAMESPACE}&quot; \
-  --aad-application-name &quot;${SERVICE_ACCOUNT_NAME}&quot; \
+  --service-account-name &quot;${SERVICE_ACCOUNT_NAME}&quot; \
   --service-account-issuer-url &quot;${SERVICE_ACCOUNT_ISSUER}&quot;
 </code></pre>
 <p>To delete a federated identity credential:</p>
 <pre><code class="language-bash">azwi serviceaccount delete phase federated-identity \
   --aad-application-name &quot;${APPLICATION_NAME}&quot; \
   --service-account-namespace &quot;${SERVICE_ACCOUNT_NAMESPACE}&quot; \
-  --aad-application-name &quot;${SERVICE_ACCOUNT_NAME}&quot; \
+  --service-account-name &quot;${SERVICE_ACCOUNT_NAME}&quot; \
   --service-account-issuer-url &quot;${SERVICE_ACCOUNT_ISSUER}&quot;
 </code></pre>
 <h2 id="azure-cli"><a class="header" href="#azure-cli">Azure CLI</a></h2>
