@@ -27,8 +27,6 @@ import (
 var (
 	arcCluster            bool
 	tokenExchangeE2EImage string
-	proxyInitImage        string
-	proxyImage            string
 
 	c              *kubernetes.Clientset
 	coreNamespaces = []string{
