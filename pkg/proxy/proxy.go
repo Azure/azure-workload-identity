@@ -29,6 +29,10 @@ const (
 	metadataPort = 80
 )
 
+var (
+	userAgent = version.GetUserAgent("proxy")
+)
+
 type Proxy interface {
 	Run() error
 }
@@ -83,13 +87,13 @@ func (p *proxy) Run() error {
 	rtr.PathPrefix(tokenPathPrefix).HandlerFunc(p.msiHandler)
 	rtr.PathPrefix("/").HandlerFunc(p.defaultPathHandler)
 
-	p.logger.Info("starting the proxy server", "port", p.port)
+	p.logger.Info("starting the proxy server", "port", p.port, "userAgent", userAgent)
 	return http.ListenAndServe(fmt.Sprintf("localhost:%d", p.port), rtr)
 }
 
 func (p *proxy) msiHandler(w http.ResponseWriter, r *http.Request) {
 	p.logger.Info("received token request", "method", r.Method, "uri", r.RequestURI)
-	w.Header().Set("Server", version.GetUserAgent("proxy"))
+	w.Header().Set("Server", userAgent)
 	clientID, resource := parseTokenRequest(r)
 	// TODO (aramase) should we fallback to the clientID in the annotated service account
 	// if clientID not found in request? This is to keep consistent with the current behavior
