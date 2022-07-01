@@ -319,9 +319,7 @@ GINKGO_ARGS ?= -focus="$(GINKGO_FOCUS)" -skip="$(GINKGO_SKIP)" -nodes=$(GINKGO_N
 KUBECONFIG ?= $(HOME)/.kube/config
 E2E_ARGS := -kubeconfig=$(KUBECONFIG) -report-dir=$(PWD)/_artifacts \
 				 -e2e.arc-cluster=$(ARC_CLUSTER) \
-				 -e2e.token-exchange-image=$(MSAL_GO_E2E_IMAGE) \
-				 -e2e.proxy-image=$(PROXY_IMAGE) \
-				 -e2e.proxy-init-image=$(INIT_IMAGE)
+				 -e2e.token-exchange-image=$(MSAL_GO_E2E_IMAGE)
 E2E_EXTRA_ARGS ?=
 
 .PHONY: test-e2e-run
