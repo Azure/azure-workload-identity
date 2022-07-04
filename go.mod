@@ -25,7 +25,7 @@ require (
 	github.com/onsi/gomega v1.18.1
 	github.com/open-policy-agent/cert-controller v0.3.0
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.12.1
+	github.com/prometheus/client_golang v1.12.2
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/pflag v1.0.5
