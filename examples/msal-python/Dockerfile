@@ -1,6 +1,8 @@
-# ref: https://github.com/GoogleContainerTools/distroless/blob/main/examples/python3-requirements/Dockerfile
+ARG BUILDER=debian:11-slim
+ARG BASEIMAGE=gcr.io/distroless/nodejs:16
 
-FROM debian:11-slim AS build
+# ref: https://github.com/GoogleContainerTools/distroless/blob/main/examples/python3-requirements/Dockerfile
+FROM ${BUILDER}  AS build
 RUN apt-get update && \
     apt-get install --no-install-suggests --no-install-recommends --yes python3-venv gcc libpython3-dev && \
     python3 -m venv /venv && \
