@@ -1,5 +1,5 @@
 ARG BUILDER=debian:11-slim
-ARG BASEIMAGE=gcr.io/distroless/nodejs:16
+ARG BASEIMAGE=gcr.io/distroless/python3-debian11
 
 # ref: https://github.com/GoogleContainerTools/distroless/blob/main/examples/python3-requirements/Dockerfile
 FROM ${BUILDER}  AS build
