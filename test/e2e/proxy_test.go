@@ -41,10 +41,7 @@ var _ = ginkgo.Describe("Proxy [LinuxOnly] [AKSSoakOnly] [Exclude:Arc]", func() 
 			serviceAccount,
 			"mcr.microsoft.com/azure-cli",
 			nil,
-			// az login -i reuses the connection, so we need to make sure the token request is made after the proxy sidecar is started
-			// otherwise the token request will fail. The sleep 15 is a workaround for the issue.
-			// TODO(aramase): remove the sleep after https://github.com/Azure/azure-workload-identity/issues/486 is fixed and v0.12.0 is released.
-			[]string{"/bin/sh", "-c", fmt.Sprintf("sleep 15; az login -i -u %s --allow-no-subscriptions --debug; sleep 3600", clientID)},
+			[]string{"/bin/sh", "-c", fmt.Sprintf("az login -i -u %s --allow-no-subscriptions --debug; sleep 3600", clientID)},
 			nil,
 			proxyAnnotations,
 			true,

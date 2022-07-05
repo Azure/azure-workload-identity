@@ -23,10 +23,15 @@ const (
 	// "/metadata" portion is case-insensitive in IMDS
 	tokenPathPrefix = "/{type:(?i:metadata)}/identity/oauth2/token" // #nosec
 
+	// readyzPathPrefix is the path for readiness probe
+	readyzPathPrefix = "/readyz"
+
 	// metadataIPAddress is the IP address of the metadata service
 	metadataIPAddress = "169.254.169.254"
 	// metadataPort is the port of the metadata service
 	metadataPort = 80
+	// localhost is the hostname of the localhost
+	localhost = "localhost"
 )
 
 var (
@@ -85,10 +90,11 @@ func NewProxy(port int, logger logr.Logger) (Proxy, error) {
 func (p *proxy) Run() error {
 	rtr := mux.NewRouter()
 	rtr.PathPrefix(tokenPathPrefix).HandlerFunc(p.msiHandler)
+	rtr.PathPrefix(readyzPathPrefix).HandlerFunc(p.readyzHandler)
 	rtr.PathPrefix("/").HandlerFunc(p.defaultPathHandler)
 
 	p.logger.Info("starting the proxy server", "port", p.port, "userAgent", userAgent)
-	return http.ListenAndServe(fmt.Sprintf("localhost:%d", p.port), rtr)
+	return http.ListenAndServe(fmt.Sprintf("%s:%d", localhost, p.port), rtr)
 }
 
 func (p *proxy) msiHandler(w http.ResponseWriter, r *http.Request) {
@@ -155,6 +161,11 @@ func (p *proxy) defaultPathHandler(w http.ResponseWriter, r *http.Request) {
 	copyHeader(w.Header(), resp.Header)
 	w.WriteHeader(resp.StatusCode)
 	_, _ = w.Write(body)
+}
+
+func (p *proxy) readyzHandler(w http.ResponseWriter, r *http.Request) {
+	p.logger.Info("received readyz request", "method", r.Method, "uri", r.RequestURI)
+	fmt.Fprintf(w, "ok")
 }
 
 func doTokenRequest(ctx context.Context, clientID, resource, tenantID, authorityHost string) (*token, error) {

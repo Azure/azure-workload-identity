@@ -254,6 +254,17 @@ func (m *podMutator) injectProxySidecarContainer(containers []corev1.Container, 
 		Ports: []corev1.ContainerPort{{
 			ContainerPort: proxyPort,
 		}},
+		Lifecycle: &corev1.Lifecycle{
+			PostStart: &corev1.LifecycleHandler{
+				Exec: &corev1.ExecAction{
+					Command: []string{
+						"/proxy",
+						fmt.Sprintf("--proxy-port=%d", proxyPort),
+						"--probe",
+					},
+				},
+			},
+		},
 	})
 
 	return containers
