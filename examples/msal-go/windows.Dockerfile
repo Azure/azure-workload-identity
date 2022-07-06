@@ -1,4 +1,8 @@
-FROM --platform=linux/amd64 golang:1.18-bullseye as builder
+ARG BUILDER=mcr.microsoft.com/oss/go/microsoft/golang:1.18-bullseye
+ARG SERVERCORE_CACHE=gcr.io/k8s-staging-e2e-test-images/windows-servercore-cache:1.0-linux-amd64-${OS_VERSION:-1809}
+ARG BASEIMAGE=mcr.microsoft.com/windows/nanoserver:${OS_VERSION:-1809}
+
+FROM --platform=linux/amd64 ${BUILDER} as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -15,9 +19,9 @@ COPY token_credential.go token_credential.go
 # Build
 RUN CGO_ENABLED=0 GOOS=windows GO111MODULE=on go build -a -o msalgo.exe .
 
-FROM --platform=linux/amd64 gcr.io/k8s-staging-e2e-test-images/windows-servercore-cache:1.0-linux-amd64-${OS_VERSION:-1809} as core
+FROM --platform=linux/amd64 ${SERVERCORE_CACHE} as core
 
-FROM --platform=${TARGETPLATFORM:-windows/amd64} mcr.microsoft.com/windows/nanoserver:${OS_VERSION:-1809}
+FROM --platform=${TARGETPLATFORM:-windows/amd64} ${BASEIMAGE}
 WORKDIR /
 COPY --from=builder /workspace/msalgo.exe .
 COPY --from=core /Windows/System32/netapi32.dll /Windows/System32/netapi32.dll

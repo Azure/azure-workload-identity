@@ -1,11 +1,13 @@
-# ref: https://github.com/GoogleContainerTools/distroless/blob/main/examples/nodejs/Dockerfile
+ARG BUILDER=node:14
+ARG BASEIMAGE=gcr.io/distroless/nodejs:16
 
-FROM node:14 AS build-env
+# ref: https://github.com/GoogleContainerTools/distroless/blob/main/examples/nodejs/Dockerfile
+FROM ${BUILDER} AS build-env
 ADD . /app
 WORKDIR /app
 RUN npm install
 
-FROM gcr.io/distroless/nodejs:16
+FROM ${BASEIMAGE}
 COPY --from=build-env /app /app
 WORKDIR /app
 # Kubernetes runAsNonRoot requires USER to be numeric
