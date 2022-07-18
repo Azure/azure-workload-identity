@@ -1,5 +1,7 @@
 # Introduction
 
+
+
 Workloads deployed in Kubernetes clusters require Azure AD application credentials to access Azure AD protected resources, such as Azure Key Vault and Microsoft Graph. The [Azure AD Pod Identity][1] open-source project provided a way to avoid needing these secrets, by using Azure managed identities.
 
 Azure AD Workload Identity for Kubernetes integrates with the capabilities native to Kubernetes to federate with external identity providers. This approach is simpler to use and deploy, and overcomes several limitations in [Azure AD Pod Identity][1]:
