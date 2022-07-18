@@ -91,20 +91,16 @@ jobs:
           REGISTRY: upstream.azurecr.io/azure-workload-identity
           ARC_CLUSTER: "true"
           GINKGO_SKIP: \[AKSSoakOnly\]
-        kind_v1_21_10:
-          KIND_NODE_VERSION: v1.21.10
+        kind_v1_22_9:
+          KIND_NODE_VERSION: v1.22.9
           LOCAL_ONLY: "true"
           TEST_HELM_CHART: "true"
-        kind_v1_22_7:
-          KIND_NODE_VERSION: v1.22.7
+        kind_v1_23_6:
+          KIND_NODE_VERSION: v1.23.6
           LOCAL_ONLY: "true"
           TEST_HELM_CHART: "true"
-        kind_v1_23_5:
-          KIND_NODE_VERSION: v1.23.5
-          LOCAL_ONLY: "true"
-          TEST_HELM_CHART: "true"
-        kind_v1_24_1:
-          KIND_NODE_VERSION: v1.24.1
+        kind_v1_24_2:
+          KIND_NODE_VERSION: v1.24.2
           LOCAL_ONLY: "true"
           TEST_HELM_CHART: "true"
     steps:
