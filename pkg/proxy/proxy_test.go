@@ -10,10 +10,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/Azure/azure-workload-identity/pkg/webhook"
-
 	"github.com/gorilla/mux"
 	"k8s.io/klog/v2/klogr"
+
+	"github.com/Azure/azure-workload-identity/pkg/webhook"
 )
 
 var (
@@ -267,4 +267,44 @@ func testTokenHandler(w http.ResponseWriter, r *http.Request) {
 
 func testDefaultHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "default_handler")
+}
+
+func TestProxy_ReadyZHandler(t *testing.T) {
+	tests := []struct {
+		name string
+		path string
+		code int
+	}{
+		{
+			name: "readyz",
+			path: "/readyz",
+			code: http.StatusOK,
+		},
+		{
+			name: "readyz",
+			path: "/readyz/",
+			code: http.StatusOK,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			setup()
+			defer teardown()
+
+			p := &proxy{logger: klogr.New()}
+			rtr.PathPrefix("/readyz").HandlerFunc(p.readyzHandler)
+
+			req, err := http.NewRequest(http.MethodGet, server.URL+test.path, nil)
+			if err != nil {
+				t.Error(err)
+			}
+
+			recorder := httptest.NewRecorder()
+			rtr.ServeHTTP(recorder, req)
+			if recorder.Code != test.code {
+				t.Errorf("Expected code %d, got %d", test.code, recorder.Code)
+			}
+		})
+	}
 }

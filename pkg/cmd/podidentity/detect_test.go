@@ -1,6 +1,7 @@
 package podidentity
 
 import (
+	"fmt"
 	"os"
 	"reflect"
 	"strings"
@@ -48,11 +49,23 @@ var (
 		Name:            proxyContainerName,
 		Image:           proxyImage,
 		ImagePullPolicy: corev1.PullIfNotPresent,
-		Args:            []string{"--log-encoder=json"},
+		Args: []string{
+			fmt.Sprintf("--proxy-port=%d", 8000),
+		},
 		Ports: []corev1.ContainerPort{
 			{
-				Name:          "http",
 				ContainerPort: 8000,
+			},
+		},
+		Lifecycle: &corev1.Lifecycle{
+			PostStart: &corev1.LifecycleHandler{
+				Exec: &corev1.ExecAction{
+					Command: []string{
+						"/proxy",
+						fmt.Sprintf("--proxy-port=%d", 8000),
+						"--probe",
+					},
+				},
 			},
 		},
 	}

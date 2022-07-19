@@ -370,11 +370,23 @@ func (dc *detectCmd) addProxyContainer(containers []corev1.Container) []corev1.C
 		Name:            proxyContainerName,
 		Image:           proxyImage,
 		ImagePullPolicy: corev1.PullIfNotPresent,
-		Args:            []string{"--log-encoder=json"},
+		Args: []string{
+			fmt.Sprintf("--proxy-port=%d", dc.proxyPort),
+		},
 		Ports: []corev1.ContainerPort{
 			{
-				Name:          "http",
 				ContainerPort: int32(dc.proxyPort),
+			},
+		},
+		Lifecycle: &corev1.Lifecycle{
+			PostStart: &corev1.LifecycleHandler{
+				Exec: &corev1.ExecAction{
+					Command: []string{
+						"/proxy",
+						fmt.Sprintf("--proxy-port=%d", dc.proxyPort),
+						"--probe",
+					},
+				},
 			},
 		},
 	}
