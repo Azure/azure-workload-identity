@@ -8,6 +8,15 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	// retryCount is the number of times to retry probing the proxy.
+	retryCount = 7
+	// waitTime is the time to wait between retries.
+	waitTime = time.Second
+	// clientTimeout is the timeout for the client.
+	clientTimeout = time.Second * 5
+)
+
 // Probe checks if the proxy is ready to serve requests.
 func Probe(port int) error {
 	url := fmt.Sprintf("http://%s:%d%s", localhost, port, readyzPathPrefix)
@@ -16,9 +25,9 @@ func Probe(port int) error {
 
 func probe(url string) error {
 	client := &http.Client{
-		Timeout: time.Second * 5,
+		Timeout: clientTimeout,
 	}
-	for i := 0; i < 7; i++ {
+	for i := 0; i < retryCount; i++ {
 		req, err := http.NewRequest(http.MethodGet, url, nil)
 		if err != nil {
 			return err
@@ -30,7 +39,7 @@ func probe(url string) error {
 		if resp.StatusCode == http.StatusOK {
 			return nil
 		}
-		time.Sleep(time.Second)
+		time.Sleep(waitTime)
 	}
 	return errors.Errorf("failed to probe proxy")
 }

@@ -33,7 +33,7 @@ func main() {
 	if probe {
 		setupLog := logger.Get().WithName("probe")
 		if err := proxy.Probe(proxyPort); err != nil {
-			setupLog.Error(err, "Failed to probe")
+			setupLog.Error(err, "failed to probe")
 			os.Exit(1)
 		}
 		os.Exit(0)
