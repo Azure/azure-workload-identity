@@ -1461,6 +1461,8 @@ federated identity credentials that reference the same service account in your K
 <p>For example, if you are using the <a href="https://docs.microsoft.com/en-us/python/api/azure-identity/azure.identity.defaultazurecredential?view=azure-python"><code>DefaultAzureCredential</code></a> from the Azure Identity Python SDK to authenticate your application, you can specify which identity to use by adding the <code>managed_identity_client_id</code> parameter to the <code>DefaultAzureCredential</code> constructor.</p>
 <h2 id="is-there-a-propagation-delay-after-creating-a-federated-identity-credential"><a class="header" href="#is-there-a-propagation-delay-after-creating-a-federated-identity-credential">Is there a propagation delay after creating a federated identity credential?</a></h2>
 <p>It takes a few seconds for the federated identity credential to be propagated after being initially added. If a token request is made immediately after adding the federated identity credential, it <strong>might</strong> lead to failure for a couple of minutes as the cache is populated in the directory with old data. To avoid this issue, you can add a slight delay after adding the federated identity credential.</p>
+<h2 id="what-is-the-azure-workload-identity-release-schedule"><a class="header" href="#what-is-the-azure-workload-identity-release-schedule">What is the Azure Workload Identity release schedule?</a></h2>
+<p>Currently, we release on a monthly basis, targeting the last week of the month.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="troubleshooting"><a class="header" href="#troubleshooting">Troubleshooting</a></h1>
 <ul>
 <li><a href="troubleshooting.html#logging">Logging</a>
@@ -1758,6 +1760,7 @@ ALL_IMAGES=webhook make clean docker-build docker-push-manifest deploy
 <li><a href="development/releasing.html#3-verify-that-the-create_tag-action-is-triggered-after-the-release-pull-request-is-merged">3. Verify that the create_tag action is triggered after the release pull request is merged</a></li>
 <li><a href="development/releasing.html#4-verify-that-the-tag-is-successfully-created">4. Verify that the tag is successfully created</a></li>
 </ul>
+<p>Currently, Azure Workload Identity releases on a monthly basis, targeting the last week of the month.</p>
 <p>We use GitHub Actions to automate our release process.</p>
 <h2 id="1-create-a-release-pull-request"><a class="header" href="#1-create-a-release-pull-request">1. Create a release pull request</a></h2>
 <p><img src="development/../images/release-step-1.png" alt="Create a release pull request" /></p>
