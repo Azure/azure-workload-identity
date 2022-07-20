@@ -6,10 +6,10 @@ Azure AD Workload Identity is the next iteration of [Azure AD Pod Identity][1] t
 
 | Kubernetes Version | Supported |
 | ------------------ | --------- |
-| 1.24               | ✅         |
-| 1.23               | ✅         |
-| 1.22               | ✅         |
-| 1.21               | ✅         |
+| 1.24               | ✅        |
+| 1.23               | ✅        |
+| 1.22               | ✅        |
+| 1.21               | ✅        |
 
 ## Installation
 
@@ -23,6 +23,10 @@ Check out the Azure AD Workload Identity [Quick Start][4] on how to securely acc
 
 This project has adopted the [Microsoft Open Source Code of Conduct][17]. For more information, see the [Code of Conduct FAQ][18] or contact [opencode@microsoft.com][19] with any additional questions or comments.
 
+## Release
+
+Currently, Azure Workload Identity releases on a monthly basis, targeting the last week of the month.
+
 ## Support
 
 Azure AD Workload Identity is an open source project that is [**not** covered by the Microsoft Azure support policy][20]. [Please search open issues here][21], and if your issue isn't already represented please [open a new one][22]. The project maintainers will respond to the best of their abilities.
@@ -30,39 +34,21 @@ Azure AD Workload Identity is an open source project that is [**not** covered by
 <!-- - Ensure backward compatibility when upgrading from [AAD Pod Identity](https://github.com/Azure/aad-pod-identity). -->
 
 [1]: https://github.com/Azure/aad-pod-identity
-
 [2]: https://azure.microsoft.com/en-us/services/active-directory/
-
 [3]: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
-
 [4]: https://azure.github.io/azure-workload-identity/docs/quick-start.html
-
 [5]: https://azure.github.io/azure-workload-identity/docs/installation/mutating-admission-webhook.html
-
 [8]: https://azure.github.io/aad-pod-identity/docs/getting-started/role-assignment/
-
 [9]: https://docs.microsoft.com/en-us/azure/virtual-machines/windows/instance-metadata-service?tabs=windows
-
 [10]: https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/#customresourcedefinitions
-
 [11]: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-token-volume-projection
-
 [12]: https://azure.github.io/azure-workload-identity/docs/installation.html
-
 [13]: https://dev.azure.com/AzureContainerUpstream/Azure%20Workload%20Identity/_build/latest?definitionId=365&branchName=main
-
 [14]: https://dev.azure.com/AzureContainerUpstream/Azure%20Workload%20Identity/_apis/build/status/Azure%20Workload%20Identity%20Nightly?branchName=main
-
 [15]: https://azure.github.io/azure-workload-identity/docs/known-issues.html#permission-denied-when-reading-the-projected-service-account-token-file
-
 [17]: https://opensource.microsoft.com/codeofconduct/
-
 [18]: https://opensource.microsoft.com/codeofconduct/faq
-
 [19]: mailto:opencode@microsoft.com
-
 [20]: https://support.microsoft.com/en-us/help/2941892/support-for-linux-and-open-source-technology-in-azure
-
 [21]: https://github.com/Azure/azure-workload-identity/issues
-
 [22]: https://github.com/Azure/azure-workload-identity/issues/new/choose
