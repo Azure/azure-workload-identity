@@ -26,3 +26,7 @@ For example, if you are using the [`DefaultAzureCredential`](https://docs.micros
 ## Is there a propagation delay after creating a federated identity credential?
 
 It takes a few seconds for the federated identity credential to be propagated after being initially added. If a token request is made immediately after adding the federated identity credential, it **might** lead to failure for a couple of minutes as the cache is populated in the directory with old data. To avoid this issue, you can add a slight delay after adding the federated identity credential.
+
+## What is the Azure Workload Identity release schedule?
+
+Currently, we release on a monthly basis, targeting the last week of the month.
