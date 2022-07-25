@@ -44,7 +44,7 @@ The "create" command executes the following phases in order:
 az login && az account set -s <SubscriptionID>
 azwi serviceaccount create \
   --service-account-name azwi-sa \
-  --service-account-issuer-url https://chuwon.blob.core.windows.net/oidc-test/ \
+  --service-account-issuer-url https://azwi.blob.core.windows.net/oidc-test/ \
   --skip-phases role-assignment
 ```
 
