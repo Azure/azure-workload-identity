@@ -1068,7 +1068,7 @@ role-assignment     Create role assignment between the AAD application and the A
 <pre><code class="language-bash">az login &amp;&amp; az account set -s &lt;SubscriptionID&gt;
 azwi serviceaccount create \
   --service-account-name azwi-sa \
-  --service-account-issuer-url https://chuwon.blob.core.windows.net/oidc-test/ \
+  --service-account-issuer-url https://azwi.blob.core.windows.net/oidc-test/ \
   --skip-phases role-assignment
 </code></pre>
 <details>
@@ -1118,14 +1118,14 @@ aad-application     Delete the Azure Active Directory (AAD) application and its 
 <pre><code class="language-bash">az login &amp;&amp; az account set -s &lt;SubscriptionID&gt;
 azwi sa delete \
   --service-account-name azwi-sa \
-  --service-account-issuer-url https://chuwon.blob.core.windows.net/oidc-test/ \
+  --service-account-issuer-url https://azwi.blob.core.windows.net/oidc-test/ \
   --skip-phases role-assignment
 </code></pre>
 <details>
 <summary>Output</summary>
 <pre><code>INFO[0000] No subscription provided, using selected subscription from Azure CLI: &lt;SubscriptionID&gt;
 INFO[0001] skipping phase                                phase=role-assignment
-INFO[0001] [federated-identity] deleted federated identity credential  issuerURL=&quot;https://chuwon.blob.core.windows.net/oidc-test/&quot; subject=&quot;system:serviceaccount:default:azwi-sa&quot;
+INFO[0001] [federated-identity] deleted federated identity credential  issuerURL=&quot;https://azwi.blob.core.windows.net/oidc-test/&quot; subject=&quot;system:serviceaccount:default:azwi-sa&quot;
 INFO[0001] [service-account] deleted service account     name=azwi-sa namespace=default
 INFO[0001] [aad-application] deleted aad application     objectID=19888f97-e0d3-4f61-8eb9-b87bf161e27d
 </code></pre>
