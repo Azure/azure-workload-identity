@@ -39,7 +39,7 @@ The "delete" command executes the following phases in order:
 az login && az account set -s <SubscriptionID>
 azwi sa delete \
   --service-account-name azwi-sa \
-  --service-account-issuer-url https://chuwon.blob.core.windows.net/oidc-test/ \
+  --service-account-issuer-url https://azwi.blob.core.windows.net/oidc-test/ \
   --skip-phases role-assignment
 ```
 
@@ -48,7 +48,7 @@ azwi sa delete \
 
     INFO[0000] No subscription provided, using selected subscription from Azure CLI: <SubscriptionID>
     INFO[0001] skipping phase                                phase=role-assignment
-    INFO[0001] [federated-identity] deleted federated identity credential  issuerURL="https://chuwon.blob.core.windows.net/oidc-test/" subject="system:serviceaccount:default:azwi-sa"
+    INFO[0001] [federated-identity] deleted federated identity credential  issuerURL="https://azwi.blob.core.windows.net/oidc-test/" subject="system:serviceaccount:default:azwi-sa"
     INFO[0001] [service-account] deleted service account     name=azwi-sa namespace=default
     INFO[0001] [aad-application] deleted aad application     objectID=19888f97-e0d3-4f61-8eb9-b87bf161e27d
 
