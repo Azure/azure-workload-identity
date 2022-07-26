@@ -193,7 +193,7 @@ TEST SUITE: None
 <h3 id="install-envsubst"><a class="header" href="#install-envsubst">Install <code>envsubst</code></a></h3>
 <p>The deployment YAML contains the environment variables we defined above and we rely on the <code>envsubst</code> binary to substitute them for their respective values before deploying. See <a href="https://github.com/a8m/envsubst#installation">the <code>envsubst</code>‘s installation guide</a> on how to install it.</p>
 <p>Install the webhook using the deployment YAML via <code>kubectl apply -f</code> and <code>envsubst</code>:</p>
-<pre><code class="language-bash">curl -sL https://github.com/Azure/azure-workload-identity/releases/download/v0.11.0/azure-wi-webhook.yaml | envsubst | kubectl apply -f -
+<pre><code class="language-bash">curl -sL https://github.com/Azure/azure-workload-identity/releases/download/v0.12.0/azure-wi-webhook.yaml | envsubst | kubectl apply -f -
 </code></pre>
 <details>
 <summary>Output</summary>
