@@ -94,9 +94,7 @@ test_helm_chart() {
     --debug \
     -v=5
   poll_webhook_readiness
-  # TODO(aramase: remove GINKGO_SKIP once helm chart is updated to use v0.12.0 to include the 
-  # new proxy probe feature.
-  GINKGO_SKIP=Proxy make test-e2e-run
+  make test-e2e-run
 
   ${HELM} upgrade --install workload-identity-webhook "${REPO_ROOT}/manifest_staging/charts/workload-identity-webhook" \
     --set image.repository="${REGISTRY:-mcr.microsoft.com/oss/azure/workload-identity/webhook}" \
