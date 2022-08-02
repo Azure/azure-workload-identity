@@ -22,8 +22,8 @@ should_create_aks_cluster() {
 }
 
 register_feature() {
-  az extension add --name aks-preview
-  az extension update --name aks-preview
+  # pinning to 0.5.87 because of https://github.com/Azure/azure-cli/issues/23267
+  az extension add --name aks-preview --version 0.5.87
   # register enable oidc preview feature
   az feature register --namespace Microsoft.ContainerService --name EnableOIDCIssuerPreview > /dev/null
   # https://docs.microsoft.com/en-us/azure/aks/windows-container-cli#add-a-windows-server-node-pool-with-containerd-preview
