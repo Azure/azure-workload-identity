@@ -3,6 +3,12 @@ kind: Namespace
 metadata:
   labels:
     azure-workload-identity.io/system: "true"
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: v1.24
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: latest
   name: azure-workload-identity-system
 ---
 apiVersion: v1
@@ -190,6 +196,17 @@ spec:
           requests:
             cpu: 100m
             memory: 20Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsGroup: 65532
+          runAsNonRoot: true
+          runAsUser: 65532
+          seccompProfile:
+            type: RuntimeDefault
         volumeMounts:
         - mountPath: /certs
           name: cert
