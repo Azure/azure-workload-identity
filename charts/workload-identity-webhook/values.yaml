@@ -31,3 +31,9 @@ azureTenantID:
 logEncoder: console
 metricsAddr: ":8095"
 metricsBackend: prometheus
+namespaceSelector:
+  matchExpressions:
+    - key: project
+      operator: NotIn
+      values:
+        - name_space

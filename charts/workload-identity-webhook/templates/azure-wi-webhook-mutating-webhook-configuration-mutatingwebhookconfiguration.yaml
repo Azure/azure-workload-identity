@@ -20,6 +20,10 @@ webhooks:
   failurePolicy: Ignore
   matchPolicy: Equivalent
   name: mutation.azure-workload-identity.io
+  {{- if .Values.namespaceSelector }}
+  namespaceSelector:
+  {{- toYaml .Values.namespaceSelector | nindent 4 }}
+  {{- end }}
   rules:
   - apiGroups:
     - ""
