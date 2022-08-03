@@ -120,13 +120,3 @@ jobs:
         displayName: Cleanup
         condition: ne(variables.LOCAL_ONLY, 'true')
       - template: templates/publish-logs.yaml
-  - template: templates/upgrade.yaml
-    parameters:
-      dependsOn:
-        - lint
-        - scan_images
-        - shellcheck
-        - unit_test
-      matrix:
-        upgrade_aks_linux:
-          GINKGO_SKIP: \[AKSSoakOnly\]
