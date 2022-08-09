@@ -4,7 +4,9 @@ FROM --platform=${TARGETPLATFORM:-linux/amd64} ${BASEIMAGE}
 
 # upgrading gpgv due to CVE-2022-34903
 # upgrading libgnutls30 due to CVE-2021-4209
-RUN clean-install ca-certificates gpgv libgnutls30
+# upgrading libtirpc-common due to CVE-2021-46828
+# upgrading libtirpc3 due to CVE-2021-46828
+RUN clean-install ca-certificates gpgv libgnutls30 libtirpc-common libtirpc3
 COPY ./init/init-iptables.sh /bin/
 RUN chmod +x /bin/init-iptables.sh
 # Kubernetes runAsNonRoot requires USER to be numeric
