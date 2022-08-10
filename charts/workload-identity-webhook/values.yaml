@@ -31,3 +31,7 @@ azureTenantID:
 logEncoder: console
 metricsAddr: ":8095"
 metricsBackend: prometheus
+objectSelector:
+  matchLabels:
+    foo: 'bar'
+

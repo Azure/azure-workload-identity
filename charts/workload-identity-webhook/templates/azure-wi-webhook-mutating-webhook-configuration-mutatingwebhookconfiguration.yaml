@@ -8,6 +8,10 @@ metadata:
     chart: '{{ template "workload-identity-webhook.name" . }}'
     release: '{{ .Release.Name }}'
   name: azure-wi-webhook-mutating-webhook-configuration
+  {{- if .Values.objectSelector }}
+  objectSelector:
+  {{- toYaml .Values.objectSelector | nindent 4 }}
+  {{- end }}
 webhooks:
 - admissionReviewVersions:
   - v1
