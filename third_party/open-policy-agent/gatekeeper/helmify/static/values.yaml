@@ -32,3 +32,4 @@ logEncoder: console
 metricsAddr: ":8095"
 metricsBackend: prometheus
 mutatingWebhookFailurePolicy: Ignore
+priorityClassName: system-cluster-critical

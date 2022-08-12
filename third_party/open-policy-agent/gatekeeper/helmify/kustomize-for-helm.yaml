@@ -71,6 +71,7 @@ spec:
         secret:
           defaultMode: 420
           secretName: azure-wi-webhook-server-cert
+      priorityClassName: HELMSUBST_DEPLOYMENT_PRIORITY_CLASS_NAME
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration

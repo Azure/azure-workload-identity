@@ -50,6 +50,7 @@ helm upgrade -n azure-workload-identity-system [RELEASE_NAME] azure-workload-ide
 | metricsAddr                  | The address to bind the metrics server to                                | `:8095`                                                 |
 | metricsBackend               | The metrics backend to use (`prometheus`)                                | `prometheus`                                            |
 | mutatingWebhookFailurePolicy | The failurePolicy for the mutating webhook                               | `Ignore`                                                |
+| priorityClassName            | The priority class name for webhook manager                              | `system-cluster-critical`                               |
 
 ## Contributing Changes
 
