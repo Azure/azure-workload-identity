@@ -213,6 +213,7 @@ spec:
           readOnly: true
       nodeSelector:
         kubernetes.io/os: linux
+      priorityClassName: system-cluster-critical
       serviceAccountName: azure-wi-webhook-admin
       volumes:
       - name: cert
