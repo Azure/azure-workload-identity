@@ -1,7 +1,6 @@
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
-  creationTimestamp: null
   labels:
     app: '{{ template "workload-identity-webhook.name" . }}'
     azure-workload-identity.io/system: "true"
@@ -17,7 +16,7 @@ webhooks:
       name: azure-wi-webhook-webhook-service
       namespace: '{{ .Release.Namespace }}'
       path: /mutate-v1-pod
-  failurePolicy: Ignore
+  failurePolicy: {{ .Values.mutatingWebhookFailurePolicy }}
   matchPolicy: Equivalent
   name: mutation.azure-workload-identity.io
   rules:
