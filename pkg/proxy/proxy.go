@@ -170,15 +170,9 @@ func (p *proxy) readyzHandler(w http.ResponseWriter, r *http.Request) {
 
 func doTokenRequest(ctx context.Context, clientID, resource, tenantID, authorityHost string) (*token, error) {
 	tokenFilePath := os.Getenv(webhook.AzureFederatedTokenFileEnvVar)
-	signedAssertion, err := readJWTFromFS(tokenFilePath)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to read service account token")
-	}
-
-	cred, err := confidential.NewCredFromAssertion(signedAssertion)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create confidential creds")
-	}
+	cred := confidential.NewCredFromAssertionCallback(func(context.Context, confidential.AssertionRequestOptions) (string, error) {
+		return readJWTFromFS(tokenFilePath)
+	})
 
 	confidentialClientApp, err := confidential.New(clientID, cred,
 		confidential.WithAuthority(fmt.Sprintf("%s%s/oauth2/token", authorityHost, tenantID)))
