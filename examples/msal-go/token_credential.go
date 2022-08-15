@@ -37,17 +37,9 @@ func clientAssertionBearerAuthorizerCallback(tenantID, resource string) (*autore
 	// this will always generate a new token request to AAD
 	// TODO (aramase) consider using acquire token silent (https://github.com/Azure/azure-workload-identity/issues/76)
 
-	// read the service account token from the filesystem
-	signedAssertion, err := readJWTFromFS(tokenFilePath)
-	if err != nil {
-		klog.ErrorS(err, "failed to read the service account token from the filesystem")
-		return nil, errors.Wrap(err, "failed to read service account token")
-	}
-	cred, err := confidential.NewCredFromAssertion(signedAssertion)
-	if err != nil {
-		klog.ErrorS(err, "failed to create credential from signed assertion")
-		return nil, errors.Wrap(err, "failed to create confidential creds")
-	}
+	cred := confidential.NewCredFromAssertionCallback(func(context.Context, confidential.AssertionRequestOptions) (string, error) {
+		return readJWTFromFS(tokenFilePath)
+	})
 	// create the confidential client to request an AAD token
 	confidentialClientApp, err := confidential.New(
 		clientID,
