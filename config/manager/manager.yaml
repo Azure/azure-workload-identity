@@ -74,3 +74,4 @@ spec:
               name: azure-wi-webhook-config
       nodeSelector:
         kubernetes.io/os: linux
+      priorityClassName: system-cluster-critical

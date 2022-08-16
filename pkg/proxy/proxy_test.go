@@ -2,7 +2,6 @@ package proxy
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -224,7 +223,7 @@ func TestReadJWTFromFS(t *testing.T) {
 			name: "valid token",
 			writeFile: func() string {
 				tokenFilePath := filepath.Join(os.TempDir(), "test-token")
-				if err := ioutil.WriteFile(tokenFilePath, []byte("token"), 0600); err != nil {
+				if err := os.WriteFile(tokenFilePath, []byte("token"), 0600); err != nil {
 					t.Error(err)
 				}
 				return tokenFilePath

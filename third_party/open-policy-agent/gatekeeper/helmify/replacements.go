@@ -20,4 +20,8 @@ var replacements = map[string]string{
   {{- end }}`,
 
 	"HELMSUBST_DEPLOYMENT_METRICS_PORT": `{{ trimPrefix ":" .Values.metricsAddr }}`,
+
+	"HELMSUBST_MUTATING_WEBHOOK_FAILURE_POLICY": `{{ .Values.mutatingWebhookFailurePolicy }}`,
+
+	"HELMSUBST_DEPLOYMENT_PRIORITY_CLASS_NAME": `{{ .Values.priorityClassName }}`,
 }

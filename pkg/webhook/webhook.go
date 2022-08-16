@@ -303,9 +303,9 @@ func getSkipContainers(pod *corev1.Pod) map[string]struct{} {
 
 // getServiceAccountTokenExpiration returns the expiration seconds for the project service account token volume
 // Order of preference:
-// 	1. annotation in the pod
-// 	2. annotation in the service account
-//	default expiration if no annotation specified
+//  1. annotation in the pod
+//  2. annotation in the service account
+//     default expiration if no annotation specified
 func getServiceAccountTokenExpiration(pod *corev1.Pod, sa *corev1.ServiceAccount) (int64, error) {
 	serviceAccountTokenExpiration := DefaultServiceAccountTokenExpiration
 	var err error

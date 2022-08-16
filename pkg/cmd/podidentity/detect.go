@@ -225,10 +225,11 @@ func (dc *detectCmd) run() error {
 }
 
 // createServiceAccountFile will create a service account yaml file
-// 1. If the resource is using default service account, then a new service account yaml is generated
-//    with the resource name as service account name
-// 2. If the resource is already using a non-default service account, then we modify that service account
-//    to generate the desired yaml file
+//  1. If the resource is using default service account, then a new service account yaml is generated
+//     with the resource name as service account name
+//  2. If the resource is already using a non-default service account, then we modify that service account
+//     to generate the desired yaml file
+//
 // The service account yaml will contain the workload identity use label ("azure.workload.identity/use: true")
 // and the client-id annotation ("azure.workload.identity/client-id: <client-id from AzureIdentity>")
 func (dc *detectCmd) createServiceAccountFile(name, ownerName, clientID string) (*corev1.ServiceAccount, error) {
@@ -280,8 +281,10 @@ func (dc *detectCmd) createServiceAccountFile(name, ownerName, clientID string) 
 }
 
 // createResourceFile will create a resource yaml file
-//   If the resource is using default service account, then the service account name is updated to the resource name
-//   to match the service account yaml we generated in createServiceAccountFile()
+//
+//	If the resource is using default service account, then the service account name is updated to the resource name
+//	to match the service account yaml we generated in createServiceAccountFile()
+//
 // The resource yaml will contain:
 // 1. proxy container that is required for migration
 // 2. proxy-init init container that sets up iptables rules to redirect IMDS traffic to proxy

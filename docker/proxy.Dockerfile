@@ -1,4 +1,4 @@
-ARG BUILDER=mcr.microsoft.com/oss/go/microsoft/golang:1.18-bullseye
+ARG BUILDER=mcr.microsoft.com/oss/go/microsoft/golang:1.19-bullseye
 ARG BASEIMAGE=gcr.io/distroless/static:nonroot
 
 FROM ${BUILDER} as builder
