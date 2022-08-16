@@ -41,7 +41,7 @@ azwi serviceaccount delete phase federated-identity \
 
 ## Azure CLI
 
-To create a federated identity credential, login to [Azure Cloud Shell][1] and run the following commands:
+A federated identity credential can also be created using the `az` CLI. This can either be done in a local terminal session, or using [Azure Cloud Shell][1]. Use the `az` CLI to run the following commands:
 
 ```bash
 # Get the object ID of the AAD application
