@@ -6,6 +6,7 @@ In this tutorial, we will cover the basics of how to use the webhook to acquire 
 
 Before we get started, ensure the following:
 
+* Azure CLI version 2.39.0 or higher. Run `az --version` to verify.
 *  You are logged in with the Azure CLI as a user.
    *  If you are logged in with a Service Principal, ensure that it has the correct [API permissions][14] enabled.
 *  Your logged in account must have sufficient permissions to create applications and service principals in Azure AD.
@@ -194,8 +195,6 @@ INFO[0032] [federated-identity] added federated credential  objectID=REDACTED su
 <details>
 <summary>Azure CLI</summary>
 
-Login to [Azure Cloud Shell][8] and run the following commands:
-
 ```bash
 # Get the object ID of the AAD application
 export APPLICATION_OBJECT_ID="$(az ad app show --id ${APPLICATION_CLIENT_ID} --query id -otsv)"
@@ -204,7 +203,7 @@ export APPLICATION_OBJECT_ID="$(az ad app show --id ${APPLICATION_CLIENT_ID} --q
 Add the federated identity credential:
 
 ```bash
-cat <<EOF > body.json
+cat <<EOF > params.json
 {
   "name": "kubernetes-federated-credential",
   "issuer": "${SERVICE_ACCOUNT_ISSUER}",
@@ -216,7 +215,7 @@ cat <<EOF > body.json
 }
 EOF
 
-az rest --method POST --uri "https://graph.microsoft.com/beta/applications/${APPLICATION_OBJECT_ID}/federatedIdentityCredentials" --body @body.json
+az ad app federated-credential create --id ${APPLICATION_OBJECT_ID} --parameters @params.json
 ```
 
 </details>
@@ -327,7 +326,7 @@ Volumes:
     DownwardAPI:             true
   azure-identity-token: (Injected by the webhook)
     Type:                    Projected (a volume that contains injected data from multiple sources)
-    TokenExpirationSeconds:  86400
+    TokenExpirationSeconds:  3600
 QoS Class:                   BestEffort
 Node-Selectors:              kubernetes.io/os=linux
 Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
