@@ -45,7 +45,7 @@ A federated identity credential can also be created using the `az` CLI. This can
 
 ```bash
 # Get the object ID of the AAD application
-export APPLICATION_OBJECT_ID="az ad app list --display-name "${APPLICATION_NAME}" --query '[0].id' -otsv"
+export APPLICATION_OBJECT_ID="$(az ad app list --display-name "${APPLICATION_NAME}" --query '[0].id' -otsv)"
 
 cat <<EOF > params.json
 {
