@@ -977,12 +977,11 @@ export SERVICE_ACCOUNT_ISSUER=&quot;...&quot; # see section 1.1 on how to get th
   --service-account-issuer-url &quot;${SERVICE_ACCOUNT_ISSUER}&quot;
 </code></pre>
 <h2 id="azure-cli"><a class="header" href="#azure-cli">Azure CLI</a></h2>
-<p>To create a federated identity credential, login to <a href="https://portal.azure.com/#cloudshell/">Azure Cloud Shell</a> and run the following commands:</p>
-<pre><code class="language-bash"># Get the client and object ID of the AAD application
-export APPLICATION_CLIENT_ID=&quot;$(az ad sp list --display-name &quot;${APPLICATION_NAME}&quot; --query '[0].appId' -otsv)&quot;
-export APPLICATION_OBJECT_ID=&quot;$(az ad app show --id &quot;${APPLICATION_CLIENT_ID}&quot; --query id -otsv)&quot;
+<p>A federated identity credential can also be created using the <code>az</code> CLI. This can either be done in a local terminal session, or using <a href="https://portal.azure.com/#cloudshell/">Azure Cloud Shell</a>. Use the <code>az</code> CLI to run the following commands:</p>
+<pre><code class="language-bash"># Get the object ID of the AAD application
+export APPLICATION_OBJECT_ID=&quot;$(az ad app list --display-name &quot;${APPLICATION_NAME}&quot; --query '[0].id' -otsv)&quot;
 
-cat &lt;&lt;EOF &gt; body.json
+cat &lt;&lt;EOF &gt; params.json
 {
   &quot;name&quot;: &quot;kubernetes-federated-identity&quot;,
   &quot;issuer&quot;: &quot;${SERVICE_ACCOUNT_ISSUER}&quot;,
@@ -994,13 +993,13 @@ cat &lt;&lt;EOF &gt; body.json
 }
 EOF
 
-az rest --method POST --uri &quot;https://graph.microsoft.com/beta/applications/${APPLICATION_OBJECT_ID}/federatedIdentityCredentials&quot; --body @body.json
+az ad app federated-credential create --id $APPLICATION_OBJECT_ID --parameters params.json
 </code></pre>
 <p>To delete a federated identity credential, the federated identity credential ID needs to be obtained with the following command:</p>
-<pre><code class="language-bash">az rest --method GET --uri &quot;https://graph.microsoft.com/beta/applications/${APPLICATION_OBJECT_ID}/federatedIdentityCredentials&quot;
+<pre><code class="language-bash">az ad app federated-credential list --id &quot;${APPLICATION_OBJECT_ID}&quot;
 </code></pre>
 <p>Select the desired ID of the federated identity credential and run the following command:</p>
-<pre><code class="language-bash">az rest --method DELETE --uri &quot;https://graph.microsoft.com/beta/applications/${APPLICATION_OBJECT_ID}/federatedIdentityCredentials/${FIC_ID}&quot;
+<pre><code class="language-bash">az ad app federated-credential delete --federated-credential-id $FIC_ID --id $APPLICATION_OBJECT_ID
 </code></pre>
 <h2 id="azure-portal-ui"><a class="header" href="#azure-portal-ui">Azure Portal UI</a></h2>
 <ol>
