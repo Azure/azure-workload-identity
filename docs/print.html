@@ -619,6 +619,7 @@ mutatingwebhookconfiguration.admissionregistration.k8s.io/azure-wi-webhook-mutat
 <p>In this tutorial, we will cover the basics of how to use the webhook to acquire an Azure AD token to access a secret in an <a href="https://azure.microsoft.com/en-us/services/key-vault/">Azure Key Vault</a>.</p>
 <p>Before we get started, ensure the following:</p>
 <ul>
+<li>Azure CLI version 2.39.0 or higher. Run <code>az --version</code> to verify.</li>
 <li>You are logged in with the Azure CLI as a user.
 <ul>
 <li>If you are logged in with a Service Principal, ensure that it has the correct <a href="./known-issues.html#user-tried-to-log-in-to-a-device-from-a-platform-unknown-thats-currently-not-supported-through-conditional-access-policy">API permissions</a> enabled.</li>
@@ -747,12 +748,11 @@ INFO[0032] [federated-identity] added federated credential  objectID=REDACTED su
 <br>
 <details>
 <summary>Azure CLI</summary>
-<p>Login to <a href="https://portal.azure.com/#cloudshell/">Azure Cloud Shell</a> and run the following commands:</p>
 <pre><code class="language-bash"># Get the object ID of the AAD application
 export APPLICATION_OBJECT_ID=&quot;$(az ad app show --id ${APPLICATION_CLIENT_ID} --query id -otsv)&quot;
 </code></pre>
 <p>Add the federated identity credential:</p>
-<pre><code class="language-bash">cat &lt;&lt;EOF &gt; body.json
+<pre><code class="language-bash">cat &lt;&lt;EOF &gt; params.json
 {
   &quot;name&quot;: &quot;kubernetes-federated-credential&quot;,
   &quot;issuer&quot;: &quot;${SERVICE_ACCOUNT_ISSUER}&quot;,
@@ -764,7 +764,7 @@ export APPLICATION_OBJECT_ID=&quot;$(az ad app show --id ${APPLICATION_CLIENT_ID
 }
 EOF
 
-az rest --method POST --uri &quot;https://graph.microsoft.com/beta/applications/${APPLICATION_OBJECT_ID}/federatedIdentityCredentials&quot; --body @body.json
+az ad app federated-credential create --id ${APPLICATION_OBJECT_ID} --parameters @params.json
 </code></pre>
 </details>
 <h2 id="7-deploy-workload"><a class="header" href="#7-deploy-workload">7. Deploy workload</a></h2>
@@ -859,7 +859,7 @@ Volumes:
     DownwardAPI:             true
   azure-identity-token: (Injected by the webhook)
     Type:                    Projected (a volume that contains injected data from multiple sources)
-    TokenExpirationSeconds:  86400
+    TokenExpirationSeconds:  3600
 QoS Class:                   BestEffort
 Node-Selectors:              kubernetes.io/os=linux
 Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
