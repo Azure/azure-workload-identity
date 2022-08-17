@@ -65,7 +65,7 @@ az ad app federated-credential create --id $APPLICATION_OBJECT_ID --parameters p
 To delete a federated identity credential, the federated identity credential ID needs to be obtained with the following command:
 
 ```bash
-export FIC_ID="$(az ad app federated-credential list --id "${APPLICATION_OBJECT_ID}")"
+az ad app federated-credential list --id "${APPLICATION_OBJECT_ID}"
 ```
 
 Select the desired ID of the federated identity credential and run the following command:
