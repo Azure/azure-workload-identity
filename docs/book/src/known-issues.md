@@ -57,3 +57,16 @@ URI="https://graph.microsoft.com/v1.0/servicePrincipals/${APPLICATION_OBJECT_ID}
 BODY="{'principalId':'${APPLICATION_OBJECT_ID}','resourceId':'${GRAPH_RESOURCE_ID}','appRoleId':'${APPLICATION_READWRITE_ALL_ID}'}"
 az rest --method post --uri "${URI}" --body "${BODY}" --headers "Content-Type=application/json"
 ```
+
+### Container environment variables not injected into pods deployed to the kube-system namesapce on an AKS cluster
+
+This isssue was observed on an aks cluster version 1.22. This is due to the [admission control](https://docs.microsoft.com/en-us/azure/aks/faq#can-admission-controller-webhooks-impact-kube-system-and-internal-aks-namespaces) on the kube-system namespace.
+
+To overcome this issue an annotation
+
+```
+annotations: 
+    admissions.enforcer/disabled: "true"
+```
+
+ must be added to the azure-wi-webhook-mutating-webhook-configuration-mutatingwebhookconfiguration.yaml
