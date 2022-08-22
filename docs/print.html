@@ -1600,6 +1600,9 @@ URI=&quot;https://graph.microsoft.com/v1.0/servicePrincipals/${APPLICATION_OBJEC
 BODY=&quot;{'principalId':'${APPLICATION_OBJECT_ID}','resourceId':'${GRAPH_RESOURCE_ID}','appRoleId':'${APPLICATION_READWRITE_ALL_ID}'}&quot;
 az rest --method post --uri &quot;${URI}&quot; --body &quot;${BODY}&quot; --headers &quot;Content-Type=application/json&quot;
 </code></pre>
+<h3 id="environment-variables-not-injected-into-pods-deployed-in-the-kube-system-namespace-in-an-aks-cluster"><a class="header" href="#environment-variables-not-injected-into-pods-deployed-in-the-kube-system-namespace-in-an-aks-cluster">Environment variables not injected into pods deployed in the kube-system namespace in an AKS cluster</a></h3>
+<p>To protect the stability of the system and prevent custom admission controllers from impacting internal services in the kube-system, namespace AKS has an Admissions Enforcer, which automatically excludes kube-system and AKS internal namespaces. Refer to <a href="https://docs.microsoft.com/en-us/azure/aks/faq#can-admission-controller-webhooks-impact-kube-system-and-internal-aks-namespaces">doc</a> for more details.</p>
+<p>If you’re deploying a pod in the <code>kube-system</code> namespace of an AKS cluster and need the environment variables, projected service account token volume injected by the Azure Workload Identity Mutating Webhook, add the <code>&quot;admissions.enforcer/disabled&quot;: &quot;true&quot;</code> label or annotation in the <a href="https://github.com/Azure/azure-workload-identity/blob/8644a217f09902fa1ac63e05cf04d9a3f3f1ebc3/deploy/azure-wi-webhook.yaml#L206-L235">MutatingWebhookConfiguration</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="development"><a class="header" href="#development">Development</a></h1>
 <ul>
 <li><a href="development.html#setting-up">Setting up</a>
