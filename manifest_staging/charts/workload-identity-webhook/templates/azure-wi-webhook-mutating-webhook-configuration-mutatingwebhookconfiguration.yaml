@@ -19,7 +19,7 @@ webhooks:
   failurePolicy: {{ .Values.mutatingWebhookFailurePolicy }}
   matchPolicy: Equivalent
   name: mutation.azure-workload-identity.io
-  objectSelector: {{- toYaml .Values.objectSelector | nindent 4 }}
+  objectSelector: {{- toYaml .Values.mutatingWebhookObjectSelector | nindent 4 }}
   rules:
   - apiGroups:
     - ""
