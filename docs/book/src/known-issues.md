@@ -58,7 +58,7 @@ BODY="{'principalId':'${APPLICATION_OBJECT_ID}','resourceId':'${GRAPH_RESOURCE_I
 az rest --method post --uri "${URI}" --body "${BODY}" --headers "Content-Type=application/json"
 ```
 
-### Container environment variables not injected into pods deployed to the kube-system namesapce on an AKS cluster
+### Environment variables not injected into pods deployed in the kube-system namespace in an AKS cluster
 
 This isssue was observed on an aks cluster version 1.22. This is due to the [admission control](https://docs.microsoft.com/en-us/azure/aks/faq#can-admission-controller-webhooks-impact-kube-system-and-internal-aks-namespaces) on the kube-system namespace.
 
