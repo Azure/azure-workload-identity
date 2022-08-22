@@ -60,13 +60,6 @@ az rest --method post --uri "${URI}" --body "${BODY}" --headers "Content-Type=ap
 
 ### Environment variables not injected into pods deployed in the kube-system namespace in an AKS cluster
 
-This isssue was observed on an aks cluster version 1.22. This is due to the [admission control](https://docs.microsoft.com/en-us/azure/aks/faq#can-admission-controller-webhooks-impact-kube-system-and-internal-aks-namespaces) on the kube-system namespace.
+To protect the stability of the system and prevent custom admission controllers from impacting internal services in the kube-system, namespace AKS has an Admissions Enforcer, which automatically excludes kube-system and AKS internal namespaces. Refer to [doc](https://docs.microsoft.com/en-us/azure/aks/faq#can-admission-controller-webhooks-impact-kube-system-and-internal-aks-namespaces) for more details.
 
-To overcome this issue an annotation
-
-```
-annotations: 
-    admissions.enforcer/disabled: "true"
-```
-
- must be added to the azure-wi-webhook-mutating-webhook-configuration-mutatingwebhookconfiguration.yaml
+If you're deploying a pod in the `kube-system` namespace of an AKS cluster and need the environment variables, projected service account token volume injected by the Azure Workload Identity Mutating Webhook, add the `"admissions.enforcer/disabled": "true"` label or annotation in the [MutatingWebhookConfiguration](https://github.com/Azure/azure-workload-identity/blob/8644a217f09902fa1ac63e05cf04d9a3f3f1ebc3/deploy/azure-wi-webhook.yaml#L206-L235).
