@@ -24,4 +24,6 @@ var replacements = map[string]string{
 	"HELMSUBST_MUTATING_WEBHOOK_FAILURE_POLICY": `{{ .Values.mutatingWebhookFailurePolicy }}`,
 
 	"HELMSUBST_DEPLOYMENT_PRIORITY_CLASS_NAME": `{{ .Values.priorityClassName }}`,
+
+	`HELMSUBST_MUTATING_WEBHOOK_ANNOTATIONS: ""`: `{{- toYaml .Values.mutatingWebhookAnnotations | nindent 4 }}`,
 }
