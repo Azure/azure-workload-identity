@@ -87,3 +87,4 @@ webhooks:
       path: /mutate-v1-pod
   failurePolicy: HELMSUBST_MUTATING_WEBHOOK_FAILURE_POLICY
   name: mutation.azure-workload-identity.io
+  objectSelector: HELMSUBST_MUTATING_WEBHOOK_OBJECT_SELECTOR
