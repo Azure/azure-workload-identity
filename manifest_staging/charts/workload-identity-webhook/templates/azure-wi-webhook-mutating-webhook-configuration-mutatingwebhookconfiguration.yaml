@@ -1,6 +1,8 @@
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
+  annotations:
+    {{- toYaml .Values.mutatingWebhookAnnotations | nindent 4 }}
   labels:
     app: '{{ template "workload-identity-webhook.name" . }}'
     azure-workload-identity.io/system: "true"

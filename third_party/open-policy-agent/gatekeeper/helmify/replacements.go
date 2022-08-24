@@ -26,4 +26,6 @@ var replacements = map[string]string{
 	"HELMSUBST_DEPLOYMENT_PRIORITY_CLASS_NAME": `{{ .Values.priorityClassName }}`,
 
 	`HELMSUBST_MUTATING_WEBHOOK_OBJECT_SELECTOR`: `{{- toYaml .Values.mutatingWebhookObjectSelector | nindent 4 }}`,
+
+	`HELMSUBST_MUTATING_WEBHOOK_ANNOTATIONS: ""`: `{{- toYaml .Values.mutatingWebhookAnnotations | nindent 4 }}`,
 }

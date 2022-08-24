@@ -34,3 +34,4 @@ metricsBackend: prometheus
 mutatingWebhookFailurePolicy: Ignore
 priorityClassName: system-cluster-critical
 mutatingWebhookObjectSelector: {}
+mutatingWebhookAnnotations: {}

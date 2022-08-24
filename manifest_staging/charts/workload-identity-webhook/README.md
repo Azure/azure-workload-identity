@@ -52,6 +52,7 @@ helm upgrade -n azure-workload-identity-system [RELEASE_NAME] azure-workload-ide
 | mutatingWebhookFailurePolicy | The failurePolicy for the mutating webhook                               | `Ignore`                                                |
 | priorityClassName            | The priority class name for webhook manager                              | `system-cluster-critical`                               |
 | mutatingWebhookObjectSelector| The label selector to further refine which namespaced resources will be selected by the webhook. | ``                              |
+| mutatingWebhookAnnotations   | The annotations to add to the MutatingWebhookConfiguration               | `{}`                                                    |
 
 ## Contributing Changes
 
