@@ -28,4 +28,10 @@ var replacements = map[string]string{
 	`HELMSUBST_MUTATING_WEBHOOK_OBJECT_SELECTOR`: `{{- toYaml .Values.mutatingWebhookObjectSelector | nindent 4 }}`,
 
 	`HELMSUBST_MUTATING_WEBHOOK_ANNOTATIONS: ""`: `{{- toYaml .Values.mutatingWebhookAnnotations | nindent 4 }}`,
+
+	`HELMSUBST_SERVICEACCOUNT_IMAGEPULLSECRETS: ""`:
+`{{- if .Values.imagePullSecrets }}
+imagePullSecrets:
+{{ toYaml .Values.imagePullSecrets | nindent 2 }}
+{{- end }}`,
 }
