@@ -95,4 +95,3 @@ metadata:
   name: azure-wi-webhook-admin
   namespace: azure-workload-identity-system
 HELMSUBST_SERVICEACCOUNT_IMAGE_PULL_SECRETS: ""
----
