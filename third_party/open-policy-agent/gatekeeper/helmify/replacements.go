@@ -32,6 +32,6 @@ var replacements = map[string]string{
 	`HELMSUBST_SERVICEACCOUNT_IMAGEPULLSECRETS: ""`:
 `{{- if .Values.imagePullSecrets }}
 imagePullSecrets:
-{{ toYaml .Values.imagePullSecrets | nindent 2 }}
+{{- toYaml .Values.imagePullSecrets | nindent 2 }}
 {{- end }}`,
 }
