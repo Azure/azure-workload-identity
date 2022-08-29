@@ -10,6 +10,7 @@ image:
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   release: v0.12.0
+imagePullSecrets: []
 nodeSelector:
   kubernetes.io/os: linux
 arcCluster: false
