@@ -9,7 +9,8 @@ image:
   repository: mcr.microsoft.com/oss/azure/workload-identity/webhook
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  release: v0.12.0
+  release: v0.13.0
+imagePullSecrets: []
 nodeSelector:
   kubernetes.io/os: linux
 arcCluster: false
@@ -31,3 +32,7 @@ azureTenantID:
 logEncoder: console
 metricsAddr: ":8095"
 metricsBackend: prometheus
+mutatingWebhookFailurePolicy: Ignore
+priorityClassName: system-cluster-critical
+mutatingWebhookObjectSelector: {}
+mutatingWebhookAnnotations: {}
