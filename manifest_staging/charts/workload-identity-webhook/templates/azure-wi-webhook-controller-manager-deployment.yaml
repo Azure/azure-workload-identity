@@ -84,6 +84,8 @@ spec:
       nodeSelector:
         {{- toYaml .Values.nodeSelector | nindent 8 }}
       priorityClassName: {{ .Values.priorityClassName }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       serviceAccountName: azure-wi-webhook-admin
       tolerations:
         {{- toYaml .Values.tolerations | nindent 8 }}

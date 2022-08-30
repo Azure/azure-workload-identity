@@ -37,6 +37,8 @@ spec:
       labels:
         azure-workload-identity.io/system: "true"
     spec:
+      securityContext:
+        HELMSUBST_DEPLOYMENT_POD_SECURITY_CONTEXT: ""
       containers:
       - args:
         - --arc-cluster={{ .Values.arcCluster }}

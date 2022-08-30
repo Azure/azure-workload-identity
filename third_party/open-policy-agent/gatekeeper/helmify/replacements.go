@@ -34,4 +34,5 @@ var replacements = map[string]string{
 imagePullSecrets:
 {{- toYaml .Values.imagePullSecrets | nindent 2 }}
 {{- end }}`,
+    `HELMSUBST_DEPLOYMENT_POD_SECURITY_CONTEXT: ""`: `{{- toYaml .Values.podSecurityContext | nindent 8 }}`, 
 }

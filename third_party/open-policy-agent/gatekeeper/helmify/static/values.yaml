@@ -11,6 +11,7 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   release: v0.13.0
 imagePullSecrets: []
+podSecurityContext: {}
 nodeSelector:
   kubernetes.io/os: linux
 arcCluster: false
