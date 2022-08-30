@@ -7,7 +7,7 @@ metadata:
     pod-security.kubernetes.io/audit: restricted
     pod-security.kubernetes.io/audit-version: latest
     pod-security.kubernetes.io/enforce: restricted
-    pod-security.kubernetes.io/enforce-version: v1.24
+    pod-security.kubernetes.io/enforce-version: latest
   name: system
 ---
 apiVersion: apps/v1

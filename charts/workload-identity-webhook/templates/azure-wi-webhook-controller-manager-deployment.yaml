@@ -66,12 +66,24 @@ spec:
             port: healthz
         resources:
           {{- toYaml .Values.resources | nindent 10 }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsGroup: 65532
+          runAsNonRoot: true
+          runAsUser: 65532
+          seccompProfile:
+            type: RuntimeDefault
         volumeMounts:
         - mountPath: /certs
           name: cert
           readOnly: true
       nodeSelector:
         {{- toYaml .Values.nodeSelector | nindent 8 }}
+      priorityClassName: {{ .Values.priorityClassName }}
       serviceAccountName: azure-wi-webhook-admin
       tolerations:
         {{- toYaml .Values.tolerations | nindent 8 }}

@@ -6,7 +6,7 @@ metadata:
     pod-security.kubernetes.io/audit: restricted
     pod-security.kubernetes.io/audit-version: latest
     pod-security.kubernetes.io/enforce: restricted
-    pod-security.kubernetes.io/enforce-version: v1.24
+    pod-security.kubernetes.io/enforce-version: latest
     pod-security.kubernetes.io/warn: restricted
     pod-security.kubernetes.io/warn-version: latest
   name: azure-workload-identity-system
@@ -168,7 +168,7 @@ spec:
         envFrom:
         - configMapRef:
             name: azure-wi-webhook-config
-        image: mcr.microsoft.com/oss/azure/workload-identity/webhook:v0.12.0
+        image: mcr.microsoft.com/oss/azure/workload-identity/webhook:v0.13.0
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
