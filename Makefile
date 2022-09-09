@@ -39,7 +39,7 @@ CONTROLLER_GEN := $(TOOLS_BIN_DIR)/$(CONTROLLER_GEN_BIN)-$(CONTROLLER_GEN_VER)
 E2E_TEST_BIN := e2e.test
 E2E_TEST := $(BIN_DIR)/$(E2E_TEST_BIN)
 
-GINKGO_VER := v1.16.2
+GINKGO_VER := v2.1.6
 GINKGO_BIN := ginkgo
 GINKGO := $(TOOLS_BIN_DIR)/$(GINKGO_BIN)-$(GINKGO_VER)
 
@@ -222,7 +222,7 @@ $(CONTROLLER_GEN):
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) sigs.k8s.io/controller-tools/cmd/controller-gen $(CONTROLLER_GEN_BIN) $(CONTROLLER_GEN_VER)
 
 $(GINKGO):
-	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/onsi/ginkgo/ginkgo $(GINKGO_BIN) $(GINKGO_VER)
+	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/onsi/ginkgo/v2/ginkgo $(GINKGO_BIN) $(GINKGO_VER)
 
 $(KIND):
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) sigs.k8s.io/kind $(KIND_BIN) $(KIND_VER)
@@ -313,7 +313,7 @@ GINKGO_SKIP ?=
 GINKGO_NODES ?= 1
 GINKGO_NO_COLOR ?= false
 GINKGO_TIMEOUT ?= 5m
-GINKGO_ARGS ?= -focus="$(GINKGO_FOCUS)" -skip="$(GINKGO_SKIP)" -nodes=$(GINKGO_NODES) -noColor=$(GINKGO_NO_COLOR) -timeout=$(GINKGO_TIMEOUT)
+GINKGO_ARGS ?= -focus="$(GINKGO_FOCUS)" -skip="$(GINKGO_SKIP)" -nodes=$(GINKGO_NODES) -no-color=$(GINKGO_NO_COLOR) -timeout=$(GINKGO_TIMEOUT)
 
 # E2E configurations
 KUBECONFIG ?= $(HOME)/.kube/config

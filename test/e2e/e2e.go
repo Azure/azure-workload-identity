@@ -4,7 +4,6 @@ package e2e
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -12,9 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/config"
-	"github.com/onsi/ginkgo/reporters"
+	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -154,10 +151,10 @@ func collectPodLogs() {
 func RunE2ETests(t *testing.T) {
 	gomega.RegisterFailHandler(framework.Fail)
 
-	// Run tests through the Ginkgo runner with output to console + JUnit
-	var r []ginkgo.Reporter
-	if framework.TestContext.ReportDir != "" {
-		r = append(r, reporters.NewJUnitReporter(path.Join(framework.TestContext.ReportDir, fmt.Sprintf("junit_%v%02d.xml", framework.TestContext.ReportPrefix, config.GinkgoConfig.ParallelNode))))
+	// NOTE: junit report can be simply created by executing your tests with the new --junit-report flags instead.
+	if err := os.MkdirAll(framework.TestContext.ReportDir, 0755); err != nil {
+		framework.Failf("failed creating report directory: %v", err)
 	}
-	ginkgo.RunSpecsWithDefaultAndCustomReporters(t, "Azure AD Workload Identity E2E Test Suite", r)
+	suiteConfig, reporterConfig := framework.CreateGinkgoConfig()
+	ginkgo.RunSpecs(t, "Azure AD Workload Identity E2E Test Suite", suiteConfig, reporterConfig)
 }
