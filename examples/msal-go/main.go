@@ -15,6 +15,7 @@ func main() {
 	keyvaultURL := os.Getenv("KEYVAULT_URL")
         if keyvaultURL == "" {
                 keyvaultName := os.Getenv("KEYVAULT_NAME")
+		// fallback to use global cloud
                 keyvaultURL = fmt.Sprintf("https://%s.vault.azure.net/", keyvaultName)
         }
         secretName := os.Getenv("SECRET_NAME")
