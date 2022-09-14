@@ -12,10 +12,13 @@ import (
 )
 
 func main() {
-	keyvaultName := os.Getenv("KEYVAULT_NAME")
-	secretName := os.Getenv("SECRET_NAME")
-
-	keyvaultURL := fmt.Sprintf("https://%s.vault.azure.net/", keyvaultName)
+	keyvaultURL := os.Getenv("KEYVAULT_URL")
+        if keyvaultURL == "" {
+                keyvaultName := os.Getenv("KEYVAULT_NAME")
+		// fallback to use global cloud
+                keyvaultURL = fmt.Sprintf("https://%s.vault.azure.net/", keyvaultName)
+        }
+        secretName := os.Getenv("SECRET_NAME")
 
 	// initialize keyvault client with custom authorizer
 	kvClient := keyvault.New()
@@ -24,7 +27,7 @@ func main() {
 	for {
 		secretBundle, err := kvClient.GetSecret(context.Background(), keyvaultURL, secretName, "")
 		if err != nil {
-			klog.ErrorS(err, "failed to get secret from keyvault", "keyvault", keyvaultName, "secretName", secretName)
+			klog.ErrorS(err, "failed to get secret from keyvault", "keyvault", keyvaultURL, "secretName", secretName)
 			os.Exit(1)
 		}
 		klog.InfoS("successfully got secret", "secret", *secretBundle.Value)
