@@ -27,7 +27,7 @@ func main() {
 	for {
 		secretBundle, err := kvClient.GetSecret(context.Background(), keyvaultURL, secretName, "")
 		if err != nil {
-			klog.ErrorS(err, "failed to get secret from keyvault", "keyvault", keyvaultName, "secretName", secretName)
+			klog.ErrorS(err, "failed to get secret from keyvault", "keyvault", keyvaultURL, "secretName", secretName)
 			os.Exit(1)
 		}
 		klog.InfoS("successfully got secret", "secret", *secretBundle.Value)
