@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-workload-identity/pkg/version"
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
@@ -94,7 +95,12 @@ func (p *proxy) Run() error {
 	rtr.PathPrefix("/").HandlerFunc(p.defaultPathHandler)
 
 	p.logger.Info("starting the proxy server", "port", p.port, "userAgent", userAgent)
-	return http.ListenAndServe(fmt.Sprintf("%s:%d", localhost, p.port), rtr)
+	server := &http.Server{
+		Addr:              fmt.Sprintf("%s:%d", localhost, p.port),
+		ReadHeaderTimeout: 5 * time.Second,
+		Handler:           rtr,
+	}
+	return server.ListenAndServe()
 }
 
 func (p *proxy) msiHandler(w http.ResponseWriter, r *http.Request) {
