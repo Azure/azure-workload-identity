@@ -238,6 +238,8 @@ spec:
     - image: ghcr.io/azure/azure-workload-identity/msal-go
       name: oidc
       env:
+      - name: KEYVAULT_NAME
+        value: ${KEYVAULT_NAME}
       - name: KEYVAULT_URL
         value: ${KEYVAULT_URL}
       - name: SECRET_NAME
@@ -246,6 +248,7 @@ spec:
     kubernetes.io/os: linux
 EOF
 ```
+Note: Newer version of the sample image will only need KEYVAULT_URL variable.
 
 > Feel free to swap the msal-go example image above with a list of [language-specific examples](./topics/language-specific-examples/msal.md) we provide.
 
