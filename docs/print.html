@@ -769,7 +769,8 @@ az ad app federated-credential create --id ${APPLICATION_OBJECT_ID} --parameters
 </details>
 <h2 id="7-deploy-workload"><a class="header" href="#7-deploy-workload">7. Deploy workload</a></h2>
 <p>Deploy a pod that references the service account created in the last step:</p>
-<pre><code class="language-bash">cat &lt;&lt;EOF | kubectl apply -f -
+<pre><code class="language-bash">export KEYVAULT_URL=&quot;$(az keyvault show -g ${RESOURCE_GROUP} -n ${KEYVAULT_NAME} --query properties.vaultUri -o tsv)&quot;
+cat &lt;&lt;EOF | kubectl apply -f -
 apiVersion: v1
 kind: Pod
 metadata:
@@ -783,12 +784,15 @@ spec:
       env:
       - name: KEYVAULT_NAME
         value: ${KEYVAULT_NAME}
+      - name: KEYVAULT_URL
+        value: ${KEYVAULT_URL}
       - name: SECRET_NAME
         value: ${KEYVAULT_SECRET_NAME}
   nodeSelector:
     kubernetes.io/os: linux
 EOF
 </code></pre>
+<p>Note: Newer version of the sample image will only need KEYVAULT_URL variable.</p>
 <blockquote>
 <p>Feel free to swap the msal-go example image above with a list of <a href="./topics/language-specific-examples/msal.html">language-specific examples</a> we provide.</p>
 </blockquote>
