@@ -225,6 +225,7 @@ az ad app federated-credential create --id ${APPLICATION_OBJECT_ID} --parameters
 Deploy a pod that references the service account created in the last step:
 
 ```bash
+export KEYVAULT_URL="$(az keyvault show -g ${RESOURCE_GROUP} -n ${KEYVAULT_NAME} --query properties.vaultUri -o tsv)"
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: Pod
@@ -239,12 +240,15 @@ spec:
       env:
       - name: KEYVAULT_NAME
         value: ${KEYVAULT_NAME}
+      - name: KEYVAULT_URL
+        value: ${KEYVAULT_URL}
       - name: SECRET_NAME
         value: ${KEYVAULT_SECRET_NAME}
   nodeSelector:
     kubernetes.io/os: linux
 EOF
 ```
+Note: Newer version of the sample image will only need KEYVAULT_URL variable.
 
 > Feel free to swap the msal-go example image above with a list of [language-specific examples](./topics/language-specific-examples/msal.md) we provide.
 
