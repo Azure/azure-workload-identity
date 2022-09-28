@@ -1,6 +1,6 @@
 # Azure Identity SDK
 
-Client libraries below are the **minimum** version required
+The following client libraries are the **minimum** version required
 
 | Language              | Library                                                               | Minimum Version                                                                                                     |
 | --------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
