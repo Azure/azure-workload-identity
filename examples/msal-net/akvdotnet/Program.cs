@@ -27,7 +27,7 @@ namespace akvdotnet
             {
                 Console.WriteLine($"{Environment.NewLine}START {DateTime.UtcNow} ({Environment.MachineName})");
 
-                // <getsecret>                
+                // <getsecret>
                 var keyvaultSecret = client.GetSecret(secretName).Value;
                 Console.WriteLine("Your secret is " + keyvaultSecret.Value);
 
