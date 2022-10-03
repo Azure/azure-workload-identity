@@ -148,7 +148,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
-<p>Workloads deployed in Kubernetes clusters require Azure AD application credentials to access Azure AD protected resources, such as Azure Key Vault and Microsoft Graph. The <a href="https://github.com/Azure/aad-pod-identity">Azure AD Pod Identity</a> open-source project provided a way to avoid needing these secrets, by using Azure managed identities.</p>
+<p>Workloads deployed in Kubernetes clusters require Azure AD application credentials or managed identities to access Azure AD protected resources, such as Azure Key Vault and Microsoft Graph. The <a href="https://github.com/Azure/aad-pod-identity">Azure AD Pod Identity</a> open-source project provided a way to avoid needing these secrets, by using Azure managed identities.</p>
 <p>Azure AD Workload Identity for Kubernetes integrates with the capabilities native to Kubernetes to federate with external identity providers. This approach is simpler to use and deploy, and overcomes several limitations in <a href="https://github.com/Azure/aad-pod-identity">Azure AD Pod Identity</a>:</p>
 <ul>
 <li>Removes the scale and performance issues that existed for identity assignment</li>
@@ -156,10 +156,6 @@
 <li>Supports both <strong>Linux</strong> and <strong>Windows</strong> workloads</li>
 <li>Removes the need for Custom Resource Definitions and pods that intercept <a href="https://docs.microsoft.com/en-us/azure/virtual-machines/windows/instance-metadata-service?tabs=windows">Instance Metadata Service (IMDS)</a> traffic</li>
 <li>Avoids the complication and error-prone installation steps such as cluster role assignment from the previous iteration.</li>
-</ul>
-<h2 id="limitations"><a class="header" href="#limitations">Limitations</a></h2>
-<ul>
-<li>Workload Identity Federation is currently only supported for Azure AD Applications. Managed identity support will be coming soon.</li>
 </ul>
 <h2 id="getting-started"><a class="header" href="#getting-started">Getting started</a></h2>
 <ul>
@@ -174,7 +170,7 @@
 <li><a href="./concepts.html">Concepts</a></li>
 </ul>
 <h2 id="how-it-works"><a class="header" href="#how-it-works">How it works</a></h2>
-<p>In this model, the Kubernetes cluster becomes a token issuer, issuing tokens to Kubernetes Service Accounts. These service account tokens can be configured to be trusted on Azure AD applications. Workload can exchange a service account token projected to its volume for an Azure AD access token using the Azure Identity SDKs or the Microsoft Authentication Library (MSAL).</p>
+<p>In this model, the Kubernetes cluster becomes a token issuer, issuing tokens to Kubernetes Service Accounts. These service account tokens can be configured to be trusted on Azure AD applications or user-assigned managed identities. Workload can exchange a service account token projected to its volume for an Azure AD access token using the Azure Identity SDKs or the Microsoft Authentication Library (MSAL).</p>
 <p><img src="./images/how-it-works-diagram.png" alt="How it works" /></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
 <h2 id="prerequisites"><a class="header" href="#prerequisites">Prerequisites</a></h2>
@@ -529,8 +525,8 @@ EOF
 <summary>Properties</summary>
 <table><thead><tr><th>Environment variable</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>AZURE_AUTHORITY_HOST</code></td><td>The Azure Active Directory (AAD) endpoint.</td></tr>
-<tr><td><code>AZURE_CLIENT_ID</code></td><td>The application/client ID of the Azure AD application.</td></tr>
-<tr><td><code>AZURE_TENANT_ID</code></td><td>The tenant ID of the Azure account.</td></tr>
+<tr><td><code>AZURE_CLIENT_ID</code></td><td>The application/client ID of the Azure AD application or user-assigned managed identity.</td></tr>
+<tr><td><code>AZURE_TENANT_ID</code></td><td>The tenant ID of the Azure subscription.</td></tr>
 <tr><td><code>AZURE_FEDERATED_TOKEN_FILE</code></td><td>The path of the projected service account token file.</td></tr>
 </tbody></table>
 <table><thead><tr><th>Volume</th><th>Description</th></tr></thead><tbody>
@@ -610,7 +606,7 @@ mutatingwebhookconfiguration.admissionregistration.k8s.io/azure-wi-webhook-mutat
 <li><a href="quick-start.html#1-complete-the-installation-guide">1. Complete the installation guide</a></li>
 <li><a href="quick-start.html#2-export-environment-variables">2. Export environment variables</a></li>
 <li><a href="quick-start.html#3-create-an-azure-key-vault-and-secret">3. Create an Azure Key Vault and secret</a></li>
-<li><a href="quick-start.html#4-create-an-aad-application-and-grant-permissions-to-access-the-secret">4. Create an AAD application and grant permissions to access the secret</a></li>
+<li><a href="quick-start.html#4-create-an-aad-application-or-user-assigned-managed-identity-and-grant-permissions-to-access-the-secret">4. Create an AAD application or user-assigned managed identity and grant permissions to access the secret</a></li>
 <li><a href="quick-start.html#5-create-a-kubernetes-service-account">5. Create a Kubernetes service account</a></li>
 <li><a href="quick-start.html#6-establish-federated-identity-credential-between-the-aad-application-and-the-service-account-issuer--subject">6. Establish federated identity credential between the AAD application and the service account issuer &amp; subject</a></li>
 <li><a href="quick-start.html#7-deploy-workload">7. Deploy workload</a></li>
@@ -619,13 +615,13 @@ mutatingwebhookconfiguration.admissionregistration.k8s.io/azure-wi-webhook-mutat
 <p>In this tutorial, we will cover the basics of how to use the webhook to acquire an Azure AD token to access a secret in an <a href="https://azure.microsoft.com/en-us/services/key-vault/">Azure Key Vault</a>.</p>
 <p>Before we get started, ensure the following:</p>
 <ul>
-<li>Azure CLI version 2.39.0 or higher. Run <code>az --version</code> to verify.</li>
+<li>Azure CLI version 2.40.0 or higher. Run <code>az --version</code> to verify.</li>
 <li>You are logged in with the Azure CLI as a user.
 <ul>
 <li>If you are logged in with a Service Principal, ensure that it has the correct <a href="./known-issues.html#user-tried-to-log-in-to-a-device-from-a-platform-unknown-thats-currently-not-supported-through-conditional-access-policy">API permissions</a> enabled.</li>
 </ul>
 </li>
-<li>Your logged in account must have sufficient permissions to create applications and service principals in Azure AD.</li>
+<li>Your logged in account must have sufficient permissions to create applications and service principals or user-assigned managed identities in Azure AD.</li>
 </ul>
 <h2 id="1-complete-the-installation-guide"><a class="header" href="#1-complete-the-installation-guide">1. Complete the installation guide</a></h2>
 <p><a href="./installation.html">Installation guide</a>. At this point, you should have already:</p>
@@ -642,7 +638,12 @@ export RESOURCE_GROUP=&quot;azwi-quickstart-$(openssl rand -hex 2)&quot;
 export LOCATION=&quot;westus2&quot;
 
 # environment variables for the AAD application
+# [OPTIONAL] Only set this if you're using a Azure AD Application as part of this tutorial
 export APPLICATION_NAME=&quot;&lt;your application name&gt;&quot;
+
+# environment variables for the user-assigned managed identity
+# [OPTIONAL] Only set this if you're using a user-assigned managed identity as part of this tutorial
+export USER_ASSIGNED_IDENTITY_NAME=&quot;&lt;your user-assigned managed identity name&gt;&quot;
 
 # environment variables for the Kubernetes service account &amp; federated identity credential
 export SERVICE_ACCOUNT_NAMESPACE=&quot;default&quot;
@@ -663,9 +664,12 @@ export SERVICE_ACCOUNT_ISSUER=&quot;&lt;your service account issuer url&gt;&quot
    --name &quot;${KEYVAULT_SECRET_NAME}&quot; \
    --value &quot;Hello\!&quot;
 </code></pre>
-<h2 id="4-create-an-aad-application-and-grant-permissions-to-access-the-secret"><a class="header" href="#4-create-an-aad-application-and-grant-permissions-to-access-the-secret">4. Create an AAD application and grant permissions to access the secret</a></h2>
+<h2 id="4-create-an-aad-application-or-user-assigned-managed-identity-and-grant-permissions-to-access-the-secret"><a class="header" href="#4-create-an-aad-application-or-user-assigned-managed-identity-and-grant-permissions-to-access-the-secret">4. Create an AAD application or user-assigned managed identity and grant permissions to access the secret</a></h2>
 <details>
 <summary>Azure Workload Identity CLI</summary>
+<blockquote>
+<p>NOTE: <code>azwi</code> currently only supports Azure AD Applications. If you want to use a user-assigned managed identity, skip this section and follow the steps in the Azure CLI section.</p>
+</blockquote>
 <pre><code class="language-bash">azwi serviceaccount create phase app --aad-application-name &quot;${APPLICATION_NAME}&quot;
 </code></pre>
 <details>
@@ -680,19 +684,33 @@ INFO[0005] [aad-application] created service principal   clientID=REDACTED name=
 <br>
 <details>
 <summary>Azure CLI</summary>
-<pre><code class="language-bash">az ad sp create-for-rbac --name &quot;${APPLICATION_NAME}&quot;
+<pre><code class="language-bash"># create an AAD application if using Azure AD Application for this tutorial
+az ad sp create-for-rbac --name &quot;${APPLICATION_NAME}&quot;
+</code></pre>
+<pre><code class="language-bash"># create a user-assigned managed identity if using user-assigned managed identity for this tutorial
+az identity create --name &quot;${USER_ASSIGNED_IDENTITY_NAME}&quot; --resource-group &quot;${RESOURCE_GROUP}&quot;
 </code></pre>
 </details>
-<p>Set access policy for the AAD application to access the keyvault secret:</p>
+<p>Set access policy for the AAD application or user-assigned managed identity to access the keyvault secret:</p>
+<p>If using Azure AD Application:</p>
 <pre><code class="language-bash">export APPLICATION_CLIENT_ID=&quot;$(az ad sp list --display-name &quot;${APPLICATION_NAME}&quot; --query '[0].appId' -otsv)&quot;
 az keyvault set-policy --name &quot;${KEYVAULT_NAME}&quot; \
   --secret-permissions get \
   --spn &quot;${APPLICATION_CLIENT_ID}&quot;
 </code></pre>
+<p>if using user-assigned managed identity:</p>
+<pre><code class="language-bash">export USER_ASSIGNED_IDENTITY_CLIENT_ID=&quot;$(az identity show --name &quot;${USER_ASSIGNED_IDENTITY_NAME}&quot; --resource-group &quot;${RESOURCE_GROUP}&quot; --query 'clientId' -otsv)&quot;
+az keyvault set-policy --name &quot;${KEYVAULT_NAME}&quot; \
+  --secret-permissions get \
+  --object-id &quot;${USER_ASSIGNED_IDENTITY_CLIENT_ID}&quot;
+</code></pre>
 <h2 id="5-create-a-kubernetes-service-account"><a class="header" href="#5-create-a-kubernetes-service-account">5. Create a Kubernetes service account</a></h2>
 <p>Create a Kubernetes service account and annotate it with the client ID of the AAD application we created in step 4:</p>
 <details>
 <summary>Azure Workload Identity CLI</summary>
+<blockquote>
+<p>NOTE: <code>azwi</code> currently only supports Azure AD Applications. If you want to use a user-assigned managed identity, skip this section and follow the steps in the <code>kubectl</code> section.</p>
+</blockquote>
 <pre><code class="language-bash">azwi serviceaccount create phase sa \
   --aad-application-name &quot;${APPLICATION_NAME}&quot; \
   --service-account-namespace &quot;${SERVICE_ACCOUNT_NAMESPACE}&quot; \
@@ -713,7 +731,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   annotations:
-    azure.workload.identity/client-id: ${APPLICATION_CLIENT_ID}
+    azure.workload.identity/client-id: ${APPLICATION_CLIENT_ID:-USER_ASSIGNED_IDENTITY_CLIENT_ID}
   labels:
     azure.workload.identity/use: &quot;true&quot;
   name: ${SERVICE_ACCOUNT_NAME}
@@ -732,6 +750,9 @@ EOF
 <h2 id="6-establish-federated-identity-credential-between-the-aad-application-and-the-service-account-issuer--subject"><a class="header" href="#6-establish-federated-identity-credential-between-the-aad-application-and-the-service-account-issuer--subject">6. Establish federated identity credential between the AAD application and the service account issuer &amp; subject</a></h2>
 <details>
 <summary>Azure Workload Identity CLI</summary>
+<blockquote>
+<p>NOTE: <code>azwi</code> currently only supports Azure AD Applications. If you want to use a user-assigned managed identity, skip this section and follow the steps in the <code>Azure CLI</code> section.</p>
+</blockquote>
 <pre><code class="language-bash">azwi serviceaccount create phase federated-identity \
   --aad-application-name &quot;${APPLICATION_NAME}&quot; \
   --service-account-namespace &quot;${SERVICE_ACCOUNT_NAMESPACE}&quot; \
@@ -748,6 +769,7 @@ INFO[0032] [federated-identity] added federated credential  objectID=REDACTED su
 <br>
 <details>
 <summary>Azure CLI</summary>
+<p>If using Azure AD Application:</p>
 <pre><code class="language-bash"># Get the object ID of the AAD application
 export APPLICATION_OBJECT_ID=&quot;$(az ad app show --id ${APPLICATION_CLIENT_ID} --query id -otsv)&quot;
 </code></pre>
@@ -765,6 +787,14 @@ export APPLICATION_OBJECT_ID=&quot;$(az ad app show --id ${APPLICATION_CLIENT_ID
 EOF
 
 az ad app federated-credential create --id ${APPLICATION_OBJECT_ID} --parameters @params.json
+</code></pre>
+<p>If using user-assigned managed identity:</p>
+<pre><code class="language-bash">az identity federated-credential create \
+  --name &quot;kubernetes-federated-credential&quot; \
+  --identity-name &quot;${USER_ASSIGNED_IDENTITY_NAME}&quot; \
+  --resource-group &quot;${RESOURCE_GROUP}&quot; \
+  --issuer &quot;${SERVICE_ACCOUNT_ISSUER}&quot; \
+  --subject &quot;system:serviceaccount:${SERVICE_ACCOUNT_NAMESPACE}:${SERVICE_ACCOUNT_NAME}&quot;
 </code></pre>
 </details>
 <h2 id="7-deploy-workload"><a class="header" href="#7-deploy-workload">7. Deploy workload</a></h2>
@@ -804,8 +834,8 @@ EOF
 <p>You can verify the following injected properties in the output:</p>
 <table><thead><tr><th>Environment variable</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>AZURE_AUTHORITY_HOST</code></td><td>The Azure Active Directory (AAD) endpoint.</td></tr>
-<tr><td><code>AZURE_CLIENT_ID</code></td><td>The client ID of the AAD application.</td></tr>
-<tr><td><code>AZURE_TENANT_ID</code></td><td>The tenant ID of the registered AAD application.</td></tr>
+<tr><td><code>AZURE_CLIENT_ID</code></td><td>The client ID of the AAD application or user-assigned managed identity.</td></tr>
+<tr><td><code>AZURE_TENANT_ID</code></td><td>The tenant ID of the registered AAD application or user-assigned managed identity.</td></tr>
 <tr><td><code>AZURE_FEDERATED_TOKEN_FILE</code></td><td>The path of the projected service account token file.</td></tr>
 </tbody></table>
 <br/>
@@ -892,6 +922,7 @@ Events:
 kubectl delete sa &quot;${SERVICE_ACCOUNT_NAME}&quot; --namespace &quot;${SERVICE_ACCOUNT_NAMESPACE}&quot;
 
 az group delete --name &quot;${RESOURCE_GROUP}&quot;
+# if you used Azure AD Application for tutorial, delete it by running the following command
 az ad sp delete --id &quot;${APPLICATION_CLIENT_ID}&quot;
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="concepts"><a class="header" href="#concepts">Concepts</a></h1>
@@ -950,24 +981,45 @@ az ad sp delete --id &quot;${APPLICATION_CLIENT_ID}&quot;
 </tbody></table>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="federated-identity-credential"><a class="header" href="#federated-identity-credential">Federated Identity Credential</a></h1>
 <ul>
-<li><a href="topics/federated-identity-credential.html#azure-workload-identity-cli">Azure Workload Identity CLI</a></li>
-<li><a href="topics/federated-identity-credential.html#azure-cli">Azure CLI</a></li>
-<li><a href="topics/federated-identity-credential.html#azure-portal-ui">Azure Portal UI</a></li>
+<li><a href="topics/federated-identity-credential.html#azure-cli">Azure CLI</a>
+<ul>
+<li><a href="topics/federated-identity-credential.html#federated-identity-credential-for-an-azure-ad-application">Federated identity credential for an Azure AD application</a></li>
+<li><a href="topics/federated-identity-credential.html#federated-identity-credential-for-a-user-assigned-managed-identity">Federated identity credential for a user-assigned managed identity</a></li>
 </ul>
-<p>Not all service account tokens can be exchanged for a valid AAD token. A federated identity credential between an existing Kubernetes service account and an AAD application has to be created in advance. Refer to <a href="https://docs.microsoft.com/en-us/graph/api/resources/federatedidentitycredentials-overview?view=graph-rest-beta&amp;preserve-view=true">doc</a> for an overview of federated identity credentials in Azure Active Directory.</p>
+</li>
+<li><a href="topics/federated-identity-credential.html#azure-portal-ui">Azure Portal UI</a>
+<ul>
+<li><a href="topics/federated-identity-credential.html#federated-identity-credential-for-an-azure-ad-application-1">Federated identity credential for an Azure AD application</a></li>
+<li><a href="topics/federated-identity-credential.html#federated-identity-credential-for-a-user-assigned-managed-identity-1">Federated identity credential for a user-assigned managed identity</a></li>
+</ul>
+</li>
+</ul>
+<p>Not all service account tokens can be exchanged for a valid AAD token. A federated identity credential between an existing Kubernetes service account and an AAD application or user-assigned managed identity has to be created in advance. Refer to <a href="https://docs.microsoft.com/en-us/graph/api/resources/federatedidentitycredentials-overview?view=graph-rest-beta&amp;preserve-view=true">doc</a> for an overview of federated identity credentials in Azure Active Directory.</p>
 <blockquote>
-<p>NOTE: Federated identity credentials are supported on <strong>AAD applications</strong> only. A maximum of <strong>20</strong> federated identity credentials can be added per AAD application object. The federated identity credentials API is not available in <a href="https://docs.microsoft.com/en-us/graph/deployments">national cloud deployments</a> - <a href="https://docs.microsoft.com/en-us/graph/api/resources/federatedidentitycredentials-overview?view=graph-rest-beta&amp;preserve-view=true">source</a></p>
+<p>NOTE: A maximum of <strong>20</strong> federated identity credentials can be added per AAD application or user-assigned managed identity object. The federated identity credentials API is not available in <a href="https://docs.microsoft.com/en-us/graph/deployments">national cloud deployments</a> - <a href="https://docs.microsoft.com/en-us/graph/api/resources/federatedidentitycredentials-overview?view=graph-rest-beta&amp;preserve-view=true">source</a></p>
 </blockquote>
 <p>Export the following environment variables:</p>
-<pre><code class="language-bash">export APPLICATION_NAME=&quot;&lt;your application name&gt;&quot;
-export SERVICE_ACCOUNT_NAMESPACE=&quot;...&quot;
-export SERVICE_ACCOUNT_NAME=&quot;...&quot;
-export SERVICE_ACCOUNT_ISSUER=&quot;...&quot; # see section 1.1 on how to get the service account issuer url
+<pre><code class="language-bash"># if you are using a Azure AD application
+export APPLICATION_NAME=&quot;&lt;your application name&gt;&quot;
+
+# if you are using a user-assigned managed identity
+export USER_ASSIGNED_MANAGED_IDENTITY_NAME=&quot;&lt;your user-assigned managed identity name&gt;&quot;
+export RESOURCE_GROUP=&quot;&lt;your user-assigned managed identity resource group&gt;&quot;
 </code></pre>
-<p>Currently, there are several ways to create and delete a federated identity credential:</p>
-<h2 id="azure-workload-identity-cli"><a class="header" href="#azure-workload-identity-cli">Azure Workload Identity CLI</a></h2>
-<p>To create a federated identity credential:</p>
-<pre><code class="language-bash">azwi serviceaccount create phase federated-identity \
+<p>export SERVICE_ACCOUNT_NAMESPACE=”...”
+export SERVICE_ACCOUNT_NAME=”...”
+export SERVICE_ACCOUNT_ISSUER=”...” # see section 1.1 on how to get the service account issuer url</p>
+<pre><code>
+Currently, there are several ways to create and delete a federated identity credential:
+
+## Azure Workload Identity CLI
+
+&gt; NOTE: `azwi` currently only supports Azure AD Applications. If you want to use a user-assigned managed identity, skip this section and follow the steps in the Azure CLI section.
+
+To create a federated identity credential:
+
+```bash
+azwi serviceaccount create phase federated-identity \
   --aad-application-name &quot;${APPLICATION_NAME}&quot; \
   --service-account-namespace &quot;${SERVICE_ACCOUNT_NAMESPACE}&quot; \
   --service-account-name &quot;${SERVICE_ACCOUNT_NAME}&quot; \
@@ -982,6 +1034,7 @@ export SERVICE_ACCOUNT_ISSUER=&quot;...&quot; # see section 1.1 on how to get th
 </code></pre>
 <h2 id="azure-cli"><a class="header" href="#azure-cli">Azure CLI</a></h2>
 <p>A federated identity credential can also be created using the <code>az</code> CLI. This can either be done in a local terminal session, or using <a href="https://portal.azure.com/#cloudshell/">Azure Cloud Shell</a>. Use the <code>az</code> CLI to run the following commands:</p>
+<h3 id="federated-identity-credential-for-an-azure-ad-application"><a class="header" href="#federated-identity-credential-for-an-azure-ad-application">Federated identity credential for an Azure AD application</a></h3>
 <pre><code class="language-bash"># Get the object ID of the AAD application
 export APPLICATION_OBJECT_ID=&quot;$(az ad app list --display-name &quot;${APPLICATION_NAME}&quot; --query '[0].id' -otsv)&quot;
 
@@ -1005,7 +1058,23 @@ az ad app federated-credential create --id $APPLICATION_OBJECT_ID --parameters p
 <p>Select the desired ID of the federated identity credential and run the following command:</p>
 <pre><code class="language-bash">az ad app federated-credential delete --federated-credential-id $FIC_ID --id $APPLICATION_OBJECT_ID
 </code></pre>
+<h3 id="federated-identity-credential-for-a-user-assigned-managed-identity"><a class="header" href="#federated-identity-credential-for-a-user-assigned-managed-identity">Federated identity credential for a user-assigned managed identity</a></h3>
+<pre><code class="language-bash">az identity federated-credential create \
+  --name &quot;kubernetes-federated-identity&quot; \
+  --identity-name &quot;${USER_ASSIGNED_MANAGED_IDENTITY_NAME}&quot; \
+  --resource-group &quot;${RESOURCE_GROUP}&quot; \
+  --issuer &quot;${SERVICE_ACCOUNT_ISSUER}&quot; \
+  --subject &quot;system:serviceaccount:${SERVICE_ACCOUNT_NAMESPACE}:${SERVICE_ACCOUNT_NAME}&quot;
+</code></pre>
+<p>To delete a federated identity credential </p>
+<pre><code class="language-bash">az identity federated-credential delete \
+  --identity-name &quot;${USER_ASSIGNED_MANAGED_IDENTITY_NAME}&quot; \
+  --name &quot;kubernetes-federated-identity&quot; \
+  --resource-group &quot;${RESOURCE_GROUP}&quot;
+</code></pre>
+<p>For more information on the <code>az identity federated-credential</code> command, refer to the <a href="https://learn.microsoft.com/en-us/cli/azure/identity/federated-credential?view=azure-cli-latest">Azure CLI documentation</a>.</p>
 <h2 id="azure-portal-ui"><a class="header" href="#azure-portal-ui">Azure Portal UI</a></h2>
+<h3 id="federated-identity-credential-for-an-azure-ad-application-1"><a class="header" href="#federated-identity-credential-for-an-azure-ad-application-1">Federated identity credential for an Azure AD application</a></h3>
 <ol>
 <li>Sign in to the <a href="https://portal.azure.com">Azure portal</a>. </li>
 <li>Go to <strong>App registrations</strong> and open the app you want to configure.</li>
@@ -1015,11 +1084,26 @@ az ad app federated-credential create --id $APPLICATION_OBJECT_ID --parameters p
 <li>Specify the <strong>Cluster issuer URL</strong>.</li>
 <li>Specify the <strong>Namespace</strong>.</li>
 <li>Specify the <strong>Service account name</strong>.</li>
-<li>The <strong>Subject identifier</strong> field autopopulate based on the values you entered.</li>
+<li>The <strong>Subject identifier</strong> field auto-populates based on the values you entered.</li>
 <li>Add a <strong>Name</strong> for the federated credential.</li>
 <li>Click <strong>Add</strong> to configure the federated credential.</li>
 </ol>
 <p><img src="topics/../images/azure-portal-federated-credential-kubernetes.png" alt="Screenshot showing Azure Portal app registration federated credential screen for Kubernetes scenario" /></p>
+<h3 id="federated-identity-credential-for-a-user-assigned-managed-identity-1"><a class="header" href="#federated-identity-credential-for-a-user-assigned-managed-identity-1">Federated identity credential for a user-assigned managed identity</a></h3>
+<ol>
+<li>Sign in to the <a href="https://portal.azure.com">Azure portal</a>. </li>
+<li>Go to resource group and open the user-assigned managed identity you want to configure.</li>
+<li>Go to <strong>Federated credentials</strong>.</li>
+<li>In the <strong>Federated credentials</strong> tab, select <strong>Add credential</strong>. The <strong>Add a credential</strong> blade opens.</li>
+<li>In the <strong>Federated credential scenario</strong> drop-down box select <strong>Kubernetes accessing Azure resources</strong>.</li>
+<li>Specify the <strong>Cluster issuer URL</strong>.</li>
+<li>Specify the <strong>Namespace</strong>.</li>
+<li>Specify the <strong>Service account name</strong>.</li>
+<li>The <strong>Subject identifier</strong> field auto-populates based on the values you entered.</li>
+<li>Add a <strong>Name</strong> for the federated credential.</li>
+<li>Click <strong>Add</strong> to configure the federated credential.</li>
+</ol>
+<p><img src="topics/../images/azure-portal-mi-federated-credential.png" alt="Screenshot showing Azure Portal user-assigned managed identity federated credential screen for Kubernetes scenario" /></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="azure-workload-identity-cli-azwi"><a class="header" href="#azure-workload-identity-cli-azwi">Azure Workload Identity CLI (<code>azwi</code>)</a></h1>
 <p>The Azure Workload Identity CLI (<code>azwi</code>) is a utility CLI that helps manage Azure AD Workload Identity and automate error-prone operations:</p>
 <ul>
@@ -1499,8 +1583,6 @@ azwi_mutation_request_sum{namespace=&quot;default&quot;,service_name=&quot;webho
 azwi_mutation_request_count{namespace=&quot;default&quot;,service_name=&quot;webhook&quot;,telemetry_sdk_language=&quot;go&quot;,telemetry_sdk_name=&quot;opentelemetry&quot;,telemetry_sdk_version=&quot;0.20.0&quot;} 1
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="frequently-asked-questions"><a class="header" href="#frequently-asked-questions">Frequently Asked Questions</a></h1>
-<h2 id="why-is-managed-identity-not-supported-by-azure-workload-identity"><a class="header" href="#why-is-managed-identity-not-supported-by-azure-workload-identity">Why is managed identity not supported by Azure Workload Identity?</a></h2>
-<p>This is due to the limitation of Azure AD, rather than the Azure Workload Identity project. Azure AD is currently working on enabling workload identity federation for managed identity and Azure Workload Identity will support the feature as soon as it is available.</p>
 <h2 id="how-does-the-azwi-cli-differ-from-the-azure-cli"><a class="header" href="#how-does-the-azwi-cli-differ-from-the-azure-cli">How does the azwi-cli differ from the azure-cli?</a></h2>
 <p>The azwi-cli tool is specific to the Azure Workload Identity support in Kubernetes to group several manual steps (e.g. the creation of federated identity credential, annotated service accounts, etc) and automate them. Comparing with the azure-cli, it does not have an official command to add/delete federated identity (configuring federated identity credential with <code>az rest</code> is available <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/workload-identity-federation-create-trust">here</a>)</p>
 <p>Azure CLI and AKS are currently working on the above requirements, as well as an Azure CLI extension that natively integrate this project with AKS clusters.</p>

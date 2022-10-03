@@ -147,7 +147,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
-<p>Workloads deployed in Kubernetes clusters require Azure AD application credentials to access Azure AD protected resources, such as Azure Key Vault and Microsoft Graph. The <a href="https://github.com/Azure/aad-pod-identity">Azure AD Pod Identity</a> open-source project provided a way to avoid needing these secrets, by using Azure managed identities.</p>
+<p>Workloads deployed in Kubernetes clusters require Azure AD application credentials or managed identities to access Azure AD protected resources, such as Azure Key Vault and Microsoft Graph. The <a href="https://github.com/Azure/aad-pod-identity">Azure AD Pod Identity</a> open-source project provided a way to avoid needing these secrets, by using Azure managed identities.</p>
 <p>Azure AD Workload Identity for Kubernetes integrates with the capabilities native to Kubernetes to federate with external identity providers. This approach is simpler to use and deploy, and overcomes several limitations in <a href="https://github.com/Azure/aad-pod-identity">Azure AD Pod Identity</a>:</p>
 <ul>
 <li>Removes the scale and performance issues that existed for identity assignment</li>
@@ -155,10 +155,6 @@
 <li>Supports both <strong>Linux</strong> and <strong>Windows</strong> workloads</li>
 <li>Removes the need for Custom Resource Definitions and pods that intercept <a href="https://docs.microsoft.com/en-us/azure/virtual-machines/windows/instance-metadata-service?tabs=windows">Instance Metadata Service (IMDS)</a> traffic</li>
 <li>Avoids the complication and error-prone installation steps such as cluster role assignment from the previous iteration.</li>
-</ul>
-<h2 id="limitations"><a class="header" href="#limitations">Limitations</a></h2>
-<ul>
-<li>Workload Identity Federation is currently only supported for Azure AD Applications. Managed identity support will be coming soon.</li>
 </ul>
 <h2 id="getting-started"><a class="header" href="#getting-started">Getting started</a></h2>
 <ul>
@@ -173,7 +169,7 @@
 <li><a href="./concepts.html">Concepts</a></li>
 </ul>
 <h2 id="how-it-works"><a class="header" href="#how-it-works">How it works</a></h2>
-<p>In this model, the Kubernetes cluster becomes a token issuer, issuing tokens to Kubernetes Service Accounts. These service account tokens can be configured to be trusted on Azure AD applications. Workload can exchange a service account token projected to its volume for an Azure AD access token using the Azure Identity SDKs or the Microsoft Authentication Library (MSAL).</p>
+<p>In this model, the Kubernetes cluster becomes a token issuer, issuing tokens to Kubernetes Service Accounts. These service account tokens can be configured to be trusted on Azure AD applications or user-assigned managed identities. Workload can exchange a service account token projected to its volume for an Azure AD access token using the Azure Identity SDKs or the Microsoft Authentication Library (MSAL).</p>
 <p><img src="./images/how-it-works-diagram.png" alt="How it works" /></p>
 
                     </main>
