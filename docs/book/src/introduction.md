@@ -1,6 +1,6 @@
 # Introduction
 
-Workloads deployed in Kubernetes clusters require Azure AD application credentials to access Azure AD protected resources, such as Azure Key Vault and Microsoft Graph. The [Azure AD Pod Identity][1] open-source project provided a way to avoid needing these secrets, by using Azure managed identities.
+Workloads deployed in Kubernetes clusters require Azure AD application credentials or managed identities to access Azure AD protected resources, such as Azure Key Vault and Microsoft Graph. The [Azure AD Pod Identity][1] open-source project provided a way to avoid needing these secrets, by using Azure managed identities.
 
 Azure AD Workload Identity for Kubernetes integrates with the capabilities native to Kubernetes to federate with external identity providers. This approach is simpler to use and deploy, and overcomes several limitations in [Azure AD Pod Identity][1]:
 
@@ -9,10 +9,6 @@ Azure AD Workload Identity for Kubernetes integrates with the capabilities nativ
 *   Supports both **Linux** and **Windows** workloads
 *   Removes the need for Custom Resource Definitions and pods that intercept [Instance Metadata Service (IMDS)][10] traffic
 *   Avoids the complication and error-prone installation steps such as cluster role assignment from the previous iteration.
-
-## Limitations
-
-*   Workload Identity Federation is currently only supported for Azure AD Applications. Managed identity support will be coming soon.
 
 ## Getting started
 
@@ -25,7 +21,7 @@ Azure AD Workload Identity for Kubernetes integrates with the capabilities nativ
 
 ## How it works
 
-In this model, the Kubernetes cluster becomes a token issuer, issuing tokens to Kubernetes Service Accounts. These service account tokens can be configured to be trusted on Azure AD applications. Workload can exchange a service account token projected to its volume for an Azure AD access token using the Azure Identity SDKs or the Microsoft Authentication Library (MSAL).
+In this model, the Kubernetes cluster becomes a token issuer, issuing tokens to Kubernetes Service Accounts. These service account tokens can be configured to be trusted on Azure AD applications or user-assigned managed identities. Workload can exchange a service account token projected to its volume for an Azure AD access token using the Azure Identity SDKs or the Microsoft Authentication Library (MSAL).
 
 ![How it works][9]
 

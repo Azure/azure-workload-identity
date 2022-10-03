@@ -6,10 +6,10 @@ In this tutorial, we will cover the basics of how to use the webhook to acquire 
 
 Before we get started, ensure the following:
 
-* Azure CLI version 2.39.0 or higher. Run `az --version` to verify.
+* Azure CLI version 2.40.0 or higher. Run `az --version` to verify.
 *  You are logged in with the Azure CLI as a user.
    *  If you are logged in with a Service Principal, ensure that it has the correct [API permissions][14] enabled.
-*  Your logged in account must have sufficient permissions to create applications and service principals in Azure AD.
+*  Your logged in account must have sufficient permissions to create applications and service principals or user-assigned managed identities in Azure AD.
 
 ## 1. Complete the installation guide
 
@@ -28,7 +28,12 @@ export RESOURCE_GROUP="azwi-quickstart-$(openssl rand -hex 2)"
 export LOCATION="westus2"
 
 # environment variables for the AAD application
+# [OPTIONAL] Only set this if you're using a Azure AD Application as part of this tutorial
 export APPLICATION_NAME="<your application name>"
+
+# environment variables for the user-assigned managed identity
+# [OPTIONAL] Only set this if you're using a user-assigned managed identity as part of this tutorial
+export USER_ASSIGNED_IDENTITY_NAME="<your user-assigned managed identity name>"
 
 # environment variables for the Kubernetes service account & federated identity credential
 export SERVICE_ACCOUNT_NAMESPACE="default"
@@ -60,10 +65,12 @@ az keyvault secret set --vault-name "${KEYVAULT_NAME}" \
    --value "Hello\!"
 ```
 
-## 4. Create an AAD application and grant permissions to access the secret
+## 4. Create an AAD application or user-assigned managed identity and grant permissions to access the secret
 
 <details>
 <summary>Azure Workload Identity CLI</summary>
+
+> NOTE: `azwi` currently only supports Azure AD Applications. If you want to use a user-assigned managed identity, skip this section and follow the steps in the Azure CLI section.
 
 ```bash
 azwi serviceaccount create phase app --aad-application-name "${APPLICATION_NAME}"
@@ -89,12 +96,20 @@ INFO[0005] [aad-application] created service principal   clientID=REDACTED name=
 <summary>Azure CLI</summary>
 
 ```bash
+# create an AAD application if using Azure AD Application for this tutorial
 az ad sp create-for-rbac --name "${APPLICATION_NAME}"
+```
+
+```bash
+# create a user-assigned managed identity if using user-assigned managed identity for this tutorial
+az identity create --name "${USER_ASSIGNED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP}"
 ```
 
 </details>
 
-Set access policy for the AAD application to access the keyvault secret:
+Set access policy for the AAD application or user-assigned managed identity to access the keyvault secret:
+
+If using Azure AD Application:
 
 ```bash
 export APPLICATION_CLIENT_ID="$(az ad sp list --display-name "${APPLICATION_NAME}" --query '[0].appId' -otsv)"
@@ -103,12 +118,23 @@ az keyvault set-policy --name "${KEYVAULT_NAME}" \
   --spn "${APPLICATION_CLIENT_ID}"
 ```
 
+if using user-assigned managed identity:
+
+```bash
+export USER_ASSIGNED_IDENTITY_CLIENT_ID="$(az identity show --name "${USER_ASSIGNED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP}" --query 'clientId' -otsv)"
+az keyvault set-policy --name "${KEYVAULT_NAME}" \
+  --secret-permissions get \
+  --object-id "${USER_ASSIGNED_IDENTITY_CLIENT_ID}"
+```
+
 ## 5. Create a Kubernetes service account
 
 Create a Kubernetes service account and annotate it with the client ID of the AAD application we created in step 4:
 
 <details>
 <summary>Azure Workload Identity CLI</summary>
+
+> NOTE: `azwi` currently only supports Azure AD Applications. If you want to use a user-assigned managed identity, skip this section and follow the steps in the `kubectl` section.
 
 ```bash
 azwi serviceaccount create phase sa \
@@ -140,7 +166,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   annotations:
-    azure.workload.identity/client-id: ${APPLICATION_CLIENT_ID}
+    azure.workload.identity/client-id: ${APPLICATION_CLIENT_ID:-USER_ASSIGNED_IDENTITY_CLIENT_ID}
   labels:
     azure.workload.identity/use: "true"
   name: ${SERVICE_ACCOUNT_NAME}
@@ -170,6 +196,8 @@ kubectl annotate sa ${SERVICE_ACCOUNT_NAME} -n ${SERVICE_ACCOUNT_NAMESPACE} azur
 <details>
 <summary>Azure Workload Identity CLI</summary>
 
+> NOTE: `azwi` currently only supports Azure AD Applications. If you want to use a user-assigned managed identity, skip this section and follow the steps in the `Azure CLI` section.
+
 ```bash
 azwi serviceaccount create phase federated-identity \
   --aad-application-name "${APPLICATION_NAME}" \
@@ -195,6 +223,8 @@ INFO[0032] [federated-identity] added federated credential  objectID=REDACTED su
 <details>
 <summary>Azure CLI</summary>
 
+If using Azure AD Application:
+
 ```bash
 # Get the object ID of the AAD application
 export APPLICATION_OBJECT_ID="$(az ad app show --id ${APPLICATION_CLIENT_ID} --query id -otsv)"
@@ -216,6 +246,17 @@ cat <<EOF > params.json
 EOF
 
 az ad app federated-credential create --id ${APPLICATION_OBJECT_ID} --parameters @params.json
+```
+
+If using user-assigned managed identity:
+
+```bash
+az identity federated-credential create \
+  --name "kubernetes-federated-credential" \
+  --identity-name "${USER_ASSIGNED_IDENTITY_NAME}" \
+  --resource-group "${RESOURCE_GROUP}" \
+  --issuer "${SERVICE_ACCOUNT_ISSUER}" \
+  --subject "system:serviceaccount:${SERVICE_ACCOUNT_NAMESPACE}:${SERVICE_ACCOUNT_NAME}"
 ```
 
 </details>
@@ -263,12 +304,12 @@ kubectl describe pod quick-start
 
 You can verify the following injected properties in the output:
 
-| Environment variable         | Description                                           |
-| ---------------------------- | ----------------------------------------------------- |
-| `AZURE_AUTHORITY_HOST`       | The Azure Active Directory (AAD) endpoint.            |
-| `AZURE_CLIENT_ID`            | The client ID of the AAD application.                 |
-| `AZURE_TENANT_ID`            | The tenant ID of the registered AAD application.      |
-| `AZURE_FEDERATED_TOKEN_FILE` | The path of the projected service account token file. |
+| Environment variable         | Description                                                                        |
+| ---------------------------- | ---------------------------------------------------------------------------------- |
+| `AZURE_AUTHORITY_HOST`       | The Azure Active Directory (AAD) endpoint.                                         |
+| `AZURE_CLIENT_ID`            | The client ID of the AAD application or user-assigned managed identity.            |
+| `AZURE_TENANT_ID`            | The tenant ID of the registered AAD application or user-assigned managed identity. |
+| `AZURE_FEDERATED_TOKEN_FILE` | The path of the projected service account token file.                              |
 
 <br/>
 
@@ -371,6 +412,7 @@ kubectl delete pod quick-start
 kubectl delete sa "${SERVICE_ACCOUNT_NAME}" --namespace "${SERVICE_ACCOUNT_NAMESPACE}"
 
 az group delete --name "${RESOURCE_GROUP}"
+# if you used Azure AD Application for tutorial, delete it by running the following command
 az ad sp delete --id "${APPLICATION_CLIENT_ID}"
 ```
 
