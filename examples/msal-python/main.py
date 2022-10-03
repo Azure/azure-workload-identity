@@ -5,7 +5,7 @@ from azure.keyvault.secrets import SecretClient
 from token_credential import MyClientAssertionCredential
 
 def main():
-    # get enviornment variables to authenticate to the key vault
+    # get environment variables to authenticate to the key vault
     azure_client_id = os.getenv('AZURE_CLIENT_ID', '')
     azure_tenant_id = os.getenv('AZURE_TENANT_ID', '')
     azure_authority_host = os.getenv('AZURE_AUTHORITY_HOST', '')
