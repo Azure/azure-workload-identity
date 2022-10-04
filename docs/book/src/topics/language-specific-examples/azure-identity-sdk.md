@@ -14,6 +14,7 @@ The following client libraries are the **minimum** version required
 
 ### Using `DefaultAzureCredential`
 
-| Language | Library                                                               | Example                                                                                           |
-| -------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Python   | [azure-sdk-for-python](https://github.com/Azure/azure-sdk-for-python) | [Link](https://github.com/Azure/azure-workload-identity/tree/main/examples/azure-identity/python) |
+| Language              | Library                                                               | Example                                                                                           |
+| --------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Python                | [azure-sdk-for-python](https://github.com/Azure/azure-sdk-for-python) | [Link](https://github.com/Azure/azure-workload-identity/tree/main/examples/azure-identity/python) |
+| JavaScript/TypeScript | [azure-sdk-for-js](https://github.com/Azure/azure-sdk-for-js)         | [Link](https://github.com/Azure/azure-workload-identity/tree/main/examples/azure-identity/node)   |
