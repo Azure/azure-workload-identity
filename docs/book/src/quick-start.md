@@ -122,9 +122,10 @@ if using user-assigned managed identity:
 
 ```bash
 export USER_ASSIGNED_IDENTITY_CLIENT_ID="$(az identity show --name "${USER_ASSIGNED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP}" --query 'clientId' -otsv)"
+export USER_ASSIGNED_IDENTITY_PRINCIPAL_ID="$(az identity show --name "${USER_ASSIGNED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP}" --query 'principalId' -otsv)"
 az keyvault set-policy --name "${KEYVAULT_NAME}" \
   --secret-permissions get \
-  --object-id "${USER_ASSIGNED_IDENTITY_CLIENT_ID}"
+  --object-id "${USER_ASSIGNED_IDENTITY_PRINCIPAL_ID}"
 ```
 
 ## 5. Create a Kubernetes service account
