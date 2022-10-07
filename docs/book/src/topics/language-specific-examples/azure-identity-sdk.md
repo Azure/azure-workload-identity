@@ -19,3 +19,4 @@ The following client libraries are the **minimum** version required
 | Python                | [azure-sdk-for-python](https://github.com/Azure/azure-sdk-for-python) | [Link](https://github.com/Azure/azure-workload-identity/tree/main/examples/azure-identity/python) |
 | JavaScript/TypeScript | [azure-sdk-for-js](https://github.com/Azure/azure-sdk-for-js)         | [Link](https://github.com/Azure/azure-workload-identity/tree/main/examples/azure-identity/node)   |
 | C#                    | [azure-sdk-for-net](https://github.com/Azure/azure-sdk-for-net)       | [Link](https://github.com/Azure/azure-workload-identity/tree/main/examples/azure-identity/dotnet) |
+| Java                  | [azure-sdk-for-java](https://github.com/Azure/azure-sdk-for-java)     | [Link](https://github.com/Azure/azure-workload-identity/tree/main/examples/azure-identity/java)   |
