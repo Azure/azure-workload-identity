@@ -17,6 +17,13 @@ To get your cluster's OIDC issuer URL run:
 az aks show --resource-group <resource_group> --name <cluster_name> --query "oidcIssuerProfile.issuerUrl" -otsv
 ```
 
+Ensure your cluster is running a mutating admission webhook. If your cluster is not running a webhook, follow the instructions at [Mutating Admission Webhook](./mutating-admission-webhook.md).
+```bash
+kubectl get mutatingwebhookconfigurations.admissionregistration.k8s.io | grep azure-wi-webhook-mutating-webhook-configuration
+# You should see a webhook running
+azure-wi-webhook-mutating-webhook-configuration   1          28m
+```
+
 ## Amazon Elastic Kubernetes Service (EKS)
 
 EKS cluster has an OIDC issuer URL associated with it by default. To get your cluster's OIDC issuer URL run:
