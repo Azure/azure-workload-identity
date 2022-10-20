@@ -14,13 +14,13 @@ We use GitHub Actions to automate our release process.
 
 ![Review and approve the release pull request][2]
 
-## 3. Verify that the create_tag action is triggered after the release pull request is merged
+## 3. Verify that the `create_release` action is triggered after the release pull request is merged
 
-![Verify that the create_tag action is triggered after the release pull request is merged][3]
+![Verify that the create_release action is triggered after the release pull request is merged][3]
 
-## 4. Verify that the tag is successfully created
+## 4. Verify that the tag and release is successfully created
 
-![Verify that the tag is successfully created][4]
+![Verify that the tag and release is successfully created][4]
 
 [1]: ../images/release-step-1.png
 [2]: ../images/release-step-2.png
