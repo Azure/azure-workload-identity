@@ -71,7 +71,7 @@ The deployment YAML contains the environment variables we defined above and we r
 Install the webhook using the deployment YAML via `kubectl apply -f` and `envsubst`:
 
 ```bash
-curl -sL https://github.com/Azure/azure-workload-identity/releases/download/v0.13.0/azure-wi-webhook.yaml | envsubst | kubectl apply -f -
+curl -sL https://github.com/Azure/azure-workload-identity/releases/download/v0.14.0/azure-wi-webhook.yaml | envsubst | kubectl apply -f -
 ```
 
 <details>
