@@ -159,6 +159,7 @@
 </li>
 <li><a href="#ensure-the-service-account-is-labeled-with-azureworkloadidentityusetrue">Ensure the service account is labeled with <code>azure.workload.identity/use=true</code></a></li>
 <li><a href="#aadsts70021-no-matching-federated-identity-record-found-for-presented-assertion">AADSTS70021: No matching federated identity record found for presented assertion.</a></li>
+<li><a href="#aadsts90061-request-to-external-oidc-endpoint-failed">AADSTS90061: Request to External OIDC endpoint failed.</a></li>
 </ul>
 <p>An overview of a list of components to assist in troubleshooting.</p>
 <h2 id="logging"><a class="header" href="#logging">Logging</a></h2>
@@ -191,6 +192,32 @@ E0120 22:55:12.472912       1 token_credential.go:70] &quot;failed to acquire to
 </code></pre>
 <p>If you encounter the error above, it means that the issuer of the service account token does not match the issuer you defined in the federated identity credential. In the case of an AKS cluster with OIDC issuer enabled, the most common cause is when the user is missing the trailing <code>/</code> when creating the federated identity credential (e.g. <code>https://oidc.prod-aks.azure.com/XXXXXX</code> vs <code>https://oidc.prod-aks.azure.com/XXXXXX/</code>).</p>
 <p>You can follow <a href="./installation/managed-clusters.html#steps-to-get-the-oidc-issuer-url-from-a-generic-managed-cluster">this guide</a> on how to get the token issuer of your cluster.</p>
+<h2 id="aadsts90061-request-to-external-oidc-endpoint-failed"><a class="header" href="#aadsts90061-request-to-external-oidc-endpoint-failed">AADSTS90061: Request to External OIDC endpoint failed.</a></h2>
+<pre><code> ---&gt; MSAL.NetCore.4.39.0.0.MsalServiceException:
+        ErrorCode: invalid_request
+Microsoft.Identity.Client.MsalServiceException: AADSTS90061: Request to External OIDC endpoint failed.
+Trace ID: 86c81de3-efbd-4c0f-854d-cb8f329e5b00
+Correlation ID: a92568a5-cc37-4136-ad4d-1ba82988abc2
+Timestamp: 2022-10-21 04:36:48Z
+   at Microsoft.Identity.Client.Internal.Requests.RequestBase.HandleTokenRefreshErrorAsync(MsalServiceException e, MsalAccessTokenCacheItem cachedAccessTokenItem)
+   at Microsoft.Identity.Client.Internal.Requests.ClientCredentialRequest.ExecuteAsync(CancellationToken cancellationToken)
+   at Microsoft.Identity.Client.Internal.Requests.RequestBase.RunAsync(CancellationToken cancellationToken)
+   at Microsoft.Identity.Client.ApiConfig.Executors.ConfidentialClientExecutor.ExecuteAsync(AcquireTokenCommonParameters commonParameters, AcquireTokenForClientParameters clientParameters, CancellationToken cancellationToken)
+   at Azure.Identity.AbstractAcquireTokenParameterBuilderExtensions.ExecuteAsync[T](AbstractAcquireTokenParameterBuilder`1 builder, Boolean async, CancellationToken cancellationToken)
+   at Azure.Identity.MsalConfidentialClient.AcquireTokenForClientCoreAsync(String[] scopes, String tenantId, Boolean async, CancellationToken cancellationToken)
+   at Azure.Identity.MsalConfidentialClient.AcquireTokenForClientAsync(String[] scopes, String tenantId, Boolean async, CancellationToken cancellationToken)
+   at Azure.Identity.ClientAssertionCredential.GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
+        StatusCode: 400
+        ResponseBody: {&quot;error&quot;:&quot;invalid_request&quot;,&quot;error_description&quot;:&quot;AADSTS90061: Request to External OIDC endpoint failed.\r\nTrace ID: 86c81de3-efbd-4c0f-854d-cb8f329e5b00\r\nCorrelation ID: a92568a5-cc37-4136-ad4d-1ba82988abc2\r\nTimestamp: 2022-10-21 04:36:48Z&quot;,&quot;error_codes&quot;:[90061],&quot;timestamp&quot;:&quot;2022-10-21 04:36:48Z&quot;,&quot;trace_id&quot;:&quot;86c81de3-efbd-4c0f-854d-cb8f329e5b00&quot;,&quot;correlation_id&quot;:&quot;a92568a5-cc37-4136-ad4d-1ba82988abc2&quot;}
+...
+</code></pre>
+<p>If you encounter the error above, it means the OIDC issuer endpoint is not exposed to the internet or is inaccessible. You can verify this by running the following commands to check if the endpoints are accessible:</p>
+<pre><code class="language-bash">export SERVICE_ACCOUNT_ISSUER=&quot;&lt;your service account issuer url&gt;&quot; # see section 1.1 on how to get the service account issuer url
+
+# check if the OIDC issuer endpoint is accessible
+curl ${SERVICE_ACCOUNT_ISSUER}/.well-known/openid-configuration
+curl ${SERVICE_ACCOUNT_ISSUER}/openid/v1/jwks
+</code></pre>
 
                     </main>
 
