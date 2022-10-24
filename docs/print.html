@@ -1901,8 +1901,8 @@ ALL_IMAGES=webhook make clean docker-build docker-push-manifest deploy
 <ul>
 <li><a href="development/releasing.html#1-create-a-release-pull-request">1. Create a release pull request</a></li>
 <li><a href="development/releasing.html#2-review-and-approve-the-release-pull-request">2. Review and approve the release pull request</a></li>
-<li><a href="development/releasing.html#3-verify-that-the-create_tag-action-is-triggered-after-the-release-pull-request-is-merged">3. Verify that the create_tag action is triggered after the release pull request is merged</a></li>
-<li><a href="development/releasing.html#4-verify-that-the-tag-is-successfully-created">4. Verify that the tag is successfully created</a></li>
+<li><a href="development/releasing.html#3-verify-that-the-create_release-action-is-triggered-after-the-release-pull-request-is-merged">3. Verify that the <code>create_release</code> action is triggered after the release pull request is merged</a></li>
+<li><a href="development/releasing.html#4-verify-that-the-tag-and-release-is-successfully-created">4. Verify that the tag and release is successfully created</a></li>
 </ul>
 <p>Currently, Azure Workload Identity releases on a monthly basis, targeting the last week of the month.</p>
 <p>We use GitHub Actions to automate our release process.</p>
@@ -1910,10 +1910,10 @@ ALL_IMAGES=webhook make clean docker-build docker-push-manifest deploy
 <p><img src="development/../images/release-step-1.png" alt="Create a release pull request" /></p>
 <h2 id="2-review-and-approve-the-release-pull-request"><a class="header" href="#2-review-and-approve-the-release-pull-request">2. Review and approve the release pull request</a></h2>
 <p><img src="development/../images/release-step-2.png" alt="Review and approve the release pull request" /></p>
-<h2 id="3-verify-that-the-create_tag-action-is-triggered-after-the-release-pull-request-is-merged"><a class="header" href="#3-verify-that-the-create_tag-action-is-triggered-after-the-release-pull-request-is-merged">3. Verify that the create_tag action is triggered after the release pull request is merged</a></h2>
-<p><img src="development/../images/release-step-3.png" alt="Verify that the create_tag action is triggered after the release pull request is merged" /></p>
-<h2 id="4-verify-that-the-tag-is-successfully-created"><a class="header" href="#4-verify-that-the-tag-is-successfully-created">4. Verify that the tag is successfully created</a></h2>
-<p><img src="development/../images/release-step-4.png" alt="Verify that the tag is successfully created" /></p>
+<h2 id="3-verify-that-the-create_release-action-is-triggered-after-the-release-pull-request-is-merged"><a class="header" href="#3-verify-that-the-create_release-action-is-triggered-after-the-release-pull-request-is-merged">3. Verify that the <code>create_release</code> action is triggered after the release pull request is merged</a></h2>
+<p><img src="development/../images/release-step-3.png" alt="Verify that the create_release action is triggered after the release pull request is merged" /></p>
+<h2 id="4-verify-that-the-tag-and-release-is-successfully-created"><a class="header" href="#4-verify-that-the-tag-and-release-is-successfully-created">4. Verify that the tag and release is successfully created</a></h2>
+<p><img src="development/../images/release-step-4.png" alt="Verify that the tag and release is successfully created" /></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="contributing"><a class="header" href="#contributing">Contributing</a></h1>
 <p>The Azure AD Workload Identity project welcomes contributions and suggestions. Most contributions require you to agree to a Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us the rights to use your contribution. For details, visit <a href="https://cla.microsoft.com">https://cla.microsoft.com</a>.</p>
 <p>When you submit a pull request, a CLA-bot will automatically determine whether you need to provide a CLA and decorate the PR appropriately (e.g., label, comment). Simply follow the instructions provided by the bot. You will only need to do this once across all repos using our CLA.</p>
