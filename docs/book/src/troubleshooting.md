@@ -58,3 +58,35 @@ If you encounter the error above, it means that the issuer of the service accoun
 You can follow [this guide](./installation/managed-clusters.md#steps-to-get-the-oidc-issuer-url-from-a-generic-managed-cluster) on how to get the token issuer of your cluster.
 
 [1]: https://github.com/Azure/azure-workload-identity/issues/new
+
+## AADSTS90061: Request to External OIDC endpoint failed.
+
+```
+ ---> MSAL.NetCore.4.39.0.0.MsalServiceException:
+        ErrorCode: invalid_request
+Microsoft.Identity.Client.MsalServiceException: AADSTS90061: Request to External OIDC endpoint failed.
+Trace ID: 86c81de3-efbd-4c0f-854d-cb8f329e5b00
+Correlation ID: a92568a5-cc37-4136-ad4d-1ba82988abc2
+Timestamp: 2022-10-21 04:36:48Z
+   at Microsoft.Identity.Client.Internal.Requests.RequestBase.HandleTokenRefreshErrorAsync(MsalServiceException e, MsalAccessTokenCacheItem cachedAccessTokenItem)
+   at Microsoft.Identity.Client.Internal.Requests.ClientCredentialRequest.ExecuteAsync(CancellationToken cancellationToken)
+   at Microsoft.Identity.Client.Internal.Requests.RequestBase.RunAsync(CancellationToken cancellationToken)
+   at Microsoft.Identity.Client.ApiConfig.Executors.ConfidentialClientExecutor.ExecuteAsync(AcquireTokenCommonParameters commonParameters, AcquireTokenForClientParameters clientParameters, CancellationToken cancellationToken)
+   at Azure.Identity.AbstractAcquireTokenParameterBuilderExtensions.ExecuteAsync[T](AbstractAcquireTokenParameterBuilder`1 builder, Boolean async, CancellationToken cancellationToken)
+   at Azure.Identity.MsalConfidentialClient.AcquireTokenForClientCoreAsync(String[] scopes, String tenantId, Boolean async, CancellationToken cancellationToken)
+   at Azure.Identity.MsalConfidentialClient.AcquireTokenForClientAsync(String[] scopes, String tenantId, Boolean async, CancellationToken cancellationToken)
+   at Azure.Identity.ClientAssertionCredential.GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
+        StatusCode: 400
+        ResponseBody: {"error":"invalid_request","error_description":"AADSTS90061: Request to External OIDC endpoint failed.\r\nTrace ID: 86c81de3-efbd-4c0f-854d-cb8f329e5b00\r\nCorrelation ID: a92568a5-cc37-4136-ad4d-1ba82988abc2\r\nTimestamp: 2022-10-21 04:36:48Z","error_codes":[90061],"timestamp":"2022-10-21 04:36:48Z","trace_id":"86c81de3-efbd-4c0f-854d-cb8f329e5b00","correlation_id":"a92568a5-cc37-4136-ad4d-1ba82988abc2"}
+...
+```
+
+If you encounter the error above, it means the OIDC issuer endpoint is not exposed to the internet or is inaccessible. You can verify this by running the following commands to check if the endpoints are accessible:
+
+```bash
+export SERVICE_ACCOUNT_ISSUER="<your service account issuer url>" # see section 1.1 on how to get the service account issuer url
+
+# check if the OIDC issuer endpoint is accessible
+curl ${SERVICE_ACCOUNT_ISSUER}/.well-known/openid-configuration
+curl ${SERVICE_ACCOUNT_ISSUER}/openid/v1/jwks
+```
