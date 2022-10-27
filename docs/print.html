@@ -608,7 +608,7 @@ mutatingwebhookconfiguration.admissionregistration.k8s.io/azure-wi-webhook-mutat
 <li><a href="quick-start.html#3-create-an-azure-key-vault-and-secret">3. Create an Azure Key Vault and secret</a></li>
 <li><a href="quick-start.html#4-create-an-aad-application-or-user-assigned-managed-identity-and-grant-permissions-to-access-the-secret">4. Create an AAD application or user-assigned managed identity and grant permissions to access the secret</a></li>
 <li><a href="quick-start.html#5-create-a-kubernetes-service-account">5. Create a Kubernetes service account</a></li>
-<li><a href="quick-start.html#6-establish-federated-identity-credential-between-the-aad-application-and-the-service-account-issuer--subject">6. Establish federated identity credential between the AAD application and the service account issuer &amp; subject</a></li>
+<li><a href="quick-start.html#6-establish-federated-identity-credential-between-the-identity-and-the-service-account-issuer--subject">6. Establish federated identity credential between the identity and the service account issuer &amp; subject</a></li>
 <li><a href="quick-start.html#7-deploy-workload">7. Deploy workload</a></li>
 <li><a href="quick-start.html#8-cleanup">8. Cleanup</a></li>
 </ul>
@@ -744,10 +744,10 @@ EOF
 </code></pre>
 </details>
 </details>
-<p>If the AAD application is not in the same tenant as the default tenant defined during installation, then annotate the service account with the application tenant ID:</p>
-<pre><code class="language-bash">kubectl annotate sa ${SERVICE_ACCOUNT_NAME} -n ${SERVICE_ACCOUNT_NAMESPACE} azure.workload.identity/tenant-id=&quot;${APPLICATION_TENANT_ID}&quot; --overwrite
+<p>If the AAD application or user-assigned managed identity is not in the same tenant as the default tenant defined during installation, then annotate the service account with the application or user-assigned managed identity tenant ID:</p>
+<pre><code class="language-bash">kubectl annotate sa ${SERVICE_ACCOUNT_NAME} -n ${SERVICE_ACCOUNT_NAMESPACE} azure.workload.identity/tenant-id=&quot;${APPLICATION_OR_USER_ASSIGNED_IDENTITY_TENANT_ID}&quot; --overwrite
 </code></pre>
-<h2 id="6-establish-federated-identity-credential-between-the-aad-application-and-the-service-account-issuer--subject"><a class="header" href="#6-establish-federated-identity-credential-between-the-aad-application-and-the-service-account-issuer--subject">6. Establish federated identity credential between the AAD application and the service account issuer &amp; subject</a></h2>
+<h2 id="6-establish-federated-identity-credential-between-the-identity-and-the-service-account-issuer--subject"><a class="header" href="#6-establish-federated-identity-credential-between-the-identity-and-the-service-account-issuer--subject">6. Establish federated identity credential between the identity and the service account issuer &amp; subject</a></h2>
 <details>
 <summary>Azure Workload Identity CLI</summary>
 <blockquote>
