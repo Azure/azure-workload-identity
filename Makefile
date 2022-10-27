@@ -305,7 +305,7 @@ test: generate manifests
 	go test -v ./... -coverprofile cover.out
 
 $(E2E_TEST):
-	go test -tags=e2e -c ./test/e2e -o $(E2E_TEST)
+	(cd test/e2e && go test -tags=e2e -c . -o $(E2E_TEST))
 
 # Ginkgo configurations
 GINKGO_FOCUS ?=
