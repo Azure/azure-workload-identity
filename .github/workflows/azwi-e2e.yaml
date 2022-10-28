@@ -3,7 +3,7 @@ name: Azure Workload Identity E2E
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * *' # nightly
+    - cron: "0 0 * * *" # nightly
   push:
     branches:
       - main
@@ -22,8 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # TODO(chewong): add windows and macos test env
-        env: [ubuntu-20.04]
+        env: [ubuntu-20.04, macos-11]
     runs-on: ${{ matrix.env }}
     steps:
       - name: Checkout
@@ -33,10 +32,8 @@ jobs:
       - uses: actions/setup-go@v3
         with:
           go-version: "1.19"
-      - name: Install Azure CLI latest
-        run: |
-          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-          az version
+      - name: Check Az CLI version
+        run: az version
       - name: Set variables
         id: variables
         run: |
