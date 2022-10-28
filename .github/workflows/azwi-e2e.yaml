@@ -8,6 +8,9 @@ on:
     branches:
       - main
       - release-**
+  pull_request:
+    branches:
+      - ci-az-env
 
 permissions:
   id-token: write
