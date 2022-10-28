@@ -24,7 +24,7 @@ jobs:
           go-version: "1.19"
       - id: get-tag
         name: Get tag
-        run: echo "::set-output name=tag::$(echo ${{ github.event.pull_request.head.ref }} | tr -d release-)"
+        run: echo "tag=$(echo ${{ github.event.pull_request.head.ref }} | tr -d release-)" >> $GITHUB_OUTPUT
       - name: Create tag
         run: |
           git tag ${{ steps.get-tag.outputs.tag }}

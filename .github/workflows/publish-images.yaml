@@ -18,7 +18,7 @@ jobs:
       - id: export
         run: |
           # registry must be in lowercase
-          echo "::set-output name=registry::$(echo "ghcr.io/${{ github.repository }}" | tr [:upper:] [:lower:])"
+          echo "registry=$(echo "ghcr.io/${{ github.repository }}" | tr [:upper:] [:lower:])" >> $GITHUB_OUTPUT
 
   publish-images:
     needs: export-registry

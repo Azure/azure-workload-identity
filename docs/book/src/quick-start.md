@@ -185,13 +185,13 @@ serviceaccount/workload-identity-sa created
 
 </details>
 
-If the AAD application is not in the same tenant as the default tenant defined during installation, then annotate the service account with the application tenant ID:
+If the AAD application or user-assigned managed identity is not in the same tenant as the default tenant defined during installation, then annotate the service account with the application or user-assigned managed identity tenant ID:
 
 ```bash
-kubectl annotate sa ${SERVICE_ACCOUNT_NAME} -n ${SERVICE_ACCOUNT_NAMESPACE} azure.workload.identity/tenant-id="${APPLICATION_TENANT_ID}" --overwrite
+kubectl annotate sa ${SERVICE_ACCOUNT_NAME} -n ${SERVICE_ACCOUNT_NAMESPACE} azure.workload.identity/tenant-id="${APPLICATION_OR_USER_ASSIGNED_IDENTITY_TENANT_ID}" --overwrite
 ```
 
-## 6. Establish federated identity credential between the AAD application and the service account issuer & subject
+## 6. Establish federated identity credential between the identity and the service account issuer & subject
 
 <details>
 <summary>Azure Workload Identity CLI</summary>
