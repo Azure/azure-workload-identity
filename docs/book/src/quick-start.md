@@ -166,7 +166,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   annotations:
-    azure.workload.identity/client-id: ${APPLICATION_CLIENT_ID:-USER_ASSIGNED_IDENTITY_CLIENT_ID}
+    azure.workload.identity/client-id: ${APPLICATION_CLIENT_ID:-$USER_ASSIGNED_IDENTITY_CLIENT_ID}
   labels:
     azure.workload.identity/use: "true"
   name: ${SERVICE_ACCOUNT_NAME}
