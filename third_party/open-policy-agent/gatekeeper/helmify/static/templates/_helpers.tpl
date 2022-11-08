@@ -49,3 +49,12 @@ Selector labels
 app.kubernetes.io/name: {{ include "workload-identity-webhook.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{/*
+Adds the pod labels.
+*/}}
+{{- define "workload-identity-webhook.podLabels" -}}
+{{- if .Values.podLabels }}
+{{- toYaml .Values.podLabels | nindent 8 }}
+{{- end }}
+{{- end }}
