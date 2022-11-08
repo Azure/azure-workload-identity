@@ -46,7 +46,7 @@ func TestProxy_MSIHandler(t *testing.T) {
 			name:               "client_id is missing",
 			path:               `/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fvault.azure.net%2F`,
 			expectedStatusCode: http.StatusBadRequest,
-			expectedBody:       "The client_id parameter is required.\n",
+			expectedBody:       "The client_id parameter or AZURE_CLIENT_ID environment variable must be set\n",
 		},
 		{
 			name:               "resource is missing",

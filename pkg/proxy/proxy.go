@@ -107,11 +107,16 @@ func (p *proxy) msiHandler(w http.ResponseWriter, r *http.Request) {
 	p.logger.Info("received token request", "method", r.Method, "uri", r.RequestURI)
 	w.Header().Set("Server", userAgent)
 	clientID, resource := parseTokenRequest(r)
-	// TODO (aramase) should we fallback to the clientID in the annotated service account
-	// if clientID not found in request? This is to keep consistent with the current behavior
-	// in pod identity v1 where we default the client id to the one in AzureIdentity.
+	// if clientID not found in request, then we default to the AZURE_CLIENT_ID if present.
+	// This is to keep consistent with the current behavior in pod identity v1 where we
+	// default the client id to the one in AzureIdentity.
 	if clientID == "" {
-		http.Error(w, "The client_id parameter is required.", http.StatusBadRequest)
+		p.logger.Info("client_id not found in request, defaulting to AZURE_CLIENT_ID", "method", r.Method, "uri", r.RequestURI)
+		clientID = os.Getenv(webhook.AzureClientIDEnvVar)
+	}
+
+	if clientID == "" {
+		http.Error(w, "The client_id parameter or AZURE_CLIENT_ID environment variable must be set", http.StatusBadRequest)
 		return
 	}
 	if resource == "" {
