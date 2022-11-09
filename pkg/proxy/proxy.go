@@ -200,11 +200,12 @@ func doTokenRequest(ctx context.Context, clientID, resource, tenantID, authority
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to acquire token")
 	}
-
 	return &token{
 		AccessToken: result.AccessToken,
 		Resource:    resource,
 		Type:        "Bearer",
+		// -10s is to account for current time changes between the calls
+		ExpiresIn: json.Number(strconv.FormatInt(int64(time.Until(result.ExpiresOn)/time.Second)-10, 10)),
 		// There is a difference in parsing between the azure sdks and how azure-cli works
 		// Using the unix time to be consistent with response from IMDS which works with
 		// all the clients.
