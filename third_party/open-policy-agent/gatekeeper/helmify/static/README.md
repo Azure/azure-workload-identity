@@ -31,7 +31,6 @@ helm upgrade -n azure-workload-identity-system [RELEASE_NAME] azure-workload-ide
 
 | Parameter                     | Description                                                                                                                                                          | Default                                                 |
 | :---------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------ |
-| labels                        | The labels to add to the azure-workload-identity webhook pods                                                                                                        | `azure-workload-identity.io/system: "true"`             |
 | replicaCount                  | The number of azure-workload-identity replicas to deploy for the webhook                                                                                             | `2`                                                     |
 | image.repository              | Image repository                                                                                                                                                     | `mcr.microsoft.com/oss/azure/workload-identity/webhook` |
 | image.pullPolicy              | Image pullPolicy                                                                                                                                                     | `IfNotPresent`                                          |
@@ -54,6 +53,7 @@ helm upgrade -n azure-workload-identity-system [RELEASE_NAME] azure-workload-ide
 | priorityClassName             | The priority class name for webhook manager                                                                                                                          | `system-cluster-critical`                               |
 | mutatingWebhookObjectSelector | The label selector to further refine which namespaced resources will be selected by the webhook.                                                                     | ``                                                      |
 | mutatingWebhookAnnotations    | The annotations to add to the MutatingWebhookConfiguration                                                                                                           | `{}`                                                    |
+| podLabels                     | The labels to add to the azure-workload-identity webhook pods                                                                                                        | `{}`                                                    |
 
 ## Contributing Changes
 

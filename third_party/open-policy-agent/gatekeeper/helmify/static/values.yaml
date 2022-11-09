@@ -2,8 +2,6 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-labels:
-  azure-workload-identity.io/system: "true"
 replicaCount: 2
 image:
   repository: mcr.microsoft.com/oss/azure/workload-identity/webhook
@@ -36,3 +34,4 @@ mutatingWebhookFailurePolicy: Ignore
 priorityClassName: system-cluster-critical
 mutatingWebhookObjectSelector: {}
 mutatingWebhookAnnotations: {}
+podLabels: {}

@@ -73,6 +73,10 @@ func (ks *kindSet) Write() error {
 			destFile := path.Join(*outputDir, subPath, fileName)
 			fmt.Printf("Writing %s\n", destFile)
 
+			if kind == "Deployment" {
+				obj = strings.Replace(obj, "      labels:", "      labels:\n{{- include \"workload-identity-webhook.podLabels\" . }}", 1)
+			}
+
 			if err := os.WriteFile(destFile, []byte(obj), 0600); err != nil {
 				return err
 			}
