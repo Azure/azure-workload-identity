@@ -213,7 +213,7 @@
 <p>For managed clusters, the service account signing keys will be set up and managed by the cloud provider.</p>
 <p>Before deploying Azure AD Workload Identity, you will need to enable any <strong>OIDC-specific</strong> feature flags and obtain the <strong>OIDC issuer URL</strong> when setting up the federated identity credentials.</p>
 <h2 id="azure-kubernetes-service-aks"><a class="header" href="#azure-kubernetes-service-aks">Azure Kubernetes Service (AKS)</a></h2>
-<p>To create a new AKS cluster with OIDC Issuer URL enabled or update an existing cluster, follow the instructions in the <a href="https://docs.microsoft.com/en-us/azure/aks/cluster-configuration#oidc-issuer-preview">Azure Kubernetes Service (AKS) documentation</a>.</p>
+<p>To create a new AKS cluster with OIDC Issuer URL enabled or update an existing cluster, follow the instructions in the <a href="https://learn.microsoft.com/azure/aks/cluster-configuration#oidc-issuer">Azure Kubernetes Service (AKS) documentation</a>.</p>
 <p>To get your cluster’s OIDC issuer URL run:</p>
 <pre><code class="language-bash"># Output the OIDC issuer URL
 az aks show --resource-group &lt;resource_group&gt; --name &lt;cluster_name&gt; --query &quot;oidcIssuerProfile.issuerUrl&quot; -otsv
