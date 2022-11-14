@@ -173,4 +173,4 @@ kubectl delete serviceaccount ${SERVICE_ACCOUNT_NAME} -n ${NAMESPACE}
 
 [3]: https://smallstep.com/cli/
 
-[4]: https://docs.microsoft.com/en-us/azure/aks/cluster-configuration#oidc-issuer-preview
+[4]: https://learn.microsoft.com/azure/aks/cluster-configuration#oidc-issuer
