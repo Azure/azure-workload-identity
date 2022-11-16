@@ -70,7 +70,7 @@ jobs:
       # contains the following environment variables:
       # - APPLICATION_CLIENT_ID
       # - AZURE_TENANT_ID
-      # - KEYVAULT_NAME
+      # - KEYVAULT_URL
       # - KEYVAULT_SECRET_NAME
       - group: e2e-environment-variables
       - name: REGISTRY
@@ -99,7 +99,7 @@ jobs:
         env:
           APPLICATION_CLIENT_ID: $(APPLICATION_CLIENT_ID)
           AZURE_TENANT_ID: $(AZURE_TENANT_ID)
-          KEYVAULT_NAME: $(KEYVAULT_NAME)
+          KEYVAULT_URL: $(KEYVAULT_URL)
           KEYVAULT_SECRET_NAME: $(KEYVAULT_SECRET_NAME)
       - template: templates/publish-logs.yaml
   - template: templates/upgrade.yaml
@@ -131,7 +131,7 @@ jobs:
       # contains the following environment variables:
       # - APPLICATION_CLIENT_ID
       # - AZURE_TENANT_ID
-      # - KEYVAULT_NAME
+      # - KEYVAULT_URL
       # - KEYVAULT_SECRET_NAME
       # - SERVICE_ACCOUNT_ISSUER
       # - SERVICE_ACCOUNT_KEYVAULT_NAME
@@ -154,7 +154,7 @@ jobs:
         env:
           APPLICATION_CLIENT_ID: $(APPLICATION_CLIENT_ID)
           AZURE_TENANT_ID: $(AZURE_TENANT_ID)
-          KEYVAULT_NAME: $(KEYVAULT_NAME)
+          KEYVAULT_URL: $(KEYVAULT_URL)
           KEYVAULT_SECRET_NAME: $(KEYVAULT_SECRET_NAME)
           SERVICE_ACCOUNT_ISSUER: $(SERVICE_ACCOUNT_ISSUER)
           SERVICE_ACCOUNT_KEYVAULT_NAME: $(SERVICE_ACCOUNT_KEYVAULT_NAME)
