@@ -16,9 +16,10 @@ def main():
 
     keyvault_url = os.getenv('KEYVAULT_URL', '')
     if not keyvault_url:
-        keyvault_name = os.getenv('KEYVAULT_NAME', '')
-        keyvault_url='https://{}.vault.azure.net'.format(keyvault_name)
+        raise Exception('KEYVAULT_URL environment variable is not set')
     secret_name = os.getenv('SECRET_NAME', '')
+    if not secret_name:
+        raise Exception('SECRET_NAME environment variable is not set')
 
     # create a secret client with the token credential
     keyvault = SecretClient(vault_url=keyvault_url, credential=token_credential)

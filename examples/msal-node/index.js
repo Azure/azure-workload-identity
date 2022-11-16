@@ -40,10 +40,18 @@ const main = async () => {
     // create a token credential object, which has a getToken method that returns a token
     const tokenCredential = new MyClientAssertionCredential()
 
+    const keyvaultURL = process.env.KEYVAULT_URL
+    if (!keyvaultURL) {
+        throw new Error("KEYVAULT_URL environment variable not set")
+    }
+    const secretName = process.env.SECRET_NAME
+    if (!secretName) {
+        throw new Error("SECRET_NAME environment variable not set")
+    }
+
     // create a secret client with the token credential
-    const url = `https://${process.env.KEYVAULT_NAME}.vault.azure.net`
-    const keyvault = new SecretClient(url, tokenCredential)
-    const secret = await keyvault.getSecret(process.env.SECRET_NAME).catch(error => console.log(error))
+    const keyvault = new SecretClient(keyvaultURL, tokenCredential)
+    const secret = await keyvault.getSecret(secretName).catch(error => console.log(error))
     console.log(`successfully got secret, secret=${secret.value}`)
 }
 
