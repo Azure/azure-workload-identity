@@ -281,8 +281,6 @@ spec:
     - image: ghcr.io/azure/azure-workload-identity/msal-go
       name: oidc
       env:
-      - name: KEYVAULT_NAME
-        value: ${KEYVAULT_NAME}
       - name: KEYVAULT_URL
         value: ${KEYVAULT_URL}
       - name: SECRET_NAME
@@ -349,7 +347,7 @@ Containers:
     Ready:          True
     Restart Count:  0
     Environment:
-      KEYVAULT_NAME:              ${KEYVAULT_NAME}
+      KEYVAULT_URL:               ${KEYVAULT_URL}
       SECRET_NAME:                ${KEYVAULT_SECRET_NAME}
       AZURE_AUTHORITY_HOST:       (Injected by the webhook)
       AZURE_CLIENT_ID:            (Injected by the webhook)
