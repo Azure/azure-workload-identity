@@ -13,11 +13,15 @@ namespace akvdotnet
             Program P = new Program();
             string keyvaultURL = Environment.GetEnvironmentVariable("KEYVAULT_URL");
             if (string.IsNullOrEmpty(keyvaultURL)) {
-                string keyvaultName = Environment.GetEnvironmentVariable("KEYVAULT_NAME");
-                keyvaultURL = "https://" + keyvaultName + ".vault.azure.net/";
+                Console.WriteLine("KEYVAULT_URL environment variable not set");
+                return;
             }
 
             string secretName = Environment.GetEnvironmentVariable("SECRET_NAME");
+            if (string.IsNullOrEmpty(secretName)) {
+                Console.WriteLine("SECRET_NAME environment variable not set");
+                return;
+            }
 
             SecretClient client = new SecretClient(
                 new Uri(keyvaultURL),

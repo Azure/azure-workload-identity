@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"time"
 
@@ -13,12 +12,13 @@ import (
 
 func main() {
 	keyvaultURL := os.Getenv("KEYVAULT_URL")
-        if keyvaultURL == "" {
-                keyvaultName := os.Getenv("KEYVAULT_NAME")
-		// fallback to use global cloud
-                keyvaultURL = fmt.Sprintf("https://%s.vault.azure.net/", keyvaultName)
-        }
-        secretName := os.Getenv("SECRET_NAME")
+	if keyvaultURL == "" {
+		klog.Fatal("KEYVAULT_URL environment variable is not set")
+	}
+	secretName := os.Getenv("SECRET_NAME")
+	if secretName == "" {
+		klog.Fatal("SECRET_NAME environment variable is not set")
+	}
 
 	// initialize keyvault client with custom authorizer
 	kvClient := keyvault.New()

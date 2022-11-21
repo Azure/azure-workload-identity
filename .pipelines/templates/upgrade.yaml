@@ -14,7 +14,7 @@ jobs:
       # contains the following environment variables:
       # - APPLICATION_CLIENT_ID
       # - AZURE_TENANT_ID
-      # - KEYVAULT_NAME
+      # - KEYVAULT_URL
       # - KEYVAULT_SECRET_NAME
       - group: e2e-environment-variables
       - name: REGISTRY
@@ -30,7 +30,7 @@ jobs:
           SKIP_CLEANUP: "true"
           APPLICATION_CLIENT_ID: $(APPLICATION_CLIENT_ID)
           AZURE_TENANT_ID: $(AZURE_TENANT_ID)
-          KEYVAULT_NAME: $(KEYVAULT_NAME)
+          KEYVAULT_URL: $(KEYVAULT_URL)
           KEYVAULT_SECRET_NAME: $(KEYVAULT_SECRET_NAME)
       - script: |
           # xref: https://github.com/Azure/secrets-store-csi-driver-provider-azure/blob/512316adc9daa2216de10a6288f6c1df8a122654/.pipelines/templates/aks-upgrade.yaml#L3-L8
@@ -58,7 +58,7 @@ jobs:
         env:
           APPLICATION_CLIENT_ID: $(APPLICATION_CLIENT_ID)
           AZURE_TENANT_ID: $(AZURE_TENANT_ID)
-          KEYVAULT_NAME: $(KEYVAULT_NAME)
+          KEYVAULT_URL: $(KEYVAULT_URL)
           KEYVAULT_SECRET_NAME: $(KEYVAULT_SECRET_NAME)
       - script: az group delete --name "${CLUSTER_NAME}" --yes --no-wait || true
         displayName: Cleanup

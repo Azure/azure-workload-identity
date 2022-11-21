@@ -29,8 +29,8 @@ var _ = ginkgo.Describe("TokenExchange [AKSSoakOnly] [Exclude:Arc]", func() {
 	ginkgo.It("should exchange the service account token for a valid AAD token", func() {
 		clientID, ok := os.LookupEnv("APPLICATION_CLIENT_ID")
 		gomega.Expect(ok).To(gomega.BeTrue(), "APPLICATION_CLIENT_ID must be set")
-		keyvaultName, ok := os.LookupEnv("KEYVAULT_NAME")
-		gomega.Expect(ok).To(gomega.BeTrue(), "KEYVAULT_NAME must be set")
+		keyvaultURL, ok := os.LookupEnv("KEYVAULT_URL")
+		gomega.Expect(ok).To(gomega.BeTrue(), "KEYVAULT_URL must be set")
 		keyvaultSecretName, ok := os.LookupEnv("KEYVAULT_SECRET_NAME")
 		gomega.Expect(ok).To(gomega.BeTrue(), "KEYVAULT_SECRET_NAME must be set")
 
@@ -47,8 +47,8 @@ var _ = ginkgo.Describe("TokenExchange [AKSSoakOnly] [Exclude:Arc]", func() {
 			nil,
 			nil,
 			[]corev1.EnvVar{{
-				Name:  "KEYVAULT_NAME",
-				Value: keyvaultName,
+				Name:  "KEYVAULT_URL",
+				Value: keyvaultURL,
 			}, {
 				Name:  "SECRET_NAME",
 				Value: keyvaultSecretName,
