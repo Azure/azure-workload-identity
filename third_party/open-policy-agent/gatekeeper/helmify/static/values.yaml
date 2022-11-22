@@ -35,3 +35,4 @@ priorityClassName: system-cluster-critical
 mutatingWebhookObjectSelector: {}
 mutatingWebhookAnnotations: {}
 podLabels: {}
+mutatingWebhookNamespaceSelector: {}
