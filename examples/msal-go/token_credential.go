@@ -4,83 +4,72 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/AzureAD/microsoft-authentication-library-for-go/apps/confidential"
-	"github.com/pkg/errors"
-	"k8s.io/klog/v2"
 )
 
-// authResult contains the subset of results from token acquisition operation in ConfidentialClientApplication
-// For details see https://aka.ms/msal-net-authenticationresult
-type authResult struct {
-	accessToken    string
-	expiresOn      time.Time
-	grantedScopes  []string
-	declinedScopes []string
+// clientAssertionCredential authenticates an application with assertions provided by a callback function.
+type clientAssertionCredential struct {
+	assertion, file string
+	client          confidential.Client
+	lastRead        time.Time
 }
 
-func clientAssertionBearerAuthorizerCallback(tenantID, resource string) (*autorest.BearerAuthorizer, error) {
-	// Azure AD Workload Identity webhook will inject the following env vars
-	// 	AZURE_CLIENT_ID with the clientID set in the service account annotation
-	// 	AZURE_TENANT_ID with the tenantID set in the service account annotation. If not defined, then
-	// 	the tenantID provided via azure-wi-webhook-config for the webhook will be used.
-	// 	AZURE_FEDERATED_TOKEN_FILE is the service account token path
-	// 	AZURE_AUTHORITY_HOST is the AAD authority hostname
-	clientID := os.Getenv("AZURE_CLIENT_ID")
-	tokenFilePath := os.Getenv("AZURE_FEDERATED_TOKEN_FILE")
-	authorityHost := os.Getenv("AZURE_AUTHORITY_HOST")
-
-	// generate a token using the msal confidential client
-	// this will always generate a new token request to AAD
-	// TODO (aramase) consider using acquire token silent (https://github.com/Azure/azure-workload-identity/issues/76)
-
-	cred := confidential.NewCredFromAssertionCallback(func(context.Context, confidential.AssertionRequestOptions) (string, error) {
-		return readJWTFromFS(tokenFilePath)
-	})
-	// create the confidential client to request an AAD token
-	confidentialClientApp, err := confidential.New(
-		clientID,
-		cred,
-		confidential.WithAuthority(fmt.Sprintf("%s%s/oauth2/token", authorityHost, tenantID)))
-	if err != nil {
-		klog.ErrorS(err, "failed to create confidential client")
-		return nil, errors.Wrap(err, "failed to create confidential client app")
-	}
-
-	// trim the suffix / if exists
-	resource = strings.TrimSuffix(resource, "/")
-	// .default needs to be added to the scope
-	if !strings.HasSuffix(resource, ".default") {
-		resource += "/.default"
-	}
-
-	result, err := confidentialClientApp.AcquireTokenByCredential(context.Background(), []string{resource})
-	if err != nil {
-		klog.ErrorS(err, "failed to acquire token")
-		return nil, errors.Wrap(err, "failed to acquire token")
-	}
-
-	return autorest.NewBearerAuthorizer(authResult{
-		accessToken:    result.AccessToken,
-		expiresOn:      result.ExpiresOn,
-		grantedScopes:  result.GrantedScopes,
-		declinedScopes: result.DeclinedScopes,
-	}), nil
+// clientAssertionCredentialOptions contains optional parameters for ClientAssertionCredential.
+type clientAssertionCredentialOptions struct {
+	azcore.ClientOptions
 }
 
-// OAuthToken implements the OAuthTokenProvider interface.  It returns the current access token.
-func (ar authResult) OAuthToken() string {
-	return ar.accessToken
+// newClientAssertionCredential constructs a clientAssertionCredential. Pass nil for options to accept defaults.
+func newClientAssertionCredential(tenantID, clientID, authorityHost, file string, options *clientAssertionCredentialOptions) (*clientAssertionCredential, error) {
+	c := &clientAssertionCredential{file: file}
+
+	if options == nil {
+		options = &clientAssertionCredentialOptions{}
+	}
+
+	cred := confidential.NewCredFromAssertionCallback(
+		func(ctx context.Context, _ confidential.AssertionRequestOptions) (string, error) {
+			return c.getAssertion(ctx)
+		},
+	)
+
+	client, err := confidential.New(clientID, cred, confidential.WithAuthority(fmt.Sprintf("%s%s/oauth2/token", authorityHost, tenantID)))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create confidential client: %w", err)
+	}
+	c.client = client
+
+	return c, nil
 }
 
-// readJWTFromFS reads the jwt from file system
-func readJWTFromFS(tokenFilePath string) (string, error) {
-	token, err := os.ReadFile(tokenFilePath)
+// GetToken implements the TokenCredential interface
+func (c *clientAssertionCredential) GetToken(ctx context.Context, opts policy.TokenRequestOptions) (azcore.AccessToken, error) {
+	// get the token from the confidential client
+	token, err := c.client.AcquireTokenByCredential(ctx, opts.Scopes)
 	if err != nil {
-		return "", err
+		return azcore.AccessToken{}, err
 	}
-	return string(token), nil
+
+	return azcore.AccessToken{
+		Token:     token.AccessToken,
+		ExpiresOn: token.ExpiresOn,
+	}, nil
+}
+
+// getAssertion reads the assertion from the file and returns it
+// if the file has not been read in the last 5 minutes
+func (c *clientAssertionCredential) getAssertion(context.Context) (string, error) {
+	if now := time.Now(); c.lastRead.Add(5 * time.Minute).Before(now) {
+		content, err := os.ReadFile(c.file)
+		if err != nil {
+			return "", err
+		}
+		c.assertion = string(content)
+		c.lastRead = now
+	}
+	return c.assertion, nil
 }
