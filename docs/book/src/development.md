@@ -52,7 +52,7 @@ writing RSA key
 Azure blob storage will be used to host the OIDC discovery document and JWKS. However, you can host them in anywhere, as long as they are publicly available.
 
 ```bash
-export AZURE_STORAGE_ACCOUNT="pmi$(openssl rand -hex 4)"
+export AZURE_STORAGE_ACCOUNT="azwi$(openssl rand -hex 4)"
 export AZURE_STORAGE_CONTAINER="oidc-test"
 az storage account create --resource-group "${RESOURCE_GROUP}" --name "${AZURE_STORAGE_ACCOUNT}"
 az storage container create --name "${AZURE_STORAGE_CONTAINER}" --public-access container
