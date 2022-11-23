@@ -26,3 +26,28 @@ It takes a few seconds for the federated identity credential to be propagated af
 ## What is the Azure Workload Identity release schedule?
 
 Currently, we release on a monthly basis, targeting the last week of the month.
+
+## What permissions are required to create a federated identity credential for Azure AD Application?
+
+One of the following roles is required:
+
+- [Application Administrator](https://learn.microsoft.com/en-us/azure/active-directory/roles/permissions-reference#application-administrator)
+- [Application Developer](https://learn.microsoft.com/en-us/azure/active-directory/roles/permissions-reference#application-developer)
+- [Cloud Application Administrator](https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#cloud-application-administrator)
+- [Application Owner](https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#application-owner)
+
+Required permissions to create/update/delete federated identity credential:
+
+- [`microsoft.directory/applications/credentials/update`](https://learn.microsoft.com/en-us/azure/active-directory/roles/custom-available-permissions#microsoftdirectoryapplicationscredentialsupdate)
+
+## What permissions are required to create a federated identity credential for user-assigned managed identity?
+
+One of the following roles is required:
+
+- [Owner](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#owner)
+- [Contributor](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#contributor)
+
+Required permissions to create/update/delete federated identity credential:
+
+- `Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials/write`
+- `Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials/delete`
