@@ -161,6 +161,29 @@ federated identity credentials that reference the same service account in your K
 <p>It takes a few seconds for the federated identity credential to be propagated after being initially added. If a token request is made immediately after adding the federated identity credential, it <strong>might</strong> lead to failure for a couple of minutes as the cache is populated in the directory with old data. To avoid this issue, you can add a slight delay after adding the federated identity credential.</p>
 <h2 id="what-is-the-azure-workload-identity-release-schedule"><a class="header" href="#what-is-the-azure-workload-identity-release-schedule">What is the Azure Workload Identity release schedule?</a></h2>
 <p>Currently, we release on a monthly basis, targeting the last week of the month.</p>
+<h2 id="what-permissions-are-required-to-create-a-federated-identity-credential-for-azure-ad-application"><a class="header" href="#what-permissions-are-required-to-create-a-federated-identity-credential-for-azure-ad-application">What permissions are required to create a federated identity credential for Azure AD Application?</a></h2>
+<p>One of the following roles is required:</p>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/azure/active-directory/roles/permissions-reference#application-administrator">Application Administrator</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/active-directory/roles/permissions-reference#application-developer">Application Developer</a></li>
+<li><a href="https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#cloud-application-administrator">Cloud Application Administrator</a></li>
+<li><a href="https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#application-owner">Application Owner</a></li>
+</ul>
+<p>Required permissions to create/update/delete federated identity credential:</p>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/azure/active-directory/roles/custom-available-permissions#microsoftdirectoryapplicationscredentialsupdate"><code>microsoft.directory/applications/credentials/update</code></a></li>
+</ul>
+<h2 id="what-permissions-are-required-to-create-a-federated-identity-credential-for-user-assigned-managed-identity"><a class="header" href="#what-permissions-are-required-to-create-a-federated-identity-credential-for-user-assigned-managed-identity">What permissions are required to create a federated identity credential for user-assigned managed identity?</a></h2>
+<p>One of the following roles is required:</p>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#owner">Owner</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#contributor">Contributor</a></li>
+</ul>
+<p>Required permissions to create/update/delete federated identity credential:</p>
+<ul>
+<li><code>Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials/write</code></li>
+<li><code>Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials/delete</code></li>
+</ul>
 
                     </main>
 
