@@ -117,8 +117,13 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) admissio
 		}
 	}
 
-	// check if the service account has the annotation
-	if !isServiceAccountAnnotated(serviceAccount) {
+	// mutate pod if the service account or pod is annotated
+	// service account annotated with "azure.workload-identity/use" in annotation or label is current behavior
+	// pod labeled with "azure.workload-identity/use" is added for backward compatibility in v0.15.0 release
+	// This check will eventually be removed in a future release (tentatively v1.0.0-alpha) and all pods will be
+	// mutated. (ref: https://github.com/Azure/azure-workload-identity/issues/601)
+	shouldMutatePod := isServiceAccountAnnotated(serviceAccount) || isPodAnnotated(pod)
+	if !shouldMutatePod {
 		logger.Info("service account not annotated")
 		return admission.Allowed("service account not annotated")
 	}
@@ -277,6 +282,13 @@ func isServiceAccountAnnotated(sa *corev1.ServiceAccount) bool {
 	_, isLabeled := sa.Labels[UseWorkloadIdentityLabel]
 	_, isAnnotated := sa.Annotations[UseWorkloadIdentityLabel]
 	return isLabeled || isAnnotated
+}
+
+// isPodAnnotated checks if the pod has been annotated to use with workload identity
+// "azure.workload.identity/use" needs to be available either in labels
+func isPodAnnotated(pod *corev1.Pod) bool {
+	_, isLabeled := pod.Labels[UseWorkloadIdentityLabel]
+	return isLabeled
 }
 
 func shouldInjectProxySidecar(pod *corev1.Pod) bool {
