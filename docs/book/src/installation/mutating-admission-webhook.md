@@ -1,5 +1,7 @@
 # Mutating Admission Webhook
 
+<!-- toc -->
+
 Azure AD Workload Identity uses a [mutating admission webhook][1] to project a signed service account token to your workload's volume and inject the following properties to pods with a service account that is configured to use the webhook:
 
 <details>
