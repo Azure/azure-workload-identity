@@ -60,7 +60,7 @@ BODY="{'principalId':'${APPLICATION_OBJECT_ID}','resourceId':'${GRAPH_RESOURCE_I
 az rest --method post --uri "${URI}" --body "${BODY}" --headers "Content-Type=application/json"
 ```
 
-### Environment variables not injected into pods deployed in the kube-system namespace in an AKS cluster
+## Environment variables not injected into pods deployed in the kube-system namespace in an AKS cluster
 
 To protect the stability of the system and prevent custom admission controllers from impacting internal services in the kube-system, namespace AKS has an Admissions Enforcer, which automatically excludes kube-system and AKS internal namespaces. Refer to [doc](https://docs.microsoft.com/en-us/azure/aks/faq#can-admission-controller-webhooks-impact-kube-system-and-internal-aks-namespaces) for more details.
 
