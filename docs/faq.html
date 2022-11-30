@@ -147,6 +147,15 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="frequently-asked-questions"><a class="header" href="#frequently-asked-questions">Frequently Asked Questions</a></h1>
+<ul>
+<li><a href="#how-does-the-azwi-cli-differ-from-the-azure-cli">How does the azwi-cli differ from the azure-cli?</a></li>
+<li><a href="#how-is-azure-workload-identity-different-from-aad-pod-identity-v2">How is azure-workload-identity different from aad-pod-identity v2?</a></li>
+<li><a href="#how-to-federate-multiple-identities-with-a-kubernetes-service-account">How to federate multiple identities with a Kubernetes service account?</a></li>
+<li><a href="#is-there-a-propagation-delay-after-creating-a-federated-identity-credential">Is there a propagation delay after creating a federated identity credential?</a></li>
+<li><a href="#what-is-the-azure-workload-identity-release-schedule">What is the Azure Workload Identity release schedule?</a></li>
+<li><a href="#what-permissions-are-required-to-create-a-federated-identity-credential-for-azure-ad-application">What permissions are required to create a federated identity credential for Azure AD Application?</a></li>
+<li><a href="#what-permissions-are-required-to-create-a-federated-identity-credential-for-user-assigned-managed-identity">What permissions are required to create a federated identity credential for user-assigned managed identity?</a></li>
+</ul>
 <h2 id="how-does-the-azwi-cli-differ-from-the-azure-cli"><a class="header" href="#how-does-the-azwi-cli-differ-from-the-azure-cli">How does the azwi-cli differ from the azure-cli?</a></h2>
 <p>The azwi-cli tool is specific to the Azure Workload Identity support in Kubernetes to group several manual steps (e.g. the creation of federated identity credential, annotated service accounts, etc) and automate them. Comparing with the azure-cli, it does not have an official command to add/delete federated identity (configuring federated identity credential with <code>az rest</code> is available <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/workload-identity-federation-create-trust">here</a>)</p>
 <p>Azure CLI and AKS are currently working on the above requirements, as well as an Azure CLI extension that natively integrate this project with AKS clusters.</p>

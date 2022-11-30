@@ -147,6 +147,15 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="mutating-admission-webhook"><a class="header" href="#mutating-admission-webhook">Mutating Admission Webhook</a></h1>
+<ul>
+<li><a href="#prerequisites">Prerequisites</a></li>
+<li><a href="#helm-3-recommended">Helm 3 (Recommended)</a></li>
+<li><a href="#deployment-yaml">Deployment YAML</a>
+<ul>
+<li><a href="#install-envsubst">Install <code>envsubst</code></a></li>
+</ul>
+</li>
+</ul>
 <p>Azure AD Workload Identity uses a <a href="https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#mutatingadmissionwebhook">mutating admission webhook</a> to project a signed service account token to your workload’s volume and inject the following properties to pods with a service account that is configured to use the webhook:</p>
 <details>
 <summary>Properties</summary>
