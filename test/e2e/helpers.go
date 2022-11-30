@@ -55,18 +55,18 @@ func createServiceAccount(c kubernetes.Interface, namespace, name string, labels
 
 // createPodWithServiceAccount creates a pod with two containers, busybox-1 and busybox-2 with customizable
 // namespace, service account, image, command, arguments, environment variables, and annotations.
-func createPodWithServiceAccount(c kubernetes.Interface, namespace, serviceAccount, image string, command, args []string, env []corev1.EnvVar, annotations map[string]string, runAsRoot bool) (*corev1.Pod, error) {
+func createPodWithServiceAccount(c kubernetes.Interface, namespace, serviceAccount, image string, command, args []string, env []corev1.EnvVar, annotations, labels map[string]string, runAsRoot bool) (*corev1.Pod, error) {
 	if arcCluster {
 		createSecretForArcCluster(c, namespace, serviceAccount)
 	}
 
-	pod := generatePodWithServiceAccount(c, namespace, serviceAccount, image, command, args, env, annotations, runAsRoot)
+	pod := generatePodWithServiceAccount(c, namespace, serviceAccount, image, command, args, env, annotations, labels, runAsRoot)
 	return createPod(c, pod)
 }
 
 // generatePodWithServiceAccount generates a pod with two containers, busybox-1 and busybox-2 with customizable
 // namespace, service account, image, command, arguments, environment variables, and annotations.
-func generatePodWithServiceAccount(c kubernetes.Interface, namespace, serviceAccount, image string, command, args []string, env []corev1.EnvVar, annotations map[string]string, runAsRoot bool) *corev1.Pod {
+func generatePodWithServiceAccount(c kubernetes.Interface, namespace, serviceAccount, image string, command, args []string, env []corev1.EnvVar, annotations, labels map[string]string, runAsRoot bool) *corev1.Pod {
 	// this is required for pod to be admitted in kubernetes 1.24+
 	contSecurityContext := &corev1.SecurityContext{
 		AllowPrivilegeEscalation: pointer.BoolPtr(false),
@@ -89,6 +89,7 @@ func generatePodWithServiceAccount(c kubernetes.Interface, namespace, serviceAcc
 			GenerateName: namespace + "-",
 			Namespace:    namespace,
 			Annotations:  annotations,
+			Labels:       labels,
 		},
 		Spec: corev1.PodSpec{
 			TerminationGracePeriodSeconds: pointer.Int64Ptr(0),
