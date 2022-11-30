@@ -1,5 +1,7 @@
 # Known Issues
 
+<!-- toc -->
+
 ## Permission denied when reading the projected service account token file
 
 In Kubernetes 1.18, the default mode for the projected service account token file is `0600`. This causes containers running as non-root to fail while trying to read the token file:

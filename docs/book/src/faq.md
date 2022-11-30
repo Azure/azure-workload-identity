@@ -1,5 +1,7 @@
 # Frequently Asked Questions
 
+<!-- toc -->
+
 ## How does the azwi-cli differ from the azure-cli?
 
 The azwi-cli tool is specific to the Azure Workload Identity support in Kubernetes to group several manual steps (e.g. the creation of federated identity credential, annotated service accounts, etc) and automate them. Comparing with the azure-cli, it does not have an official command to add/delete federated identity (configuring federated identity credential with `az rest` is available [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/workload-identity-federation-create-trust))
