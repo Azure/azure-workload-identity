@@ -34,6 +34,11 @@ var (
 	podLabelMissingWarning = fmt.Sprintf(`pod missing label '%s: "true"'. This label will be required in a future release for the webhook to mutate pod. Please add the label to the pod.`, UseWorkloadIdentityLabel)
 )
 
+const (
+	// warningAnnotationKey is the annotation key used to store warning messages in audit annotations
+	warningAnnotationKey = "mutation.azure-workload-identity.io/warning"
+)
+
 // +kubebuilder:webhook:path=/mutate-v1-pod,mutating=true,failurePolicy=ignore,groups="",resources=pods,verbs=create,versions=v1,name=mutation.azure-workload-identity.io,sideEffects=None,admissionReviewVersions=v1;v1beta1,matchPolicy=Equivalent
 // +kubebuilder:rbac:groups="",resources=serviceaccounts,verbs=get;list;watch;create;update;patch
 
@@ -85,6 +90,7 @@ func NewPodMutator(client client.Client, reader client.Reader, arcCluster bool, 
 // PodMutator adds projected service account volume for incoming pods if service account is annotated
 func (m *podMutator) Handle(ctx context.Context, req admission.Request) (response admission.Response) {
 	warnings := []string{}
+	auditAnnotations := make(map[string]string)
 	pod := &corev1.Pod{}
 	timeStart := time.Now()
 
@@ -142,6 +148,10 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) (respons
 			m.reporter.ReportRequest(ctx, req.Namespace, time.Since(timeStart))
 		}
 		response.Warnings = warnings
+		if len(warnings) > 0 {
+			auditAnnotations[warningAnnotationKey] = strings.Join(warnings, ";")
+			response.AuditAnnotations = auditAnnotations
+		}
 	}()
 
 	if shouldInjectProxySidecar(pod) {

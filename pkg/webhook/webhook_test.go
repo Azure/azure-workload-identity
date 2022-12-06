@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"strconv"
+	"strings"
 	"testing"
 
 	admissionv1 "k8s.io/api/admission/v1"
@@ -852,9 +853,13 @@ func TestHandle(t *testing.T) {
 			}
 			for i := range resp.Warnings {
 				actual := resp.Warnings[i]
+				actualAuditAnnotations := resp.AuditAnnotations[warningAnnotationKey]
 				expected := test.expectedWarnings[i]
 				if actual != expected {
 					t.Fatalf("expected warning %d to be %s, got %s", i, expected, actual)
+				}
+				if !strings.Contains(actualAuditAnnotations, expected) {
+					t.Fatalf("expected audit annotation to contain %s, got %s", expected, actualAuditAnnotations)
 				}
 			}
 		})
