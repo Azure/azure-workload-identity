@@ -135,8 +135,8 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) (respons
 	podLabeled := isPodLabeled(pod)
 	shouldMutatePod := serviceAccountAnnotated || podLabeled
 	if !shouldMutatePod {
-		logger.Info("service account not annotated")
-		return admission.Allowed("service account not annotated")
+		logger.Info("pod not labeled or service account not annotated, skipping mutation")
+		return admission.Allowed("pod not labeled or service account not annotated, skipping mutation")
 	}
 	if !podLabeled {
 		warnings = append(warnings, podLabelMissingWarning)
