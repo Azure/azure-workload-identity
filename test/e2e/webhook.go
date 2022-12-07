@@ -3,18 +3,44 @@
 package e2e
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"strings"
+	"sync"
 
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
 
 	"github.com/onsi/ginkgo/v2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"k8s.io/kubernetes/test/e2e/framework"
 	"k8s.io/utils/pointer"
 )
+
+var _ io.Writer = &syncBuffer{}
+
+type syncBuffer struct {
+	lock sync.Mutex
+	buf  bytes.Buffer
+}
+
+func (s *syncBuffer) Write(p []byte) (int, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	return s.buf.Write(p)
+}
+
+func (s *syncBuffer) String() string {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	return strings.TrimSuffix(s.buf.String(), "\n")
+}
 
 var _ = ginkgo.Describe("Webhook", func() {
 	f := framework.NewDefaultFramework("webhook")
@@ -131,6 +157,33 @@ var _ = ginkgo.Describe("Webhook", func() {
 		)
 		framework.ExpectNoError(err, "failed to create pod %s in %s", pod.Name, f.Namespace.Name)
 		validateMutatedPod(f, pod, nil)
+	})
+
+	ginkgo.It("should warn if the pod is not labeled", func() {
+		buf := &syncBuffer{}
+		config, err := framework.LoadConfig()
+		framework.ExpectNoError(err, "failed to load config")
+		config.WarningHandler = rest.NewWarningWriter(buf, rest.WarningWriterOptions{})
+		cs, err := kubernetes.NewForConfig(config)
+		framework.ExpectNoError(err, "failed to create clientset")
+
+		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{webhook.UseWorkloadIdentityLabel: "true"}, nil)
+		pod, err := createPodWithServiceAccount(
+			cs,
+			f.Namespace.Name,
+			serviceAccount,
+			"k8s.gcr.io/e2e-test-images/busybox:1.29-1",
+			[]string{"sleep"},
+			[]string{"3600"},
+			nil,
+			nil,
+			nil,
+			false,
+		)
+		framework.ExpectNoError(err, "failed to create pod %s in %s", pod.Name, f.Namespace.Name)
+		validateMutatedPod(f, pod, nil)
+		expectedWarning := fmt.Sprintf("Warning: %s", webhook.PodLabelMissingWarning)
+		framework.ExpectEqual(buf.String(), expectedWarning, "expected warning %q, got %q", expectedWarning, buf.String())
 	})
 
 	for _, annotations := range []map[string]string{

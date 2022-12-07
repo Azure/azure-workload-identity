@@ -31,7 +31,7 @@ var (
 	// This is injected via LDFLAGS in the Makefile during the build.
 	ProxyImageVersion string
 
-	podLabelMissingWarning = fmt.Sprintf(`pod missing label '%s: "true"'. This label will be required in a future release for the webhook to mutate pod. Please add the label to the pod.`, UseWorkloadIdentityLabel)
+	PodLabelMissingWarning = fmt.Sprintf(`pod missing label '%s: "true"'. This label will be required in a future release for the webhook to mutate pod. Please add the label to the pod.`, UseWorkloadIdentityLabel)
 )
 
 const (
@@ -139,7 +139,7 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) (respons
 		return admission.Allowed("pod not labeled or service account not annotated, skipping mutation")
 	}
 	if !podLabeled {
-		warnings = append(warnings, podLabelMissingWarning)
+		warnings = append(warnings, PodLabelMissingWarning)
 	}
 
 	// only log metrics for the pods that are actually mutated
