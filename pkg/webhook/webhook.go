@@ -30,6 +30,13 @@ var (
 	// ProxyImageVersion is the image version of the proxy init and sidecar.
 	// This is injected via LDFLAGS in the Makefile during the build.
 	ProxyImageVersion string
+
+	PodLabelMissingWarning = fmt.Sprintf(`pod missing label '%s: "true"'. This label will be required in a future release for the webhook to mutate pod. Please add the label to the pod.`, UseWorkloadIdentityLabel)
+)
+
+const (
+	// warningAnnotationKey is the annotation key used to store warning messages in audit annotations
+	warningAnnotationKey = "mutation.azure-workload-identity.io/warning"
 )
 
 // +kubebuilder:webhook:path=/mutate-v1-pod,mutating=true,failurePolicy=ignore,groups="",resources=pods,verbs=create,versions=v1,name=mutation.azure-workload-identity.io,sideEffects=None,admissionReviewVersions=v1;v1beta1,matchPolicy=Equivalent
@@ -81,7 +88,9 @@ func NewPodMutator(client client.Client, reader client.Reader, arcCluster bool, 
 }
 
 // PodMutator adds projected service account volume for incoming pods if service account is annotated
-func (m *podMutator) Handle(ctx context.Context, req admission.Request) admission.Response {
+func (m *podMutator) Handle(ctx context.Context, req admission.Request) (response admission.Response) {
+	warnings := []string{}
+	auditAnnotations := make(map[string]string)
 	pod := &corev1.Pod{}
 	timeStart := time.Now()
 
@@ -117,16 +126,31 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) admissio
 		}
 	}
 
-	// check if the service account has the annotation
-	if !isServiceAccountAnnotated(serviceAccount) {
-		logger.Info("service account not annotated")
-		return admission.Allowed("service account not annotated")
+	// mutate pod if the service account or pod is annotated
+	// service account annotated with "azure.workload-identity/use" in annotation or label is current behavior
+	// pod labeled with "azure.workload-identity/use" is added for backward compatibility in v0.15.0 release
+	// This check will eventually be removed in a future release (tentatively v1.0.0-alpha) and all pods will be
+	// mutated. (ref: https://github.com/Azure/azure-workload-identity/issues/601)
+	serviceAccountAnnotated := isServiceAccountAnnotated(serviceAccount)
+	podLabeled := isPodLabeled(pod)
+	shouldMutatePod := serviceAccountAnnotated || podLabeled
+	if !shouldMutatePod {
+		logger.Info("pod not labeled or service account not annotated, skipping mutation")
+		return admission.Allowed("pod not labeled or service account not annotated, skipping mutation")
+	}
+	if !podLabeled {
+		warnings = append(warnings, PodLabelMissingWarning)
 	}
 
 	// only log metrics for the pods that are actually mutated
 	defer func() {
 		if m.reporter != nil {
 			m.reporter.ReportRequest(ctx, req.Namespace, time.Since(timeStart))
+		}
+		response.Warnings = warnings
+		if len(warnings) > 0 {
+			auditAnnotations[warningAnnotationKey] = strings.Join(warnings, ";")
+			response.AuditAnnotations = auditAnnotations
 		}
 	}()
 
@@ -277,6 +301,13 @@ func isServiceAccountAnnotated(sa *corev1.ServiceAccount) bool {
 	_, isLabeled := sa.Labels[UseWorkloadIdentityLabel]
 	_, isAnnotated := sa.Annotations[UseWorkloadIdentityLabel]
 	return isLabeled || isAnnotated
+}
+
+// isPodLabeled checks if the pod has been labelled to use with workload identity
+// "azure.workload.identity/use" needs to be available either in labels
+func isPodLabeled(pod *corev1.Pod) bool {
+	_, isLabeled := pod.Labels[UseWorkloadIdentityLabel]
+	return isLabeled
 }
 
 func shouldInjectProxySidecar(pod *corev1.Pod) bool {

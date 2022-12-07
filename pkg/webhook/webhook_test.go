@@ -2,10 +2,12 @@ package webhook
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"reflect"
 	"strconv"
+	"strings"
 	"testing"
 
 	admissionv1 "k8s.io/api/admission/v1"
@@ -23,6 +25,40 @@ import (
 var (
 	serviceAccountTokenExpiry = MinServiceAccountTokenExpiration
 )
+
+func newPod(name, namespace, serviceAccountName string, labels map[string]string) *corev1.Pod {
+	return &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+			Labels:    labels,
+		},
+		Spec: corev1.PodSpec{
+			ServiceAccountName: serviceAccountName,
+			InitContainers: []corev1.Container{
+				{
+					Name:  "init-container",
+					Image: "init-container-image",
+				},
+			},
+			Containers: []corev1.Container{
+				{
+					Name:  "container",
+					Image: "image",
+				},
+			},
+		},
+	}
+}
+
+func newPodRaw(name, namespace, serviceAccountName string, labels map[string]string) []byte {
+	pod := newPod(name, namespace, serviceAccountName, labels)
+	raw, err := json.Marshal(pod)
+	if err != nil {
+		panic(err)
+	}
+	return raw
+}
 
 func TestIsServiceAccountAnnotated(t *testing.T) {
 	tests := []struct {
@@ -744,30 +780,45 @@ func TestHandle(t *testing.T) {
 	tests := []struct {
 		name               string
 		serviceAccountName string
+		podLabels          map[string]string
 		clientObjects      []client.Object
 		readerObjects      []client.Object
+		expectedWarnings   []string
 	}{
 		{
 			name:               "service account in cache",
 			serviceAccountName: "sa",
 			clientObjects:      serviceAccounts,
 			readerObjects:      nil,
+			expectedWarnings:   []string{PodLabelMissingWarning},
 		},
 		{
 			name:               "service account not in cache",
 			serviceAccountName: "sa",
 			clientObjects:      nil,
 			readerObjects:      serviceAccounts,
+			expectedWarnings:   []string{PodLabelMissingWarning},
 		},
 		{
-			name:          "default service account in cache",
-			clientObjects: serviceAccounts,
-			readerObjects: nil,
+			name:             "default service account in cache",
+			clientObjects:    serviceAccounts,
+			readerObjects:    nil,
+			expectedWarnings: []string{PodLabelMissingWarning},
 		},
 		{
-			name:          "default service account not in cache",
-			clientObjects: nil,
-			readerObjects: serviceAccounts,
+			name:             "default service account not in cache",
+			clientObjects:    nil,
+			readerObjects:    serviceAccounts,
+			expectedWarnings: []string{PodLabelMissingWarning},
+		},
+		{
+			name: "pod has the required label, no warnings",
+			podLabels: map[string]string{
+				UseWorkloadIdentityLabel: "true",
+			},
+			clientObjects:    serviceAccounts,
+			readerObjects:    nil,
+			expectedWarnings: nil,
 		},
 	}
 
@@ -780,8 +831,6 @@ func TestHandle(t *testing.T) {
 				decoder: decoder,
 			}
 
-			raw := []byte(fmt.Sprintf(`{"apiVersion":"v1","kind":"Pod","metadata":{"name":"pod","namespace":"ns1"},"spec":{"initContainers":[{"image":"image","name":"cont1"}],"containers":[{"image":"image","name":"cont1"}],"serviceAccountName":"%s"}}`, test.serviceAccountName))
-
 			req := atypes.Request{
 				AdmissionRequest: admissionv1.AdmissionRequest{
 					Kind: metav1.GroupVersionKind{
@@ -789,7 +838,7 @@ func TestHandle(t *testing.T) {
 						Version: "v1",
 						Kind:    "Pod",
 					},
-					Object:    runtime.RawExtension{Raw: raw},
+					Object:    runtime.RawExtension{Raw: newPodRaw("pod", "ns1", test.serviceAccountName, test.podLabels)},
 					Namespace: "ns1",
 					Operation: admissionv1.Create,
 				},
@@ -798,6 +847,20 @@ func TestHandle(t *testing.T) {
 			resp := m.Handle(context.Background(), req)
 			if !resp.Allowed {
 				t.Fatalf("expected to be allowed")
+			}
+			if len(resp.Warnings) != len(test.expectedWarnings) {
+				t.Fatalf("expected %d warnings, got %d", len(test.expectedWarnings), len(resp.Warnings))
+			}
+			for i := range resp.Warnings {
+				actual := resp.Warnings[i]
+				actualAuditAnnotations := resp.AuditAnnotations[warningAnnotationKey]
+				expected := test.expectedWarnings[i]
+				if actual != expected {
+					t.Fatalf("expected warning %d to be %s, got %s", i, expected, actual)
+				}
+				if !strings.Contains(actualAuditAnnotations, expected) {
+					t.Fatalf("expected audit annotation to contain %s, got %s", expected, actualAuditAnnotations)
+				}
 			}
 		})
 	}
