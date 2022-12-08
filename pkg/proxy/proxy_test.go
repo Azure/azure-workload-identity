@@ -307,3 +307,36 @@ func TestProxy_ReadyZHandler(t *testing.T) {
 		})
 	}
 }
+
+func TestGetScope(t *testing.T) {
+	tests := []struct {
+		name     string
+		scope    string
+		expected string
+	}{
+		{
+			name:     "resource doesn't have /.default suffix",
+			scope:    "https://vault.azure.net",
+			expected: "https://vault.azure.net/.default",
+		},
+		{
+			name:     "resource has /.default suffix",
+			scope:    "https://vault.azure.net/.default",
+			expected: "https://vault.azure.net/.default",
+		},
+		{
+			name:     "resource doesn't  have /.default suffix and has trailing slash",
+			scope:    "https://vault.azure.net/",
+			expected: "https://vault.azure.net//.default",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			scope := getScope(test.scope)
+			if scope != test.expected {
+				t.Errorf("expected scope %s, got %s", test.expected, scope)
+			}
+		})
+	}
+}

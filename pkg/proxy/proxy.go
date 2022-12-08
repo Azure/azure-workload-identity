@@ -191,17 +191,7 @@ func doTokenRequest(ctx context.Context, clientID, resource, tenantID, authority
 		return nil, errors.Wrap(err, "failed to create confidential client app")
 	}
 
-	// ref: https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/issues/747
-	// For MSAL (v2.0 endpoint) asking an access token for a resource that accepts a v1.0 access token,
-	// Azure AD parses the desired audience from the requested scope by taking everything before the
-	// last slash and using it as the resource identifier.
-	// For example, if the scope is "https://vault.azure.net/.default", the resource identifier is "https://vault.azure.net".
-	// If the scope is "http://database.windows.net//.default", the resource identifier is "http://database.windows.net/".
-	scope := resource
-	if !strings.HasPrefix(scope, "/.default") {
-		scope = scope + "/.default"
-	}
-	result, err := confidentialClientApp.AcquireTokenByCredential(ctx, []string{scope})
+	result, err := confidentialClientApp.AcquireTokenByCredential(ctx, []string{getScope(resource)})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to acquire token")
 	}
@@ -242,4 +232,17 @@ func readJWTFromFS(tokenFilePath string) (string, error) {
 		return "", err
 	}
 	return string(token), nil
+}
+
+// ref: https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/issues/747
+// For MSAL (v2.0 endpoint) asking an access token for a resource that accepts a v1.0 access token,
+// Azure AD parses the desired audience from the requested scope by taking everything before the
+// last slash and using it as the resource identifier.
+// For example, if the scope is "https://vault.azure.net/.default", the resource identifier is "https://vault.azure.net".
+// If the scope is "http://database.windows.net//.default", the resource identifier is "http://database.windows.net/".
+func getScope(resource string) string {
+	if !strings.HasSuffix(resource, "/.default") {
+		resource = resource + "/.default"
+	}
+	return resource
 }
