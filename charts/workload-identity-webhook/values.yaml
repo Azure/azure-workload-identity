@@ -2,14 +2,12 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-labels:
-  azure-workload-identity.io/system: "true"
 replicaCount: 2
 image:
   repository: mcr.microsoft.com/oss/azure/workload-identity/webhook
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  release: v0.14.0
+  release: v0.15.0
 imagePullSecrets: []
 nodeSelector:
   kubernetes.io/os: linux
@@ -36,3 +34,5 @@ mutatingWebhookFailurePolicy: Ignore
 priorityClassName: system-cluster-critical
 mutatingWebhookObjectSelector: {}
 mutatingWebhookAnnotations: {}
+podLabels: {}
+mutatingWebhookNamespaceSelector: {}

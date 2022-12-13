@@ -19,6 +19,7 @@ spec:
   template:
     metadata:
       labels:
+{{- include "workload-identity-webhook.podLabels" . }}
         app: '{{ template "workload-identity-webhook.name" . }}'
         azure-workload-identity.io/system: "true"
         chart: '{{ template "workload-identity-webhook.name" . }}'
