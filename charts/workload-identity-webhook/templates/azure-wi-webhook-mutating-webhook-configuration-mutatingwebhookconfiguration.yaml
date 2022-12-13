@@ -21,6 +21,7 @@ webhooks:
   failurePolicy: {{ .Values.mutatingWebhookFailurePolicy }}
   matchPolicy: Equivalent
   name: mutation.azure-workload-identity.io
+  namespaceSelector: {{- toYaml .Values.mutatingWebhookNamespaceSelector | nindent 4 }}
   objectSelector: {{- toYaml .Values.mutatingWebhookObjectSelector | nindent 4 }}
   rules:
   - apiGroups:
@@ -29,7 +30,6 @@ webhooks:
     - v1
     operations:
     - CREATE
-    - UPDATE
     resources:
     - pods
   sideEffects: None
