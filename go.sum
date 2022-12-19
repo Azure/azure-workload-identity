@@ -45,10 +45,10 @@ cloud.google.com/go/storage v1.6.0/go.mod h1:N7U0C8pVQ/+NIKOBQyamJIeKQKkZ+mxpohl
 cloud.google.com/go/storage v1.8.0/go.mod h1:Wv1Oy7z6Yz3DshWRJFhqM/UCfaWIRTdp0RXyy7KQOVs=
 cloud.google.com/go/storage v1.10.0/go.mod h1:FLPqc6j+Ki4BU591ie1oL6qBQGu2Bl/tZ9ullr3+Kg0=
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
-github.com/Azure/aad-pod-identity v1.8.13 h1:/gUmacA0z7+lsOlGYAYzkGvAB/KOkUe5Pb6qSeiHD0k=
-github.com/Azure/aad-pod-identity v1.8.13/go.mod h1:uxM/lsPo/abzqdk0rwEm4SqO9pavMz0fCmKpYAj4HL8=
-github.com/Azure/azure-sdk-for-go v65.0.0+incompatible h1:HzKLt3kIwMm4KeJYTdx9EbjRYTySD/t8i1Ee/W5EGXw=
-github.com/Azure/azure-sdk-for-go v65.0.0+incompatible/go.mod h1:9XXNKU+eRnpl9moKnB4QOLf1HestfXbmab5FXxiDBjc=
+github.com/Azure/aad-pod-identity v1.8.14 h1:Jx2xJC+CXCEO4ZEOCwH1p3qnDQVIaXJA7S+NOxoN3Ts=
+github.com/Azure/aad-pod-identity v1.8.14/go.mod h1:O36iZm20TUZnaFt1DIZxuFpbfY2Kvf2VoJTBA9LPZ4Y=
+github.com/Azure/azure-sdk-for-go v67.1.0+incompatible h1:oziYcaopbnIKfM69DL05wXdypiqfrUKdxUKrKpynJTw=
+github.com/Azure/azure-sdk-for-go v67.1.0+incompatible/go.mod h1:9XXNKU+eRnpl9moKnB4QOLf1HestfXbmab5FXxiDBjc=
 github.com/Azure/azure-sdk-for-go/sdk/azcore v0.21.0 h1:8wVJL0HUP5yDFXvotdewORTw7Yu88JbreWN/mobSvsQ=
 github.com/Azure/azure-sdk-for-go/sdk/azcore v0.21.0/go.mod h1:fBF9PQNqB8scdgpZ3ufzaLntG0AG7C1WjPMsiFOmfHM=
 github.com/Azure/azure-sdk-for-go/sdk/azidentity v0.13.2 h1:mM/yraAumqMMIYev6zX0oxHqX6hreUs5wXf76W47r38=
@@ -553,7 +553,7 @@ github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81P
 github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5cxcmMvtA=
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
-github.com/stretchr/testify v1.8.0 h1:pSgiaMZlXftHpm5L7V1+rVB+AZJydKsMxsQBIJw4PKk=
+github.com/stretchr/testify v1.8.1 h1:w7B6lhMri9wdJUVmEZPGGhZzrYTPvgJArz7wNPgYKsk=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20170815181823-89b8d40f7ca8/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
 github.com/urfave/cli v1.20.0/go.mod h1:70zkFmudgCuE/ngEzBv17Jvp/497gISqfk5gWijbERA=
 github.com/urfave/cli v1.22.1/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtXRu0=
