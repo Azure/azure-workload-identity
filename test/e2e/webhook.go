@@ -15,8 +15,6 @@ import (
 	"github.com/onsi/ginkgo/v2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 	"k8s.io/kubernetes/test/e2e/framework"
 	"k8s.io/utils/pointer"
 )
@@ -45,8 +43,8 @@ func (s *syncBuffer) String() string {
 var _ = ginkgo.Describe("Webhook", func() {
 	f := framework.NewDefaultFramework("webhook")
 
-	ginkgo.It("should mutate a pod with a labeled service account", func() {
-		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{webhook.UseWorkloadIdentityLabel: "true"}, nil)
+	ginkgo.It("should mutate a labeled pod", func() {
+		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", nil, nil)
 		pod, err := createPodWithServiceAccount(
 			f.ClientSet,
 			f.Namespace.Name,
@@ -56,7 +54,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 			[]string{"3600"},
 			nil,
 			nil,
-			nil,
+			map[string]string{webhook.UseWorkloadIdentityLabel: "true"},
 			false,
 		)
 		framework.ExpectNoError(err, "failed to create pod %s in %s", pod.Name, f.Namespace.Name)
@@ -78,7 +76,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 			[]string{"3600"},
 			nil,
 			nil,
-			nil,
+			map[string]string{webhook.UseWorkloadIdentityLabel: "true"},
 			false,
 		)
 		pod.Spec.InitContainers = []corev1.Container{{
@@ -106,7 +104,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 		validateMutatedPod(f, pod, nil)
 	})
 
-	ginkgo.It("should mutate a deployment pod with a labeled service account", func() {
+	ginkgo.It("should mutate a deployment pod with a labeled pod spec", func() {
 		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{webhook.UseWorkloadIdentityLabel: "true"}, nil)
 		pod := createPodUsingDeploymentWithServiceAccount(f, serviceAccount)
 		validateMutatedPod(f, pod, nil)
@@ -130,60 +128,12 @@ var _ = ginkgo.Describe("Webhook", func() {
 			[]string{"3600"},
 			nil,
 			map[string]string{webhook.SkipContainersAnnotation: skipContainers},
-			nil,
+			map[string]string{webhook.UseWorkloadIdentityLabel: "true"},
 			false,
 		)
 		framework.ExpectNoError(err, "failed to create pod %s in %s", pod.Name, f.Namespace.Name)
 		validateMutatedPod(f, pod, strings.Split(skipContainers, ";"))
 		validateUnmutatedContainers(f, pod, strings.Split(skipContainers, ";"))
-	})
-
-	// pod labeled with "azure.workload-identity/use" is added for backward compatibility in v0.15.0 release
-	// This check will eventually be removed in a future release (tentatively v1.0.0-alpha) and all pods will be
-	// mutated. (ref: https://github.com/Azure/azure-workload-identity/issues/601)
-	ginkgo.It("should mutate a labeled pod", func() {
-		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", nil, nil)
-		pod, err := createPodWithServiceAccount(
-			f.ClientSet,
-			f.Namespace.Name,
-			serviceAccount,
-			"k8s.gcr.io/e2e-test-images/busybox:1.29-1",
-			[]string{"sleep"},
-			[]string{"3600"},
-			nil,
-			nil,
-			map[string]string{webhook.UseWorkloadIdentityLabel: "true"},
-			false,
-		)
-		framework.ExpectNoError(err, "failed to create pod %s in %s", pod.Name, f.Namespace.Name)
-		validateMutatedPod(f, pod, nil)
-	})
-
-	ginkgo.It("should warn if the pod is not labeled", func() {
-		buf := &syncBuffer{}
-		config, err := framework.LoadConfig()
-		framework.ExpectNoError(err, "failed to load config")
-		config.WarningHandler = rest.NewWarningWriter(buf, rest.WarningWriterOptions{})
-		cs, err := kubernetes.NewForConfig(config)
-		framework.ExpectNoError(err, "failed to create clientset")
-
-		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{webhook.UseWorkloadIdentityLabel: "true"}, nil)
-		pod, err := createPodWithServiceAccount(
-			cs,
-			f.Namespace.Name,
-			serviceAccount,
-			"k8s.gcr.io/e2e-test-images/busybox:1.29-1",
-			[]string{"sleep"},
-			[]string{"3600"},
-			nil,
-			nil,
-			nil,
-			false,
-		)
-		framework.ExpectNoError(err, "failed to create pod %s in %s", pod.Name, f.Namespace.Name)
-		validateMutatedPod(f, pod, nil)
-		expectedWarning := fmt.Sprintf("Warning: %s", webhook.PodLabelMissingWarning)
-		framework.ExpectEqual(buf.String(), expectedWarning, "expected warning %q, got %q", expectedWarning, buf.String())
 	})
 
 	for _, annotations := range []map[string]string{
@@ -201,7 +151,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 				[]string{"3600"},
 				nil,
 				nil,
-				nil,
+				map[string]string{webhook.UseWorkloadIdentityLabel: "true"},
 				false,
 			)
 			framework.Logf("ensuring that the creation of pod is denied by the webhook")
@@ -219,7 +169,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 				[]string{"3600"},
 				nil,
 				annotations,
-				nil,
+				map[string]string{webhook.UseWorkloadIdentityLabel: "true"},
 				false,
 			)
 			framework.Logf("ensuring that the creation of pod is denied by the webhook")

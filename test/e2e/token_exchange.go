@@ -54,7 +54,7 @@ var _ = ginkgo.Describe("TokenExchange [AKSSoakOnly] [Exclude:Arc]", func() {
 				Value: keyvaultSecretName,
 			}},
 			nil,
-			nil,
+			map[string]string{webhook.UseWorkloadIdentityLabel: "true"},
 			false,
 		)
 		framework.ExpectNoError(err, "failed to create pod %s in %s", pod.Name, namespace)

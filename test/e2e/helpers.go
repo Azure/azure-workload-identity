@@ -138,7 +138,10 @@ func createPod(c kubernetes.Interface, pod *corev1.Pod) (*corev1.Pod, error) {
 func createPodUsingDeploymentWithServiceAccount(f *framework.Framework, serviceAccount string) *corev1.Pod {
 	framework.Logf("creating a deployment in %s namespace with service account %s", f.Namespace.Name, serviceAccount)
 
-	podLabels := map[string]string{"app": "busybox"}
+	podLabels := map[string]string{
+		"app":                            "busybox",
+		webhook.UseWorkloadIdentityLabel: "true",
+	}
 	nonRootUser := int64(1000)
 
 	d := &appsv1.Deployment{

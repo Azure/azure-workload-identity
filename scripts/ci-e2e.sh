@@ -132,6 +132,8 @@ kind: Pod
 metadata:
   name: nginx-pod
   namespace: azure-workload-identity-system-test
+  labels:
+    azure.workload.identity/use: "true"
 spec:
   serviceAccountName: test-service-account
   containers:

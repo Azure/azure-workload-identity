@@ -1,0 +1,10 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: mutating-webhook-configuration
+webhooks:
+  - name: mutation.azure-workload-identity.io
+    objectSelector:
+      matchLabels:
+        azure.workload.identity/use: "true"
