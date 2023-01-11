@@ -245,9 +245,10 @@ az keyvault set-policy --name &quot;${KEYVAULT_NAME}&quot; \
 </code></pre>
 <p>if using user-assigned managed identity:</p>
 <pre><code class="language-bash">export USER_ASSIGNED_IDENTITY_CLIENT_ID=&quot;$(az identity show --name &quot;${USER_ASSIGNED_IDENTITY_NAME}&quot; --resource-group &quot;${RESOURCE_GROUP}&quot; --query 'clientId' -otsv)&quot;
+export USER_ASSIGNED_IDENTITY_OBJECT_ID=&quot;$(az identity show --name &quot;${USER_ASSIGNED_IDENTITY_NAME}&quot; --resource-group &quot;${RESOURCE_GROUP}&quot; --query 'principalId' -otsv)&quot;
 az keyvault set-policy --name &quot;${KEYVAULT_NAME}&quot; \
   --secret-permissions get \
-  --spn &quot;${USER_ASSIGNED_IDENTITY_CLIENT_ID}&quot;
+  --object-id &quot;${USER_ASSIGNED_IDENTITY_OBJECT_ID}&quot;
 </code></pre>
 <h2 id="5-create-a-kubernetes-service-account"><a class="header" href="#5-create-a-kubernetes-service-account">5. Create a Kubernetes service account</a></h2>
 <p>Create a Kubernetes service account and annotate it with the client ID of the AAD application we created in step 4:</p>
