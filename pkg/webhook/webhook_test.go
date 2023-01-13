@@ -1251,8 +1251,9 @@ func TestInjectProxyInitContainer(t *testing.T) {
 				Add:  []corev1.Capability{"NET_ADMIN"},
 				Drop: []corev1.Capability{"ALL"},
 			},
-			Privileged: pointer.BoolPtr(true),
-			RunAsUser:  pointer.Int64Ptr(0),
+			Privileged:   pointer.BoolPtr(true),
+			RunAsNonRoot: pointer.BoolPtr(false),
+			RunAsUser:    pointer.Int64Ptr(0),
 		},
 		Env: []corev1.EnvVar{{
 			Name:  ProxyPortEnvVar,
