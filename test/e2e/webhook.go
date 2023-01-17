@@ -88,15 +88,15 @@ var _ = ginkgo.Describe("Webhook", func() {
 			Command:         []string{"sleep"},
 			Args:            []string{"5"},
 			SecurityContext: &corev1.SecurityContext{
-				AllowPrivilegeEscalation: pointer.BoolPtr(false),
+				AllowPrivilegeEscalation: pointer.Bool(false),
 				Capabilities: &corev1.Capabilities{
 					Drop: []corev1.Capability{"ALL"},
 				},
-				RunAsNonRoot: pointer.BoolPtr(true),
+				RunAsNonRoot: pointer.Bool(true),
 				SeccompProfile: &corev1.SeccompProfile{
 					Type: corev1.SeccompProfileTypeRuntimeDefault,
 				},
-				RunAsUser: pointer.Int64Ptr(1000),
+				RunAsUser: pointer.Int64(1000),
 			},
 		}}
 		pod, err := createPod(f.ClientSet, pod)

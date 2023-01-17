@@ -27,7 +27,7 @@ service:
   targetPort: 9443
 azureEnvironment: AzurePublicCloud
 azureTenantID:
-logEncoder: console
+logLevel:
 metricsAddr: ":8095"
 metricsBackend: prometheus
 mutatingWebhookFailurePolicy: Ignore

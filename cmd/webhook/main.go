@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 
 	"github.com/open-policy-agent/cert-controller/pkg/rotator"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -11,7 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
-	"k8s.io/klog/v2"
+	"monis.app/mlog"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
@@ -20,7 +19,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	"github.com/Azure/azure-workload-identity/pkg/logger"
 	"github.com/Azure/azure-workload-identity/pkg/metrics"
 	"github.com/Azure/azure-workload-identity/pkg/util"
 	"github.com/Azure/azure-workload-identity/pkg/version"
@@ -50,23 +48,29 @@ var (
 	metricsAddr         string
 	disableCertRotation bool
 	metricsBackend      string
+	logLevel            string
 
 	// DNSName is <service name>.<namespace>.svc
 	dnsName = fmt.Sprintf("%s.%s.svc", serviceName, util.GetNamespace())
 	scheme  = runtime.NewScheme()
 
-	entryLog = log.Log.WithName("entrypoint")
+	// nolint:staticcheck
+	// we will migrate to mlog.New in a future change
+	entryLog = mlog.Logr().WithName("entrypoint")
 )
 
 func init() {
-	klog.InitFlags(nil)
-
 	_ = clientgoscheme.AddToScheme(scheme)
 }
 
 func main() {
-	logger := logger.New()
-	logger.AddFlags()
+	if err := mainErr(); err != nil {
+		mlog.Fatal(err)
+	}
+}
+
+func mainErr() error {
+	defer mlog.Setup()()
 
 	// TODO (aramase) once webhook is added as an arc extension, use extension
 	// util to check if running in arc cluster.
@@ -78,17 +82,29 @@ func main() {
 	flag.StringVar(&healthAddr, "health-addr", ":9440", "The address the health endpoint binds to")
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8095", "The address the metrics endpoint binds to")
 	flag.StringVar(&metricsBackend, "metrics-backend", "prometheus", "Backend used for metrics")
+	flag.StringVar(&logLevel, "log-level", "",
+		"In order of increasing verbosity: unset (empty string), info, debug, trace and all.")
 	flag.Parse()
 
-	log.SetLogger(logger.Get())
+	ctx := signals.SetupSignalHandler()
+
+	if err := mlog.ValidateAndSetLogLevelAndFormatGlobally(ctx, mlog.LogSpec{
+		Level:  mlog.LogLevel(logLevel),
+		Format: mlog.FormatJSON,
+	}); err != nil {
+		return fmt.Errorf("invalid --log-level set: %w", err)
+	}
+
+	// nolint:staticcheck
+	// controller-runtime forces use to use the deprecated logr.Logger returned by mlog.Logr here
+	log.SetLogger(mlog.Logr())
 	config := ctrl.GetConfigOrDie()
 	config.UserAgent = version.GetUserAgent("webhook")
 
 	// initialize metrics exporter before creating measurements
 	entryLog.Info("initializing metrics backend", "backend", metricsBackend)
 	if err := metrics.InitMetricsExporter(metricsBackend); err != nil {
-		klog.ErrorS(err, "failed to initialize metrics exporter")
-		os.Exit(1)
+		return fmt.Errorf("entrypoint: failed to initialize metrics exporter: %w", err)
 	}
 
 	// log the user agent as it makes it easier to debug issues
@@ -105,8 +121,7 @@ func main() {
 		},
 	})
 	if err != nil {
-		entryLog.Error(err, "unable to set up controller manager")
-		os.Exit(1)
+		return fmt.Errorf("entrypoint: unable to set up controller manager: %w", err)
 	}
 
 	// Make sure certs are generated and valid if cert rotation is enabled.
@@ -125,30 +140,28 @@ func main() {
 			IsReady:        setupFinished,
 			Webhooks:       webhooks,
 		}); err != nil {
-			entryLog.Error(err, "unable to set up cert rotation")
-			os.Exit(1)
+			return fmt.Errorf("entrypoint: unable to set up cert rotation: %w", err)
 		}
 	} else {
 		close(setupFinished)
 	}
 
 	if err := mgr.AddReadyzCheck("ping", healthz.Ping); err != nil {
-		entryLog.Error(err, "unable to create ready check")
-		os.Exit(1)
+		return fmt.Errorf("entrypoint: unable to create ready check: %w", err)
 	}
 
 	if err := mgr.AddHealthzCheck("ping", healthz.Ping); err != nil {
-		entryLog.Error(err, "unable to create health check")
-		os.Exit(1)
+		return fmt.Errorf("entrypoint: unable to create health check: %w", err)
 	}
 
 	go setupWebhook(mgr, setupFinished)
 
 	entryLog.Info("starting manager")
-	if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
-		entryLog.Error(err, "unable to run manager")
-		os.Exit(1)
+	if err := mgr.Start(ctx); err != nil {
+		return fmt.Errorf("entrypoint: unable to run manager: %w", err)
 	}
+
+	return nil
 }
 
 func setupWebhook(mgr manager.Manager, setupFinished chan struct{}) {
@@ -163,8 +176,7 @@ func setupWebhook(mgr manager.Manager, setupFinished chan struct{}) {
 	entryLog.Info("registering webhook to the webhook server")
 	podMutator, err := wh.NewPodMutator(mgr.GetClient(), mgr.GetAPIReader(), arcCluster, audience)
 	if err != nil {
-		entryLog.Error(err, "unable to set up pod mutator")
-		os.Exit(1)
+		panic(fmt.Errorf("unable to set up pod mutator: %w", err))
 	}
 	hookServer.Register("/mutate-v1-pod", &webhook.Admission{Handler: podMutator})
 }
