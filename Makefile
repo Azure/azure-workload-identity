@@ -110,12 +110,15 @@ split-by-hyphen = $(word $2,$(subst -, ,$1))
 
 BUILDX_BUILDER_NAME ?= img-builder
 QEMU_VERSION ?= 5.2.0-2
+# pinning buildkit version to v0.10.6 as v0.11.0 is injecting sbom/prov to manifest
+# causing the manifest push to fail
+BUILDKIT_VERSION ?= 0.10.6
 
 .PHONY: docker-buildx-builder
 docker-buildx-builder:
 	@if ! docker buildx ls | grep $(BUILDX_BUILDER_NAME); then \
 		docker run --rm --privileged multiarch/qemu-user-static:$(QEMU_VERSION) --reset -p yes; \
-		docker buildx create --name $(BUILDX_BUILDER_NAME) --use; \
+		docker buildx create --driver-opt image=mcr.microsoft.com/oss/moby/buildkit:$(BUILDKIT_VERSION) --name $(BUILDX_BUILDER_NAME) --use; \
 		docker buildx inspect $(BUILDX_BUILDER_NAME) --bootstrap; \
 	fi
 
