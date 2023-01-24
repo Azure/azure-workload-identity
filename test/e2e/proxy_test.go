@@ -44,7 +44,7 @@ var _ = ginkgo.Describe("Proxy [LinuxOnly] [AKSSoakOnly] [Exclude:Arc]", func() 
 			[]string{"/bin/sh", "-c", fmt.Sprintf("az login -i -u %s --allow-no-subscriptions --debug; sleep 3600", clientID)},
 			nil,
 			proxyAnnotations,
-			nil,
+			map[string]string{webhook.UseWorkloadIdentityLabel: "true"},
 			true,
 		)
 
@@ -98,7 +98,7 @@ var _ = ginkgo.Describe("Proxy [LinuxOnly] [AKSSoakOnly] [Exclude:Arc]", func() 
 			[]string{"/bin/sh", "-c", "az login -i --allow-no-subscriptions --debug; sleep 3600"},
 			nil,
 			proxyAnnotations,
-			nil,
+			map[string]string{webhook.UseWorkloadIdentityLabel: "true"},
 			true,
 		)
 

@@ -85,9 +85,11 @@ webhooks:
       name: webhook-service
       namespace: system
       path: /mutate-v1-pod
-  failurePolicy: HELMSUBST_MUTATING_WEBHOOK_FAILURE_POLICY
+  failurePolicy: Fail
   name: mutation.azure-workload-identity.io
-  objectSelector: HELMSUBST_MUTATING_WEBHOOK_OBJECT_SELECTOR
+  objectSelector:
+    matchLabels:
+      azure.workload.identity/use: "true"
   namespaceSelector: HELMSUBST_MUTATING_WEBHOOK_NAMESPACE_SELECTOR
 ---
 apiVersion: v1
