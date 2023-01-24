@@ -37,9 +37,9 @@ require (
 	github.com/Azure/azure-workload-identity v0.0.0-00010101000000-000000000000
 	github.com/onsi/ginkgo/v2 v2.3.1
 	github.com/onsi/gomega v1.22.1
-	k8s.io/api v0.25.5
-	k8s.io/apimachinery v0.25.5
-	k8s.io/client-go v0.25.5
+	k8s.io/api v0.25.6
+	k8s.io/apimachinery v0.25.6
+	k8s.io/client-go v0.25.6
 	k8s.io/kubernetes v1.25.5
 	k8s.io/utils v0.0.0-20221128185143-99ec85e7a448
 )
