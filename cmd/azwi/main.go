@@ -6,7 +6,7 @@ import (
 	"github.com/Azure/azure-workload-identity/pkg/cmd"
 
 	colorable "github.com/mattn/go-colorable"
-	log "github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus" // TODO mlog?
 )
 
 func main() {

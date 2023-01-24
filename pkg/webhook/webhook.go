@@ -10,17 +10,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-workload-identity/pkg/config"
-
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/pointer"
+	"monis.app/mlog"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+
+	"github.com/Azure/azure-workload-identity/pkg/config"
 )
 
 var (
@@ -114,7 +114,9 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) (respons
 		serviceAccountName = "default"
 	}
 
-	logger := log.Log.WithName("handler").WithValues("pod", podName, "namespace", pod.Namespace, "service-account", serviceAccountName)
+	// nolint:staticcheck
+	// we will migrate to mlog.New in a future change
+	logger := mlog.Logr().WithName("handler").WithValues("pod", podName, "namespace", pod.Namespace, "service-account", serviceAccountName)
 	// get service account associated with the pod
 	serviceAccount := &corev1.ServiceAccount{}
 	if err = m.client.Get(ctx, types.NamespacedName{Name: serviceAccountName, Namespace: pod.Namespace}, serviceAccount); err != nil {
@@ -252,9 +254,9 @@ func (m *podMutator) injectProxyInitContainer(containers []corev1.Container, pro
 				Add:  []corev1.Capability{"NET_ADMIN"},
 				Drop: []corev1.Capability{"ALL"},
 			},
-			Privileged:   pointer.BoolPtr(true),
-			RunAsNonRoot: pointer.BoolPtr(false),
-			RunAsUser:    pointer.Int64Ptr(0),
+			Privileged:   pointer.Bool(true),
+			RunAsNonRoot: pointer.Bool(false),
+			RunAsUser:    pointer.Int64(0),
 		},
 		Env: []corev1.EnvVar{{
 			Name:  ProxyPortEnvVar,

@@ -30,7 +30,7 @@ spec:
       containers:
       - args:
         - --arc-cluster={{ .Values.arcCluster }}
-        - --log-encoder={{ .Values.logEncoder }}
+        - --log-level={{ .Values.logLevel }}
         - --metrics-addr={{ .Values.metricsAddr }}
         - --metrics-backend={{ .Values.metricsBackend }}
         command:

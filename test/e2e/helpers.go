@@ -69,19 +69,19 @@ func createPodWithServiceAccount(c kubernetes.Interface, namespace, serviceAccou
 func generatePodWithServiceAccount(c kubernetes.Interface, namespace, serviceAccount, image string, command, args []string, env []corev1.EnvVar, annotations, labels map[string]string, runAsRoot bool) *corev1.Pod {
 	// this is required for pod to be admitted in kubernetes 1.24+
 	contSecurityContext := &corev1.SecurityContext{
-		AllowPrivilegeEscalation: pointer.BoolPtr(false),
+		AllowPrivilegeEscalation: pointer.Bool(false),
 		Capabilities: &corev1.Capabilities{
 			Drop: []corev1.Capability{"ALL"},
 		},
 		SeccompProfile: &corev1.SeccompProfile{
 			Type: corev1.SeccompProfileTypeRuntimeDefault,
 		},
-		RunAsNonRoot: pointer.BoolPtr(true),
-		RunAsUser:    pointer.Int64Ptr(1000),
+		RunAsNonRoot: pointer.Bool(true),
+		RunAsUser:    pointer.Int64(1000),
 	}
 	if runAsRoot {
-		contSecurityContext.RunAsNonRoot = pointer.BoolPtr(false)
-		contSecurityContext.RunAsUser = pointer.Int64Ptr(0)
+		contSecurityContext.RunAsNonRoot = pointer.Bool(false)
+		contSecurityContext.RunAsUser = pointer.Int64(0)
 	}
 
 	pod := &corev1.Pod{
@@ -92,7 +92,7 @@ func generatePodWithServiceAccount(c kubernetes.Interface, namespace, serviceAcc
 			Labels:       labels,
 		},
 		Spec: corev1.PodSpec{
-			TerminationGracePeriodSeconds: pointer.Int64Ptr(0),
+			TerminationGracePeriodSeconds: pointer.Int64(0),
 			Containers: []corev1.Container{{
 				Name:            busybox1,
 				Image:           image, // this image should support both Linux and Windows
@@ -155,7 +155,7 @@ func createPodUsingDeploymentWithServiceAccount(f *framework.Framework, serviceA
 					Labels: podLabels,
 				},
 				Spec: corev1.PodSpec{
-					TerminationGracePeriodSeconds: pointer.Int64Ptr(0),
+					TerminationGracePeriodSeconds: pointer.Int64(0),
 					Containers: []corev1.Container{
 						{
 							Name:            "busybox",
@@ -164,11 +164,11 @@ func createPodUsingDeploymentWithServiceAccount(f *framework.Framework, serviceA
 							Args:            []string{"3600"},
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							SecurityContext: &corev1.SecurityContext{
-								AllowPrivilegeEscalation: pointer.BoolPtr(false),
+								AllowPrivilegeEscalation: pointer.Bool(false),
 								Capabilities: &corev1.Capabilities{
 									Drop: []corev1.Capability{"ALL"},
 								},
-								RunAsNonRoot: pointer.BoolPtr(true),
+								RunAsNonRoot: pointer.Bool(true),
 								SeccompProfile: &corev1.SeccompProfile{
 									Type: corev1.SeccompProfileTypeRuntimeDefault,
 								},
