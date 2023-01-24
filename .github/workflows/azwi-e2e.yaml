@@ -33,9 +33,13 @@ jobs:
       - uses: actions/setup-go@v3
         with:
           go-version: "1.19"
-      - name: Install Azure CLI latest
+      - name: Upgrade Azure CLI
         run: |
-          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+          echo "Azure CLI Current installed version"
+          az version
+          echo "Upgrading Azure CLI"
+          az upgrade
+          echo "Azure CLI upgraded version"
           az version
       - name: Set variables
         id: variables
