@@ -52,10 +52,15 @@ spec:
           httpGet:
             path: /readyz
             port: healthz
+          initialDelaySeconds: 5
+          periodSeconds: 5
         livenessProbe:
           httpGet:
             path: /healthz
             port: healthz
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          failureThreshold: 6
         resources:
           limits:
             cpu: 100m

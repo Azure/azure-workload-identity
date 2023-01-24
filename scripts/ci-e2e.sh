@@ -66,7 +66,7 @@ main() {
 
   create_cluster
   make deploy
-  poll_webhook_readiness
+  ${KUBECTL} wait --for=condition=available --timeout=5m deployment/azure-wi-webhook-controller-manager -n azure-workload-identity-system
 
   if [[ -n "${WINDOWS_NODE_NAME:-}" ]]; then
     E2E_ARGS="--node-os-distro=windows ${E2E_ARGS:-}"
@@ -106,7 +106,7 @@ test_helm_chart() {
     --wait \
     --debug \
     -v=5
-  poll_webhook_readiness
+  ${KUBECTL} wait --for=condition=available --timeout=5m deployment/azure-wi-webhook-controller-manager -n azure-workload-identity-system
   make test-e2e-run
 }
 

@@ -47,9 +47,12 @@ spec:
         image: '{{ .Values.image.repository }}:{{ .Values.image.release }}'
         imagePullPolicy: '{{ .Values.image.pullPolicy }}'
         livenessProbe:
+          failureThreshold: 6
           httpGet:
             path: /healthz
             port: healthz
+          initialDelaySeconds: 15
+          periodSeconds: 20
         name: manager
         ports:
         - containerPort: {{ trimPrefix ":" .Values.metricsAddr }}
@@ -65,6 +68,8 @@ spec:
           httpGet:
             path: /readyz
             port: healthz
+          initialDelaySeconds: 5
+          periodSeconds: 5
         resources:
           {{- toYaml .Values.resources | nindent 10 }}
         securityContext:

@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
 
 	"github.com/open-policy-agent/cert-controller/pkg/rotator"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -13,7 +14,6 @@ import (
 	"monis.app/mlog"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
-	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
@@ -146,14 +146,7 @@ func mainErr() error {
 		close(setupFinished)
 	}
 
-	if err := mgr.AddReadyzCheck("ping", healthz.Ping); err != nil {
-		return fmt.Errorf("entrypoint: unable to create ready check: %w", err)
-	}
-
-	if err := mgr.AddHealthzCheck("ping", healthz.Ping); err != nil {
-		return fmt.Errorf("entrypoint: unable to create health check: %w", err)
-	}
-
+	setupProbeEndpoints(mgr, setupFinished)
 	go setupWebhook(mgr, setupFinished)
 
 	entryLog.Info("starting manager")
@@ -168,15 +161,38 @@ func setupWebhook(mgr manager.Manager, setupFinished chan struct{}) {
 	// Block until the setup (certificate generation) finishes.
 	<-setupFinished
 
-	// setup webhooks
-	entryLog.Info("setting up webhook server")
 	hookServer := mgr.GetWebhookServer()
 	hookServer.TLSMinVersion = tlsMinVersion
 
+	// setup webhooks
 	entryLog.Info("registering webhook to the webhook server")
 	podMutator, err := wh.NewPodMutator(mgr.GetClient(), mgr.GetAPIReader(), arcCluster, audience)
 	if err != nil {
 		panic(fmt.Errorf("unable to set up pod mutator: %w", err))
 	}
 	hookServer.Register("/mutate-v1-pod", &webhook.Admission{Handler: podMutator})
+}
+
+func setupProbeEndpoints(mgr ctrl.Manager, setupFinished chan struct{}) {
+	// Block readiness on the mutating webhook being registered.
+	// We can't use mgr.GetWebhookServer().StartedChecker() yet,
+	// because that starts the webhook. But we also can't call AddReadyzCheck
+	// after Manager.Start. So we need a custom ready check that delegates to
+	// the real ready check after the cert has been injected and validator started.
+	checker := func(req *http.Request) error {
+		select {
+		case <-setupFinished:
+			return mgr.GetWebhookServer().StartedChecker()(req)
+		default:
+			return fmt.Errorf("certs are not ready yet")
+		}
+	}
+
+	if err := mgr.AddHealthzCheck("healthz", checker); err != nil {
+		panic(fmt.Errorf("unable to add healthz check: %w", err))
+	}
+	if err := mgr.AddReadyzCheck("readyz", checker); err != nil {
+		panic(fmt.Errorf("unable to add readyz check: %w", err))
+	}
+	entryLog.Info("added healthz and readyz check")
 }
