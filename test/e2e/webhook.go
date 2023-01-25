@@ -3,12 +3,9 @@
 package e2e
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"strings"
-	"sync"
 
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
 
@@ -18,27 +15,6 @@ import (
 	"k8s.io/kubernetes/test/e2e/framework"
 	"k8s.io/utils/pointer"
 )
-
-var _ io.Writer = &syncBuffer{}
-
-type syncBuffer struct {
-	lock sync.Mutex
-	buf  bytes.Buffer
-}
-
-func (s *syncBuffer) Write(p []byte) (int, error) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-
-	return s.buf.Write(p)
-}
-
-func (s *syncBuffer) String() string {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-
-	return strings.TrimSuffix(s.buf.String(), "\n")
-}
 
 var _ = ginkgo.Describe("Webhook", func() {
 	f := framework.NewDefaultFramework("webhook")

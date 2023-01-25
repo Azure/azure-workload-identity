@@ -247,13 +247,6 @@ func (dc *detectCmd) createServiceAccountFile(name, ownerName, clientID string) 
 		}
 	}
 
-	saLabels := make(map[string]string)
-	if sa.GetLabels() != nil {
-		saLabels = sa.GetLabels()
-	}
-	saLabels[webhook.UseWorkloadIdentityLabel] = "true"
-	sa.SetLabels(saLabels)
-
 	// set the annotations for the service account
 	saAnnotations := make(map[string]string)
 	if sa.GetAnnotations() != nil {

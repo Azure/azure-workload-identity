@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"reflect"
 	"strconv"
-	"strings"
 	"testing"
 
 	admissionv1 "k8s.io/api/admission/v1"
@@ -58,56 +57,6 @@ func newPodRaw(name, namespace, serviceAccountName string, labels map[string]str
 		panic(err)
 	}
 	return raw
-}
-
-func TestIsServiceAccountAnnotated(t *testing.T) {
-	tests := []struct {
-		name     string
-		sa       *corev1.ServiceAccount
-		expected bool
-	}{
-		{
-			name: "service account not labeled",
-			sa: &corev1.ServiceAccount{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "sa",
-					Namespace: "default",
-				},
-			},
-			expected: false,
-		},
-		{
-			name: "service account is labeled with azure.workload.identity/use=true",
-			sa: &corev1.ServiceAccount{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "sa",
-					Namespace: "default",
-					Labels:    map[string]string{UseWorkloadIdentityLabel: "true"},
-				},
-			},
-			expected: true,
-		},
-		{
-			name: "service account is annotated with azure.workload.identity/use=true",
-			sa: &corev1.ServiceAccount{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:        "sa",
-					Namespace:   "default",
-					Annotations: map[string]string{UseWorkloadIdentityLabel: "true"},
-				},
-			},
-			expected: true,
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			actual := isServiceAccountAnnotated(test.sa)
-			if actual != test.expected {
-				t.Fatalf("expected: %v, got: %v", test.expected, actual)
-			}
-		})
-	}
 }
 
 func TestGetServiceAccountTokenExpiration(t *testing.T) {
@@ -766,7 +715,6 @@ func TestHandle(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      name,
 				Namespace: "ns1",
-				Labels:    map[string]string{UseWorkloadIdentityLabel: "true"},
 				Annotations: map[string]string{
 					ClientIDAnnotation:                  "clientID",
 					ServiceAccountTokenExpiryAnnotation: "4800",
@@ -783,42 +731,36 @@ func TestHandle(t *testing.T) {
 		podLabels          map[string]string
 		clientObjects      []client.Object
 		readerObjects      []client.Object
-		expectedWarnings   []string
 	}{
 		{
 			name:               "service account in cache",
 			serviceAccountName: "sa",
 			clientObjects:      serviceAccounts,
 			readerObjects:      nil,
-			expectedWarnings:   []string{PodLabelMissingWarning},
 		},
 		{
 			name:               "service account not in cache",
 			serviceAccountName: "sa",
 			clientObjects:      nil,
 			readerObjects:      serviceAccounts,
-			expectedWarnings:   []string{PodLabelMissingWarning},
 		},
 		{
-			name:             "default service account in cache",
-			clientObjects:    serviceAccounts,
-			readerObjects:    nil,
-			expectedWarnings: []string{PodLabelMissingWarning},
+			name:          "default service account in cache",
+			clientObjects: serviceAccounts,
+			readerObjects: nil,
 		},
 		{
-			name:             "default service account not in cache",
-			clientObjects:    nil,
-			readerObjects:    serviceAccounts,
-			expectedWarnings: []string{PodLabelMissingWarning},
+			name:          "default service account not in cache",
+			clientObjects: nil,
+			readerObjects: serviceAccounts,
 		},
 		{
 			name: "pod has the required label, no warnings",
 			podLabels: map[string]string{
 				UseWorkloadIdentityLabel: "true",
 			},
-			clientObjects:    serviceAccounts,
-			readerObjects:    nil,
-			expectedWarnings: nil,
+			clientObjects: serviceAccounts,
+			readerObjects: nil,
 		},
 	}
 
@@ -847,20 +789,6 @@ func TestHandle(t *testing.T) {
 			resp := m.Handle(context.Background(), req)
 			if !resp.Allowed {
 				t.Fatalf("expected to be allowed")
-			}
-			if len(resp.Warnings) != len(test.expectedWarnings) {
-				t.Fatalf("expected %d warnings, got %d", len(test.expectedWarnings), len(resp.Warnings))
-			}
-			for i := range resp.Warnings {
-				actual := resp.Warnings[i]
-				actualAuditAnnotations := resp.AuditAnnotations[warningAnnotationKey]
-				expected := test.expectedWarnings[i]
-				if actual != expected {
-					t.Fatalf("expected warning %d to be %s, got %s", i, expected, actual)
-				}
-				if !strings.Contains(actualAuditAnnotations, expected) {
-					t.Fatalf("expected audit annotation to contain %s, got %s", expected, actualAuditAnnotations)
-				}
 			}
 		})
 	}
