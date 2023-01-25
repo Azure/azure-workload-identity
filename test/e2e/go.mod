@@ -40,7 +40,7 @@ require (
 	k8s.io/api v0.25.6
 	k8s.io/apimachinery v0.25.6
 	k8s.io/client-go v0.25.6
-	k8s.io/kubernetes v1.25.5
+	k8s.io/kubernetes v1.25.6
 	k8s.io/utils v0.0.0-20221128185143-99ec85e7a448
 )
 
@@ -134,7 +134,7 @@ require (
 	k8s.io/kubelet v0.0.0 // indirect
 	k8s.io/pod-security-admission v0.0.0 // indirect
 	monis.app/mlog v0.0.2 // indirect
-	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.33 // indirect
+	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.35 // indirect
 	sigs.k8s.io/controller-runtime v0.13.1 // indirect
 	sigs.k8s.io/json v0.0.0-20220713155537-f223a00ba0e2 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
