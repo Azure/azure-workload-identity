@@ -317,9 +317,6 @@ func TestCreateServiceAccountFile(t *testing.T) {
 				t.Errorf("createServiceAccountFile() error = %v, want nil", err)
 			}
 
-			if !strings.Contains(string(gotServiceAccountFile), webhook.UseWorkloadIdentityLabel) {
-				t.Errorf("createServiceAccountFile() file %s does not contain %s, want it to contain it", saFile, webhook.UseWorkloadIdentityLabel)
-			}
 			for _, annotation := range tt.wantedAnnotations {
 				if !strings.Contains(string(gotServiceAccountFile), annotation) {
 					t.Errorf("createServiceAccountFile() file %s does not contain annotation %s, want it to contain it", saFile, annotation)

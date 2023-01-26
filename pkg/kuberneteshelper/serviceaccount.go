@@ -20,9 +20,6 @@ func CreateOrUpdateServiceAccount(ctx context.Context, kubeClient client.Client,
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
-			Labels: map[string]string{
-				webhook.UseWorkloadIdentityLabel: "true",
-			},
 			Annotations: map[string]string{
 				webhook.ClientIDAnnotation: clientID,
 				webhook.TenantIDAnnotation: tenantID,
