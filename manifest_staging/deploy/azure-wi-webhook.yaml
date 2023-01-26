@@ -171,9 +171,12 @@ spec:
         image: mcr.microsoft.com/oss/azure/workload-identity/webhook:v0.15.0
         imagePullPolicy: IfNotPresent
         livenessProbe:
+          failureThreshold: 6
           httpGet:
             path: /healthz
             port: healthz
+          initialDelaySeconds: 15
+          periodSeconds: 20
         name: manager
         ports:
         - containerPort: 9443
@@ -189,6 +192,8 @@ spec:
           httpGet:
             path: /readyz
             port: healthz
+          initialDelaySeconds: 5
+          periodSeconds: 5
         resources:
           limits:
             cpu: 100m
