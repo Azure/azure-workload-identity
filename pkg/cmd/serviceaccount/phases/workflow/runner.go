@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"monis.app/mlog"
 )
 
 // RunData contains the data that is passed to the phases
@@ -130,7 +130,7 @@ func (r *runner) Run(data RunData) error {
 	filtered := []Phase{}
 	for _, phase := range r.phases {
 		if skipPhases[phase.Name] {
-			log.WithField("phase", phase.Name).Info("skipping phase")
+			mlog.WithName(phase.Name).Info("skipping phase")
 			continue
 		}
 		filtered = append(filtered, phase)

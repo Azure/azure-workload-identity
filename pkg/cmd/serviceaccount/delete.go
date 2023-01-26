@@ -11,9 +11,9 @@ import (
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/util"
 	"github.com/Azure/azure-workload-identity/pkg/kuberneteshelper"
+	"monis.app/mlog"
 
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -112,7 +112,7 @@ func (d *deleteData) AADApplicationName() string {
 	name := d.aadApplicationName
 	if name == "" {
 		if d.ServiceAccountNamespace() != "" && d.ServiceAccountName() != "" && d.ServiceAccountIssuerURL() != "" {
-			log.Warn("--aad-application-name not specified, constructing name with service account namespace, name, and the hash of the issuer URL")
+			mlog.Warning("--aad-application-name not specified, constructing name with service account namespace, name, and the hash of the issuer URL")
 			name = fmt.Sprintf("%s-%s-%s", d.ServiceAccountNamespace(), d.serviceAccountName, util.GetIssuerHash(d.ServiceAccountIssuerURL()))
 		}
 	}
@@ -128,7 +128,7 @@ func (d *deleteData) AADApplicationObjectID() string {
 
 	app, err := d.AADApplication()
 	if err != nil {
-		log.WithError(err).Error("failed to get AAD application object ID. Returning an empty string")
+		mlog.Error("failed to get AAD application object ID. Returning an empty string", err)
 		return ""
 	}
 	return *app.GetId()

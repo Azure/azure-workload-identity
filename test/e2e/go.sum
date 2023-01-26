@@ -717,8 +717,8 @@ k8s.io/pod-security-admission v0.25.5 h1:HZLK1Scfdo3/GANlbVHT1vQf1n4lqpfk9Yzi+o8
 k8s.io/pod-security-admission v0.25.5/go.mod h1:m/xoAI1UNWgSviKHLhQc74Bx7A3unH1x1fF1YUOTSps=
 k8s.io/utils v0.0.0-20221128185143-99ec85e7a448 h1:KTgPnR10d5zhztWptI952TNtt/4u5h3IzDXkdIMuo2Y=
 k8s.io/utils v0.0.0-20221128185143-99ec85e7a448/go.mod h1:OLgZIPagt7ERELqWJFomSt595RzquPNLL48iOWgYOg0=
-monis.app/mlog v0.0.2 h1:zyEt5GsmLhTafXhwidtOFriIVVdejUNc44TzDn/OZc4=
-monis.app/mlog v0.0.2/go.mod h1:LtOpnndFuRGqnLBwzBvpA1DaoKuud2/moLzYXIiNl1s=
+monis.app/mlog v0.0.4 h1:YEzh5sguG4ApywaRWnBU+mGP6SA4WxOqiJ36u+KtoeE=
+monis.app/mlog v0.0.4/go.mod h1:LtOpnndFuRGqnLBwzBvpA1DaoKuud2/moLzYXIiNl1s=
 rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
 rsc.io/quote/v3 v3.1.0/go.mod h1:yEA65RcK8LyAZtP9Kv3t0HmxON59tX3rD+tICJqUlj0=
 rsc.io/sampler v1.3.0/go.mod h1:T1hPZKmBbMNahiBKFy5HrXp6adAjACjK9JXDnKaTXpA=

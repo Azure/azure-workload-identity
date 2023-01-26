@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
+	"github.com/pkg/errors"
+	"monis.app/mlog"
+
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/options"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/util"
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
-
-	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -81,19 +81,19 @@ func (p *federatedIdentityPhase) run(ctx context.Context, data workflow.RunData)
 	err := createData.AzureClient().AddFederatedCredential(ctx, objectID, fic)
 	if err != nil {
 		if cloud.IsFederatedCredentialAlreadyExists(err) {
-			log.WithFields(log.Fields{
-				"objectID": objectID,
-				"subject":  subject,
-			}).Debugf("[%s] federated credential has been previously created", federatedIdentityPhaseName)
+			mlog.WithValues(
+				"objectID", objectID,
+				"subject", subject,
+			).WithName(federatedIdentityPhaseName).Debug("federated credential has been previously created")
 		} else {
 			return errors.Wrap(err, "failed to add federated credential")
 		}
 	}
 
-	log.WithFields(log.Fields{
-		"objectID": objectID,
-		"subject":  subject,
-	}).Infof("[%s] added federated credential", federatedIdentityPhaseName)
+	mlog.WithValues(
+		"objectID", objectID,
+		"subject", subject,
+	).WithName(federatedIdentityPhaseName).Info("added federated credential")
 
 	return nil
 }

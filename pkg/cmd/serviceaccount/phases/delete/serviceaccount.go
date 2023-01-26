@@ -3,14 +3,14 @@ package phases
 import (
 	"context"
 
+	"github.com/pkg/errors"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"monis.app/mlog"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/options"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 	"github.com/Azure/azure-workload-identity/pkg/kuberneteshelper"
-
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -61,10 +61,10 @@ func (p *serviceAccountPhase) prerun(data workflow.RunData) error {
 func (p *serviceAccountPhase) run(ctx context.Context, data workflow.RunData) error {
 	deleteData := data.(DeleteData)
 
-	l := log.WithFields(log.Fields{
-		"namespace": deleteData.ServiceAccountNamespace(),
-		"name":      deleteData.ServiceAccountName(),
-	})
+	l := mlog.WithValues(
+		"namespace", deleteData.ServiceAccountNamespace(),
+		"name", deleteData.ServiceAccountName(),
+	).WithName(serviceAccountPhaseName)
 	err := kuberneteshelper.DeleteServiceAccount(
 		ctx,
 		p.kubeClient,
@@ -75,9 +75,9 @@ func (p *serviceAccountPhase) run(ctx context.Context, data workflow.RunData) er
 		if !apierrors.IsNotFound(err) {
 			return errors.Wrap(err, "failed to delete service account")
 		}
-		l.Warnf("[%s] service account not found", serviceAccountPhaseName)
+		l.Warning("service account not found")
 	} else {
-		l.Infof("[%s] deleted service account", serviceAccountPhaseName)
+		l.Info("deleted service account")
 	}
 
 	return nil

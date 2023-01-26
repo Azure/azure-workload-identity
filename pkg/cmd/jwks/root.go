@@ -11,10 +11,10 @@ import (
 	"os"
 
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	jose "gopkg.in/square/go-jose.v2"
 	"k8s.io/client-go/util/keyutil"
+	"monis.app/mlog"
 )
 
 type jwksCmd struct {
@@ -55,7 +55,7 @@ func (jc *jwksCmd) validate() error {
 }
 
 func (jc *jwksCmd) run() error {
-	log.Debugf("generating JSON Web Key Set for public keys: %v", jc.publicKeys)
+	mlog.Debug("generating JSON Web Key Set", "publicKeys", jc.publicKeys)
 
 	var pubKeys []interface{}
 	for _, file := range jc.publicKeys {
@@ -80,11 +80,11 @@ func (jc *jwksCmd) run() error {
 		if err = os.WriteFile(jc.outputFile, keysetJSON, 0600); err != nil {
 			return errors.Wrap(err, "failed to write JWKS to file")
 		}
-		log.Debugf("wrote JWKS to file: %v", jc.outputFile)
+		mlog.Debug("wrote JWKS", "file", jc.outputFile)
 		return nil
 	}
 
-	log.Debugf("writing JWKS to stdout")
+	mlog.Debug("writing JWKS to stdout")
 	// write the keyset to stdout
 	if _, err = os.Stdout.Write(keysetJSON); err != nil {
 		return errors.Wrap(err, "failed to write JWKS to stdout")

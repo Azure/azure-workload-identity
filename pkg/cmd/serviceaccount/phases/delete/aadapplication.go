@@ -3,11 +3,11 @@ package phases
 import (
 	"context"
 
+	"github.com/pkg/errors"
+	"monis.app/mlog"
+
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/options"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
-
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -49,14 +49,14 @@ func (p *aadApplicationPhase) prerun(data workflow.RunData) error {
 func (p *aadApplicationPhase) run(ctx context.Context, data workflow.RunData) error {
 	deleteData := data.(DeleteData)
 
-	l := log.WithFields(log.Fields{
-		"name":     deleteData.AADApplicationName(),
-		"objectID": deleteData.AADApplicationObjectID(),
-	})
+	l := mlog.WithValues(
+		"name", deleteData.AADApplicationName(),
+		"objectID", deleteData.AADApplicationObjectID(),
+	).WithName(aadApplicationPhaseName)
 	if err := deleteData.AzureClient().DeleteApplication(ctx, deleteData.AADApplicationObjectID()); err != nil {
 		return errors.Wrap(err, "failed to delete application")
 	}
-	l.Infof("[%s] deleted aad application", aadApplicationPhaseName)
+	l.Info("deleted aad application")
 
 	return nil
 }

@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/pkg/errors"
+	"monis.app/mlog"
+
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/options"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 	"github.com/Azure/azure-workload-identity/pkg/version"
-
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -64,11 +64,11 @@ func (p *aadApplicationPhase) run(ctx context.Context, data workflow.RunData) er
 		}
 	}
 
-	log.WithFields(log.Fields{
-		"name":     *app.GetDisplayName(),
-		"clientID": *app.GetAppId(),
-		"objectID": *app.GetId(),
-	}).Infof("[%s] created an AAD application", aadApplicationPhaseName)
+	mlog.WithValues(
+		"name", *app.GetDisplayName(),
+		"clientID", *app.GetAppId(),
+		"objectID", *app.GetId(),
+	).WithName(aadApplicationPhaseName).Info("created an AAD application")
 
 	// Check if the service principal with the same name already exists
 	sp, err := createData.ServicePrincipal()
@@ -88,11 +88,11 @@ func (p *aadApplicationPhase) run(ctx context.Context, data workflow.RunData) er
 		}
 	}
 
-	log.WithFields(log.Fields{
-		"name":     *sp.GetDisplayName(),
-		"clientID": *sp.GetAppId(),
-		"objectID": *sp.GetId(),
-	}).Infof("[%s] created service principal", aadApplicationPhaseName)
+	mlog.WithValues(
+		"name", *sp.GetDisplayName(),
+		"clientID", *sp.GetAppId(),
+		"objectID", *sp.GetId(),
+	).WithName(aadApplicationPhaseName).Info("created service principal")
 
 	return nil
 }

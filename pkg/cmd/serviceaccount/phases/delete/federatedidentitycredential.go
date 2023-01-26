@@ -3,13 +3,13 @@ package phases
 import (
 	"context"
 
+	"github.com/pkg/errors"
+	"monis.app/mlog"
+
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/options"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/util"
-
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -61,20 +61,20 @@ func (p *federatedIdentityPhase) run(ctx context.Context, data workflow.RunData)
 	deleteData := data.(DeleteData)
 
 	subject := util.GetFederatedCredentialSubject(deleteData.ServiceAccountNamespace(), deleteData.ServiceAccountName())
-	l := log.WithFields(log.Fields{
-		"subject":   subject,
-		"issuerURL": deleteData.ServiceAccountIssuerURL(),
-	})
+	l := mlog.WithValues(
+		"subject", subject,
+		"issuerURL", deleteData.ServiceAccountIssuerURL(),
+	).WithName(federatedIdentityPhaseName)
 	if fic, err := deleteData.AzureClient().GetFederatedCredential(ctx, deleteData.AADApplicationObjectID(), deleteData.ServiceAccountIssuerURL(), subject); err != nil {
 		if !cloud.IsFederatedCredentialNotFound(err) {
 			return errors.Wrap(err, "failed to get federated identity credential")
 		}
-		l.Warnf("[%s] federated identity credential not found", federatedIdentityPhaseName)
+		l.Warning("federated identity credential not found")
 	} else {
 		if err = deleteData.AzureClient().DeleteFederatedCredential(ctx, deleteData.AADApplicationObjectID(), *fic.GetId()); err != nil {
 			return errors.Wrap(err, "failed to delete federated identity credential")
 		}
-		l.Infof("[%s] deleted federated identity credential", federatedIdentityPhaseName)
+		l.Info("deleted federated identity credential")
 	}
 
 	return nil
