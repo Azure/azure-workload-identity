@@ -12,7 +12,6 @@ import (
 )
 
 func init() {
-	flag.BoolVar(&arcCluster, "e2e.arc-cluster", false, "Running on an arc-enabled cluster")
 	flag.StringVar(&tokenExchangeE2EImage, "e2e.token-exchange-image", "aramase/msal-go:v0.6.0", "The image to use for token exchange tests")
 }
 

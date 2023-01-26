@@ -39,9 +39,6 @@ var _ = ginkgo.Describe("Webhook", func() {
 
 	ginkgo.It("should mutate the init containers within a pod", func() {
 		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{webhook.UseWorkloadIdentityLabel: "true"}, nil)
-		if arcCluster {
-			createSecretForArcCluster(f.ClientSet, f.Namespace.Name, serviceAccount)
-		}
 
 		pod := generatePodWithServiceAccount(
 			f.ClientSet,

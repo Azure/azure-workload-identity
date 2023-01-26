@@ -19,7 +19,7 @@ import (
 // The proxy implementation is only for Linux.
 // Run this test in nightly jobs only because we can't establish federated
 // identity under the Microsoft tenant at runtime at the moment.
-var _ = ginkgo.Describe("Proxy [LinuxOnly] [AKSSoakOnly] [Exclude:Arc]", func() {
+var _ = ginkgo.Describe("Proxy [LinuxOnly] [AKSSoakOnly]", func() {
 	f := framework.NewDefaultFramework("proxy")
 
 	ginkgo.It("should get a valid AAD token after injecting proxy init container and sidecar", func() {

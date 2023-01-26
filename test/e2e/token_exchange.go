@@ -20,9 +20,7 @@ import (
 // Only kind cluster supports custom service account issuer for now.
 // Run this test in nightly jobs only because we can't establish federated
 // identity under the Microsoft tenant at runtime at the moment.
-// This test also can't be run on Arc-enabled clusters because it requires
-// the projected service account token to be stored as a Kubernetes secret.
-var _ = ginkgo.Describe("TokenExchange [AKSSoakOnly] [Exclude:Arc]", func() {
+var _ = ginkgo.Describe("TokenExchange [AKSSoakOnly]", func() {
 	f := framework.NewDefaultFramework("token-exchange")
 
 	// E2E scenario from https://github.com/Azure/azure-workload-identity/tree/main/examples/msal-go

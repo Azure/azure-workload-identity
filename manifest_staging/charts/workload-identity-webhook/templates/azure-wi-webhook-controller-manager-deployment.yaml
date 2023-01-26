@@ -29,7 +29,6 @@ spec:
         {{- toYaml .Values.affinity | nindent 8 }}
       containers:
       - args:
-        - --arc-cluster={{ .Values.arcCluster }}
         - --log-level={{ .Values.logLevel }}
         - --metrics-addr={{ .Values.metricsAddr }}
         - --metrics-backend={{ .Values.metricsBackend }}

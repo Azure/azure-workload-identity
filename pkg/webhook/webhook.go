@@ -46,7 +46,6 @@ type podMutator struct {
 	// This should be used sparingly and only when the client does not fit the use case.
 	reader             client.Reader
 	config             *config.Config
-	isARCCluster       bool
 	decoder            *admission.Decoder
 	audience           string
 	azureAuthorityHost string
@@ -54,7 +53,7 @@ type podMutator struct {
 }
 
 // NewPodMutator returns a pod mutation handler
-func NewPodMutator(client client.Client, reader client.Reader, arcCluster bool, audience string) (admission.Handler, error) {
+func NewPodMutator(client client.Client, reader client.Reader, audience string) (admission.Handler, error) {
 	c, err := config.ParseConfig()
 	if err != nil {
 		return nil, err
@@ -73,7 +72,6 @@ func NewPodMutator(client client.Client, reader client.Reader, arcCluster bool, 
 		client:             client,
 		reader:             reader,
 		config:             c,
-		isARCCluster:       arcCluster,
 		audience:           audience,
 		azureAuthorityHost: azureAuthorityHost,
 		reporter:           newStatsReporter(),
@@ -154,22 +152,10 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) (respons
 	pod.Spec.InitContainers = m.mutateContainers(pod.Spec.InitContainers, clientID, tenantID, skipContainers)
 	pod.Spec.Containers = m.mutateContainers(pod.Spec.Containers, clientID, tenantID, skipContainers)
 
-	if !m.isARCCluster {
-		// add the projected service account token volume to the pod if not exists
-		if err = addProjectedServiceAccountTokenVolume(pod, serviceAccountTokenExpiration, m.audience); err != nil {
-			logger.Error(err, "failed to add projected service account volume")
-			return admission.Errored(http.StatusBadRequest, err)
-		}
-	} else {
-		// Kubernetes secret created by the arc jwt issuer will follow the naming convention
-		// localtoken-<service account name>
-		secretName := fmt.Sprintf("localtoken-%s", serviceAccount.Name)
-		// add the secret volume for arc scenarios
-		// TODO (aramase) Do we need to validate the k8s secret exists before adding the volume?
-		if err = addProjectedSecretVolume(pod, m.config, secretName); err != nil {
-			logger.Error(err, "failed to add projected secret volume")
-			return admission.Errored(http.StatusBadRequest, err)
-		}
+	// add the projected service account token volume to the pod if not exists
+	if err = addProjectedServiceAccountTokenVolume(pod, serviceAccountTokenExpiration, m.audience); err != nil {
+		logger.Error(err, "failed to add projected service account volume")
+		return admission.Errored(http.StatusBadRequest, err)
 	}
 
 	marshaledPod, err := json.Marshal(pod)
@@ -427,57 +413,6 @@ func addProjectedServiceAccountTokenVolume(pod *corev1.Pod, serviceAccountTokenE
 								Path:              TokenFilePathName,
 								ExpirationSeconds: &serviceAccountTokenExpiration,
 								Audience:          audience,
-							},
-						},
-					},
-				},
-			},
-		})
-
-	return nil
-}
-
-// addProjectedSecretVolume adds a projected volume with kubernetes secret as source for
-// arc clusters. The controller will generate the JWT token and create kubernetes secret for
-// the service account.
-func addProjectedSecretVolume(pod *corev1.Pod, config *config.Config, secretName string) error {
-	// add the projected secret volume to the pod if not exists
-	for _, volume := range pod.Spec.Volumes {
-		if volume.Projected == nil {
-			continue
-		}
-		for _, pvs := range volume.Projected.Sources {
-			if pvs.Secret == nil || pvs.Secret.Name != secretName {
-				continue
-			}
-			for _, item := range pvs.Secret.Items {
-				if item.Path == TokenFilePathName {
-					return nil
-				}
-			}
-		}
-	}
-
-	// add the projected secret volume
-	// the path for this volume will always be set to "azure-identity-token"
-	pod.Spec.Volumes = append(
-		pod.Spec.Volumes,
-		corev1.Volume{
-			Name: TokenFilePathName,
-			VolumeSource: corev1.VolumeSource{
-				Projected: &corev1.ProjectedVolumeSource{
-					Sources: []corev1.VolumeProjection{
-						{
-							Secret: &corev1.SecretProjection{
-								LocalObjectReference: corev1.LocalObjectReference{
-									Name: secretName,
-								},
-								Items: []corev1.KeyToPath{
-									{
-										Key:  "token",
-										Path: TokenFilePathName,
-									},
-								},
 							},
 						},
 					},

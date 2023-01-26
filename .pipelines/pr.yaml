@@ -87,10 +87,6 @@ jobs:
         aks_linux:
           REGISTRY: upstream.azurecr.io/azure-workload-identity
           GINKGO_SKIP: \[AKSSoakOnly\]
-        arc:
-          REGISTRY: upstream.azurecr.io/azure-workload-identity
-          ARC_CLUSTER: "true"
-          GINKGO_SKIP: \[AKSSoakOnly\]
         kind_v1_23_6:
           KIND_NODE_VERSION: v1.23.6
           LOCAL_ONLY: "true"
