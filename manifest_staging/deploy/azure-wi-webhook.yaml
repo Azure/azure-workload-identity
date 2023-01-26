@@ -155,7 +155,9 @@ spec:
         azure-workload-identity.io/system: "true"
     spec:
       containers:
-      - command:
+      - args:
+        - --log-level=info
+        command:
         - /manager
         env:
         - name: POD_NAMESPACE

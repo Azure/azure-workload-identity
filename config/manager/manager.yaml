@@ -28,6 +28,8 @@ spec:
       containers:
       - command:
         - /manager
+        args:
+        - --log-level=info
         image: manager:latest
         imagePullPolicy: IfNotPresent
         name: manager

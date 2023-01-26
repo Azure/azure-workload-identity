@@ -14,6 +14,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/utils/pointer"
+	"monis.app/mlog"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	atypes "sigs.k8s.io/controller-runtime/pkg/webhook/admission"
@@ -1040,6 +1041,26 @@ func TestInjectProxyInitContainer(t *testing.T) {
 }
 
 func TestInjectProxySidecarContainer(t *testing.T) {
+	origLogLevel := currentLogLevel()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel() // we do not need log flushing for this test
+
+	if err := mlog.ValidateAndSetLogLevelAndFormatGlobally(ctx, mlog.LogSpec{
+		Level:  mlog.LevelDebug, // this is the log level we expect the proxy to be running at in this test
+		Format: mlog.FormatJSON,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := mlog.ValidateAndSetLogLevelAndFormatGlobally(ctx, mlog.LogSpec{
+			Level:  mlog.LogLevel(origLogLevel),
+			Format: mlog.FormatJSON,
+		}); err != nil {
+			t.Fatal(err)
+		}
+	})
+
 	proxyPort := int32(8081)
 	ProxyImageRegistry = "my.proxy-image-registry.io/azwi"
 	ProxyImageVersion = "v1.0.0"
@@ -1050,6 +1071,7 @@ func TestInjectProxySidecarContainer(t *testing.T) {
 		ImagePullPolicy: corev1.PullIfNotPresent,
 		Args: []string{
 			fmt.Sprintf("--proxy-port=%d", proxyPort),
+			"--log-level=debug",
 		},
 		Ports: []corev1.ContainerPort{{
 			ContainerPort: proxyPort,
@@ -1061,6 +1083,7 @@ func TestInjectProxySidecarContainer(t *testing.T) {
 						"/proxy",
 						fmt.Sprintf("--proxy-port=%d", proxyPort),
 						"--probe",
+						"--log-level=debug",
 					},
 				},
 			},
@@ -1105,7 +1128,7 @@ func TestInjectProxySidecarContainer(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			containers := m.injectProxySidecarContainer(test.containers, proxyPort)
 			if !reflect.DeepEqual(containers, test.expectedContainers) {
-				t.Errorf("expected: %v, got: %v", test.expectedContainers, test.containers)
+				t.Errorf("expected: %v, got: %v", test.expectedContainers, containers)
 			}
 		})
 	}

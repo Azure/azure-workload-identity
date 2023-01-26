@@ -53,9 +53,7 @@ var (
 	dnsName = fmt.Sprintf("%s.%s.svc", serviceName, util.GetNamespace())
 	scheme  = runtime.NewScheme()
 
-	// nolint:staticcheck
-	// we will migrate to mlog.New in a future change
-	entryLog = mlog.Logr().WithName("entrypoint")
+	entryLog = mlog.New().WithName("entrypoint")
 )
 
 func init() {
