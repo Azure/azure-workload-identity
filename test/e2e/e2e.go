@@ -22,7 +22,6 @@ import (
 )
 
 var (
-	arcCluster            bool
 	tokenExchangeE2EImage string
 
 	c              *kubernetes.Clientset

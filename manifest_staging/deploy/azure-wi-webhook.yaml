@@ -155,9 +155,7 @@ spec:
         azure-workload-identity.io/system: "true"
     spec:
       containers:
-      - args:
-        - --arc-cluster=${ARC_CLUSTER:-false}
-        command:
+      - command:
         - /manager
         env:
         - name: POD_NAMESPACE

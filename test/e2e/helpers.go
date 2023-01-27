@@ -4,7 +4,6 @@ package e2e
 
 import (
 	"context"
-	"fmt"
 	"path/filepath"
 
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
@@ -56,10 +55,6 @@ func createServiceAccount(c kubernetes.Interface, namespace, name string, labels
 // createPodWithServiceAccount creates a pod with two containers, busybox-1 and busybox-2 with customizable
 // namespace, service account, image, command, arguments, environment variables, and annotations.
 func createPodWithServiceAccount(c kubernetes.Interface, namespace, serviceAccount, image string, command, args []string, env []corev1.EnvVar, annotations, labels map[string]string, runAsRoot bool) (*corev1.Pod, error) {
-	if arcCluster {
-		createSecretForArcCluster(c, namespace, serviceAccount)
-	}
-
 	pod := generatePodWithServiceAccount(c, namespace, serviceAccount, image, command, args, env, annotations, labels, runAsRoot)
 	return createPod(c, pod)
 }
@@ -195,10 +190,6 @@ func createPodUsingDeploymentWithServiceAccount(f *framework.Framework, serviceA
 		},
 	})
 
-	if arcCluster {
-		createSecretForArcCluster(f.ClientSet, f.Namespace.Name, serviceAccount)
-	}
-
 	d, err := f.ClientSet.AppsV1().Deployments(f.Namespace.Name).Create(context.TODO(), d, metav1.CreateOptions{})
 	framework.ExpectNoError(err, "failed to create deployment %s", d.Name)
 
@@ -211,26 +202,6 @@ func createPodUsingDeploymentWithServiceAccount(f *framework.Framework, serviceA
 
 	framework.Logf("created pod %s with deployment %s", pod.Name, d.Name)
 	return pod
-}
-
-// createSecretForArcCluster creates a secret called localtoken-<sa> with dummy data.
-func createSecretForArcCluster(c kubernetes.Interface, namespace, serviceAccount string) {
-	// TODO(chewong): remove this secret creation process once we stopped using fake arc cluster
-	secretName := fmt.Sprintf("localtoken-%s", serviceAccount)
-	framework.Logf("creating secret %s in %s namespace", secretName, namespace)
-
-	secret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      secretName,
-			Namespace: namespace,
-		},
-		Type: corev1.SecretTypeOpaque,
-		Data: map[string][]byte{
-			"token": []byte("fake token"),
-		},
-	}
-	_, err := c.CoreV1().Secrets(namespace).Create(context.TODO(), secret, metav1.CreateOptions{})
-	framework.ExpectNoError(err, "failed to create secret %s", secretName)
 }
 
 // validateMutatedPod validates the following properties of the mutated pod in order:
@@ -343,27 +314,10 @@ func validateUnmutatedContainers(f *framework.Framework, pod *corev1.Pod, skipCo
 }
 
 func getVolumeProjectionSources(serviceAccountName string) []corev1.VolumeProjection {
-	expirationSeconds := webhook.DefaultServiceAccountTokenExpiration
-
-	if arcCluster {
-		return []corev1.VolumeProjection{{
-			Secret: &corev1.SecretProjection{
-				LocalObjectReference: corev1.LocalObjectReference{
-					Name: fmt.Sprintf("localtoken-%s", serviceAccountName),
-				},
-				Items: []corev1.KeyToPath{
-					{
-						Key:  "token",
-						Path: webhook.TokenFilePathName,
-					},
-				},
-			},
-		}}
-	}
 	return []corev1.VolumeProjection{{
 		ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
 			Path:              webhook.TokenFilePathName,
-			ExpirationSeconds: &expirationSeconds,
+			ExpirationSeconds: pointer.Int64(webhook.DefaultServiceAccountTokenExpiration),
 			Audience:          webhook.DefaultAudience,
 		}},
 	}

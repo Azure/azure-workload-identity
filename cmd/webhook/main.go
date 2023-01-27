@@ -40,7 +40,6 @@ const (
 )
 
 var (
-	arcCluster          bool
 	audience            string
 	webhookCertDir      string
 	tlsMinVersion       string
@@ -72,9 +71,6 @@ func main() {
 func mainErr() error {
 	defer mlog.Setup()()
 
-	// TODO (aramase) once webhook is added as an arc extension, use extension
-	// util to check if running in arc cluster.
-	flag.BoolVar(&arcCluster, "arc-cluster", false, "Running on arc cluster")
 	flag.StringVar(&audience, "audience", "", "Audience for service account token")
 	flag.StringVar(&webhookCertDir, "webhook-cert-dir", "/certs", "Webhook certificates dir to use. Defaults to /certs")
 	flag.BoolVar(&disableCertRotation, "disable-cert-rotation", false, "disable automatic generation and rotation of webhook TLS certificates/keys")
@@ -166,7 +162,7 @@ func setupWebhook(mgr manager.Manager, setupFinished chan struct{}) {
 
 	// setup webhooks
 	entryLog.Info("registering webhook to the webhook server")
-	podMutator, err := wh.NewPodMutator(mgr.GetClient(), mgr.GetAPIReader(), arcCluster, audience)
+	podMutator, err := wh.NewPodMutator(mgr.GetClient(), mgr.GetAPIReader(), audience)
 	if err != nil {
 		panic(fmt.Errorf("unable to set up pod mutator: %w", err))
 	}

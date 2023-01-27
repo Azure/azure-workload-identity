@@ -173,7 +173,6 @@ run: generate fmt vet manifests
 	go run .cmd/webhook/main.go
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
-ARC_CLUSTER ?= false
 DEPLOYMENT_YAML ?= false
 
 .PHONY: deploy
@@ -321,7 +320,6 @@ GINKGO_ARGS ?= -focus="$(GINKGO_FOCUS)" -skip="$(GINKGO_SKIP)" -nodes=$(GINKGO_N
 # E2E configurations
 KUBECONFIG ?= $(HOME)/.kube/config
 E2E_ARGS := -kubeconfig=$(KUBECONFIG) -report-dir=$(PWD)/_artifacts \
-				 -e2e.arc-cluster=$(ARC_CLUSTER) \
 				 -e2e.token-exchange-image=$(MSAL_GO_E2E_IMAGE)
 E2E_EXTRA_ARGS ?=
 
