@@ -9,11 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-workload-identity/pkg/cmd/podidentity/k8s"
-	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/options"
-	"github.com/Azure/azure-workload-identity/pkg/kuberneteshelper"
-	"github.com/Azure/azure-workload-identity/pkg/webhook"
-
 	aadpodv1 "github.com/Azure/aad-pod-identity/pkg/apis/aadpodidentity/v1"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -26,7 +21,13 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	"monis.app/mlog"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/Azure/azure-workload-identity/pkg/cmd/podidentity/k8s"
+	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/options"
+	"github.com/Azure/azure-workload-identity/pkg/kuberneteshelper"
+	"github.com/Azure/azure-workload-identity/pkg/webhook"
 )
 
 var (
@@ -362,12 +363,14 @@ func (dc *detectCmd) addProxyContainer(containers []corev1.Container) []corev1.C
 		}
 	}
 
+	logLevel := mlog.LevelInfo // somewhat arbitrary decision
 	proxyContainer := corev1.Container{
 		Name:            proxyContainerName,
 		Image:           proxyImage,
 		ImagePullPolicy: corev1.PullIfNotPresent,
 		Args: []string{
 			fmt.Sprintf("--proxy-port=%d", dc.proxyPort),
+			fmt.Sprintf("--log-level=%s", logLevel),
 		},
 		Ports: []corev1.ContainerPort{
 			{
@@ -381,6 +384,7 @@ func (dc *detectCmd) addProxyContainer(containers []corev1.Container) []corev1.C
 						"/proxy",
 						fmt.Sprintf("--proxy-port=%d", dc.proxyPort),
 						"--probe",
+						fmt.Sprintf("--log-level=%s", logLevel),
 					},
 				},
 			},

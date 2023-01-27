@@ -48,9 +48,7 @@ func mainErr() error {
 		return nil
 	}
 
-	// nolint:staticcheck
-	// we will migrate to mlog.New in a future change
-	p, err := proxy.NewProxy(proxyPort, mlog.Logr().WithName("proxy"))
+	p, err := proxy.NewProxy(proxyPort, mlog.New().WithName("proxy"))
 	if err != nil {
 		return fmt.Errorf("setup: failed to create proxy: %w", err)
 	}

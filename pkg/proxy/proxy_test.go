@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/gorilla/mux"
-	"k8s.io/klog/v2/klogr"
+	"monis.app/mlog"
 
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
 )
@@ -61,7 +61,7 @@ func TestProxy_MSIHandler(t *testing.T) {
 			setup()
 			defer teardown()
 
-			p := &proxy{logger: klogr.New()}
+			p := &proxy{logger: mlog.New()}
 			rtr.PathPrefix(tokenPathPrefix).HandlerFunc(p.msiHandler)
 			rtr.PathPrefix("/").HandlerFunc(p.defaultPathHandler)
 
@@ -291,7 +291,7 @@ func TestProxy_ReadyZHandler(t *testing.T) {
 			setup()
 			defer teardown()
 
-			p := &proxy{logger: klogr.New()}
+			p := &proxy{logger: mlog.New()}
 			rtr.PathPrefix("/readyz").HandlerFunc(p.readyzHandler)
 
 			req, err := http.NewRequest(http.MethodGet, server.URL+test.path, nil)

@@ -3,14 +3,14 @@ package proxy
 import (
 	"testing"
 
-	"k8s.io/klog/v2/klogr"
+	"monis.app/mlog"
 )
 
 func TestProbe(t *testing.T) {
 	setup()
 	defer teardown()
 
-	p := &proxy{logger: klogr.New()}
+	p := &proxy{logger: mlog.New()}
 	rtr.PathPrefix("/readyz").HandlerFunc(p.readyzHandler)
 
 	if err := probe(server.URL + "/readyz"); err != nil {

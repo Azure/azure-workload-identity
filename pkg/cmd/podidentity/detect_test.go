@@ -51,6 +51,7 @@ var (
 		ImagePullPolicy: corev1.PullIfNotPresent,
 		Args: []string{
 			fmt.Sprintf("--proxy-port=%d", 8000),
+			"--log-level=info",
 		},
 		Ports: []corev1.ContainerPort{
 			{
@@ -64,6 +65,7 @@ var (
 						"/proxy",
 						fmt.Sprintf("--proxy-port=%d", 8000),
 						"--probe",
+						"--log-level=info",
 					},
 				},
 			},

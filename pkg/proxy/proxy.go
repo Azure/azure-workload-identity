@@ -11,13 +11,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-workload-identity/pkg/version"
-	"github.com/Azure/azure-workload-identity/pkg/webhook"
-
 	"github.com/AzureAD/microsoft-authentication-library-for-go/apps/confidential"
-	"github.com/go-logr/logr"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+	"monis.app/mlog"
+
+	"github.com/Azure/azure-workload-identity/pkg/version"
+	"github.com/Azure/azure-workload-identity/pkg/webhook"
 )
 
 const (
@@ -47,7 +47,7 @@ type proxy struct {
 	port          int
 	tenantID      string
 	authorityHost string
-	logger        logr.Logger
+	logger        mlog.Logger
 }
 
 // using this from https://github.com/Azure/go-autorest/blob/b3899c1057425994796c92293e931f334af63b4e/autorest/adal/token.go#L1055-L1067
@@ -67,7 +67,7 @@ type token struct {
 }
 
 // NewProxy returns a proxy instance
-func NewProxy(port int, logger logr.Logger) (Proxy, error) {
+func NewProxy(port int, logger mlog.Logger) (Proxy, error) {
 	// tenantID is required for fetching a token using client assertions
 	// the mutating webhook will inject the tenantID for the cluster
 	tenantID := os.Getenv(webhook.AzureTenantIDEnvVar)
@@ -127,7 +127,7 @@ func (p *proxy) msiHandler(w http.ResponseWriter, r *http.Request) {
 	// get the token using the msal
 	token, err := doTokenRequest(r.Context(), clientID, resource, p.tenantID, p.authorityHost)
 	if err != nil {
-		p.logger.Error(err, "failed to get token")
+		p.logger.Error("failed to get token", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -135,7 +135,7 @@ func (p *proxy) msiHandler(w http.ResponseWriter, r *http.Request) {
 	// write the token to the response
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(token); err != nil {
-		p.logger.Error(err, "failed to encode token")
+		p.logger.Error("failed to encode token", err)
 	}
 }
 
@@ -143,7 +143,7 @@ func (p *proxy) defaultPathHandler(w http.ResponseWriter, r *http.Request) {
 	client := &http.Client{}
 	req, err := http.NewRequest(r.Method, r.URL.String(), r.Body)
 	if err != nil || req == nil {
-		p.logger.Error(err, "failed to create new request")
+		p.logger.Error("failed to create new request", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -156,7 +156,7 @@ func (p *proxy) defaultPathHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		p.logger.Error(err, "failed executing request", "url", req.URL.String())
+		p.logger.Error("failed executing request", err, "url", req.URL.String())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -164,7 +164,7 @@ func (p *proxy) defaultPathHandler(w http.ResponseWriter, r *http.Request) {
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		p.logger.Error(err, "failed to read response body", "url", req.URL.String())
+		p.logger.Error("failed to read response body", err, "url", req.URL.String())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	p.logger.Info("received response from IMDS", "method", r.Method, "uri", r.RequestURI, "status", resp.StatusCode)
