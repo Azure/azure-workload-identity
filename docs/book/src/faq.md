@@ -53,3 +53,12 @@ Required permissions to create/update/delete federated identity credential:
 
 - `Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials/write`
 - `Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials/delete`
+
+## How to migrate from `aad-pod-identity`?
+
+You can refer to [this link](https://learn.microsoft.com/en-us/azure/aks/workload-identity-migrate-from-pod-identity) for more information.
+
+tl;dr:
+
+1. If you use DefaultAzureCredential in your workload, you can update the azure identity sdk version to the latest that supports workload identity (ref: [link](https://azure.github.io/azure-workload-identity/docs/topics/language-specific-examples/azure-identity-sdk.html)).
+2. If you still have workloads that get managed identity token from IMDS, you can annotate the pod to get a proxy sidecar injected, that'll do the token exchange with the new flow.
