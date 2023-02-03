@@ -155,6 +155,7 @@
 <li><a href="#what-is-the-azure-workload-identity-release-schedule">What is the Azure Workload Identity release schedule?</a></li>
 <li><a href="#what-permissions-are-required-to-create-a-federated-identity-credential-for-azure-ad-application">What permissions are required to create a federated identity credential for Azure AD Application?</a></li>
 <li><a href="#what-permissions-are-required-to-create-a-federated-identity-credential-for-user-assigned-managed-identity">What permissions are required to create a federated identity credential for user-assigned managed identity?</a></li>
+<li><a href="#how-to-migrate-from-aad-pod-identity">How to migrate from <code>aad-pod-identity</code>?</a></li>
 </ul>
 <h2 id="how-does-the-azwi-cli-differ-from-the-azure-cli"><a class="header" href="#how-does-the-azwi-cli-differ-from-the-azure-cli">How does the azwi-cli differ from the azure-cli?</a></h2>
 <p>The azwi-cli tool is specific to the Azure Workload Identity support in Kubernetes to group several manual steps (e.g. the creation of federated identity credential, annotated service accounts, etc) and automate them. Comparing with the azure-cli, it does not have an official command to add/delete federated identity (configuring federated identity credential with <code>az rest</code> is available <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/workload-identity-federation-create-trust">here</a>)</p>
@@ -193,6 +194,13 @@ federated identity credentials that reference the same service account in your K
 <li><code>Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials/write</code></li>
 <li><code>Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials/delete</code></li>
 </ul>
+<h2 id="how-to-migrate-from-aad-pod-identity"><a class="header" href="#how-to-migrate-from-aad-pod-identity">How to migrate from <code>aad-pod-identity</code>?</a></h2>
+<p>You can refer to <a href="https://learn.microsoft.com/en-us/azure/aks/workload-identity-migrate-from-pod-identity">this link</a> for more information.</p>
+<p>tl;dr:</p>
+<ol>
+<li>If you use DefaultAzureCredential in your workload, you can update the azure identity sdk version to the latest that supports workload identity (ref: <a href="https://azure.github.io/azure-workload-identity/docs/topics/language-specific-examples/azure-identity-sdk.html">link</a>).</li>
+<li>If you still have workloads that get managed identity token from IMDS, you can annotate the pod to get a proxy sidecar injected, that’ll do the token exchange with the new flow.</li>
+</ol>
 
                     </main>
 
