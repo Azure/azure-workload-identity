@@ -8,7 +8,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
+	"monis.app/mlog"
 )
 
 const (
@@ -25,7 +25,10 @@ func (c *AzureClient) CreateRoleAssignment(ctx context.Context, scope, roleName,
 		return result, errors.Wrapf(err, "failed to get role definition id for role %s", roleName)
 	}
 
-	log.Debugf("Creating role assignment for principalID=%s with role=%s", principalID, roleName)
+	mlog.Debug("Creating role assignment",
+		"principalID", principalID,
+		"role", roleName,
+	)
 	parameters := authorization.RoleAssignmentCreateParameters{
 		RoleAssignmentProperties: &authorization.RoleAssignmentProperties{
 			RoleDefinitionID: roleDefinitionID.ID,
@@ -41,7 +44,7 @@ func (c *AzureClient) CreateRoleAssignment(ctx context.Context, scope, roleName,
 			return result, nil
 		}
 		if IsAlreadyExists(err) {
-			log.Warnf("Role assignment already exists for principalID=%s with role=%s", principalID, roleName)
+			mlog.Warning("Role assignment already exists", "principalID", principalID, "role", roleName)
 			return result, err
 		}
 		time.Sleep(roleAssignmentCreateRetryDelay)
@@ -52,6 +55,6 @@ func (c *AzureClient) CreateRoleAssignment(ctx context.Context, scope, roleName,
 
 // DeleteRoleAssignment deletes a role assignment.
 func (c *AzureClient) DeleteRoleAssignment(ctx context.Context, roleAssignmentID string) (authorization.RoleAssignment, error) {
-	log.Debugf("Deleting role assignment with id=%s", roleAssignmentID)
+	mlog.Debug("Deleting role assignment", "id", roleAssignmentID)
 	return c.roleAssignmentsClient.DeleteByID(ctx, roleAssignmentID)
 }

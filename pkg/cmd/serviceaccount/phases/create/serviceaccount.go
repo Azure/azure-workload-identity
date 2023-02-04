@@ -4,14 +4,14 @@ import (
 	"context"
 	"time"
 
+	"github.com/pkg/errors"
+	"monis.app/mlog"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/options"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 	"github.com/Azure/azure-workload-identity/pkg/kuberneteshelper"
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
-
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -88,10 +88,10 @@ func (p *serviceAccountPhase) run(ctx context.Context, data workflow.RunData) er
 		return errors.Wrap(err, "failed to create kubernetes service account")
 	}
 
-	log.WithFields(log.Fields{
-		"namespace": createData.ServiceAccountNamespace(),
-		"name":      createData.ServiceAccountName(),
-	}).Infof("[%s] created kubernetes service account", serviceAccountPhaseName)
+	mlog.WithValues(
+		"namespace", createData.ServiceAccountNamespace(),
+		"name", createData.ServiceAccountName(),
+	).WithName(serviceAccountPhaseName).Info("created kubernetes service account")
 
 	return nil
 }

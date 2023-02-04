@@ -5,6 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
+	"github.com/spf13/cobra"
+	"monis.app/mlog"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/auth"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/options"
@@ -13,11 +18,6 @@ import (
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/util"
 	"github.com/Azure/azure-workload-identity/pkg/kuberneteshelper"
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
-
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
-	log "github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func newCreateCmd(authProvider auth.Provider) *cobra.Command {
@@ -117,7 +117,7 @@ func (c *createData) AADApplicationName() string {
 	name := c.aadApplicationName
 	if name == "" {
 		if c.ServiceAccountNamespace() != "" && c.ServiceAccountName() != "" && c.ServiceAccountIssuerURL() != "" {
-			log.Warn("--aad-application-name not specified, constructing name with service account namespace, name, and the hash of the issuer URL")
+			mlog.Warning("--aad-application-name not specified, constructing name with service account namespace, name, and the hash of the issuer URL")
 			name = fmt.Sprintf("%s-%s-%s", c.ServiceAccountNamespace(), c.serviceAccountName, util.GetIssuerHash(c.ServiceAccountIssuerURL()))
 		}
 	}
@@ -133,7 +133,7 @@ func (c *createData) AADApplicationClientID() string {
 
 	app, err := c.AADApplication()
 	if err != nil {
-		log.WithError(err).Error("failed to get AAD application client ID. Returning an empty string")
+		mlog.Error("failed to get AAD application client ID. Returning an empty string", err)
 		return ""
 	}
 	return *app.GetAppId()
@@ -148,7 +148,7 @@ func (c *createData) AADApplicationObjectID() string {
 
 	app, err := c.AADApplication()
 	if err != nil {
-		log.WithError(err).Error("failed to get AAD application object ID. Returning an empty string")
+		mlog.Error("failed to get AAD application object ID. Returning an empty string", err)
 		return ""
 	}
 	return *app.GetId()
@@ -172,7 +172,7 @@ func (c *createData) ServicePrincipalName() string {
 	name := c.servicePrincipalName
 	// fall back to the name of the AAD application
 	if name == "" {
-		log.Warn("--service-principal-name not specified, falling back to AAD application name")
+		mlog.Warning("--service-principal-name not specified, falling back to AAD application name")
 		name = c.AADApplicationName()
 	}
 	return name
@@ -187,7 +187,7 @@ func (c *createData) ServicePrincipalObjectID() string {
 
 	sp, err := c.ServicePrincipal()
 	if err != nil {
-		log.WithError(err).Error("failed to get service principal object ID. Returning an empty string")
+		mlog.Error("failed to get service principal object ID. Returning an empty string", err)
 		return ""
 	}
 	return *sp.GetId()

@@ -11,7 +11,8 @@ import (
 	"regexp"
 	"time"
 
-	azidentity "github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/go-autorest/autorest"
@@ -23,7 +24,7 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
+	"monis.app/mlog"
 )
 
 // ref: https://docs.microsoft.com/en-us/graph/migrate-azure-ad-graph-request-differences#basic-requests
@@ -66,7 +67,7 @@ type AzureClient struct {
 }
 
 // NewAzureClientWithCLI creates an AzureClient configured from Azure CLI 2.0 for local development scenarios.
-func NewAzureClientWithCLI(env azure.Environment, subscriptionID, tenantID string) (*AzureClient, error) {
+func NewAzureClientWithCLI(env azure.Environment, subscriptionID, tenantID string, client *http.Client) (*AzureClient, error) {
 	_, tenantID, err := getOAuthConfig(env, subscriptionID, tenantID)
 	if err != nil {
 		return nil, err
@@ -91,11 +92,11 @@ func NewAzureClientWithCLI(env azure.Environment, subscriptionID, tenantID strin
 		return nil, errors.Wrap(err, "failed to create authentication provider")
 	}
 
-	return getClient(env, subscriptionID, tenantID, autorest.NewBearerAuthorizer(&adalToken), auth)
+	return getClient(env, subscriptionID, tenantID, autorest.NewBearerAuthorizer(&adalToken), auth, client)
 }
 
 // NewAzureClientWithClientSecret returns an AzureClient via client_id and client_secret
-func NewAzureClientWithClientSecret(env azure.Environment, subscriptionID, clientID, clientSecret, tenantID string) (*AzureClient, error) {
+func NewAzureClientWithClientSecret(env azure.Environment, subscriptionID, clientID, clientSecret, tenantID string, client *http.Client) (*AzureClient, error) {
 	oauthConfig, tenantID, err := getOAuthConfig(env, subscriptionID, tenantID)
 	if err != nil {
 		return nil, err
@@ -106,7 +107,12 @@ func NewAzureClientWithClientSecret(env azure.Environment, subscriptionID, clien
 		return nil, err
 	}
 
-	cred, err := azidentity.NewClientSecretCredential(tenantID, clientID, clientSecret, nil)
+	cred, err := azidentity.NewClientSecretCredential(tenantID, clientID, clientSecret,
+		&azidentity.ClientSecretCredentialOptions{
+			ClientOptions: azcore.ClientOptions{
+				Transport: client,
+			},
+		})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create credential")
 	}
@@ -115,11 +121,11 @@ func NewAzureClientWithClientSecret(env azure.Environment, subscriptionID, clien
 		return nil, errors.Wrap(err, "failed to create authentication provider")
 	}
 
-	return getClient(env, subscriptionID, tenantID, autorest.NewBearerAuthorizer(armSpt), auth)
+	return getClient(env, subscriptionID, tenantID, autorest.NewBearerAuthorizer(armSpt), auth, client)
 }
 
 // NewAzureClientWithClientCertificateFile returns an AzureClient via client_id and jwt certificate assertion
-func NewAzureClientWithClientCertificateFile(env azure.Environment, subscriptionID, clientID, tenantID, certificatePath, privateKeyPath string) (*AzureClient, error) {
+func NewAzureClientWithClientCertificateFile(env azure.Environment, subscriptionID, clientID, tenantID, certificatePath, privateKeyPath string, client *http.Client) (*AzureClient, error) {
 	certificateData, err := os.ReadFile(certificatePath)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to read certificate")
@@ -140,27 +146,17 @@ func NewAzureClientWithClientCertificateFile(env azure.Environment, subscription
 		return nil, errors.Wrap(err, "Failed to parse rsa private key")
 	}
 
-	return NewAzureClientWithClientCertificate(env, subscriptionID, clientID, tenantID, certificate, privateKey)
+	return NewAzureClientWithClientCertificate(env, subscriptionID, clientID, tenantID, certificate, privateKey, client)
 }
 
 // NewAzureClientWithClientCertificate returns an AzureClient via client_id and jwt certificate assertion
-func NewAzureClientWithClientCertificate(env azure.Environment, subscriptionID, clientID, tenantID string, certificate *x509.Certificate, privateKey *rsa.PrivateKey) (*AzureClient, error) {
+func NewAzureClientWithClientCertificate(env azure.Environment, subscriptionID, clientID, tenantID string, certificate *x509.Certificate, privateKey *rsa.PrivateKey, client *http.Client) (*AzureClient, error) {
 	oauthConfig, tenantID, err := getOAuthConfig(env, subscriptionID, tenantID)
 	if err != nil {
 		return nil, err
 	}
 
-	return newAzureClientWithCertificate(env, oauthConfig, subscriptionID, clientID, tenantID, certificate, privateKey)
-}
-
-// NewAzureClientWithClientCertificateExternalTenant returns an AzureClient via client_id and jwt certificate assertion against a 3rd party tenant
-func NewAzureClientWithClientCertificateExternalTenant(env azure.Environment, subscriptionID, tenantID, clientID string, certificate *x509.Certificate, privateKey *rsa.PrivateKey) (*AzureClient, error) {
-	oauthConfig, err := adal.NewOAuthConfig(env.ActiveDirectoryEndpoint, tenantID)
-	if err != nil {
-		return nil, err
-	}
-
-	return newAzureClientWithCertificate(env, oauthConfig, subscriptionID, clientID, tenantID, certificate, privateKey)
+	return newAzureClientWithCertificate(env, oauthConfig, subscriptionID, clientID, tenantID, certificate, privateKey, client)
 }
 
 func getOAuthConfig(env azure.Environment, subscriptionID, tenantID string) (*adal.OAuthConfig, string, error) {
@@ -172,7 +168,7 @@ func getOAuthConfig(env azure.Environment, subscriptionID, tenantID string) (*ad
 	return oauthConfig, tenantID, nil
 }
 
-func newAzureClientWithCertificate(env azure.Environment, oauthConfig *adal.OAuthConfig, subscriptionID, clientID, tenantID string, certificate *x509.Certificate, privateKey *rsa.PrivateKey) (*AzureClient, error) {
+func newAzureClientWithCertificate(env azure.Environment, oauthConfig *adal.OAuthConfig, subscriptionID, clientID, tenantID string, certificate *x509.Certificate, privateKey *rsa.PrivateKey, client *http.Client) (*AzureClient, error) {
 	if certificate == nil {
 		return nil, errors.New("certificate should not be nil")
 	}
@@ -186,7 +182,12 @@ func newAzureClientWithCertificate(env azure.Environment, oauthConfig *adal.OAut
 		return nil, err
 	}
 
-	cred, err := azidentity.NewClientCertificateCredential(tenantID, clientID, []*x509.Certificate{certificate}, privateKey, nil)
+	cred, err := azidentity.NewClientCertificateCredential(tenantID, clientID, []*x509.Certificate{certificate}, privateKey,
+		&azidentity.ClientCertificateCredentialOptions{
+			ClientOptions: azcore.ClientOptions{
+				Transport: client,
+			},
+		})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create credential")
 	}
@@ -195,11 +196,11 @@ func newAzureClientWithCertificate(env azure.Environment, oauthConfig *adal.OAut
 		return nil, errors.Wrap(err, "failed to create authentication provider")
 	}
 
-	return getClient(env, subscriptionID, tenantID, autorest.NewBearerAuthorizer(armSpt), auth)
+	return getClient(env, subscriptionID, tenantID, autorest.NewBearerAuthorizer(armSpt), auth, client)
 }
 
-func getClient(env azure.Environment, subscriptionID, tenantID string, armAuthorizer autorest.Authorizer, auth authentication.AuthenticationProvider) (*AzureClient, error) {
-	adapter, err := msgraphbetasdk.NewGraphRequestAdapter(auth)
+func getClient(env azure.Environment, subscriptionID, tenantID string, armAuthorizer autorest.Authorizer, auth authentication.AuthenticationProvider, client *http.Client) (*AzureClient, error) {
+	adapter, err := msgraphbetasdk.NewGraphRequestAdapterWithParseNodeFactoryAndSerializationWriterFactoryAndHttpClient(auth, nil, nil, client)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create request adapter")
 	}
@@ -217,6 +218,9 @@ func getClient(env azure.Environment, subscriptionID, tenantID string, armAuthor
 	azClient.roleAssignmentsClient.Authorizer = armAuthorizer
 	azClient.roleDefinitionsClient.Authorizer = armAuthorizer
 
+	azClient.roleAssignmentsClient.Sender = client
+	azClient.roleDefinitionsClient.Sender = client
+
 	return azClient, nil
 }
 
@@ -228,7 +232,7 @@ func GetTenantID(resourceManagerEndpoint string, subscriptionID string) (string,
 	const hdrKey = "WWW-Authenticate"
 	c := subscriptions.NewClientWithBaseURI(resourceManagerEndpoint)
 
-	log.Debugf("Resolving tenantID for subscriptionID: %s", subscriptionID)
+	mlog.Debug("Resolving tenantID", "subscriptionID", subscriptionID)
 
 	// we expect this request to fail (err != nil), but we are only interested
 	// in headers, so surface the error if the Response is not present (i.e.

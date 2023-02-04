@@ -5,13 +5,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Azure/azure-workload-identity/pkg/cloud"
-	"github.com/Azure/azure-workload-identity/pkg/cloud/mock_cloud"
-
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/mock/gomock"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
 	"github.com/spf13/pflag"
+
+	"github.com/Azure/azure-workload-identity/pkg/cloud"
+	"github.com/Azure/azure-workload-identity/pkg/cloud/mock_cloud"
 )
 
 const (

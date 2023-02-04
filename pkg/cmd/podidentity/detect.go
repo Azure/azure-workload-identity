@@ -11,7 +11,6 @@ import (
 
 	aadpodv1 "github.com/Azure/aad-pod-identity/pkg/apis/aadpodidentity/v1"
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
@@ -43,8 +42,7 @@ const (
 	proxyInitContainerName = "azwi-proxy-init"
 	proxyContainerName     = "azwi-proxy"
 
-	nextStepsLogMessage = `
-Next steps:
+	nextStepsLogMessage = `Next steps:
 1. Install the Azure Workload Identity Webhook. Refer to https://azure.github.io/azure-workload-identity/docs/installation.html.
 2. Create federated identity credential for all identities used in this namespace. Refer to https://azure.github.io/azure-workload-identity/docs/topics/federated-identity-credential.html.
 3. Review the generated config files and apply them with 'kubectl apply -f <generated file>'.`
@@ -130,7 +128,7 @@ func (dc *detectCmd) prerun() error {
 }
 
 func (dc *detectCmd) run() error {
-	log.Debugf("detecting aad-pod-identity configuration in namespace: %s", dc.namespace)
+	mlog.Debug("detecting aad-pod-identity configuration", "namespace", dc.namespace)
 
 	// Implementing force namespaced mode
 	// 1. Get AzureIdentityBinding in the namespace
@@ -159,13 +157,17 @@ func (dc *detectCmd) run() error {
 	}
 
 	labelsToAzureIdentityMap := filterAzureIdentities(azureIdentityBindings, azureIdentityMap)
-	log.Debugf("found %d valid aad-pod-identity bindings", len(labelsToAzureIdentityMap))
+	if count := len(labelsToAzureIdentityMap); count > 0 {
+		mlog.Debug("found valid aad-pod-identity bindings", "count", count)
+	} else {
+		mlog.Debug("did not find any valid aad-pod-identity bindings")
+	}
 
 	ownerReferences := make(map[metav1.OwnerReference]string)
 	results := make(map[client.Object]string)
 
 	for selector, azureIdentity := range labelsToAzureIdentityMap {
-		log.Debugf("getting pods with selector: %s", selector)
+		mlog.Debug("getting pods", "selector", selector)
 		pods, err := kuberneteshelper.ListPods(context.TODO(), dc.kubeClient, dc.namespace, map[string]string{aadpodv1.CRDLabelKey: selector})
 		if err != nil {
 			return err
@@ -213,15 +215,20 @@ func (dc *detectCmd) run() error {
 		if err = dc.createResourceFile(localObject, sa); err != nil {
 			return err
 		}
-		log.Debugf("generated config for %s/%s, clientID: %s", strings.ToLower(localObject.GetObjectKind().GroupVersionKind().Kind), localObject.GetName(), clientID)
+		mlog.Debug("generated config",
+			"kind", strings.ToLower(localObject.GetObjectKind().GroupVersionKind().Kind),
+			"name", localObject.GetName(),
+			"clientID", clientID,
+		)
 	}
 
 	if len(results) == 0 {
-		log.Debugf("no aad-pod-identity configuration found in namespace: %s", dc.namespace)
+		mlog.Debug("no aad-pod-identity configuration found", "namespace", dc.namespace)
 		return nil
 	}
 
-	log.Infof("generated resource and service account files in output directory: %s\n%s", dc.outputDir, nextStepsLogMessage)
+	mlog.Info("generated resource and service account files", "directory", dc.outputDir)
+	mlog.Info(nextStepsLogMessage)
 	return nil
 }
 
@@ -237,7 +244,7 @@ func (dc *detectCmd) createServiceAccountFile(name, ownerName, clientID string) 
 	sa := &corev1.ServiceAccount{}
 	var err error
 	if name == "" || name == "default" {
-		log.Debugf("%s is using default service account, generating a new service account", ownerName)
+		mlog.Debug("generating a new service account instead of using default service account", "owner", ownerName)
 		// generate a new service account yaml file with owner name as service account name
 		sa.SetName(ownerName)
 		sa.SetNamespace(dc.namespace)
@@ -398,7 +405,7 @@ func (dc *detectCmd) addProxyContainer(containers []corev1.Container) []corev1.C
 // getOwner returns the owner of the resource
 // It makes a recursive call to get the top level owner of the resource
 func (dc *detectCmd) getOwner(ownerRef metav1.OwnerReference) (owner client.Object, err error) {
-	log.Debugf("getting owner reference: %s", ownerRef.Name)
+	mlog.Debug("getting owner reference", "name", ownerRef.Name)
 	or, err := dc.getOwnerObject(ownerRef)
 	if err != nil {
 		return nil, err
@@ -458,7 +465,10 @@ func filterAzureIdentities(bindings []aadpodv1.AzureIdentityBinding, identities 
 		// AzureIdentityBinding with the selector. The workload will use the client id of the specific identity
 		// to get a token and will not really use the AZURE_CLIENT_ID environment variable.
 		if b, ok := labelsToAzureIdentityMap[binding.Spec.Selector]; ok {
-			log.Debugf("multiple AzureIdentityBinding with same selector: %s found, using the first one: %s", binding.Spec.Selector, b.Name)
+			mlog.Debug("multiple AzureIdentityBinding found, using the first one",
+				"selector", binding.Spec.Selector,
+				"binding", b.Name,
+			)
 			continue
 		}
 		if azureIdentity, ok := identities[binding.Spec.AzureIdentity]; ok {

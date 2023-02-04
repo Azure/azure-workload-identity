@@ -16,8 +16,10 @@ func NewServiceAccountCmd() *cobra.Command {
 		Aliases: []string{"sa"},
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// run root command pre-run to register the debug flag
-			if cmd.Root() != nil && cmd.Root().PersistentPreRun != nil {
-				cmd.Root().PersistentPreRun(cmd.Root(), args)
+			if cmd.Root() != nil && cmd.Root().PersistentPreRunE != nil {
+				if err := cmd.Root().PersistentPreRunE(cmd.Root(), args); err != nil {
+					return err
+				}
 			}
 			return authProvider.Validate()
 		},
