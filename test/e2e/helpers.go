@@ -157,7 +157,7 @@ func createPodUsingDeploymentWithServiceAccount(f *framework.Framework, serviceA
 					Containers: []corev1.Container{
 						{
 							Name:            "busybox",
-							Image:           "k8s.gcr.io/e2e-test-images/busybox:1.29-1", // this image supports both Linux and Windows
+							Image:           "registry.k8s.io/e2e-test-images/busybox:1.29-4", // this image supports both Linux and Windows
 							Command:         []string{"sleep"},
 							Args:            []string{"3600"},
 							ImagePullPolicy: corev1.PullIfNotPresent,
