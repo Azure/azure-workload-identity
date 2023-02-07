@@ -169,7 +169,7 @@ metadata:
   annotations:
     azure.workload.identity/client-id: ${APPLICATION_CLIENT_ID:-$USER_ASSIGNED_IDENTITY_CLIENT_ID}
   labels:
-    azure.workload.identity/use: "true"
+    azure.workload.identity/use: "true"  # if you're using azure-workload-identity v1.0.0+, this label is not required.
   name: ${SERVICE_ACCOUNT_NAME}
   namespace: ${SERVICE_ACCOUNT_NAMESPACE}
 EOF
@@ -330,7 +330,7 @@ Namespace:    default
 Priority:     0
 Node:         k8s-agentpool1-38097163-vmss000002/10.240.0.34
 Start Time:   Wed, 13 Oct 2021 15:49:25 -0700
-Labels:       <none>
+Labels:       azure.workload.identity/use=true
 Annotations:  <none>
 Status:       Running
 IP:           10.240.0.55

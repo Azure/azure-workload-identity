@@ -26,26 +26,6 @@ kubectl logs -n azure-workload-identity-system -l app=workload-identity-webhook 
 
 > It is always a good idea to include relevant logs from the webhook when opening a new [issue][1]
 
-## Ensure the service account is labeled with `azure.workload.identity/use=true`
-
-`azure.workload.identity/use=true` label on the service account represents the service account is to be used for workload identity. If the service account is not labeled, the mutating admission webhook will not inject the required environment variables or volume mounts into the workload pod.
-
-Run the following command to check if the service account is labeled:
-
-```bash
-kubectl get sa workload-identity-sa -n oidc -o jsonpath='{.metadata.labels.azure\.workload\.identity/use}'
-```
-
-<details>
-<summary>Output</summary>
-
-```bash
-kubectl get sa workload-identity-sa -n oidc -o jsonpath='{.metadata.labels.azure\.workload\.identity/use}'
-true
-```
-
-</details>
-
 ## AADSTS70021: No matching federated identity record found for presented assertion.
 
 ```
@@ -90,3 +70,25 @@ export SERVICE_ACCOUNT_ISSUER="<your service account issuer url>" # see section 
 curl ${SERVICE_ACCOUNT_ISSUER}/.well-known/openid-configuration
 curl ${SERVICE_ACCOUNT_ISSUER}/openid/v1/jwks
 ```
+
+## Workload pod doesn't have the Azure specific environment variables and projected service account token volume after upgrading to v1.0.0
+
+As of v1.0.0 release, the azure-workload-identity mutating admission webhook is defaulting to using `failurePolicy: Fail` instead of `Ignore`. With this change, we have added an [object selector](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#matching-requests-objectselector) in the configuration to only intercept and mutate pods that have the `azure.workload.identity/use: "true"` label. This change reduces the latency impact of the webhook and prevents workload pods that require the injected environment variables and projected service account token volume from starting in an unexpected state. Refer to [issue](https://github.com/Azure/azure-workload-identity/issues/601) for more details.
+
+If you are upgrading from a previous version of the azure-workload-identity, you will need to add the `azure.workload.identity/use: "true"` label to your workload pods to ensure that the mutating admission webhook is able to inject the required environment variables and projected service account token volume.
+
+Run the following command to check if the workload pod is labeled:
+
+```bash
+kubectl get pod quick-start -n oidc -o jsonpath='{.metadata.labels.azure\.workload\.identity/use}'
+```
+
+<details>
+<summary>Output</summary>
+
+```bash
+kubectl get pod quick-start -n oidc -o jsonpath='{.metadata.labels.azure\.workload\.identity/use}'
+true
+```
+
+</details>

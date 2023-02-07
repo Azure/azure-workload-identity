@@ -139,14 +139,14 @@ kind: ServiceAccount
 metadata:
   annotations:
     azure.workload.identity/client-id: dummy
-  labels:
-    azure.workload.identity/use: "true"
   name: workload-identity-sa
 ---
 apiVersion: v1
 kind: Pod
 metadata:
   name: dummy-pod
+  labels:
+    azure.workload.identity/use: "true"
 spec:
   serviceAccountName: workload-identity-sa
   containers:

@@ -45,7 +45,7 @@ az account get-access-token --resource-type=ms-graph
 To bypass this policy:
 
 - `az login` with a user account on a supported system - Windows or MacOS, and make the device compliant.
-- `az login --service-principal` with a service principal which does not have the above compilance check.
+- `az login --service-principal` with a service principal which does not have the above compliance check.
 
 In the case of service principal, you will have to grant the `Application.ReadWrite.All` API permission:
 
