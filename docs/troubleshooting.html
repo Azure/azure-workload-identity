@@ -157,9 +157,9 @@
 </li>
 </ul>
 </li>
-<li><a href="#ensure-the-service-account-is-labeled-with-azureworkloadidentityusetrue">Ensure the service account is labeled with <code>azure.workload.identity/use=true</code></a></li>
 <li><a href="#aadsts70021-no-matching-federated-identity-record-found-for-presented-assertion">AADSTS70021: No matching federated identity record found for presented assertion.</a></li>
 <li><a href="#aadsts90061-request-to-external-oidc-endpoint-failed">AADSTS90061: Request to External OIDC endpoint failed.</a></li>
+<li><a href="#workload-pod-doesnt-have-the-azure-specific-environment-variables-and-projected-service-account-token-volume-after-upgrading-to-v100">Workload pod doesn’t have the Azure specific environment variables and projected service account token volume after upgrading to v1.0.0</a></li>
 </ul>
 <p>An overview of a list of components to assist in troubleshooting.</p>
 <h2 id="logging"><a class="header" href="#logging">Logging</a></h2>
@@ -175,17 +175,6 @@
 <blockquote>
 <p>It is always a good idea to include relevant logs from the webhook when opening a new <a href="https://github.com/Azure/azure-workload-identity/issues/new">issue</a></p>
 </blockquote>
-<h2 id="ensure-the-service-account-is-labeled-with-azureworkloadidentityusetrue"><a class="header" href="#ensure-the-service-account-is-labeled-with-azureworkloadidentityusetrue">Ensure the service account is labeled with <code>azure.workload.identity/use=true</code></a></h2>
-<p><code>azure.workload.identity/use=true</code> label on the service account represents the service account is to be used for workload identity. If the service account is not labeled, the mutating admission webhook will not inject the required environment variables or volume mounts into the workload pod.</p>
-<p>Run the following command to check if the service account is labeled:</p>
-<pre><code class="language-bash">kubectl get sa workload-identity-sa -n oidc -o jsonpath='{.metadata.labels.azure\.workload\.identity/use}'
-</code></pre>
-<details>
-<summary>Output</summary>
-<pre><code class="language-bash">kubectl get sa workload-identity-sa -n oidc -o jsonpath='{.metadata.labels.azure\.workload\.identity/use}'
-true
-</code></pre>
-</details>
 <h2 id="aadsts70021-no-matching-federated-identity-record-found-for-presented-assertion"><a class="header" href="#aadsts70021-no-matching-federated-identity-record-found-for-presented-assertion">AADSTS70021: No matching federated identity record found for presented assertion.</a></h2>
 <pre><code>token_credential.go:70] &quot;failed to acquire token&quot; err=&quot;FromAssertion(): http call(https://login.microsoftonline.com//{tenant-id}//oauth2/v2.0/token)(POST) error: reply status code was 400:\n{\&quot;error\&quot;:\&quot;invalid_request\&quot;,\&quot;error_description\&quot;:\&quot;AADSTS70021: No matching federated identity record found for presented assertion. Assertion Issuer: 'https://oidc.prod-aks.azure.com/XXXXXX/'. Assertion Subject: 'system:serviceaccount:default:workload-identity-sa'. Assertion Audience: 'api://AzureADTokenExchange'.\\r\\nTrace ID: b0f62116-10b6-4a73-bdb2-281524404e00\\r\\nCorrelation ID: 4a42e576-85bc-46ae-b7e3-b52cb8958917\\r\\nTimestamp: 2022-01-20 22:54:42Z\&quot;,\&quot;error_codes\&quot;:[70021],\&quot;timestamp\&quot;:\&quot;2022-01-20 22:54:42Z\&quot;,\&quot;trace_id\&quot;:\&quot;b0f62116-10b6-4a73-bdb2-281524404e00\&quot;,\&quot;correlation_id\&quot;:\&quot;4a42e576-85bc-46ae-b7e3-b52cb8958917\&quot;,\&quot;error_uri\&quot;:\&quot;https://login.microsoftonline.com/error?code=70021\&quot;}&quot;
 E0120 22:55:12.472912       1 token_credential.go:70] &quot;failed to acquire token&quot; err=&quot;FromAssertion(): http call(https://login.microsoftonline.com/{tenant-id}/oauth2/v2.0/token)(POST) error: reply status code was 400:\n{\&quot;error\&quot;:\&quot;invalid_request\&quot;,\&quot;error_description\&quot;:\&quot;AADSTS70021: No matching federated identity record found for presented assertion. Assertion Issuer: 'https://oidc.prod-aks.azure.com/XXXXXX/'. Assertion Subject: 'system:serviceaccount:default:workload-identity-sa'. Assertion Audience: 'api://AzureADTokenExchange'.\\r\\nTrace ID: 8f29172d-bf0d-4165-9d86-816665612d00\\r\\nCorrelation ID: 472f3de0-666f-411e-8d4c-cd46b6d6db26\\r\\nTimestamp: 2022-01-20 22:55:12Z\&quot;,\&quot;error_codes\&quot;:[70021],\&quot;timestamp\&quot;:\&quot;2022-01-20 22:55:12Z\&quot;,\&quot;trace_id\&quot;:\&quot;8f29172d-bf0d-4165-9d86-816665612d00\&quot;,\&quot;correlation_id\&quot;:\&quot;472f3de0-666f-411e-8d4c-cd46b6d6db26\&quot;,\&quot;error_uri\&quot;:\&quot;https://login.microsoftonline.com/error?code=70021\&quot;}&quot;
@@ -218,6 +207,18 @@ Timestamp: 2022-10-21 04:36:48Z
 curl ${SERVICE_ACCOUNT_ISSUER}/.well-known/openid-configuration
 curl ${SERVICE_ACCOUNT_ISSUER}/openid/v1/jwks
 </code></pre>
+<h2 id="workload-pod-doesnt-have-the-azure-specific-environment-variables-and-projected-service-account-token-volume-after-upgrading-to-v100"><a class="header" href="#workload-pod-doesnt-have-the-azure-specific-environment-variables-and-projected-service-account-token-volume-after-upgrading-to-v100">Workload pod doesn’t have the Azure specific environment variables and projected service account token volume after upgrading to v1.0.0</a></h2>
+<p>As of v1.0.0 release, the azure-workload-identity mutating admission webhook is defaulting to using <code>failurePolicy: Fail</code> instead of <code>Ignore</code>. With this change, we have added an <a href="https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#matching-requests-objectselector">object selector</a> in the configuration to only intercept and mutate pods that have the <code>azure.workload.identity/use: &quot;true&quot;</code> label. This change reduces the latency impact of the webhook and prevents workload pods that require the injected environment variables and projected service account token volume from starting in an unexpected state. Refer to <a href="https://github.com/Azure/azure-workload-identity/issues/601">issue</a> for more details.</p>
+<p>If you are upgrading from a previous version of the azure-workload-identity, you will need to add the <code>azure.workload.identity/use: &quot;true&quot;</code> label to your workload pods to ensure that the mutating admission webhook is able to inject the required environment variables and projected service account token volume.</p>
+<p>Run the following command to check if the workload pod is labeled:</p>
+<pre><code class="language-bash">kubectl get pod quick-start -n oidc -o jsonpath='{.metadata.labels.azure\.workload\.identity/use}'
+</code></pre>
+<details>
+<summary>Output</summary>
+<pre><code class="language-bash">kubectl get pod quick-start -n oidc -o jsonpath='{.metadata.labels.azure\.workload\.identity/use}'
+true
+</code></pre>
+</details>
 
                     </main>
 
