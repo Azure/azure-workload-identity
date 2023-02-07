@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: validate version
         run: |
-          echo "${{ github.event.inputs.release_version }}" | grep -E 'v[0-9]+\.[0-9]+\.[0-9]+$'
+          echo "${{ github.event.inputs.release_version }}" | grep -E 'v[0-9]+\.[0-9]+\.[0-9]+(-alpha\.[0-9]+|-beta\.[0-9]+|-rc\.[0-9]+)?$'
           echo "${{ github.event.inputs.based_on_branch }}" | grep -E '^(main|release-[0-9]+\.[0-9]+)$'
       - uses: actions/checkout@v3
         with:
