@@ -38,7 +38,7 @@ jobs:
           echo "Azure CLI Current installed version"
           az version
           echo "Upgrading Azure CLI"
-          az upgrade -y
+          az upgrade -y --only-show-errors
           echo "Azure CLI upgraded version"
           az version
       - name: Set variables
