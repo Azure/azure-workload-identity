@@ -156,6 +156,7 @@
 <li><a href="#what-permissions-are-required-to-create-a-federated-identity-credential-for-azure-ad-application">What permissions are required to create a federated identity credential for Azure AD Application?</a></li>
 <li><a href="#what-permissions-are-required-to-create-a-federated-identity-credential-for-user-assigned-managed-identity">What permissions are required to create a federated identity credential for user-assigned managed identity?</a></li>
 <li><a href="#how-to-migrate-from-aad-pod-identity">How to migrate from <code>aad-pod-identity</code>?</a></li>
+<li><a href="#does-workload-identity-work-in-disconnected-environments">Does Workload Identity work in disconnected environments?</a></li>
 </ul>
 <h2 id="how-does-the-azwi-cli-differ-from-the-azure-cli"><a class="header" href="#how-does-the-azwi-cli-differ-from-the-azure-cli">How does the azwi-cli differ from the azure-cli?</a></h2>
 <p>The azwi-cli tool is specific to the Azure Workload Identity support in Kubernetes to group several manual steps (e.g. the creation of federated identity credential, annotated service accounts, etc) and automate them. Comparing with the azure-cli, it does not have an official command to add/delete federated identity (configuring federated identity credential with <code>az rest</code> is available <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/workload-identity-federation-create-trust">here</a>)</p>
@@ -201,6 +202,8 @@ federated identity credentials that reference the same service account in your K
 <li>If you use DefaultAzureCredential in your workload, you can update the azure identity sdk version to the latest that supports workload identity (ref: <a href="https://azure.github.io/azure-workload-identity/docs/topics/language-specific-examples/azure-identity-sdk.html">link</a>).</li>
 <li>If you still have workloads that get managed identity token from IMDS, you can annotate the pod to get a proxy sidecar injected, that’ll do the token exchange with the new flow.</li>
 </ol>
+<h2 id="does-workload-identity-work-in-disconnected-environments"><a class="header" href="#does-workload-identity-work-in-disconnected-environments">Does Workload Identity work in disconnected environments?</a></h2>
+<p>No, Workload Identity doesn’t work in completely disconnected environments. The AAD token is valid for 24 hours, so the workload needs to be connected to the network at least once every 24 hours to refresh the token.</p>
 
                     </main>
 
