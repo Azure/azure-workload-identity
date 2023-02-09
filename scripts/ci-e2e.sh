@@ -66,7 +66,7 @@ main() {
 
   create_cluster
   make deploy
-  ${KUBECTL} wait --for=condition=available --timeout=5m deployment/azure-wi-webhook-controller-manager -n azure-workload-identity-system
+  poll_webhook_readiness
 
   if [[ -n "${WINDOWS_NODE_NAME:-}" ]]; then
     E2E_ARGS="--node-os-distro=windows ${E2E_ARGS:-}"
@@ -92,7 +92,8 @@ test_helm_chart() {
     --create-namespace \
     --wait \
     --debug \
-    -v=5
+    -v=5 \
+    --devel
   poll_webhook_readiness
   GINKGO_SKIP=Proxy make test-e2e-run
 
@@ -106,52 +107,12 @@ test_helm_chart() {
     --wait \
     --debug \
     -v=5
-  ${KUBECTL} wait --for=condition=available --timeout=5m deployment/azure-wi-webhook-controller-manager -n azure-workload-identity-system
+  poll_webhook_readiness
   make test-e2e-run
 }
 
 poll_webhook_readiness() {
-  TEST_RESOURCE=$(cat <<-EOF
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: azure-workload-identity-system-test
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: test-service-account
-  namespace: azure-workload-identity-system-test
-  labels:
-    azure.workload.identity/use: "true"
-  annotations:
-    azure.workload.identity/service-account-token-expiration: "100"
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: nginx-pod
-  namespace: azure-workload-identity-system-test
-  labels:
-    azure.workload.identity/use: "true"
-spec:
-  serviceAccountName: test-service-account
-  containers:
-  - name: nginx
-    image: nginx:1.15.8
-EOF
-)
-  for _ in {1..30}; do
-    # webhook is considered ready when it starts denying requests
-    # with invalid service account token expiration
-    if echo "${TEST_RESOURCE}" | ${KUBECTL} apply -f -; then
-      echo "${TEST_RESOURCE}" | ${KUBECTL} delete --grace-period=1 --ignore-not-found -f -
-      sleep 4
-    else
-      break
-    fi
-  done
-  echo "${TEST_RESOURCE}" | ${KUBECTL} delete --ignore-not-found -f -
+  ${KUBECTL} wait --for=condition=available --timeout=5m deployment/azure-wi-webhook-controller-manager -n azure-workload-identity-system
 }
 
 main
