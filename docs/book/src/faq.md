@@ -62,3 +62,7 @@ tl;dr:
 
 1. If you use DefaultAzureCredential in your workload, you can update the azure identity sdk version to the latest that supports workload identity (ref: [link](https://azure.github.io/azure-workload-identity/docs/topics/language-specific-examples/azure-identity-sdk.html)).
 2. If you still have workloads that get managed identity token from IMDS, you can annotate the pod to get a proxy sidecar injected, that'll do the token exchange with the new flow.
+
+## Does Workload Identity work in disconnected environments?
+
+No, Workload Identity doesn't work in completely disconnected environments. The AAD token is valid for 24 hours, so the workload needs to be connected to the network at least once every 24 hours to refresh the token.
