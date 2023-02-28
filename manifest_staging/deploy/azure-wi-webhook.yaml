@@ -168,7 +168,7 @@ spec:
         envFrom:
         - configMapRef:
             name: azure-wi-webhook-config
-        image: mcr.microsoft.com/oss/azure/workload-identity/webhook:v1.0.0-alpha.0
+        image: mcr.microsoft.com/oss/azure/workload-identity/webhook:v1.0.0-beta.0
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 6

@@ -8,7 +8,7 @@ spec:
   serviceAccountName: workload-identity-sa
   initContainers:
   - name: init-networking
-    image: mcr.microsoft.com/oss/azure/workload-identity/proxy-init:v1.0.0-alpha.0
+    image: mcr.microsoft.com/oss/azure/workload-identity/proxy-init:v1.0.0-beta.0
     securityContext:
       capabilities:
         add:
@@ -26,6 +26,6 @@ spec:
     ports:
     - containerPort: 80
   - name: proxy
-    image: mcr.microsoft.com/oss/azure/workload-identity/proxy:v1.0.0-alpha.0
+    image: mcr.microsoft.com/oss/azure/workload-identity/proxy:v1.0.0-beta.0
     ports:
     - containerPort: 8000

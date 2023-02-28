@@ -5,7 +5,7 @@ kind: Kustomization
 images:
 - name: manager
   newName: mcr.microsoft.com/oss/azure/workload-identity/webhook
-  newTag: v1.0.0-alpha.0
+  newTag: v1.0.0-beta.0
 configMapGenerator:
 - literals:
   - AZURE_TENANT_ID="${AZURE_TENANT_ID}"
