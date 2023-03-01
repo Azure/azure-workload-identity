@@ -57,7 +57,7 @@ type token struct {
 	RefreshToken string `json:"refresh_token"`
 
 	// AAD returns expires_in as a string, ADFS returns it as an int
-	ExpiresIn json.Number `json:"expires_in"`
+	ExpiresIn string `json:"expires_in"`
 	// expires_on can be in two formats, a UTC time stamp or the number of seconds.
 	ExpiresOn string      `json:"expires_on"`
 	NotBefore json.Number `json:"not_before"`
@@ -200,7 +200,7 @@ func doTokenRequest(ctx context.Context, clientID, resource, tenantID, authority
 		Resource:    resource,
 		Type:        "Bearer",
 		// -10s is to account for current time changes between the calls
-		ExpiresIn: json.Number(strconv.FormatInt(int64(time.Until(result.ExpiresOn)/time.Second)-10, 10)),
+		ExpiresIn: strconv.FormatInt(int64(time.Until(result.ExpiresOn)/time.Second)-10, 10),
 		// There is a difference in parsing between the azure sdks and how azure-cli works
 		// Using the unix time to be consistent with response from IMDS which works with
 		// all the clients.
