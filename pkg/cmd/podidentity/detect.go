@@ -35,7 +35,7 @@ var (
 
 const (
 	imageRepository = "mcr.microsoft.com/oss/azure/workload-identity"
-	imageTag        = "v1.0.0-alpha.0"
+	imageTag        = "v1.0.0-beta.0"
 
 	proxyInitImageName     = "proxy-init"
 	proxyImageName         = "proxy"

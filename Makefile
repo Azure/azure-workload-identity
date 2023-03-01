@@ -2,7 +2,7 @@ REGISTRY ?= mcr.microsoft.com/oss/azure/workload-identity
 PROXY_IMAGE_NAME := proxy
 INIT_IMAGE_NAME := proxy-init
 WEBHOOK_IMAGE_NAME := webhook
-IMAGE_VERSION ?= v1.0.0-alpha.0
+IMAGE_VERSION ?= v1.0.0-beta.0
 
 ORG_PATH := github.com/Azure
 PROJECT_NAME := azure-workload-identity
