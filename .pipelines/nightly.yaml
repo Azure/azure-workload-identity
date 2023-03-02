@@ -135,12 +135,10 @@ jobs:
         value: "true"
     strategy:
       matrix:
-        kind_v1_23_6:
-          KIND_NODE_VERSION: v1.23.6
-        kind_v1_24_2:
-          KIND_NODE_VERSION: v1.24.2
-        kind_v1_25_0:
-          KIND_NODE_VERSION: v1.25.0
+        kind_v1_24_7:
+          KIND_NODE_VERSION: v1.24.7
+        kind_v1_25_3:
+          KIND_NODE_VERSION: v1.25.3
         kind_v1_26_0:
           KIND_NODE_VERSION: v1.26.0
     steps:
