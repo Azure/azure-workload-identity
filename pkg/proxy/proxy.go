@@ -40,7 +40,7 @@ var (
 )
 
 type Proxy interface {
-	Run() error
+	Run(ctx context.Context) error
 }
 
 type proxy struct {
@@ -88,7 +88,7 @@ func NewProxy(port int, logger mlog.Logger) (Proxy, error) {
 }
 
 // Run runs the proxy server
-func (p *proxy) Run() error {
+func (p *proxy) Run(ctx context.Context) error {
 	rtr := mux.NewRouter()
 	rtr.PathPrefix(tokenPathPrefix).HandlerFunc(p.msiHandler)
 	rtr.PathPrefix(readyzPathPrefix).HandlerFunc(p.readyzHandler)
@@ -100,7 +100,20 @@ func (p *proxy) Run() error {
 		ReadHeaderTimeout: 5 * time.Second,
 		Handler:           rtr,
 	}
-	return server.ListenAndServe()
+
+	go func() {
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			panic(err)
+		}
+	}()
+
+	<-ctx.Done()
+
+	p.logger.Info("shutting down the proxy server")
+	// shutdown the server gracefully with a 5 second timeout
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	return server.Shutdown(shutdownCtx)
 }
 
 func (p *proxy) msiHandler(w http.ResponseWriter, r *http.Request) {
