@@ -14,21 +14,15 @@ rules:
   resources:
   - serviceaccounts
   verbs:
-  - create
   - get
   - list
-  - patch
-  - update
   - watch
 - apiGroups:
   - admissionregistration.k8s.io
   resources:
   - mutatingwebhookconfigurations
   verbs:
-  - create
-  - delete
   - get
   - list
-  - patch
   - update
   - watch
