@@ -34,7 +34,7 @@ helm upgrade -n azure-workload-identity-system [RELEASE_NAME] azure-workload-ide
 | replicaCount                     | The number of azure-workload-identity replicas to deploy for the webhook                                                          | `2`                                                     |
 | image.repository                 | Image repository                                                                                                                  | `mcr.microsoft.com/oss/azure/workload-identity/webhook` |
 | image.pullPolicy                 | Image pullPolicy                                                                                                                  | `IfNotPresent`                                          |
-| image.release                    | The image release tag to use                                                                                                      | Current release version: `v1.0.0-beta.0`                      |
+| image.release                    | The image release tag to use                                                                                                      | Current release version: `v1.0.0-beta.0`                |
 | imagePullSecrets                 | Image pull secrets to use for retrieving images from private registries                                                           | `[]`                                                    |
 | nodeSelector                     | The node selector to use for pod scheduling                                                                                       | `kubernetes.io/os: linux`                               |
 | resources                        | The resource request/limits for the container image                                                                               | limits: 100m CPU, 30Mi, requests: 100m CPU, 20Mi        |
@@ -51,6 +51,7 @@ helm upgrade -n azure-workload-identity-system [RELEASE_NAME] azure-workload-ide
 | priorityClassName                | The priority class name for webhook manager                                                                                       | `system-cluster-critical`                               |
 | mutatingWebhookAnnotations       | The annotations to add to the MutatingWebhookConfiguration                                                                        | `{}`                                                    |
 | podLabels                        | The labels to add to the azure-workload-identity webhook pods                                                                     | `{}`                                                    |
+| podAnnotations                   | The annotations to add to the azure-workload-identity webhook pods                                                                | `{}`                                                    |
 | mutatingWebhookNamespaceSelector | The namespace selector to further refine which namespaces will be selected by the webhook.                                        | `{}`                                                    |
 
 ## Contributing Changes

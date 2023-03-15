@@ -36,6 +36,8 @@ spec:
     metadata:
       labels:
         azure-workload-identity.io/system: "true"
+      annotations:
+        HELMSUBST_POD_ANNOTATIONS: ""
     spec:
       containers:
       - args:

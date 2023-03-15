@@ -31,4 +31,6 @@ imagePullSecrets:
 {{- end }}`,
 
 	`HELMSUBST_MUTATING_WEBHOOK_NAMESPACE_SELECTOR`: `{{- toYaml .Values.mutatingWebhookNamespaceSelector | nindent 4 }}`,
+
+	`HELMSUBST_POD_ANNOTATIONS: ""`: `{{- toYaml .Values.podAnnotations | trim | nindent 8 }}`,
 }

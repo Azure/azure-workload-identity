@@ -32,4 +32,5 @@ metricsBackend: prometheus
 priorityClassName: system-cluster-critical
 mutatingWebhookAnnotations: {}
 podLabels: {}
+podAnnotations: {}
 mutatingWebhookNamespaceSelector: {}
