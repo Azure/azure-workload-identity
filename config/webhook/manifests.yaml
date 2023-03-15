@@ -16,6 +16,7 @@ webhooks:
   failurePolicy: Fail
   matchPolicy: Equivalent
   name: mutation.azure-workload-identity.io
+  reinvocationPolicy: IfNeeded
   rules:
   - apiGroups:
     - ""
