@@ -32,7 +32,7 @@ TOOLS_DIR := hack/tools
 TOOLS_BIN_DIR := $(abspath $(TOOLS_DIR)/bin)
 
 # Binaries
-CONTROLLER_GEN_VER := v0.5.0
+CONTROLLER_GEN_VER := v0.10.0
 CONTROLLER_GEN_BIN := controller-gen
 CONTROLLER_GEN := $(TOOLS_BIN_DIR)/$(CONTROLLER_GEN_BIN)-$(CONTROLLER_GEN_VER)
 
@@ -151,9 +151,6 @@ docker-push-manifest:
 		docker manifest push --purge $(REGISTRY)/$${img}:$(IMAGE_VERSION); \
 	done
 
-# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
-CRD_OPTIONS ?= "crd:trivialVersions=true"
-
 .PHONY: all
 all: manager
 
@@ -201,7 +198,7 @@ uninstall-deploy: $(KUBECTL) $(KUSTOMIZE) $(ENVSUBST)
 # Generate manifests e.g. CRD, RBAC etc.
 .PHONY: manifests
 manifests: $(CONTROLLER_GEN) $(KUSTOMIZE)
-	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..."
+	$(CONTROLLER_GEN) rbac:roleName=manager-role webhook paths="./..."
 
 	rm -rf manifest_staging
 	mkdir -p manifest_staging/deploy
