@@ -1,4 +1,4 @@
-ARG BASEIMAGE=registry.k8s.io/build-image/debian-iptables:bullseye-v1.5.2
+ARG BASEIMAGE=registry.k8s.io/build-image/debian-iptables:bullseye-v1.5.3
 
 FROM --platform=${TARGETPLATFORM:-linux/amd64} ${BASEIMAGE}
 
