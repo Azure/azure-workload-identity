@@ -174,3 +174,4 @@ kubectl delete serviceaccount ${SERVICE_ACCOUNT_NAME} -n ${NAMESPACE}
 [3]: https://smallstep.com/cli/
 
 [4]: https://learn.microsoft.com/en-us/azure/aks/use-oidc-issuer
+
