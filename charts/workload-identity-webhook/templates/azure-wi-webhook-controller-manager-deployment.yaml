@@ -18,6 +18,8 @@ spec:
       release: '{{ .Release.Name }}'
   template:
     metadata:
+      annotations:
+        {{- toYaml .Values.podAnnotations | trim | nindent 8 }}
       labels:
 {{- include "workload-identity-webhook.podLabels" . }}
         app: '{{ template "workload-identity-webhook.name" . }}'
