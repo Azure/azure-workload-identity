@@ -3,8 +3,8 @@ module github.com/Azure/azure-workload-identity
 go 1.19
 
 require (
-	github.com/Azure/aad-pod-identity v1.8.13
-	github.com/Azure/azure-sdk-for-go v65.0.0+incompatible
+	github.com/Azure/aad-pod-identity v1.8.15
+	github.com/Azure/azure-sdk-for-go v67.2.0+incompatible
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v0.13.2
 	github.com/Azure/go-autorest/autorest v0.11.28
 	github.com/Azure/go-autorest/autorest/adal v0.9.23
