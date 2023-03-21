@@ -25,6 +25,7 @@ webhooks:
   objectSelector:
     matchLabels:
       azure.workload.identity/use: "true"
+  reinvocationPolicy: IfNeeded
   rules:
   - apiGroups:
     - ""
