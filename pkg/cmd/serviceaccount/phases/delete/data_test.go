@@ -3,12 +3,12 @@ package phases
 import (
 	"fmt"
 
-	"github.com/Azure/azure-workload-identity/pkg/cloud"
-	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/util"
-
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
 	"github.com/pkg/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/Azure/azure-workload-identity/pkg/cloud"
+	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/util"
 )
 
 type mockDeleteData struct {

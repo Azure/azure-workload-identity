@@ -3,10 +3,10 @@ package phases
 import (
 	"time"
 
-	"github.com/Azure/azure-workload-identity/pkg/cloud"
-
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/Azure/azure-workload-identity/pkg/cloud"
 )
 
 // CreateData is the interface to use for create phase.

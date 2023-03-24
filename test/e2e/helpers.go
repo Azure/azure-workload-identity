@@ -6,8 +6,6 @@ import (
 	"context"
 	"path/filepath"
 
-	"github.com/Azure/azure-workload-identity/pkg/webhook"
-
 	"github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -18,6 +16,8 @@ import (
 	e2edeploy "k8s.io/kubernetes/test/e2e/framework/deployment"
 	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
 	"k8s.io/utils/pointer"
+
+	"github.com/Azure/azure-workload-identity/pkg/webhook"
 )
 
 const (

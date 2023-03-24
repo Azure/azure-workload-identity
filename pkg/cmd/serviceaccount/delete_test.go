@@ -3,10 +3,10 @@ package serviceaccount
 import (
 	"testing"
 
-	"github.com/Azure/azure-workload-identity/pkg/cloud/mock_cloud"
-
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
+
+	"github.com/Azure/azure-workload-identity/pkg/cloud/mock_cloud"
 )
 
 func TestDeleteDataServiceAccountName(t *testing.T) {

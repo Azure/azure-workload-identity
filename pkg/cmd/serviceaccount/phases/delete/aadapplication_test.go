@@ -4,11 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/Azure/azure-workload-identity/pkg/cloud/mock_cloud"
-	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
-
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
+
+	"github.com/Azure/azure-workload-identity/pkg/cloud/mock_cloud"
+	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 )
 
 func TestAADApplicationPreRun(t *testing.T) {
