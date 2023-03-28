@@ -5,13 +5,13 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-workload-identity/pkg/cloud/mock_cloud"
-	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
-
 	authorization "github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
+
+	"github.com/Azure/azure-workload-identity/pkg/cloud/mock_cloud"
+	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 )
 
 func TestRoleAssignmentPreRun(t *testing.T) {

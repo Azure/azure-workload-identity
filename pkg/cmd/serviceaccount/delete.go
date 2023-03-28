@@ -4,6 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
+	"github.com/spf13/cobra"
+	"monis.app/mlog"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/auth"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/options"
@@ -11,11 +16,6 @@ import (
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
 	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/util"
 	"github.com/Azure/azure-workload-identity/pkg/kuberneteshelper"
-	"monis.app/mlog"
-
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
-	"github.com/spf13/cobra"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var (

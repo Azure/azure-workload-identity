@@ -8,12 +8,13 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Azure/azure-workload-identity/pkg/webhook"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/kubernetes/test/e2e/framework"
 	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
+
+	"github.com/Azure/azure-workload-identity/pkg/webhook"
 )
 
 // The proxy implementation is only for Linux.

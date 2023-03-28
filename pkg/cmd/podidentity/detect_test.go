@@ -8,9 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Azure/azure-workload-identity/pkg/cmd/podidentity/k8s"
-	"github.com/Azure/azure-workload-identity/pkg/webhook"
-
 	aadpodv1 "github.com/Azure/aad-pod-identity/pkg/apis/aadpodidentity/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
@@ -19,6 +16,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	"github.com/Azure/azure-workload-identity/pkg/cmd/podidentity/k8s"
+	"github.com/Azure/azure-workload-identity/pkg/webhook"
 )
 
 var (

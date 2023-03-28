@@ -3,9 +3,9 @@ package version
 import (
 	"fmt"
 
-	"github.com/Azure/azure-workload-identity/pkg/version"
-
 	"github.com/spf13/cobra"
+
+	"github.com/Azure/azure-workload-identity/pkg/version"
 )
 
 // NewVersionCmd returns a new version command

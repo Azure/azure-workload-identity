@@ -5,12 +5,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
-	"github.com/Azure/azure-workload-identity/pkg/webhook"
-
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/phases/workflow"
+	"github.com/Azure/azure-workload-identity/pkg/webhook"
 )
 
 func TestServiceAccountPreRun(t *testing.T) {

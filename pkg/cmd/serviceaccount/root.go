@@ -1,9 +1,9 @@
 package serviceaccount
 
 import (
-	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/auth"
-
 	"github.com/spf13/cobra"
+
+	"github.com/Azure/azure-workload-identity/pkg/cmd/serviceaccount/auth"
 )
 
 // NewServiceAccountCmd returns a new serviceaccount command
