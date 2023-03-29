@@ -26,3 +26,7 @@ linters:
     - whitespace
   # Run with --fast=false for more extensive checks
   fast: true
+
+linters-settings:
+  goimports:
+    local-prefixes: github.com/Azure/azure-workload-identity
