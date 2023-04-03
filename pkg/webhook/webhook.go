@@ -49,7 +49,6 @@ type podMutator struct {
 	decoder            *admission.Decoder
 	audience           string
 	azureAuthorityHost string
-	reporter           StatsReporter
 }
 
 // NewPodMutator returns a pod mutation handler
@@ -68,13 +67,16 @@ func NewPodMutator(client client.Client, reader client.Reader, audience string) 
 		return nil, errors.Wrap(err, "failed to get AAD endpoint")
 	}
 
+	if err := registerMetrics(); err != nil {
+		return nil, errors.Wrap(err, "failed to register metrics")
+	}
+
 	return &podMutator{
 		client:             client,
 		reader:             reader,
 		config:             c,
 		audience:           audience,
 		azureAuthorityHost: azureAuthorityHost,
-		reporter:           newStatsReporter(),
 	}, nil
 }
 
@@ -82,9 +84,7 @@ func NewPodMutator(client client.Client, reader client.Reader, audience string) 
 func (m *podMutator) Handle(ctx context.Context, req admission.Request) (response admission.Response) {
 	timeStart := time.Now()
 	defer func() {
-		if m.reporter != nil {
-			m.reporter.ReportRequest(ctx, req.Namespace, time.Since(timeStart))
-		}
+		ReportRequest(ctx, req.Namespace, time.Since(timeStart))
 	}()
 
 	pod := &corev1.Pod{}
