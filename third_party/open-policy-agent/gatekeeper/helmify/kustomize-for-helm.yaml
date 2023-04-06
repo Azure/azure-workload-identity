@@ -99,3 +99,17 @@ metadata:
   name: azure-wi-webhook-admin
   namespace: azure-workload-identity-system
 HELMSUBST_SERVICEACCOUNT_IMAGE_PULL_SECRETS: ""
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  labels:
+    azure-workload-identity.io/system: "true"
+  name: azure-wi-webhook-controller-manager
+  namespace: azure-workload-identity-system
+spec:
+  minAvailable: HELMSUBST_PODDISRUPTIONBUDGET_MINAVAILABLE
+  HELMSUBST_PODDISRUPTIONBUDGET_MAXUNAVAILABLE: ""
+  selector:
+    matchLabels:
+      azure-workload-identity.io/system: "true"
