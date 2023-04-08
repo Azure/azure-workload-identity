@@ -7,7 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/mock/gomock"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
+	"github.com/microsoftgraph/msgraph-sdk-go/models"
 	"github.com/spf13/pflag"
 
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
@@ -312,15 +312,15 @@ func TestCreateDataAzureTenantID(t *testing.T) {
 	}
 }
 
-func testApplication(appID, objectID string) *graph.Application {
-	app := graph.NewApplication()
+func testApplication(appID, objectID string) models.Applicationable {
+	app := models.NewApplication()
 	app.SetAppId(to.StringPtr(appID))
 	app.SetId(to.StringPtr(objectID))
 	return app
 }
 
-func testServicePrincipal(appID, objectID string) *graph.ServicePrincipal {
-	sp := graph.NewServicePrincipal()
+func testServicePrincipal(appID, objectID string) models.ServicePrincipalable {
+	sp := models.NewServicePrincipal()
 	sp.SetAppId(to.StringPtr(appID))
 	sp.SetId(to.StringPtr(objectID))
 	return sp

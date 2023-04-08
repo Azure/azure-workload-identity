@@ -19,10 +19,10 @@ import (
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/cli"
-	"github.com/microsoft/kiota/abstractions/go/authentication"
-	kiotaauth "github.com/microsoft/kiota/authentication/go/azure"
-	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
+	"github.com/microsoft/kiota-abstractions-go/authentication"
+	kiotaauth "github.com/microsoft/kiota-authentication-azure-go"
+	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
+	"github.com/microsoftgraph/msgraph-sdk-go/models"
 	"github.com/pkg/errors"
 	"monis.app/mlog"
 )
@@ -36,12 +36,12 @@ var msGraphEndpoint = map[azure.Environment]string{
 }
 
 type Interface interface {
-	CreateServicePrincipal(ctx context.Context, appID string, tags []string) (*graph.ServicePrincipal, error)
-	CreateApplication(ctx context.Context, displayName string) (*graph.Application, error)
+	CreateServicePrincipal(ctx context.Context, appID string, tags []string) (models.ServicePrincipalable, error)
+	CreateApplication(ctx context.Context, displayName string) (models.Applicationable, error)
 	DeleteServicePrincipal(ctx context.Context, objectID string) error
 	DeleteApplication(ctx context.Context, objectID string) error
-	GetServicePrincipal(ctx context.Context, displayName string) (*graph.ServicePrincipal, error)
-	GetApplication(ctx context.Context, displayName string) (*graph.Application, error)
+	GetServicePrincipal(ctx context.Context, displayName string) (models.ServicePrincipalable, error)
+	GetApplication(ctx context.Context, displayName string) (models.Applicationable, error)
 
 	// Role assignment methods
 	CreateRoleAssignment(ctx context.Context, scope, roleName, principalID string) (authorization.RoleAssignment, error)
@@ -51,8 +51,8 @@ type Interface interface {
 	GetRoleDefinitionIDByName(ctx context.Context, scope, roleName string) (authorization.RoleDefinition, error)
 
 	// Federation methods
-	AddFederatedCredential(ctx context.Context, objectID string, fic *graph.FederatedIdentityCredential) error
-	GetFederatedCredential(ctx context.Context, objectID, issuer, subject string) (*graph.FederatedIdentityCredential, error)
+	AddFederatedCredential(ctx context.Context, objectID string, fic models.FederatedIdentityCredentialable) error
+	GetFederatedCredential(ctx context.Context, objectID, issuer, subject string) (models.FederatedIdentityCredentialable, error)
 	DeleteFederatedCredential(ctx context.Context, objectID, federatedCredentialID string) error
 }
 
@@ -60,7 +60,7 @@ type AzureClient struct {
 	environment    azure.Environment
 	subscriptionID string
 
-	graphServiceClient *msgraphbetasdk.GraphServiceClient
+	graphServiceClient *msgraphsdk.GraphServiceClient
 
 	roleAssignmentsClient authorization.RoleAssignmentsClient
 	roleDefinitionsClient authorization.RoleDefinitionsClient
@@ -200,7 +200,7 @@ func newAzureClientWithCertificate(env azure.Environment, oauthConfig *adal.OAut
 }
 
 func getClient(env azure.Environment, subscriptionID, tenantID string, armAuthorizer autorest.Authorizer, auth authentication.AuthenticationProvider, client *http.Client) (*AzureClient, error) {
-	adapter, err := msgraphbetasdk.NewGraphRequestAdapterWithParseNodeFactoryAndSerializationWriterFactoryAndHttpClient(auth, nil, nil, client)
+	adapter, err := msgraphsdk.NewGraphRequestAdapterWithParseNodeFactoryAndSerializationWriterFactoryAndHttpClient(auth, nil, nil, client)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create request adapter")
 	}
@@ -209,7 +209,7 @@ func getClient(env azure.Environment, subscriptionID, tenantID string, armAuthor
 		environment:    env,
 		subscriptionID: subscriptionID,
 
-		graphServiceClient: msgraphbetasdk.NewGraphServiceClient(adapter),
+		graphServiceClient: msgraphsdk.NewGraphServiceClient(adapter),
 
 		roleAssignmentsClient: authorization.NewRoleAssignmentsClientWithBaseURI(env.ResourceManagerEndpoint, subscriptionID),
 		roleDefinitionsClient: authorization.NewRoleDefinitionsClientWithBaseURI(env.ResourceManagerEndpoint, subscriptionID),

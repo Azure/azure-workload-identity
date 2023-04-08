@@ -1,10 +1,10 @@
 package phases
 
 import (
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
+	"github.com/microsoftgraph/msgraph-sdk-go/models"
 )
 
 // DeleteData is the interface to use for create phase.
@@ -21,7 +21,7 @@ type DeleteData interface {
 
 	// AADApplication returns the AAD application object.
 	// This will return the cached value if it has been created.
-	AADApplication() (*graph.Application, error)
+	AADApplication() (models.Applicationable, error)
 
 	// AADApplicationName returns the name of the AAD application.
 	AADApplicationName() string

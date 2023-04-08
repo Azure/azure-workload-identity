@@ -6,9 +6,8 @@ import (
 	"strings"
 
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/microsoft/kiota/abstractions/go/serialization"
-	jsonserialization "github.com/microsoft/kiota/serialization/go/json"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
+	jsonserialization "github.com/microsoft/kiota-serialization-json-go"
+	"github.com/microsoftgraph/msgraph-sdk-go/models"
 	"github.com/pkg/errors"
 )
 
@@ -21,7 +20,7 @@ const (
 
 // GraphError is a custom error type for Graph API errors.
 type GraphError struct {
-	PublicError *graph.PublicError
+	PublicError *models.PublicError
 }
 
 // IsNotFound returns true if the given error is a NotFound error.
@@ -62,7 +61,7 @@ func GetGraphError(additionalData map[string]interface{}) (*GraphError, error) {
 	if additionalData == nil || additionalData["error"] == nil {
 		return nil, nil
 	}
-	e := graph.NewPublicError()
+	e := models.NewPublicError()
 	e.SetAdditionalData(additionalData)
 
 	ad := additionalData["error"].(map[string]*jsonserialization.JsonParseNode)
@@ -77,14 +76,14 @@ func GetGraphError(additionalData map[string]interface{}) (*GraphError, error) {
 		return nil, err
 	}
 	// Optional. Additional error objects that may be more specific than the top level error.
-	innerError, err := ad["innerError"].GetObjectValue(func() serialization.Parsable { return graph.NewPublicInnerError() })
+	innerError, err := ad["innerError"].GetObjectValue(models.CreatePublicInnerErrorFromDiscriminatorValue)
 	if err != nil {
 		return nil, err
 	}
 
 	e.SetCode(code)
 	e.SetMessage(message)
-	e.SetInnerError(innerError.(*graph.PublicInnerError))
+	e.SetInnerError(innerError.(*models.PublicInnerError))
 
 	return &GraphError{e}, nil
 }

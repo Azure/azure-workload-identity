@@ -10,7 +10,7 @@ import (
 
 	authorization "github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	gomock "github.com/golang/mock/gomock"
-	graph "github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
+	models "github.com/microsoftgraph/msgraph-sdk-go/models"
 )
 
 // MockInterface is a mock of Interface interface.
@@ -37,7 +37,7 @@ func (m *MockInterface) EXPECT() *MockInterfaceMockRecorder {
 }
 
 // AddFederatedCredential mocks base method.
-func (m *MockInterface) AddFederatedCredential(ctx context.Context, objectID string, fic *graph.FederatedIdentityCredential) error {
+func (m *MockInterface) AddFederatedCredential(ctx context.Context, objectID string, fic models.FederatedIdentityCredentialable) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddFederatedCredential", ctx, objectID, fic)
 	ret0, _ := ret[0].(error)
@@ -51,10 +51,10 @@ func (mr *MockInterfaceMockRecorder) AddFederatedCredential(ctx, objectID, fic i
 }
 
 // CreateApplication mocks base method.
-func (m *MockInterface) CreateApplication(ctx context.Context, displayName string) (*graph.Application, error) {
+func (m *MockInterface) CreateApplication(ctx context.Context, displayName string) (models.Applicationable, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateApplication", ctx, displayName)
-	ret0, _ := ret[0].(*graph.Application)
+	ret0, _ := ret[0].(models.Applicationable)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -81,10 +81,10 @@ func (mr *MockInterfaceMockRecorder) CreateRoleAssignment(ctx, scope, roleName, 
 }
 
 // CreateServicePrincipal mocks base method.
-func (m *MockInterface) CreateServicePrincipal(ctx context.Context, appID string, tags []string) (*graph.ServicePrincipal, error) {
+func (m *MockInterface) CreateServicePrincipal(ctx context.Context, appID string, tags []string) (models.ServicePrincipalable, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateServicePrincipal", ctx, appID, tags)
-	ret0, _ := ret[0].(*graph.ServicePrincipal)
+	ret0, _ := ret[0].(models.ServicePrincipalable)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -153,10 +153,10 @@ func (mr *MockInterfaceMockRecorder) DeleteServicePrincipal(ctx, objectID interf
 }
 
 // GetApplication mocks base method.
-func (m *MockInterface) GetApplication(ctx context.Context, displayName string) (*graph.Application, error) {
+func (m *MockInterface) GetApplication(ctx context.Context, displayName string) (models.Applicationable, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetApplication", ctx, displayName)
-	ret0, _ := ret[0].(*graph.Application)
+	ret0, _ := ret[0].(models.Applicationable)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -168,10 +168,10 @@ func (mr *MockInterfaceMockRecorder) GetApplication(ctx, displayName interface{}
 }
 
 // GetFederatedCredential mocks base method.
-func (m *MockInterface) GetFederatedCredential(ctx context.Context, objectID, issuer, subject string) (*graph.FederatedIdentityCredential, error) {
+func (m *MockInterface) GetFederatedCredential(ctx context.Context, objectID, issuer, subject string) (models.FederatedIdentityCredentialable, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFederatedCredential", ctx, objectID, issuer, subject)
-	ret0, _ := ret[0].(*graph.FederatedIdentityCredential)
+	ret0, _ := ret[0].(models.FederatedIdentityCredentialable)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -198,10 +198,10 @@ func (mr *MockInterfaceMockRecorder) GetRoleDefinitionIDByName(ctx, scope, roleN
 }
 
 // GetServicePrincipal mocks base method.
-func (m *MockInterface) GetServicePrincipal(ctx context.Context, displayName string) (*graph.ServicePrincipal, error) {
+func (m *MockInterface) GetServicePrincipal(ctx context.Context, displayName string) (models.ServicePrincipalable, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetServicePrincipal", ctx, displayName)
-	ret0, _ := ret[0].(*graph.ServicePrincipal)
+	ret0, _ := ret[0].(models.ServicePrincipalable)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

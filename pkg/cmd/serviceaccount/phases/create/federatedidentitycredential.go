@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
+	"github.com/microsoftgraph/msgraph-sdk-go/models"
 	"github.com/pkg/errors"
 	"monis.app/mlog"
 
@@ -71,7 +71,7 @@ func (p *federatedIdentityPhase) run(ctx context.Context, data workflow.RunData)
 	audiences := []string{webhook.DefaultAudience}
 
 	objectID := createData.AADApplicationObjectID()
-	fic := graph.NewFederatedIdentityCredential()
+	fic := models.NewFederatedIdentityCredential()
 	fic.SetAudiences(audiences)
 	fic.SetDescription(to.StringPtr(description))
 	fic.SetIssuer(to.StringPtr(createData.ServiceAccountIssuerURL()))

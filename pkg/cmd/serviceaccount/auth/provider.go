@@ -10,8 +10,8 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/google/uuid"
-	nethttplibrary "github.com/microsoft/kiota/http/go/nethttp"
-	msgraphbetasdkgo "github.com/microsoftgraph/msgraph-beta-sdk-go"
+	nethttplibrary "github.com/microsoft/kiota-http-go"
+	msgrapsdkgo "github.com/microsoftgraph/msgraph-sdk-go"
 	msgraphgocore "github.com/microsoftgraph/msgraph-sdk-go-core"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
@@ -86,7 +86,7 @@ func defaultTransport() *http.Transport {
 }
 
 func defaultWrap(rt http.RoundTripper) http.RoundTripper {
-	opts := msgraphbetasdkgo.GetDefaultClientOptions()
+	opts := msgrapsdkgo.GetDefaultClientOptions()
 	rt = newMiddlewarePipeline(msgraphgocore.GetDefaultMiddlewaresWithOptions(&opts), rt)
 	rt = transport.NewUserAgentRoundTripper(rest.DefaultKubernetesUserAgent(), rt)
 	rt = newDelayDebugWrappers(rt)

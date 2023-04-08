@@ -198,8 +198,7 @@ func doTokenRequest(ctx context.Context, clientID, resource, tenantID, authority
 		return readJWTFromFS(tokenFilePath)
 	})
 
-	confidentialClientApp, err := confidential.New(clientID, cred,
-		confidential.WithAuthority(fmt.Sprintf("%s%s/oauth2/token", authorityHost, tenantID)))
+	confidentialClientApp, err := confidential.New(fmt.Sprintf("%s%s/oauth2/token", authorityHost, tenantID), clientID, cred)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create confidential client app")
 	}
