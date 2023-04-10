@@ -1,10 +1,10 @@
 package phases
 
 import (
+	"github.com/microsoftgraph/msgraph-sdk-go/models"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/Azure/azure-workload-identity/pkg/cloud"
-	"github.com/microsoftgraph/msgraph-sdk-go/models"
 )
 
 // DeleteData is the interface to use for create phase.

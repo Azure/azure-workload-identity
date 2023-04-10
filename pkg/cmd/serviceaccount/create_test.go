@@ -28,7 +28,7 @@ type mockAuthProvider struct {
 	azureTenantID string
 }
 
-func (m *mockAuthProvider) AddFlags(f *pflag.FlagSet)       {}
+func (m *mockAuthProvider) AddFlags(_ *pflag.FlagSet)       {}
 func (m *mockAuthProvider) GetAzureClient() cloud.Interface { return m.azureClient }
 func (m *mockAuthProvider) GetAzureTenantID() string        { return m.azureTenantID }
 func (m *mockAuthProvider) Validate() error                 { return nil }

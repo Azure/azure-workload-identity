@@ -68,7 +68,7 @@ type AzureClient struct {
 
 // NewAzureClientWithCLI creates an AzureClient configured from Azure CLI 2.0 for local development scenarios.
 func NewAzureClientWithCLI(env azure.Environment, subscriptionID, tenantID string, client *http.Client) (*AzureClient, error) {
-	_, tenantID, err := getOAuthConfig(env, subscriptionID, tenantID)
+	_, _, err := getOAuthConfig(env, tenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -92,12 +92,12 @@ func NewAzureClientWithCLI(env azure.Environment, subscriptionID, tenantID strin
 		return nil, errors.Wrap(err, "failed to create authentication provider")
 	}
 
-	return getClient(env, subscriptionID, tenantID, autorest.NewBearerAuthorizer(&adalToken), auth, client)
+	return getClient(env, subscriptionID, autorest.NewBearerAuthorizer(&adalToken), auth, client)
 }
 
 // NewAzureClientWithClientSecret returns an AzureClient via client_id and client_secret
 func NewAzureClientWithClientSecret(env azure.Environment, subscriptionID, clientID, clientSecret, tenantID string, client *http.Client) (*AzureClient, error) {
-	oauthConfig, tenantID, err := getOAuthConfig(env, subscriptionID, tenantID)
+	oauthConfig, tenantID, err := getOAuthConfig(env, tenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func NewAzureClientWithClientSecret(env azure.Environment, subscriptionID, clien
 		return nil, errors.Wrap(err, "failed to create authentication provider")
 	}
 
-	return getClient(env, subscriptionID, tenantID, autorest.NewBearerAuthorizer(armSpt), auth, client)
+	return getClient(env, subscriptionID, autorest.NewBearerAuthorizer(armSpt), auth, client)
 }
 
 // NewAzureClientWithClientCertificateFile returns an AzureClient via client_id and jwt certificate assertion
@@ -151,7 +151,7 @@ func NewAzureClientWithClientCertificateFile(env azure.Environment, subscription
 
 // NewAzureClientWithClientCertificate returns an AzureClient via client_id and jwt certificate assertion
 func NewAzureClientWithClientCertificate(env azure.Environment, subscriptionID, clientID, tenantID string, certificate *x509.Certificate, privateKey *rsa.PrivateKey, client *http.Client) (*AzureClient, error) {
-	oauthConfig, tenantID, err := getOAuthConfig(env, subscriptionID, tenantID)
+	oauthConfig, tenantID, err := getOAuthConfig(env, tenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +159,7 @@ func NewAzureClientWithClientCertificate(env azure.Environment, subscriptionID, 
 	return newAzureClientWithCertificate(env, oauthConfig, subscriptionID, clientID, tenantID, certificate, privateKey, client)
 }
 
-func getOAuthConfig(env azure.Environment, subscriptionID, tenantID string) (*adal.OAuthConfig, string, error) {
+func getOAuthConfig(env azure.Environment, tenantID string) (*adal.OAuthConfig, string, error) {
 	oauthConfig, err := adal.NewOAuthConfig(env.ActiveDirectoryEndpoint, tenantID)
 	if err != nil {
 		return nil, "", err
@@ -196,10 +196,10 @@ func newAzureClientWithCertificate(env azure.Environment, oauthConfig *adal.OAut
 		return nil, errors.Wrap(err, "failed to create authentication provider")
 	}
 
-	return getClient(env, subscriptionID, tenantID, autorest.NewBearerAuthorizer(armSpt), auth, client)
+	return getClient(env, subscriptionID, autorest.NewBearerAuthorizer(armSpt), auth, client)
 }
 
-func getClient(env azure.Environment, subscriptionID, tenantID string, armAuthorizer autorest.Authorizer, auth authentication.AuthenticationProvider, client *http.Client) (*AzureClient, error) {
+func getClient(env azure.Environment, subscriptionID string, armAuthorizer autorest.Authorizer, auth authentication.AuthenticationProvider, client *http.Client) (*AzureClient, error) {
 	adapter, err := msgraphsdk.NewGraphRequestAdapterWithParseNodeFactoryAndSerializationWriterFactoryAndHttpClient(auth, nil, nil, client)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create request adapter")
