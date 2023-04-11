@@ -260,11 +260,11 @@ func TestReadJWTFromFS(t *testing.T) {
 	}
 }
 
-func testTokenHandler(w http.ResponseWriter, r *http.Request) {
+func testTokenHandler(w http.ResponseWriter, _ *http.Request) {
 	fmt.Fprintf(w, "token_request_handler")
 }
 
-func testDefaultHandler(w http.ResponseWriter, r *http.Request) {
+func testDefaultHandler(w http.ResponseWriter, _ *http.Request) {
 	fmt.Fprintf(w, "default_handler")
 }
 

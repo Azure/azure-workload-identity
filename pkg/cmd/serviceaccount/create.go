@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/microsoft/graph"
+	"github.com/microsoftgraph/msgraph-sdk-go/models"
 	"github.com/spf13/cobra"
 	"monis.app/mlog"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -65,11 +65,11 @@ type createData struct {
 	serviceAccountNamespace       string
 	serviceAccountIssuerURL       string
 	serviceAccountTokenExpiration time.Duration
-	aadApplication                *graph.Application // cache
+	aadApplication                models.Applicationable // cache
 	aadApplicationName            string
 	aadApplicationClientID        string
 	aadApplicationObjectID        string
-	servicePrincipal              *graph.ServicePrincipal // cache
+	servicePrincipal              models.ServicePrincipalable // cache
 	servicePrincipalObjectID      string
 	servicePrincipalName          string
 	azureRole                     string
@@ -101,7 +101,7 @@ func (c *createData) ServiceAccountTokenExpiration() time.Duration {
 
 // AADApplication returns the AAD application object.
 // This will return the cached value if it has been created.
-func (c *createData) AADApplication() (*graph.Application, error) {
+func (c *createData) AADApplication() (models.Applicationable, error) {
 	if c.aadApplication == nil {
 		app, err := c.AzureClient().GetApplication(context.Background(), c.AADApplicationName())
 		if err != nil {
@@ -156,7 +156,7 @@ func (c *createData) AADApplicationObjectID() string {
 
 // ServicePrincipal returns the service principal object.
 // This will return the cached value if it has been created.
-func (c *createData) ServicePrincipal() (*graph.ServicePrincipal, error) {
+func (c *createData) ServicePrincipal() (models.ServicePrincipalable, error) {
 	if c.servicePrincipal == nil {
 		sp, err := c.AzureClient().GetServicePrincipal(context.Background(), c.ServicePrincipalName())
 		if err != nil {

@@ -767,6 +767,10 @@ func TestHandle(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			if err := registerMetrics(); err != nil {
+				t.Fatalf("failed to register metrics: %v", err)
+			}
+
 			m := &podMutator{
 				client:  fake.NewClientBuilder().WithObjects(test.clientObjects...).Build(),
 				reader:  fake.NewClientBuilder().WithObjects(test.readerObjects...).Build(),
