@@ -16,8 +16,6 @@ import (
 	e2edeploy "k8s.io/kubernetes/test/e2e/framework/deployment"
 	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
 	"k8s.io/utils/pointer"
-
-	"github.com/Azure/azure-workload-identity/pkg/webhook"
 )
 
 const (
@@ -134,8 +132,8 @@ func createPodUsingDeploymentWithServiceAccount(f *framework.Framework, serviceA
 	framework.Logf("creating a deployment in %s namespace with service account %s", f.Namespace.Name, serviceAccount)
 
 	podLabels := map[string]string{
-		"app":                            "busybox",
-		webhook.UseWorkloadIdentityLabel: "true",
+		"app":                    "busybox",
+		useWorkloadIdentityLabel: "true",
 	}
 	nonRootUser := int64(1000)
 
@@ -234,10 +232,10 @@ func validateMutatedPod(f *framework.Framework, pod *corev1.Pod, skipContainers 
 
 		framework.Logf("ensuring that the correct environment variables are injected to %s in %s", container.Name, pod.Name)
 		for _, injected := range []string{
-			webhook.AzureClientIDEnvVar,
-			webhook.AzureTenantIDEnvVar,
-			webhook.AzureAuthorityHostEnvVar,
-			webhook.AzureFederatedTokenFileEnvVar,
+			"AZURE_CLIENT_ID",
+			"AZURE_TENANT_ID",
+			"AZURE_AUTHORITY_HOST",
+			"AZURE_FEDERATED_TOKEN_FILE",
 		} {
 			if _, ok := m[injected]; !ok {
 				framework.Failf("container %s in pod %s does not have env var %s injected", container.Name, pod.Name, injected)
@@ -250,8 +248,8 @@ func validateMutatedPod(f *framework.Framework, pod *corev1.Pod, skipContainers 
 			if volumeMount.Name == "azure-identity-token" {
 				found = true
 				gomega.Expect(volumeMount).To(gomega.Equal(corev1.VolumeMount{
-					Name:      webhook.TokenFilePathName,
-					MountPath: webhook.TokenFileMountPath,
+					Name:      tokenFilePathName,
+					MountPath: tokenFileMountPath,
 					ReadOnly:  true,
 				}))
 				break
@@ -266,10 +264,10 @@ func validateMutatedPod(f *framework.Framework, pod *corev1.Pod, skipContainers 
 	defaultMode := int32(420)
 	found := false
 	for _, volume := range pod.Spec.Volumes {
-		if volume.Name == webhook.TokenFilePathName {
+		if volume.Name == tokenFilePathName {
 			found = true
 			gomega.Expect(volume).To(gomega.Equal(corev1.Volume{
-				Name: webhook.TokenFilePathName,
+				Name: tokenFilePathName,
 				VolumeSource: corev1.VolumeSource{
 					Projected: &corev1.ProjectedVolumeSource{
 						Sources:     getVolumeProjectionSources(pod.Spec.ServiceAccountName),
@@ -287,7 +285,7 @@ func validateMutatedPod(f *framework.Framework, pod *corev1.Pod, skipContainers 
 	if len(withoutSkipContainers) > 0 {
 		err := e2epod.WaitForPodNameRunningInNamespace(f.ClientSet, pod.Name, pod.Namespace)
 		framework.ExpectNoError(err, "failed to start pod %s", pod.Name)
-		_ = f.ExecCommandInContainer(pod.Name, withoutSkipContainers[0].Name, "cat", filepath.Join(webhook.TokenFileMountPath, webhook.TokenFilePathName))
+		_ = e2epod.ExecCommandInContainer(f, pod.Name, withoutSkipContainers[0].Name, "cat", filepath.Join(tokenFileMountPath, tokenFilePathName))
 	}
 }
 
@@ -300,7 +298,7 @@ func validateUnmutatedContainers(f *framework.Framework, pod *corev1.Pod, skipCo
 	}
 	noVolumeMount := func(c corev1.Container) {
 		for _, volumeMount := range c.VolumeMounts {
-			gomega.Expect(volumeMount.Name).NotTo(gomega.Equal(webhook.TokenFilePathName))
+			gomega.Expect(volumeMount.Name).NotTo(gomega.Equal(tokenFilePathName))
 		}
 	}
 	for _, c := range pod.Spec.Containers {
@@ -316,9 +314,9 @@ func validateUnmutatedContainers(f *framework.Framework, pod *corev1.Pod, skipCo
 func getVolumeProjectionSources(serviceAccountName string) []corev1.VolumeProjection {
 	return []corev1.VolumeProjection{{
 		ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
-			Path:              webhook.TokenFilePathName,
-			ExpirationSeconds: pointer.Int64(webhook.DefaultServiceAccountTokenExpiration),
-			Audience:          webhook.DefaultAudience,
+			Path:              tokenFilePathName,
+			ExpirationSeconds: pointer.Int64(3600),
+			Audience:          "api://AzureADTokenExchange",
 		}},
 	}
 }

@@ -13,8 +13,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/kubernetes/test/e2e/framework"
 	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
-
-	"github.com/Azure/azure-workload-identity/pkg/webhook"
 )
 
 // The proxy implementation is only for Linux.
@@ -28,12 +26,12 @@ var _ = ginkgo.Describe("Proxy [LinuxOnly] [AKSSoakOnly]", func() {
 		gomega.Expect(ok).To(gomega.BeTrue(), "APPLICATION_CLIENT_ID must be set")
 		// trust is only set up for 'proxy-test-sa' service account in the default namespace for now
 		const namespace = "default"
-		serviceAccount := createServiceAccount(f.ClientSet, namespace, "proxy-test-sa", map[string]string{webhook.UseWorkloadIdentityLabel: "true"}, map[string]string{webhook.ClientIDAnnotation: clientID})
+		serviceAccount := createServiceAccount(f.ClientSet, namespace, "proxy-test-sa", map[string]string{useWorkloadIdentityLabel: "true"}, map[string]string{clientIDAnnotation: clientID})
 		defer f.ClientSet.CoreV1().ServiceAccounts(namespace).Delete(context.TODO(), serviceAccount, metav1.DeleteOptions{})
 
 		proxyAnnotations := map[string]string{
-			webhook.InjectProxySidecarAnnotation: "true",
-			webhook.ProxySidecarPortAnnotation:   "8080",
+			injectProxySidecarAnnotation: "true",
+			proxySidecarPortAnnotation:   "8080",
 		}
 
 		pod := generatePodWithServiceAccount(
@@ -45,7 +43,7 @@ var _ = ginkgo.Describe("Proxy [LinuxOnly] [AKSSoakOnly]", func() {
 			[]string{"/bin/sh", "-c", fmt.Sprintf("az login -i -u %s --allow-no-subscriptions --debug; sleep 3600", clientID)},
 			nil,
 			proxyAnnotations,
-			map[string]string{webhook.UseWorkloadIdentityLabel: "true"},
+			map[string]string{useWorkloadIdentityLabel: "true"},
 			true,
 		)
 
@@ -55,7 +53,7 @@ var _ = ginkgo.Describe("Proxy [LinuxOnly] [AKSSoakOnly]", func() {
 
 		// output proxy and proxy init logs for debugging
 		defer func() {
-			for _, container := range []string{webhook.ProxyInitContainerName, webhook.ProxySidecarContainerName} {
+			for _, container := range []string{"azwi-proxy-init", "azwi-proxy"} {
 				stdout, _ := e2epod.GetPodLogs(f.ClientSet, namespace, pod.Name, container)
 				framework.Logf("%s logs: %s", container, stdout)
 			}
@@ -81,12 +79,12 @@ var _ = ginkgo.Describe("Proxy [LinuxOnly] [AKSSoakOnly]", func() {
 		gomega.Expect(ok).To(gomega.BeTrue(), "APPLICATION_CLIENT_ID must be set")
 		// trust is only set up for 'proxy-test-sa' service account in the default namespace for now
 		const namespace = "default"
-		serviceAccount := createServiceAccount(f.ClientSet, namespace, "proxy-test-sa", map[string]string{webhook.UseWorkloadIdentityLabel: "true"}, map[string]string{webhook.ClientIDAnnotation: clientID})
+		serviceAccount := createServiceAccount(f.ClientSet, namespace, "proxy-test-sa", map[string]string{useWorkloadIdentityLabel: "true"}, map[string]string{clientIDAnnotation: clientID})
 		defer f.ClientSet.CoreV1().ServiceAccounts(namespace).Delete(context.TODO(), serviceAccount, metav1.DeleteOptions{})
 
 		proxyAnnotations := map[string]string{
-			webhook.InjectProxySidecarAnnotation: "true",
-			webhook.ProxySidecarPortAnnotation:   "8080",
+			injectProxySidecarAnnotation: "true",
+			proxySidecarPortAnnotation:   "8080",
 		}
 
 		pod := generatePodWithServiceAccount(
@@ -99,7 +97,7 @@ var _ = ginkgo.Describe("Proxy [LinuxOnly] [AKSSoakOnly]", func() {
 			[]string{"/bin/sh", "-c", "az login -i --allow-no-subscriptions --debug; sleep 3600"},
 			nil,
 			proxyAnnotations,
-			map[string]string{webhook.UseWorkloadIdentityLabel: "true"},
+			map[string]string{useWorkloadIdentityLabel: "true"},
 			true,
 		)
 
@@ -109,7 +107,7 @@ var _ = ginkgo.Describe("Proxy [LinuxOnly] [AKSSoakOnly]", func() {
 
 		// output proxy and proxy init logs for debugging
 		defer func() {
-			for _, container := range []string{webhook.ProxyInitContainerName, webhook.ProxySidecarContainerName} {
+			for _, container := range []string{"azwi-proxy-init", "azwi-proxy"} {
 				stdout, _ := e2epod.GetPodLogs(f.ClientSet, namespace, pod.Name, container)
 				framework.Logf("%s logs: %s", container, stdout)
 			}

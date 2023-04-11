@@ -17,7 +17,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/test/e2e/framework"
+	e2edebug "k8s.io/kubernetes/test/e2e/framework/debug"
 	e2ekubectl "k8s.io/kubernetes/test/e2e/framework/kubectl"
+	e2enode "k8s.io/kubernetes/test/e2e/framework/node"
 	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
 )
 
@@ -58,13 +60,13 @@ var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
 	}
 
 	// ensure all nodes are schedulable
-	framework.ExpectNoError(framework.WaitForAllNodesSchedulable(c, framework.TestContext.NodeSchedulableTimeout))
+	framework.ExpectNoError(e2enode.WaitForAllNodesSchedulable(c, framework.TestContext.NodeSchedulableTimeout))
 
 	// Ensure all pods are running and ready before starting tests
 	podStartupTimeout := framework.TestContext.SystemPodsStartupTimeout
 	for _, namespace := range coreNamespaces {
 		if err := e2epod.WaitForPodsRunningReady(c, namespace, int32(framework.TestContext.MinStartupPods), int32(framework.TestContext.AllowedNotReadyNodes), podStartupTimeout, map[string]string{}); err != nil {
-			framework.DumpAllNamespaceInfo(c, namespace)
+			e2edebug.DumpAllNamespaceInfo(c, namespace)
 			e2ekubectl.LogFailedContainers(c, namespace, framework.Logf)
 			framework.Failf("error waiting for all pods to be running and ready: %v", err)
 		}
@@ -83,7 +85,6 @@ var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
 
 var _ = ginkgo.SynchronizedAfterSuite(func() {
 	framework.Logf("Running AfterSuite actions on all node")
-	framework.RunCleanupActions()
 }, func() {
 	collectPodLogs()
 })
