@@ -1092,6 +1092,15 @@ func TestInjectProxySidecarContainer(t *testing.T) {
 				},
 			},
 		},
+		SecurityContext: &corev1.SecurityContext{
+			AllowPrivilegeEscalation: pointer.Bool(false),
+			Capabilities: &corev1.Capabilities{
+				Drop: []corev1.Capability{"ALL"},
+			},
+			Privileged:             pointer.Bool(false),
+			ReadOnlyRootFilesystem: pointer.Bool(true),
+			RunAsNonRoot:           pointer.Bool(true),
+		},
 	}
 
 	tests := []struct {

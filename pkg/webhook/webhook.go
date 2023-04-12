@@ -251,6 +251,15 @@ func (m *podMutator) injectProxySidecarContainer(containers []corev1.Container, 
 				},
 			},
 		},
+		SecurityContext: &corev1.SecurityContext{
+			AllowPrivilegeEscalation: pointer.Bool(false),
+			Capabilities: &corev1.Capabilities{
+				Drop: []corev1.Capability{"ALL"},
+			},
+			Privileged:             pointer.Bool(false),
+			ReadOnlyRootFilesystem: pointer.Bool(true),
+			RunAsNonRoot:           pointer.Bool(true),
+		},
 	})
 
 	return containers
