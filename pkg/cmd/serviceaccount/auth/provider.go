@@ -197,13 +197,13 @@ func (a *authArgs) Validate() error {
 		return errors.Wrap(err, "failed to parse --azure-env as a valid target Azure cloud environment")
 	}
 
-	if a.tenantID, err = cloud.GetTenantID(env.ResourceManagerEndpoint, a.subscriptionID.String()); err != nil {
+	if a.tenantID, err = cloud.GetTenantID(a.subscriptionID.String(), a.client); err != nil {
 		return err
 	}
 
 	switch a.authMethod {
 	case cliAuthMethod:
-		a.azureClient, err = cloud.NewAzureClientWithCLI(env, a.subscriptionID.String(), a.tenantID, a.client)
+		a.azureClient, err = cloud.NewAzureClientWithCLI(env, a.subscriptionID.String(), a.client)
 	case clientSecretAuthMethod:
 		a.azureClient, err = cloud.NewAzureClientWithClientSecret(env, a.subscriptionID.String(), a.clientID.String(), a.clientSecret, a.tenantID, a.client)
 	case clientCertificateAuthMethod:

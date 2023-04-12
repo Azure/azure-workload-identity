@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -18,6 +19,7 @@ func TestValidateAuthArgs(t *testing.T) {
 		{
 			name: "AuthMethodIsRequired",
 			authArgs: authArgs{
+				client:     http.DefaultClient,
 				authMethod: "",
 			},
 			wantErr: errors.New("--auth-method is a required parameter"),
@@ -25,6 +27,7 @@ func TestValidateAuthArgs(t *testing.T) {
 		{
 			name: "AlwaysExpectValidClientID",
 			authArgs: authArgs{
+				client:              http.DefaultClient,
 				rawSubscriptionID:   validID,
 				rawClientID:         invalidID,
 				clientSecret:        "secret",
@@ -36,6 +39,7 @@ func TestValidateAuthArgs(t *testing.T) {
 		{
 			name: "AlwaysExpectValidClientID",
 			authArgs: authArgs{
+				client:              http.DefaultClient,
 				rawSubscriptionID:   validID,
 				rawClientID:         invalidID,
 				clientSecret:        "secret",
@@ -47,6 +51,7 @@ func TestValidateAuthArgs(t *testing.T) {
 		{
 			name: "ClientSecretAuthExpectsClientSecret",
 			authArgs: authArgs{
+				client:              http.DefaultClient,
 				rawSubscriptionID:   validID,
 				rawClientID:         validID,
 				clientSecret:        "",
@@ -58,6 +63,7 @@ func TestValidateAuthArgs(t *testing.T) {
 		{
 			name: "ValidClientSecretAuth",
 			authArgs: authArgs{
+				client:              http.DefaultClient,
 				rawSubscriptionID:   validID,
 				rawClientID:         validID,
 				clientSecret:        "secret",
@@ -69,6 +75,7 @@ func TestValidateAuthArgs(t *testing.T) {
 		{
 			name: "ClientCertificateAuthExpectsCertificatePath",
 			authArgs: authArgs{
+				client:              http.DefaultClient,
 				rawSubscriptionID:   validID,
 				rawClientID:         validID,
 				certificatePath:     "",
@@ -81,6 +88,7 @@ func TestValidateAuthArgs(t *testing.T) {
 		{
 			name: "ClientCertificateAuthExpectsPrivateKeyPath",
 			authArgs: authArgs{
+				client:              http.DefaultClient,
 				rawSubscriptionID:   validID,
 				rawClientID:         validID,
 				certificatePath:     "/a/path",
@@ -93,6 +101,7 @@ func TestValidateAuthArgs(t *testing.T) {
 		{
 			name: "ValidClientCertificateAuth",
 			authArgs: authArgs{
+				client:              http.DefaultClient,
 				rawSubscriptionID:   validID,
 				rawClientID:         validID,
 				certificatePath:     "/a/path",
