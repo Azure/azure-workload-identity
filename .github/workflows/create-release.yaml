@@ -21,7 +21,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-go@v4
         with:
-          go-version: "1.19"
+          go-version: "1.20"
       - id: get-tag
         name: Get tag
         run: echo "tag=$(echo ${{ github.event.pull_request.head.ref }} | sed -e 's/release-//g')" >> $GITHUB_OUTPUT

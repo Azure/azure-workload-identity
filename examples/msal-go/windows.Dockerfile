@@ -1,4 +1,4 @@
-ARG BUILDER=mcr.microsoft.com/oss/go/microsoft/golang:1.19-bullseye
+ARG BUILDER=mcr.microsoft.com/oss/go/microsoft/golang:1.20-bullseye
 ARG SERVERCORE_CACHE=gcr.io/k8s-staging-e2e-test-images/windows-servercore-cache:1.0-linux-amd64-${OS_VERSION:-1809}
 ARG BASEIMAGE=mcr.microsoft.com/windows/nanoserver:${OS_VERSION:-1809}
 
