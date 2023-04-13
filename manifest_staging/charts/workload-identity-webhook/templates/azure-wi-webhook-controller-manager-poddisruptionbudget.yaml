@@ -9,7 +9,12 @@ metadata:
   name: azure-wi-webhook-controller-manager
   namespace: '{{ .Release.Namespace }}'
 spec:
-  minAvailable: 1
+  {{- if .Values.podDisruptionBudget.maxUnavailable }}
+  maxUnavailable: {{ .Values.podDisruptionBudget.maxUnavailable }}
+  {{- end }}
+  {{- if .Values.podDisruptionBudget.minAvailable }}
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
+  {{- end }}
   selector:
     matchLabels:
       app: '{{ template "workload-identity-webhook.name" . }}'
