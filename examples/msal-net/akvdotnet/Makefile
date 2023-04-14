@@ -14,14 +14,14 @@ OUTPUT_TYPE ?= type=registry
 ALL_OS = linux windows
 ALL_ARCH.linux = amd64 arm64
 ALL_ARCH.windows = amd64
-ALL_OSVERSIONS.windows := 1809 1903 1909 2004 ltsc2022
+ALL_OSVERSIONS.windows := 1809 ltsc2022
 ALL_OS_ARCH.linux = $(foreach arch, ${ALL_ARCH.linux}, linux-$(arch))
 ALL_OS_ARCH.windows = $(foreach osver, ${ALL_OSVERSIONS.windows}, windows-$(osver)-$(foreach arch, ${ALL_ARCH.windows},$(arch)))
 ALL_OS_ARCH = $(foreach os, $(ALL_OS), ${ALL_OS_ARCH.${os}})
 
 # The architecture of the image
 ARCH ?= amd64
-# OS Version for the Windows images: 1809, 1903, 1909, 2004, ltsc2022
+# OS Version for the Windows images: 1809, ltsc2022
 OSVERSION ?= 1809
 
 .PHONY: container-linux
