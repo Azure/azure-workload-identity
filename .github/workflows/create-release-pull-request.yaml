@@ -35,7 +35,7 @@ jobs:
           NEW_VERSION: "${{ github.event.inputs.release_version }}"
       - run: make promote-staging-manifest
       - name: Create release pull request
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@v5
         with:
           commit-message: "release: update manifest and helm charts for ${{ github.event.inputs.release_version }}"
           title: "release: update manifest and helm charts for ${{ github.event.inputs.release_version }}"
