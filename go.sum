@@ -261,12 +261,12 @@ github.com/mailru/easyjson v0.7.7/go.mod h1:xzfreul335JAWq5oZzymOObrkdz5UnU4kGfJ
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
 github.com/matttproud/golang_protobuf_extensions v1.0.2 h1:hAHbPm5IJGijwng3PWk09JkG9WeqChjprR5s9bBZ+OM=
 github.com/matttproud/golang_protobuf_extensions v1.0.2/go.mod h1:BSXmuO+STAnVfrANrmjBb36TMTDstsz7MSK+HVaYKv4=
-github.com/microsoft/kiota-abstractions-go v0.19.0 h1:R57UbZaIMdouccDpBMTNiwXljN/sOkeRSpXLtBAl2wg=
-github.com/microsoft/kiota-abstractions-go v0.19.0/go.mod h1:0lbPErVO6Rj3HHpntNYW/OFmHhJJ1ewPdsi1xPxYIMc=
+github.com/microsoft/kiota-abstractions-go v0.19.1 h1:ybfIK4xlTqzKW2aO6J5pd1wMjHA17huFsUaY5LOWHoM=
+github.com/microsoft/kiota-abstractions-go v0.19.1/go.mod h1:0lbPErVO6Rj3HHpntNYW/OFmHhJJ1ewPdsi1xPxYIMc=
 github.com/microsoft/kiota-authentication-azure-go v0.6.0 h1:Il9bLO34J6D8DY89xYAXoGh9muvlphayqG4eihyT6B8=
 github.com/microsoft/kiota-authentication-azure-go v0.6.0/go.mod h1:EJCHiLWLXW1/mSgX7lYReAhVO37MzRT5Xi2mcPTwCRQ=
-github.com/microsoft/kiota-http-go v0.16.1 h1:5SZbSwHs14Xve5VMQHHz00lwL/kEg3H9rgESAUrXnvw=
-github.com/microsoft/kiota-http-go v0.16.1/go.mod h1:pKSaeSaBwh3Zadbnzw3kALEZbCZA1gq7A5PuxwVd/aU=
+github.com/microsoft/kiota-http-go v0.16.2 h1:av9IT0Mm4AA2GC/JbisjAXGxAseF8Zvwl8tW6pMX6YI=
+github.com/microsoft/kiota-http-go v0.16.2/go.mod h1:9OYR+PvMDxoMk6Mij11FFAFtEHmG367pIv34wL5JfyQ=
 github.com/microsoft/kiota-serialization-form-go v0.9.1 h1:GsgWHh6QDH69NZI723hREBuyoy2IR8S15nbx5g0CvmY=
 github.com/microsoft/kiota-serialization-form-go v0.9.1/go.mod h1:Sn/MUwoCsR6g4/smqvoS3ZzbIlluk67wXorJkOz8nxI=
 github.com/microsoft/kiota-serialization-json-go v0.9.1 h1:CaFUyHv1FB7yw+lmG/7sudhyLtm3W4qmHyqRilwHNQs=
