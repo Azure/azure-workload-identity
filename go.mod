@@ -15,9 +15,9 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/microsoft/kiota-abstractions-go v0.19.0
+	github.com/microsoft/kiota-abstractions-go v0.19.1
 	github.com/microsoft/kiota-authentication-azure-go v0.6.0
-	github.com/microsoft/kiota-http-go v0.16.1
+	github.com/microsoft/kiota-http-go v0.16.2
 	github.com/microsoft/kiota-serialization-json-go v0.9.1
 	github.com/microsoftgraph/msgraph-sdk-go v0.61.0
 	github.com/open-policy-agent/cert-controller v0.5.0
@@ -39,8 +39,8 @@ require (
 )
 
 require (
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.4.0
-	github.com/Azure/azure-sdk-for-go/sdk/internal v1.2.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.5.0
+	github.com/Azure/azure-sdk-for-go/sdk/internal v1.3.0 // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
 	github.com/Azure/go-autorest/autorest/date v0.3.0 // indirect
 	github.com/Azure/go-autorest/autorest/validation v0.3.1 // indirect
@@ -78,7 +78,7 @@ require (
 	github.com/matttproud/golang_protobuf_extensions v1.0.2 // indirect
 	github.com/microsoft/kiota-serialization-form-go v0.9.1 // indirect
 	github.com/microsoft/kiota-serialization-text-go v0.7.0 // indirect
-	github.com/microsoftgraph/msgraph-sdk-go-core v0.36.0
+	github.com/microsoftgraph/msgraph-sdk-go-core v0.36.1
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
@@ -98,11 +98,11 @@ require (
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/crypto v0.6.0 // indirect
-	golang.org/x/net v0.7.0 // indirect; CVE-2022-41717
+	golang.org/x/net v0.8.0 // indirect; CVE-2022-41717
 	golang.org/x/oauth2 v0.0.0-20220223155221-ee480838109b // indirect
-	golang.org/x/sys v0.5.0 // indirect
-	golang.org/x/term v0.5.0 // indirect
-	golang.org/x/text v0.7.0 // indirect
+	golang.org/x/sys v0.6.0 // indirect
+	golang.org/x/term v0.6.0 // indirect
+	golang.org/x/text v0.8.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
