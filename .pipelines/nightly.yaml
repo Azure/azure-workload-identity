@@ -10,7 +10,7 @@ schedules:
       include:
         - main
 
-pool: staging-pool
+pool: staging-pool-amd64-mariner-2
 
 jobs:
   - job: scan_images
