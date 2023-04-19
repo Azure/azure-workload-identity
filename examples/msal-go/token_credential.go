@@ -37,7 +37,7 @@ func newClientAssertionCredential(tenantID, clientID, authorityHost, file string
 		},
 	)
 
-	client, err := confidential.New(clientID, cred, confidential.WithAuthority(fmt.Sprintf("%s%s/oauth2/token", authorityHost, tenantID)))
+	client, err := confidential.New(fmt.Sprintf("%s%s/oauth2/token", authorityHost, tenantID), clientID, cred)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create confidential client: %w", err)
 	}
