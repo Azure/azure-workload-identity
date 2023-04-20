@@ -168,8 +168,6 @@ kind: ServiceAccount
 metadata:
   annotations:
     azure.workload.identity/client-id: ${APPLICATION_CLIENT_ID:-$USER_ASSIGNED_IDENTITY_CLIENT_ID}
-  labels:
-    azure.workload.identity/use: "true"  # if you're using azure-workload-identity v1.0.0+, this label is not required.
   name: ${SERVICE_ACCOUNT_NAME}
   namespace: ${SERVICE_ACCOUNT_NAMESPACE}
 EOF
