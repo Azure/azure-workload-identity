@@ -21,6 +21,10 @@ federated identity credentials that reference the same service account in your K
 
 For example, if you are using the [`DefaultAzureCredential`](https://docs.microsoft.com/en-us/python/api/azure-identity/azure.identity.defaultazurecredential?view=azure-python) from the Azure Identity Python SDK to authenticate your application, you can specify which identity to use by adding the `managed_identity_client_id` parameter to the `DefaultAzureCredential` constructor.
 
+## How to federate multiple Kubernetes service accounts with a single identity?
+
+It is possible to have a many-to-one relationship between a single identity and multiple Kubernetes service accounts, i.e. you can create a federated identity credential for every <service account namespace, service account name, OIDC issuer> tuple that you want to federate with the same identity.
+
 ## Is there a propagation delay after creating a federated identity credential?
 
 It takes a few seconds for the federated identity credential to be propagated after being initially added. If a token request is made immediately after adding the federated identity credential, it **might** lead to failure for a couple of minutes as the cache is populated in the directory with old data. To avoid this issue, you can add a slight delay after adding the federated identity credential.
