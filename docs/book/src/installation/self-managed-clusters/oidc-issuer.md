@@ -11,6 +11,24 @@ In the case of self-managed clusters, administrator will have to manually publis
 
 ## Sequence Diagram
 
+<!-- source
+```mermaid
+sequenceDiagram
+    participant Kubernetes Workload
+    participant Azure Active Directory
+    participant OpenID Connect Issuer
+    Kubernetes Workload->>Azure Active Directory:Projected, signed service account token
+    Azure Active Directory->>Azure Active Directory:Extract the issuer URL from the token request
+    Azure Active Directory->>OpenID Connect Issuer:{IssuerURL}/.well-known/openid-configuration
+    OpenID Connect Issuer->>Azure Active Directory:Return the discovery document
+    Azure Active Directory->>Azure Active Directory:Extract the JWKS URL from the discovery document
+    Azure Active Directory->>OpenID Connect Issuer:{IssuerURL}/openid/v1/jwks
+    OpenID Connect Issuer->>Azure Active Directory:Return the JWKS document
+    Azure Active Directory->>Azure Active Directory:Validate the authenticity of the service account token
+    Kubernetes Workload->>Azure Active Directory:Return an AAD token
+```
+--->
+
 ![Sequence Diagram][3]
 
 [1]: ./oidc-issuer/discovery-document.md
