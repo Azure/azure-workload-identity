@@ -626,6 +626,13 @@ mutatingwebhookconfiguration.admissionregistration.k8s.io/azure-wi-webhook-mutat
 <li><a href="quick-start.html#8-cleanup">8. Cleanup</a></li>
 </ul>
 <p>In this tutorial, we will cover the basics of how to use the webhook to acquire an Azure AD token to access a secret in an <a href="https://azure.microsoft.com/en-us/services/key-vault/">Azure Key Vault</a>.</p>
+<blockquote>
+<p>While this tutorial shows a 1:1 mapping between a Kubernetes service account and an Azure AD identity, it is possible to map:</p>
+<ol>
+<li>Multiple Kubernetes service accounts to a single Azure AD identity. Refer to <a href="./faq.html#how-to-federate-multiple-kubernetes-service-accounts-with-a-single-identity">FAQ</a> for more details.</li>
+<li>Multiple Azure AD identities to a single Kubernetes service account. Refer to <a href="./faq.html#how-to-federate-multiple-identities-with-a-kubernetes-service-account">FAQ</a> for more details.</li>
+</ol>
+</blockquote>
 <p>Before we get started, ensure the following:</p>
 <ul>
 <li>Azure CLI version 2.40.0 or higher. Run <code>az --version</code> to verify.</li>
@@ -1609,6 +1616,7 @@ azwi_mutation_request_count{namespace=&quot;default&quot;,service_name=&quot;web
 <li><a href="faq.html#how-does-the-azwi-cli-differ-from-the-azure-cli">How does the azwi-cli differ from the azure-cli?</a></li>
 <li><a href="faq.html#how-is-azure-workload-identity-different-from-aad-pod-identity-v2">How is azure-workload-identity different from aad-pod-identity v2?</a></li>
 <li><a href="faq.html#how-to-federate-multiple-identities-with-a-kubernetes-service-account">How to federate multiple identities with a Kubernetes service account?</a></li>
+<li><a href="faq.html#how-to-federate-multiple-kubernetes-service-accounts-with-a-single-identity">How to federate multiple Kubernetes service accounts with a single identity?</a></li>
 <li><a href="faq.html#is-there-a-propagation-delay-after-creating-a-federated-identity-credential">Is there a propagation delay after creating a federated identity credential?</a></li>
 <li><a href="faq.html#what-is-the-azure-workload-identity-release-schedule">What is the Azure Workload Identity release schedule?</a></li>
 <li><a href="faq.html#what-permissions-are-required-to-create-a-federated-identity-credential-for-azure-ad-application">What permissions are required to create a federated identity credential for Azure AD Application?</a></li>
@@ -1626,6 +1634,8 @@ azwi_mutation_request_count{namespace=&quot;default&quot;,service_name=&quot;web
 federated identity credentials that reference the same service account in your Kubernetes cluster.</p>
 <p><code>azure.workload.identity/client-id</code> annotation in your service account represents the default identity client ID used by the Azure Identity SDK during authentication. If you would like to use a different identity, you would need to specify the client ID when creating the Azure Credential object.</p>
 <p>For example, if you are using the <a href="https://docs.microsoft.com/en-us/python/api/azure-identity/azure.identity.defaultazurecredential?view=azure-python"><code>DefaultAzureCredential</code></a> from the Azure Identity Python SDK to authenticate your application, you can specify which identity to use by adding the <code>managed_identity_client_id</code> parameter to the <code>DefaultAzureCredential</code> constructor.</p>
+<h2 id="how-to-federate-multiple-kubernetes-service-accounts-with-a-single-identity"><a class="header" href="#how-to-federate-multiple-kubernetes-service-accounts-with-a-single-identity">How to federate multiple Kubernetes service accounts with a single identity?</a></h2>
+<p>It is possible to have a many-to-one relationship between a single identity and multiple Kubernetes service accounts, i.e. you can create a federated identity credential for every &lt;service account namespace, service account name, OIDC issuer&gt; tuple that you want to federate with the same identity.</p>
 <h2 id="is-there-a-propagation-delay-after-creating-a-federated-identity-credential"><a class="header" href="#is-there-a-propagation-delay-after-creating-a-federated-identity-credential">Is there a propagation delay after creating a federated identity credential?</a></h2>
 <p>It takes a few seconds for the federated identity credential to be propagated after being initially added. If a token request is made immediately after adding the federated identity credential, it <strong>might</strong> lead to failure for a couple of minutes as the cache is populated in the directory with old data. To avoid this issue, you can add a slight delay after adding the federated identity credential.</p>
 <h2 id="what-is-the-azure-workload-identity-release-schedule"><a class="header" href="#what-is-the-azure-workload-identity-release-schedule">What is the Azure Workload Identity release schedule?</a></h2>
