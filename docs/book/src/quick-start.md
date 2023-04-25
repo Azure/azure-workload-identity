@@ -4,6 +4,10 @@
 
 In this tutorial, we will cover the basics of how to use the webhook to acquire an Azure AD token to access a secret in an [Azure Key Vault][1].
 
+> While this tutorial shows a 1:1 mapping between a Kubernetes service account and an Azure AD identity, it is possible to map:
+> 1. Multiple Kubernetes service accounts to a single Azure AD identity. Refer to [FAQ][15] for more details.
+> 2. Multiple Azure AD identities to a single Kubernetes service account. Refer to [FAQ][16] for more details.
+
 Before we get started, ensure the following:
 
 * Azure CLI version 2.40.0 or higher. Run `az --version` to verify.
@@ -442,3 +446,7 @@ az ad sp delete --id "${APPLICATION_CLIENT_ID}"
 [13]: ./installation.md
 
 [14]: ./known-issues.md#user-tried-to-log-in-to-a-device-from-a-platform-unknown-thats-currently-not-supported-through-conditional-access-policy
+
+[15]: ./faq.md#how-to-federate-multiple-kubernetes-service-accounts-with-a-single-identity
+
+[16]: ./faq.md#how-to-federate-multiple-identities-with-a-kubernetes-service-account
