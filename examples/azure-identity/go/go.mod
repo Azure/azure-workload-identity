@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.3.0-beta.1
 	github.com/Azure/azure-sdk-for-go/sdk/keyvault/azsecrets v0.11.0
-	k8s.io/klog/v2 v2.80.1
+	k8s.io/klog/v2 v2.90.1
 )
 
 require (
