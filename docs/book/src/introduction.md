@@ -23,6 +23,22 @@ Azure AD Workload Identity for Kubernetes integrates with the capabilities nativ
 
 In this model, the Kubernetes cluster becomes a token issuer, issuing tokens to Kubernetes Service Accounts. These service account tokens can be configured to be trusted on Azure AD applications or user-assigned managed identities. Workload can exchange a service account token projected to its volume for an Azure AD access token using the Azure Identity SDKs or the Microsoft Authentication Library (MSAL).
 
+<!-- source
+```mermaid
+sequenceDiagram
+    participant Kubelet
+    participant Workload
+    participant Azure Active Directory
+    participant OpenID Discovery Document
+    participant Azure Resources
+    Kubelet->>Workload: Projects service account token <br> to the workload at a configurable <br> file path
+    Workload->>Azure Active Directory: Sends projected, signed <br> service account token and requests <br> Azure AD access token
+    Azure Active Directory->>OpenID Discovery Document: Checks trust on the identity <br> and validates incoming token
+    Azure Active Directory->>Workload: Issues Azure AD access token
+    Workload->>Azure Resources: Access resources using Azure AD access token
+```
+--->
+
 ![How it works][9]
 
 [1]: https://github.com/Azure/aad-pod-identity
