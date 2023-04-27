@@ -18,16 +18,21 @@ jobs:
   create-release-pull-request:
     runs-on: ubuntu-20.04
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v2.3.1
+        with:
+          egress-policy: audit
+
       - name: validate version
         run: |
           echo "${{ github.event.inputs.release_version }}" | grep -E 'v[0-9]+\.[0-9]+\.[0-9]+(-alpha\.[0-9]+|-beta\.[0-9]+|-rc\.[0-9]+)?$'
           echo "${{ github.event.inputs.based_on_branch }}" | grep -E '^(main|release-[0-9]+\.[0-9]+)$'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
         with:
           submodules: true
           fetch-depth: 0
           ref: "${{ github.event.inputs.based_on_branch }}"
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: "1.20"
       - run: make release-manifest
@@ -35,7 +40,7 @@ jobs:
           NEW_VERSION: "${{ github.event.inputs.release_version }}"
       - run: make promote-staging-manifest
       - name: Create release pull request
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@5b4a9f6a9e2af26e5f02351490b90d01eb8ec1e5 # v5.0.0
         with:
           commit-message: "release: update manifest and helm charts for ${{ github.event.inputs.release_version }}"
           title: "release: update manifest and helm charts for ${{ github.event.inputs.release_version }}"
