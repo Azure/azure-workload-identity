@@ -34,3 +34,144 @@ updates:
         update-types:
         - "version-update:semver-major"
         - "version-update:semver-minor"
+
+
+  - package-ecosystem: docker
+    directory: /examples/azure-identity/dotnet
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: "chore"
+
+  - package-ecosystem: nuget
+    directory: /examples/azure-identity/dotnet
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: "chore"
+
+  - package-ecosystem: docker
+    directory: /examples/azure-identity/go
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: "chore"
+
+  - package-ecosystem: gomod
+    directory: /examples/azure-identity/go
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: "chore"
+
+  - package-ecosystem: docker
+    directory: /examples/azure-identity/java
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: "chore"
+
+  - package-ecosystem: docker
+    directory: /examples/azure-identity/node
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: "chore"
+
+  - package-ecosystem: npm
+    directory: /examples/azure-identity/node
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: "chore"
+
+  - package-ecosystem: docker
+    directory: /examples/azure-identity/python
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: "chore"
+
+  - package-ecosystem: pip
+    directory: /examples/azure-identity/python
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: "chore"
+
+  - package-ecosystem: docker
+    directory: /examples/msal-go
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: "chore"
+
+  - package-ecosystem: gomod
+    directory: /examples/msal-go
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: "chore"
+
+  - package-ecosystem: docker
+    directory: /examples/msal-java
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: "chore"
+
+  - package-ecosystem: docker
+    directory: /examples/msal-net/akvdotnet
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: "chore"
+
+  - package-ecosystem: nuget
+    directory: /examples/msal-net/akvdotnet
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: "chore"
+
+  - package-ecosystem: docker
+    directory: /examples/msal-node
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: "chore"
+
+  - package-ecosystem: npm
+    directory: /examples/msal-node
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: "chore"
+
+  - package-ecosystem: docker
+    directory: /examples/msal-python
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: "chore"
+
+  - package-ecosystem: pip
+    directory: /examples/msal-python
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: "chore"
+
+  - package-ecosystem: maven
+    directory: /examples/azure-identity/java
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: "chore"
+
+  - package-ecosystem: maven
+    directory: /examples/msal-java
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: "chore"
