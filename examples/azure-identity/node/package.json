@@ -9,7 +9,7 @@
   "author": "aramase",
   "type": "module",
   "dependencies": {
-    "@azure/keyvault-secrets": "^4.6.0",
+    "@azure/keyvault-secrets": "^4.7.0",
     "@azure/identity": "^3.0.0"
   }
 }
