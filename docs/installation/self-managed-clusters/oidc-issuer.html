@@ -154,6 +154,23 @@
 <tr><td><a href="./oidc-issuer/jwks.html"><code>{IssuerURL}/openid/v1/jwks</code></a></td><td>This contains the public signing key(s) that AAD uses to verify the authenticity of the service account token.</td></tr>
 </tbody></table>
 <h2 id="sequence-diagram"><a class="header" href="#sequence-diagram">Sequence Diagram</a></h2>
+<!-- source
+```mermaid
+sequenceDiagram
+    participant Kubernetes Workload
+    participant Azure Active Directory
+    participant OpenID Connect Issuer
+    Kubernetes Workload->>Azure Active Directory:Projected, signed service account token
+    Azure Active Directory->>Azure Active Directory:Extract the issuer URL from the token request
+    Azure Active Directory->>OpenID Connect Issuer:{IssuerURL}/.well-known/openid-configuration
+    OpenID Connect Issuer->>Azure Active Directory:Return the discovery document
+    Azure Active Directory->>Azure Active Directory:Extract the JWKS URL from the discovery document
+    Azure Active Directory->>OpenID Connect Issuer:{IssuerURL}/openid/v1/jwks
+    OpenID Connect Issuer->>Azure Active Directory:Return the JWKS document
+    Azure Active Directory->>Azure Active Directory:Validate the authenticity of the service account token
+    Kubernetes Workload->>Azure Active Directory:Return an AAD token
+```
+--->
 <p><img src="../../images/oidc-issuer-sequence-diagram.png" alt="Sequence Diagram" /></p>
 
                     </main>

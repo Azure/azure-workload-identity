@@ -171,6 +171,21 @@
 </ul>
 <h2 id="how-it-works"><a class="header" href="#how-it-works">How it works</a></h2>
 <p>In this model, the Kubernetes cluster becomes a token issuer, issuing tokens to Kubernetes Service Accounts. These service account tokens can be configured to be trusted on Azure AD applications or user-assigned managed identities. Workload can exchange a service account token projected to its volume for an Azure AD access token using the Azure Identity SDKs or the Microsoft Authentication Library (MSAL).</p>
+<!-- source
+```mermaid
+sequenceDiagram
+    participant Kubelet
+    participant Workload
+    participant Azure Active Directory
+    participant OpenID Discovery Document
+    participant Azure Resources
+    Kubelet->>Workload: Projects service account token <br> to the workload at a configurable <br> file path
+    Workload->>Azure Active Directory: Sends projected, signed <br> service account token and requests <br> Azure AD access token
+    Azure Active Directory->>OpenID Discovery Document: Checks trust on the identity <br> and validates incoming token
+    Azure Active Directory->>Workload: Issues Azure AD access token
+    Workload->>Azure Resources: Access resources using Azure AD access token
+```
+--->
 <p><img src="./images/how-it-works-diagram.png" alt="How it works" /></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
 <ul>
@@ -372,6 +387,23 @@ e is 65537 (0x10001)
 <tr><td><a href="installation/self-managed-clusters/./oidc-issuer/jwks.html"><code>{IssuerURL}/openid/v1/jwks</code></a></td><td>This contains the public signing key(s) that AAD uses to verify the authenticity of the service account token.</td></tr>
 </tbody></table>
 <h2 id="sequence-diagram"><a class="header" href="#sequence-diagram">Sequence Diagram</a></h2>
+<!-- source
+```mermaid
+sequenceDiagram
+    participant Kubernetes Workload
+    participant Azure Active Directory
+    participant OpenID Connect Issuer
+    Kubernetes Workload->>Azure Active Directory:Projected, signed service account token
+    Azure Active Directory->>Azure Active Directory:Extract the issuer URL from the token request
+    Azure Active Directory->>OpenID Connect Issuer:{IssuerURL}/.well-known/openid-configuration
+    OpenID Connect Issuer->>Azure Active Directory:Return the discovery document
+    Azure Active Directory->>Azure Active Directory:Extract the JWKS URL from the discovery document
+    Azure Active Directory->>OpenID Connect Issuer:{IssuerURL}/openid/v1/jwks
+    OpenID Connect Issuer->>Azure Active Directory:Return the JWKS document
+    Azure Active Directory->>Azure Active Directory:Validate the authenticity of the service account token
+    Kubernetes Workload->>Azure Active Directory:Return an AAD token
+```
+--->
 <p><img src="installation/self-managed-clusters/../../images/oidc-issuer-sequence-diagram.png" alt="Sequence Diagram" /></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="discovery-document"><a class="header" href="#discovery-document">Discovery Document</a></h1>
 <ul>
