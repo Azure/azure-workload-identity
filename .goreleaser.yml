@@ -10,7 +10,7 @@ builds:
     env:
       - CGO_ENABLED=0
     goos:
-      # - darwin
+      - darwin
       - linux
       - windows
     goarch:
@@ -22,7 +22,7 @@ builds:
     flags:
       - -mod=vendor
     ldflags:
-      - -s 
+      - -s
       - -w
       - -X {{.ModulePath}}/pkg/version.BuildTime={{.Date}}
       - -X {{.ModulePath}}/pkg/version.BuildVersion={{.Tag}}
