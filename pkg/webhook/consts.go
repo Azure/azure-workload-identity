@@ -19,6 +19,8 @@ const (
 	InjectProxySidecarAnnotation = "azure.workload.identity/inject-proxy-sidecar"
 	// ProxySidecarPortAnnotation represents the annotation to be used to specify the port for proxy sidecar
 	ProxySidecarPortAnnotation = "azure.workload.identity/proxy-sidecar-port"
+	// ArcBasedIdentityAnnotation represents the annotation to be used to specify the secret name for arc based identity token
+	ArcBasedIdentityAnnotation = "arc.workload.identity/secret-name"
 
 	// MinServiceAccountTokenExpiration is the minimum service account token expiration in seconds
 	MinServiceAccountTokenExpiration = int64(3600)
@@ -29,6 +31,9 @@ const (
 	DefaultServiceAccountTokenExpiration = int64(3600)
 	// DefaultProxySidecarPort is the default port for proxy sidecar
 	DefaultProxySidecarPort = int32(8000)
+
+	// Default secret name prefix for arc based identity token
+	DefaultArcBasedIdentitySecretNamePrefix = "arc-token-"
 )
 
 const (

@@ -7,8 +7,9 @@ import (
 
 // Config holds configuration from the env variables
 type Config struct {
-	Cloud    string `envconfig:"AZURE_ENVIRONMENT"`
-	TenantID string `envconfig:"AZURE_TENANT_ID"`
+	Cloud               string `envconfig:"AZURE_ENVIRONMENT"`
+	TenantID            string `envconfig:"AZURE_TENANT_ID"`
+	IsArcEnabledCluster bool   `envconfig:"default=false,IS_ARC_ENABLED_CLUSTER"`
 }
 
 // ParseConfig parses the configuration from env variables
