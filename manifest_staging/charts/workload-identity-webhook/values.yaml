@@ -34,7 +34,6 @@ mutatingWebhookAnnotations: {}
 podLabels: {}
 podAnnotations: {}
 mutatingWebhookNamespaceSelector: {}
-isArcEnabledCluster: false
 # minAvailable and maxUnavailable are mutually exclusive
 podDisruptionBudget:
   minAvailable: 1
