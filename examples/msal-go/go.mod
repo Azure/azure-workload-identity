@@ -6,7 +6,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.5.0
 	github.com/Azure/azure-sdk-for-go/sdk/keyvault/azsecrets v0.12.0
 	github.com/AzureAD/microsoft-authentication-library-for-go v1.0.0
-	k8s.io/klog/v2 v2.90.1
+	k8s.io/klog/v2 v2.100.1
 )
 
 require (
