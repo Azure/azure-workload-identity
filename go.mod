@@ -6,7 +6,7 @@ require (
 	github.com/Azure/aad-pod-identity v1.8.13
 	github.com/Azure/azure-sdk-for-go v65.0.0+incompatible
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.2.2
-	github.com/Azure/go-autorest/autorest v0.11.28
+	github.com/Azure/go-autorest/autorest v0.11.29
 	github.com/Azure/go-autorest/autorest/adal v0.9.23
 	github.com/Azure/go-autorest/autorest/azure/cli v0.4.6
 	github.com/Azure/go-autorest/autorest/to v0.4.0
@@ -18,7 +18,7 @@ require (
 	github.com/microsoft/kiota-abstractions-go v0.19.1
 	github.com/microsoft/kiota-authentication-azure-go v0.6.0
 	github.com/microsoft/kiota-http-go v0.16.2
-	github.com/microsoft/kiota-serialization-json-go v0.9.2
+	github.com/microsoft/kiota-serialization-json-go v0.9.3
 	github.com/microsoftgraph/msgraph-sdk-go v0.61.0
 	github.com/open-policy-agent/cert-controller v0.5.0
 	github.com/pkg/errors v0.9.1
