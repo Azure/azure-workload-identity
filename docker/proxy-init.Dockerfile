@@ -1,10 +1,7 @@
-ARG BASEIMAGE=registry.k8s.io/build-image/debian-iptables:bullseye-v1.5.5
+ARG BASEIMAGE=registry.k8s.io/build-image/distroless-iptables:v0.2.3
 
 FROM --platform=${TARGETPLATFORM:-linux/amd64} ${BASEIMAGE}
 
-RUN apt update && \
-    apt upgrade -y && \
-    clean-install ca-certificates
 COPY ./init/init-iptables.sh /bin/
 RUN chmod +x /bin/init-iptables.sh
 # Kubernetes runAsNonRoot requires USER to be numeric

@@ -10,6 +10,10 @@ pr:
     - docs
     - README.md
     - .github
+    - examples/*
+    include:
+    - '*'
+    - examples/msal-go/*
 
 pool: staging-pool-amd64-mariner-2
 
