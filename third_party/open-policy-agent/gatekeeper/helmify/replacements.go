@@ -15,7 +15,7 @@ var replacements = map[string]string{
 
 	"HELMSUBST_CONFIGMAP_AZURE_TENANT_ID": `{{ required "A valid .Values.azureTenantID entry required!" .Values.azureTenantID }}`,
 
-	"HELMSUBST_CONFIGMAP_IS_ARC_ENABLED_CLUSTER": `{{ .Values.isArcEnabledCluster | default "false" }}`,
+	"HELMSUBST_CONFIGMAP_IS_ARC_ENABLED_CLUSTER": `"{{ .Values.isArcEnabledCluster | default false }}"`,
 
 	`HELMSUBST_SERVICE_TYPE: ""`: `{{- if .Values.service }}
   type: {{  .Values.service.type | default "ClusterIP" }}
