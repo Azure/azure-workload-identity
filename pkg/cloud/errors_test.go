@@ -3,9 +3,9 @@ package cloud
 import (
 	"testing"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/microsoftgraph/msgraph-sdk-go/models"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
+	"github.com/microsoftgraph/msgraph-sdk-go/models/odataerrors"
 	"github.com/pkg/errors"
 )
 
@@ -43,18 +43,18 @@ func TestIsRoleAssignmentAlreadyDeleted(t *testing.T) {
 		want      bool
 	}{
 		{
-			name:      "not autorest detailed error",
+			name:      "not azcore response error",
 			actualErr: errors.New("role assignment already deleted"),
 			want:      false,
 		},
 		{
 			name:      "status code doesn't match",
-			actualErr: &autorest.DetailedError{StatusCode: 404, Message: "role assignment not found"},
+			actualErr: &azcore.ResponseError{StatusCode: 404, ErrorCode: "role assignment not found"},
 			want:      false,
 		},
 		{
 			name:      "role assignment already deleted error",
-			actualErr: autorest.DetailedError{StatusCode: 204, Message: "role assignment already deleted"},
+			actualErr: &azcore.ResponseError{StatusCode: 204, ErrorCode: "role assignment already deleted"},
 			want:      true,
 		},
 	}
@@ -68,32 +68,32 @@ func TestIsRoleAssignmentAlreadyDeleted(t *testing.T) {
 	}
 }
 
-func TestIsAlreadyExists(t *testing.T) {
+func TestIsRoleAssignmentExists(t *testing.T) {
 	tests := []struct {
 		name      string
 		actualErr error
 		want      bool
 	}{
 		{
-			name:      "not autorest detailed error",
+			name:      "not azcore response error",
 			actualErr: errors.New("resource already exists"),
 			want:      false,
 		},
 		{
 			name:      "status code doesn't match",
-			actualErr: &autorest.DetailedError{StatusCode: 401, Message: "authorization failed"},
+			actualErr: &azcore.ResponseError{StatusCode: 401, ErrorCode: "authorization failed"},
 			want:      false,
 		},
 		{
 			name:      "resource already exists error",
-			actualErr: autorest.DetailedError{StatusCode: 409, Message: "resource already exists"},
+			actualErr: &azcore.ResponseError{StatusCode: 409, ErrorCode: "resource already exists"},
 			want:      true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IsAlreadyExists(tt.actualErr); got != tt.want {
+			if got := IsRoleAssignmentExists(tt.actualErr); got != tt.want {
 				t.Errorf("IsAlreadyExists() = %v, want %v", got, tt.want)
 			}
 		})
@@ -114,8 +114,8 @@ func TestIsFederatedCredentialNotFound(t *testing.T) {
 		{
 			name: "graph error code doesn't match",
 			actualErr: func() error {
-				err := GraphError{PublicError: models.NewPublicError()}
-				err.PublicError.SetCode(to.StringPtr("random_error_code"))
+				err := GraphError{Errorable: odataerrors.NewMainError()}
+				err.Errorable.SetCode(to.Ptr("random_error_code"))
 				return err
 			},
 			want: false,
@@ -123,8 +123,8 @@ func TestIsFederatedCredentialNotFound(t *testing.T) {
 		{
 			name: "graph error resource not found",
 			actualErr: func() error {
-				err := GraphError{PublicError: models.NewPublicError()}
-				err.PublicError.SetCode(to.StringPtr(GraphErrorCodeResourceNotFound))
+				err := GraphError{Errorable: odataerrors.NewMainError()}
+				err.Errorable.SetCode(to.Ptr(GraphErrorCodeResourceNotFound))
 				return err
 			},
 			want: true,
@@ -154,8 +154,8 @@ func TestIsFederatedCredentialAlreadyExists(t *testing.T) {
 		{
 			name: "graph error code doesn't match",
 			actualErr: func() error {
-				err := GraphError{PublicError: models.NewPublicError()}
-				err.PublicError.SetCode(to.StringPtr("random_error_code"))
+				err := GraphError{Errorable: odataerrors.NewMainError()}
+				err.Errorable.SetCode(to.Ptr("random_error_code"))
 				return err
 			},
 			want: false,
@@ -163,8 +163,8 @@ func TestIsFederatedCredentialAlreadyExists(t *testing.T) {
 		{
 			name: "graph error resource already exists",
 			actualErr: func() error {
-				err := GraphError{PublicError: models.NewPublicError()}
-				err.PublicError.SetCode(to.StringPtr(GraphErrorCodeMultipleObjectsWithSameKeyValue))
+				err := GraphError{Errorable: odataerrors.NewMainError()}
+				err.Errorable.SetCode(to.Ptr(GraphErrorCodeMultipleObjectsWithSameKeyValue))
 				return err
 			},
 			want: true,
