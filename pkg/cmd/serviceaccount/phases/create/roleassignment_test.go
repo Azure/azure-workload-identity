@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/mock/gomock"
@@ -89,7 +89,7 @@ func TestRoleAssignmentRun(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockAzureClient := mock_cloud.NewMockInterface(ctrl)
-	mockAzureClient.EXPECT().CreateRoleAssignment(context.Background(), data.azureScope, data.azureRole, data.servicePrincipalObjectID).Return(authorization.RoleAssignment{
+	mockAzureClient.EXPECT().CreateRoleAssignment(context.Background(), data.azureScope, data.azureRole, data.servicePrincipalObjectID).Return(armauthorization.RoleAssignment{
 		ID: to.StringPtr("id"),
 	}, nil)
 	data.azureClient = mockAzureClient
@@ -99,7 +99,7 @@ func TestRoleAssignmentRun(t *testing.T) {
 	}
 
 	// Test for scenario where role assignment already exists
-	mockAzureClient.EXPECT().CreateRoleAssignment(context.Background(), data.azureScope, data.azureRole, data.servicePrincipalObjectID).Return(authorization.RoleAssignment{
+	mockAzureClient.EXPECT().CreateRoleAssignment(context.Background(), data.azureScope, data.azureRole, data.servicePrincipalObjectID).Return(armauthorization.RoleAssignment{
 		ID: to.StringPtr("id"),
 	}, autorest.DetailedError{StatusCode: http.StatusConflict})
 	if err := phase.Run(context.Background(), data); err != nil {

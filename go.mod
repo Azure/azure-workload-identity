@@ -4,18 +4,16 @@ go 1.19
 
 require (
 	github.com/Azure/aad-pod-identity v1.8.13
-	github.com/Azure/azure-sdk-for-go v65.0.0+incompatible
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.2.2
+	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization v1.0.0
+	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armsubscriptions v1.1.1
 	github.com/Azure/go-autorest/autorest v0.11.29
-	github.com/Azure/go-autorest/autorest/adal v0.9.23
-	github.com/Azure/go-autorest/autorest/azure/cli v0.4.6
 	github.com/Azure/go-autorest/autorest/to v0.4.0
 	github.com/AzureAD/microsoft-authentication-library-for-go v0.9.0
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/microsoft/kiota-abstractions-go v0.19.1
 	github.com/microsoft/kiota-authentication-azure-go v0.6.0
 	github.com/microsoft/kiota-http-go v0.16.2
 	github.com/microsoft/kiota-serialization-json-go v0.9.3
@@ -39,11 +37,15 @@ require (
 )
 
 require (
+	github.com/Azure/go-autorest/autorest/adal v0.9.23 // indirect
+	github.com/microsoft/kiota-abstractions-go v0.19.1 // indirect
+)
+
+require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.5.0
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.3.0 // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
 	github.com/Azure/go-autorest/autorest/date v0.3.0 // indirect
-	github.com/Azure/go-autorest/autorest/validation v0.3.1 // indirect
 	github.com/Azure/go-autorest/logger v0.2.1 // indirect
 	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -51,7 +53,6 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/cjlapao/common-go v0.0.39 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/dimchansky/utfbom v1.1.1 // indirect
 	github.com/emicklei/go-restful/v3 v3.9.0 // indirect
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
@@ -79,7 +80,6 @@ require (
 	github.com/microsoft/kiota-serialization-form-go v0.9.1 // indirect
 	github.com/microsoft/kiota-serialization-text-go v0.7.0 // indirect
 	github.com/microsoftgraph/msgraph-sdk-go-core v0.36.1
-	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
