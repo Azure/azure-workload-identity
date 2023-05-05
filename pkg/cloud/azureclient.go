@@ -152,18 +152,12 @@ func getClient(env azure.Environment, subscriptionID string, credential azcore.T
 		return nil, errors.Wrap(err, "failed to create request adapter")
 	}
 
-	clientOpts := &armpolicy.ClientOptions{
-		ClientOptions: azcore.ClientOptions{
-			Transport: client,
-		},
-	}
-
-	roleAssignmentsClient, err := armauthorization.NewRoleAssignmentsClient(subscriptionID, credential, clientOpts)
+	roleAssignmentsClient, err := armauthorization.NewRoleAssignmentsClient(subscriptionID, credential, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create role assignments client")
 	}
 
-	roleDefinitionsClient, err := armauthorization.NewRoleDefinitionsClient(credential, clientOpts)
+	roleDefinitionsClient, err := armauthorization.NewRoleDefinitionsClient(credential, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create role definitions client")
 	}

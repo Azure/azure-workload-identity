@@ -61,7 +61,7 @@ func (p *roleAssignmentPhase) run(ctx context.Context, data workflow.RunData) er
 	// create the role assignment using object id of the service principal
 	ra, err := createData.AzureClient().CreateRoleAssignment(ctx, createData.AzureScope(), createData.AzureRole(), createData.ServicePrincipalObjectID())
 	if err != nil {
-		if cloud.IsAlreadyExists(err) {
+		if cloud.IsRoleAssignmentExists(err) {
 			mlog.WithValues(
 				"scope", createData.AzureScope(),
 				"role", createData.AzureRole(),

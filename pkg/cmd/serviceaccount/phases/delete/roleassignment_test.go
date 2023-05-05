@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization"
-	"github.com/Azure/go-autorest/autorest"
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 
@@ -76,7 +76,7 @@ func TestRoleAssignmentRun(t *testing.T) {
 	}
 
 	// Test for scenario where role assignment is not found
-	mockAzureClient.EXPECT().DeleteRoleAssignment(gomock.Any(), data.roleAssignmentID).Return(armauthorization.RoleAssignment{}, autorest.DetailedError{StatusCode: http.StatusNoContent})
+	mockAzureClient.EXPECT().DeleteRoleAssignment(gomock.Any(), data.roleAssignmentID).Return(armauthorization.RoleAssignment{}, &azcore.ResponseError{StatusCode: http.StatusNoContent})
 	if err := phase.Run(context.Background(), data); err != nil {
 		t.Errorf("expected no error but got: %s", err.Error())
 	}
