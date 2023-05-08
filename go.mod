@@ -15,7 +15,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/microsoft/kiota-authentication-azure-go v0.6.0
-	github.com/microsoft/kiota-http-go v0.16.2
+	github.com/microsoft/kiota-http-go v0.17.0
 	github.com/microsoftgraph/msgraph-sdk-go v0.61.0
 	github.com/open-policy-agent/cert-controller v0.5.0
 	github.com/pkg/errors v0.9.1
@@ -37,7 +37,7 @@ require (
 
 require (
 	github.com/Azure/go-autorest/autorest/adal v0.9.23 // indirect
-	github.com/microsoft/kiota-abstractions-go v0.19.1 // indirect
+	github.com/microsoft/kiota-abstractions-go v0.20.0 // indirect
 	github.com/microsoft/kiota-serialization-json-go v0.9.3 // indirect
 )
 
@@ -79,7 +79,7 @@ require (
 	github.com/matttproud/golang_protobuf_extensions v1.0.2 // indirect
 	github.com/microsoft/kiota-serialization-form-go v0.9.1 // indirect
 	github.com/microsoft/kiota-serialization-text-go v0.7.0 // indirect
-	github.com/microsoftgraph/msgraph-sdk-go-core v0.36.1
+	github.com/microsoftgraph/msgraph-sdk-go-core v0.36.2
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
