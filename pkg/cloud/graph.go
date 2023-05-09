@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/microsoftgraph/msgraph-sdk-go/applications"
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
 	"github.com/microsoftgraph/msgraph-sdk-go/serviceprincipals"
@@ -21,7 +21,7 @@ var (
 // No secret or certificate is generated.
 func (c *AzureClient) CreateServicePrincipal(ctx context.Context, appID string, tags []string) (models.ServicePrincipalable, error) {
 	body := models.NewServicePrincipal()
-	body.SetAppId(to.StringPtr(appID))
+	body.SetAppId(to.Ptr(appID))
 	body.SetTags(tags)
 
 	mlog.Debug("Creating service principal for application", "id", appID)
@@ -36,7 +36,7 @@ func (c *AzureClient) CreateServicePrincipal(ctx context.Context, appID string, 
 // CreateApplication creates an application.
 func (c *AzureClient) CreateApplication(ctx context.Context, displayName string) (models.Applicationable, error) {
 	body := models.NewApplication()
-	body.SetDisplayName(to.StringPtr(displayName))
+	body.SetDisplayName(to.Ptr(displayName))
 
 	mlog.Debug("Creating application", "displayName", displayName)
 	app, err := c.graphServiceClient.Applications().Post(ctx, body, nil)
@@ -53,7 +53,7 @@ func (c *AzureClient) GetServicePrincipal(ctx context.Context, displayName strin
 
 	spGetOptions := &serviceprincipals.ServicePrincipalsRequestBuilderGetRequestConfiguration{
 		QueryParameters: &serviceprincipals.ServicePrincipalsRequestBuilderGetQueryParameters{
-			Filter: to.StringPtr(getDisplayNameFilter(displayName)),
+			Filter: to.Ptr(getDisplayNameFilter(displayName)),
 		},
 	}
 
@@ -74,7 +74,7 @@ func (c *AzureClient) GetApplication(ctx context.Context, displayName string) (m
 
 	appGetOptions := &applications.ApplicationsRequestBuilderGetRequestConfiguration{
 		QueryParameters: &applications.ApplicationsRequestBuilderGetQueryParameters{
-			Filter: to.StringPtr(getDisplayNameFilter(displayName)),
+			Filter: to.Ptr(getDisplayNameFilter(displayName)),
 		},
 	}
 
@@ -123,7 +123,7 @@ func (c *AzureClient) GetFederatedCredential(ctx context.Context, objectID, issu
 	ficGetOptions := &applications.ItemFederatedIdentityCredentialsRequestBuilderGetRequestConfiguration{
 		QueryParameters: &applications.ItemFederatedIdentityCredentialsRequestBuilderGetQueryParameters{
 			// Filtering on more than one resource is currently not supported.
-			Filter: to.StringPtr(getSubjectFilter(subject)),
+			Filter: to.Ptr(getSubjectFilter(subject)),
 		},
 	}
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/golang/mock/gomock"
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
 	"github.com/microsoftgraph/msgraph-sdk-go/models/odataerrors"
@@ -77,7 +77,7 @@ func TestFederatedIdentityRun(t *testing.T) {
 	defer ctrl.Finish()
 
 	fic := models.NewFederatedIdentityCredential()
-	fic.SetId(to.StringPtr("federated-identity-credential-id"))
+	fic.SetId(to.Ptr("federated-identity-credential-id"))
 
 	mockAzureClient := mock_cloud.NewMockInterface(ctrl)
 	mockAzureClient.EXPECT().GetFederatedCredential(
@@ -109,8 +109,8 @@ func TestFederatedIdentityRun(t *testing.T) {
 
 	// Test for scenario where federated credential is not found
 	graphError := cloud.GraphError{Errorable: odataerrors.NewMainError()}
-	graphError.Errorable.SetCode(to.StringPtr(cloud.GraphErrorCodeResourceNotFound))
-	graphError.Errorable.SetMessage(to.StringPtr("FederatedIdentityCredential with name federatedcredential-from-azwi-cli not found."))
+	graphError.Errorable.SetCode(to.Ptr(cloud.GraphErrorCodeResourceNotFound))
+	graphError.Errorable.SetMessage(to.Ptr("FederatedIdentityCredential with name federatedcredential-from-azwi-cli not found."))
 	mockAzureClient.EXPECT().GetFederatedCredential(
 		gomock.Any(),
 		"aad-application-object-id",

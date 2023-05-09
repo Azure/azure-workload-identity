@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/golang/mock/gomock"
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
 	"github.com/spf13/pflag"
@@ -314,14 +314,14 @@ func TestCreateDataAzureTenantID(t *testing.T) {
 
 func testApplication(appID, objectID string) models.Applicationable {
 	app := models.NewApplication()
-	app.SetAppId(to.StringPtr(appID))
-	app.SetId(to.StringPtr(objectID))
+	app.SetAppId(to.Ptr(appID))
+	app.SetId(to.Ptr(objectID))
 	return app
 }
 
 func testServicePrincipal(appID, objectID string) models.ServicePrincipalable {
 	sp := models.NewServicePrincipal()
-	sp.SetAppId(to.StringPtr(appID))
-	sp.SetId(to.StringPtr(objectID))
+	sp.SetAppId(to.Ptr(appID))
+	sp.SetId(to.Ptr(objectID))
 	return sp
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/golang/mock/gomock"
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
 
@@ -82,16 +82,16 @@ func TestAADApplicationRun(t *testing.T) {
 
 func testApplication(appID, objectID, displayName string) models.Applicationable {
 	app := models.NewApplication()
-	app.SetAppId(to.StringPtr(appID))
-	app.SetId(to.StringPtr(objectID))
-	app.SetDisplayName(to.StringPtr(displayName))
+	app.SetAppId(to.Ptr(appID))
+	app.SetId(to.Ptr(objectID))
+	app.SetDisplayName(to.Ptr(displayName))
 	return app
 }
 
 func testServicePrincipal(appID, objectID, displayName string) models.ServicePrincipalable {
 	sp := models.NewServicePrincipal()
-	sp.SetAppId(to.StringPtr(appID))
-	sp.SetId(to.StringPtr(objectID))
-	sp.SetDisplayName(to.StringPtr(displayName))
+	sp.SetAppId(to.Ptr(appID))
+	sp.SetId(to.Ptr(objectID))
+	sp.SetDisplayName(to.Ptr(displayName))
 	return sp
 }
