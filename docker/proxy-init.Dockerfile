@@ -1,4 +1,4 @@
-ARG BASEIMAGE=registry.k8s.io/build-image/distroless-iptables:v0.2.3
+ARG BASEIMAGE=registry.k8s.io/build-image/distroless-iptables:v0.2.4
 
 FROM --platform=${TARGETPLATFORM:-linux/amd64} ${BASEIMAGE}
 
