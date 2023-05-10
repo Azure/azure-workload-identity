@@ -10,7 +10,7 @@
   "type": "module",
   "dependencies": {
     "@azure/keyvault-secrets": "^4.6.0",
-    "@azure/identity": "^3.0.0"
+    "@azure/identity": "^3.2.0"
   }
 }
 
