@@ -1,14 +1,20 @@
 # Azure Identity SDK
 
+In the Azure Identity client libraries, choose one of the following approaches:
+
+- Use `DefaultAzureCredential`, which will attempt to use the `WorkloadIdentityCredential`.
+- Create a `ChainedTokenCredential` instance that includes `WorkloadIdentityCredential`.
+- Use `WorkloadIdentityCredential` directly.
+
 The following client libraries are the **minimum** version required
 
-| Language              | Library                                                               | Minimum Version                                                                                                     |
-| --------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Go                    | [azure-sdk-for-go](https://github.com/Azure/azure-sdk-for-go)         | [sdk/azidentity/v1.3.0-beta.1](https://github.com/Azure/azure-sdk-for-go/releases/tag/sdk/azidentity/v1.3.0-beta.1) |
-| C#                    | [azure-sdk-for-net](https://github.com/Azure/azure-sdk-for-net)       | [Azure.Identity_1.5.0](https://github.com/Azure/azure-sdk-for-net/releases/tag/Azure.Identity_1.5.0)                |
-| JavaScript/TypeScript | [azure-sdk-for-js](https://github.com/Azure/azure-sdk-for-js)         | [@azure/identity_2.0.0](https://github.com/Azure/azure-sdk-for-js/releases/tag/@azure/identity_2.0.0)               |
-| Python                | [azure-sdk-for-python](https://github.com/Azure/azure-sdk-for-python) | [azure-identity_1.7.0](https://github.com/Azure/azure-sdk-for-python/releases/tag/azure-identity_1.7.0)             |
-| Java                  | [azure-sdk-for-java](https://github.com/Azure/azure-sdk-for-java)     | [azure-identity_1.4.0](https://github.com/Azure/azure-sdk-for-java/releases/tag/azure-identity_1.4.0)               |
+| Language              | Library                                                               | Minimum Version                                                                                           |
+| --------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Go                    | [azure-sdk-for-go](https://github.com/Azure/azure-sdk-for-go)         | [sdk/azidentity/v1.3.0](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity@v1.3.0)       |
+| C#                    | [azure-sdk-for-net](https://github.com/Azure/azure-sdk-for-net)       | [Azure.Identity_1.9.0](https://github.com/Azure/azure-sdk-for-net/releases/tag/Azure.Identity_1.9.0)      |
+| JavaScript/TypeScript | [azure-sdk-for-js](https://github.com/Azure/azure-sdk-for-js)         | [@azure/identity_3.2.0](https://github.com/Azure/azure-sdk-for-js/releases/tag/@azure/identity_3.2.0)     |
+| Python                | [azure-sdk-for-python](https://github.com/Azure/azure-sdk-for-python) | [azure-identity_1.13.0](https://github.com/Azure/azure-sdk-for-python/releases/tag/azure-identity_1.13.0) |
+| Java                  | [azure-sdk-for-java](https://github.com/Azure/azure-sdk-for-java)     | [azure-identity_1.9.0](https://github.com/Azure/azure-sdk-for-java/releases/tag/azure-identity_1.9.0)     |
 
 ## Examples
 
