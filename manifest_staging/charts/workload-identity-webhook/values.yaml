@@ -4,7 +4,7 @@
 
 replicaCount: 2
 image:
-  repository: mcr.microsoft.com/oss/azure/workload-identity/webhook
+  repository: testpublic.azurecr.io/webhook
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   release: v1.0.0
