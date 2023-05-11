@@ -1034,6 +1034,7 @@ az ad sp delete --id &quot;${APPLICATION_CLIENT_ID}&quot;
 </tbody></table>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="federated-identity-credential"><a class="header" href="#federated-identity-credential">Federated Identity Credential</a></h1>
 <ul>
+<li><a href="topics/federated-identity-credential.html#azure-workload-identity-cli">Azure Workload Identity CLI</a></li>
 <li><a href="topics/federated-identity-credential.html#azure-cli">Azure CLI</a>
 <ul>
 <li><a href="topics/federated-identity-credential.html#federated-identity-credential-for-an-azure-ad-application">Federated identity credential for an Azure AD application</a></li>
@@ -1052,27 +1053,24 @@ az ad sp delete --id &quot;${APPLICATION_CLIENT_ID}&quot;
 <p>NOTE: A maximum of <strong>20</strong> federated identity credentials can be added per AAD application or user-assigned managed identity object. The federated identity credentials API is not available in <a href="https://docs.microsoft.com/en-us/graph/deployments">national cloud deployments</a> - <a href="https://docs.microsoft.com/en-us/graph/api/resources/federatedidentitycredentials-overview?view=graph-rest-beta&amp;preserve-view=true">source</a></p>
 </blockquote>
 <p>Export the following environment variables:</p>
-<pre><code class="language-bash"># if you are using a Azure AD application
+<pre><code class="language-bash">export SERVICE_ACCOUNT_NAMESPACE=&quot;...&quot;
+export SERVICE_ACCOUNT_NAME=&quot;...&quot;
+export SERVICE_ACCOUNT_ISSUER=&quot;...&quot; # see section 1.1 on how to get the service account issuer url
+
+# if you are using a Azure AD application
 export APPLICATION_NAME=&quot;&lt;your application name&gt;&quot;
 
 # if you are using a user-assigned managed identity
 export USER_ASSIGNED_MANAGED_IDENTITY_NAME=&quot;&lt;your user-assigned managed identity name&gt;&quot;
 export RESOURCE_GROUP=&quot;&lt;your user-assigned managed identity resource group&gt;&quot;
 </code></pre>
-<p>export SERVICE_ACCOUNT_NAMESPACE=”...”
-export SERVICE_ACCOUNT_NAME=”...”
-export SERVICE_ACCOUNT_ISSUER=”...” # see section 1.1 on how to get the service account issuer url</p>
-<pre><code>
-Currently, there are several ways to create and delete a federated identity credential:
-
-## Azure Workload Identity CLI
-
-&gt; NOTE: `azwi` currently only supports Azure AD Applications. If you want to use a user-assigned managed identity, skip this section and follow the steps in the Azure CLI section.
-
-To create a federated identity credential:
-
-```bash
-azwi serviceaccount create phase federated-identity \
+<p>Currently, there are several ways to create and delete a federated identity credential:</p>
+<h2 id="azure-workload-identity-cli"><a class="header" href="#azure-workload-identity-cli">Azure Workload Identity CLI</a></h2>
+<blockquote>
+<p>NOTE: <code>azwi</code> currently only supports Azure AD Applications. If you want to use a user-assigned managed identity, skip this section and follow the steps in the Azure CLI section.</p>
+</blockquote>
+<p>To create a federated identity credential:</p>
+<pre><code class="language-bash">azwi serviceaccount create phase federated-identity \
   --aad-application-name &quot;${APPLICATION_NAME}&quot; \
   --service-account-namespace &quot;${SERVICE_ACCOUNT_NAMESPACE}&quot; \
   --service-account-name &quot;${SERVICE_ACCOUNT_NAME}&quot; \
