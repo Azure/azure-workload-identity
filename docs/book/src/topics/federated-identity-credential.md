@@ -9,17 +9,16 @@ Not all service account tokens can be exchanged for a valid AAD token. A federat
 Export the following environment variables:
 
 ```bash
+export SERVICE_ACCOUNT_NAMESPACE="..."
+export SERVICE_ACCOUNT_NAME="..."
+export SERVICE_ACCOUNT_ISSUER="..." # see section 1.1 on how to get the service account issuer url
+
 # if you are using a Azure AD application
 export APPLICATION_NAME="<your application name>"
 
 # if you are using a user-assigned managed identity
 export USER_ASSIGNED_MANAGED_IDENTITY_NAME="<your user-assigned managed identity name>"
 export RESOURCE_GROUP="<your user-assigned managed identity resource group>"
-```
-
-export SERVICE_ACCOUNT_NAMESPACE="..."
-export SERVICE_ACCOUNT_NAME="..."
-export SERVICE_ACCOUNT_ISSUER="..." # see section 1.1 on how to get the service account issuer url
 ```
 
 Currently, there are several ways to create and delete a federated identity credential:
