@@ -71,6 +71,9 @@ curl ${SERVICE_ACCOUNT_ISSUER}/.well-known/openid-configuration
 curl ${SERVICE_ACCOUNT_ISSUER}/openid/v1/jwks
 ```
 
+In a managed AKS cluster you also can get this OIDC issuer endpoint from the cluster json representation in ``properties.oidcIssuerProfile.issuerURL`` (you have to set API version to at least 2022-09-01). To test the endpoint try to access ``${AKS_oidcIssuerProfile_issuerURL}/.well-known/openid-configuration`` and you should get the OIDC configuration. If you can an error your OIDC endpoint deployment was failing.
+To resolve this issue try to reconcile the cluster using ``az resource update --ids ${AKS_CLUSTER_RESOURCEID}``. If this is still unsuccessfull approach the Azure support.
+
 ## Workload pod doesn't have the Azure specific environment variables and projected service account token volume after upgrading to v1.0.0
 
 As of v1.0.0 release, the azure-workload-identity mutating admission webhook is defaulting to using `failurePolicy: Fail` instead of `Ignore`. With this change, we have added an [object selector](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#matching-requests-objectselector) in the configuration to only intercept and mutate pods that have the `azure.workload.identity/use: "true"` label. This change reduces the latency impact of the webhook and prevents workload pods that require the injected environment variables and projected service account token volume from starting in an unexpected state. Refer to [issue](https://github.com/Azure/azure-workload-identity/issues/601) for more details.
