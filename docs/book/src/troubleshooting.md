@@ -72,7 +72,7 @@ curl ${SERVICE_ACCOUNT_ISSUER}/openid/v1/jwks
 ```
 
 In a managed AKS cluster you also can get this OIDC issuer endpoint from the cluster json representation in ``properties.oidcIssuerProfile.issuerURL`` (you have to set API version to at least 2022-09-01). To test the endpoint try to access ``${AKS_oidcIssuerProfile_issuerURL}/.well-known/openid-configuration`` and you should get the OIDC configuration. If you can an error your OIDC endpoint deployment was failing.
-To resolve this issue try to reconcile the cluster using ``az resource update --ids ${AKS_CLUSTER_RESOURCEID}``. If this is still unsuccessfull approach the Azure support.
+If you're seeing this issue with an AKS cluster, to resolve the issue try to reconcile the cluster by running [`az aks update`](https://learn.microsoft.com/en-us/cli/azure/aks?view=azure-cli-latest#az-aks-update). If the issue persists after reconciliation, create an [Azure support ticket](https://azure.microsoft.com/en-us/support/create-ticket). 
 
 ## Workload pod doesn't have the Azure specific environment variables and projected service account token volume after upgrading to v1.0.0
 
