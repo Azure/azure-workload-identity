@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization"
-	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/mock/gomock"
 
 	"github.com/Azure/azure-workload-identity/pkg/cloud/mock_cloud"
@@ -90,7 +90,7 @@ func TestRoleAssignmentRun(t *testing.T) {
 
 	mockAzureClient := mock_cloud.NewMockInterface(ctrl)
 	mockAzureClient.EXPECT().CreateRoleAssignment(context.Background(), data.azureScope, data.azureRole, data.servicePrincipalObjectID).Return(armauthorization.RoleAssignment{
-		ID: to.StringPtr("id"),
+		ID: to.Ptr("id"),
 	}, nil)
 	data.azureClient = mockAzureClient
 
@@ -100,7 +100,7 @@ func TestRoleAssignmentRun(t *testing.T) {
 
 	// Test for scenario where role assignment already exists
 	mockAzureClient.EXPECT().CreateRoleAssignment(context.Background(), data.azureScope, data.azureRole, data.servicePrincipalObjectID).Return(armauthorization.RoleAssignment{
-		ID: to.StringPtr("id"),
+		ID: to.Ptr("id"),
 	}, &azcore.ResponseError{StatusCode: http.StatusConflict})
 	if err := phase.Run(context.Background(), data); err != nil {
 		t.Errorf("expected no error but got: %s", err.Error())
