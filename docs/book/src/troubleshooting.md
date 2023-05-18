@@ -71,6 +71,8 @@ curl ${SERVICE_ACCOUNT_ISSUER}/.well-known/openid-configuration
 curl ${SERVICE_ACCOUNT_ISSUER}/openid/v1/jwks
 ```
 
+If you're seeing this issue with an AKS cluster, to resolve the issue try to reconcile the cluster by running [`az aks update`](https://learn.microsoft.com/en-us/cli/azure/aks?view=azure-cli-latest#az-aks-update). If the issue persists after reconciliation, create an [Azure support ticket](https://azure.microsoft.com/en-us/support/create-ticket). 
+
 ## Workload pod doesn't have the Azure specific environment variables and projected service account token volume after upgrading to v1.0.0
 
 As of v1.0.0 release, the azure-workload-identity mutating admission webhook is defaulting to using `failurePolicy: Fail` instead of `Ignore`. With this change, we have added an [object selector](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#matching-requests-objectselector) in the configuration to only intercept and mutate pods that have the `azure.workload.identity/use: "true"` label. This change reduces the latency impact of the webhook and prevents workload pods that require the injected environment variables and projected service account token volume from starting in an unexpected state. Refer to [issue](https://github.com/Azure/azure-workload-identity/issues/601) for more details.
