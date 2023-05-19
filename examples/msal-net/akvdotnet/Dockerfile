@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:5.0 AS builder
+FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:7.0 AS builder
 WORKDIR /app
 ADD . .
 RUN dotnet build akvdotnet.csproj && dotnet publish -c release
