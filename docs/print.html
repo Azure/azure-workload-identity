@@ -1574,13 +1574,21 @@ azure-workload-identity-control-plane   Ready    control-plane,master   2m28s   
 <li>Create a <code>ChainedTokenCredential</code> instance that includes <code>WorkloadIdentityCredential</code>.</li>
 <li>Use <code>WorkloadIdentityCredential</code> directly.</li>
 </ul>
-<p>The following client libraries are the <strong>minimum</strong> version required</p>
-<table><thead><tr><th>Language</th><th>Library</th><th>Minimum Version</th></tr></thead><tbody>
-<tr><td>Go</td><td><a href="https://github.com/Azure/azure-sdk-for-go">azure-sdk-for-go</a></td><td><a href="https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity@v1.3.0">sdk/azidentity/v1.3.0</a></td></tr>
-<tr><td>C#</td><td><a href="https://github.com/Azure/azure-sdk-for-net">azure-sdk-for-net</a></td><td><a href="https://github.com/Azure/azure-sdk-for-net/releases/tag/Azure.Identity_1.9.0">Azure.Identity_1.9.0</a></td></tr>
-<tr><td>JavaScript/TypeScript</td><td><a href="https://github.com/Azure/azure-sdk-for-js">azure-sdk-for-js</a></td><td><a href="https://github.com/Azure/azure-sdk-for-js/releases/tag/@azure/identity_3.2.0">@azure/identity_3.2.0</a></td></tr>
-<tr><td>Python</td><td><a href="https://github.com/Azure/azure-sdk-for-python">azure-sdk-for-python</a></td><td><a href="https://github.com/Azure/azure-sdk-for-python/releases/tag/azure-identity_1.13.0">azure-identity_1.13.0</a></td></tr>
-<tr><td>Java</td><td><a href="https://github.com/Azure/azure-sdk-for-java">azure-sdk-for-java</a></td><td><a href="https://github.com/Azure/azure-sdk-for-java/releases/tag/azure-identity_1.9.0">azure-identity_1.9.0</a></td></tr>
+<p>The following client libraries are the <strong>minimum</strong> version required and recommended:</p>
+<ul>
+<li><code>Minimum Recommended Version</code> - The version of the client library that is recommended for use with Workload Identity.
+<ul>
+<li>This version is the minimum version that includes the <code>WorkloadIdentityCredential</code> in addition to the <code>DefaultAzureCredential</code>.</li>
+</ul>
+</li>
+<li><code>Minimum Version Required for Workload Identity</code> - The minimum version of the client library that will work with Workload Identity (i.e. the version that supports workload identity with the <code>DefaultAzureCredential</code>).</li>
+</ul>
+<table><thead><tr><th>Language</th><th>Library</th><th>Minimum Recommended Version</th><th>Minimum Version Required for Workload Identity</th></tr></thead><tbody>
+<tr><td>Go</td><td><a href="https://github.com/Azure/azure-sdk-for-go">azure-sdk-for-go</a></td><td><a href="https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity@v1.3.0">sdk/azidentity/v1.3.0</a></td><td><a href="https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity@v1.3.0">sdk/azidentity/v1.3.0</a></td></tr>
+<tr><td>C#</td><td><a href="https://github.com/Azure/azure-sdk-for-net">azure-sdk-for-net</a></td><td><a href="https://github.com/Azure/azure-sdk-for-net/releases/tag/Azure.Identity_1.9.0">Azure.Identity_1.9.0</a></td><td><a href="https://github.com/Azure/azure-sdk-for-net/releases/tag/Azure.Identity_1.5.0">Azure.Identity_1.5.0</a></td></tr>
+<tr><td>JavaScript/TypeScript</td><td><a href="https://github.com/Azure/azure-sdk-for-js">azure-sdk-for-js</a></td><td><a href="https://github.com/Azure/azure-sdk-for-js/releases/tag/@azure/identity_3.2.0">@azure/identity_3.2.0</a></td><td><a href="https://github.com/Azure/azure-sdk-for-js/releases/tag/@azure/identity_2.0.0">@azure/identity_2.0.0</a></td></tr>
+<tr><td>Python</td><td><a href="https://github.com/Azure/azure-sdk-for-python">azure-sdk-for-python</a></td><td><a href="https://github.com/Azure/azure-sdk-for-python/releases/tag/azure-identity_1.13.0">azure-identity_1.13.0</a></td><td><a href="https://github.com/Azure/azure-sdk-for-python/releases/tag/azure-identity_1.7.0">azure-identity_1.7.0</a></td></tr>
+<tr><td>Java</td><td><a href="https://github.com/Azure/azure-sdk-for-java">azure-sdk-for-java</a></td><td><a href="https://github.com/Azure/azure-sdk-for-java/releases/tag/azure-identity_1.9.0">azure-identity_1.9.0</a></td><td><a href="https://github.com/Azure/azure-sdk-for-java/releases/tag/azure-identity_1.4.0">azure-identity_1.4.0</a></td></tr>
 </tbody></table>
 <h2 id="examples-1"><a class="header" href="#examples-1">Examples</a></h2>
 <h3 id="using-defaultazurecredential"><a class="header" href="#using-defaultazurecredential">Using <code>DefaultAzureCredential</code></a></h3>
