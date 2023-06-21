@@ -92,20 +92,20 @@ func (c *AzureClient) GetApplication(ctx context.Context, displayName string) (m
 // DeleteServicePrincipal deletes a service principal.
 func (c *AzureClient) DeleteServicePrincipal(ctx context.Context, objectID string) error {
 	mlog.Debug("Deleting service principal", "objectID", objectID)
-	return c.graphServiceClient.ServicePrincipalsById(objectID).Delete(ctx, nil)
+	return c.graphServiceClient.ServicePrincipals().ByServicePrincipalId(objectID).Delete(ctx, nil)
 }
 
 // DeleteApplication deletes an application.
 func (c *AzureClient) DeleteApplication(ctx context.Context, objectID string) error {
 	mlog.Debug("Deleting application", "objectID", objectID)
-	return c.graphServiceClient.ApplicationsById(objectID).Delete(ctx, nil)
+	return c.graphServiceClient.Applications().ByApplicationId(objectID).Delete(ctx, nil)
 }
 
 // AddFederatedCredential adds a federated credential to the cloud provider.
 func (c *AzureClient) AddFederatedCredential(ctx context.Context, objectID string, fic models.FederatedIdentityCredentialable) error {
 	mlog.Debug("Adding federated credential", "objectID", objectID)
 
-	if _, err := c.graphServiceClient.ApplicationsById(objectID).FederatedIdentityCredentials().Post(ctx, fic, nil); err != nil {
+	if _, err := c.graphServiceClient.Applications().ByApplicationId(objectID).FederatedIdentityCredentials().Post(ctx, fic, nil); err != nil {
 		return maybeExtractGraphError(err)
 	}
 
@@ -127,7 +127,7 @@ func (c *AzureClient) GetFederatedCredential(ctx context.Context, objectID, issu
 		},
 	}
 
-	resp, err := c.graphServiceClient.ApplicationsById(objectID).FederatedIdentityCredentials().Get(ctx, ficGetOptions)
+	resp, err := c.graphServiceClient.Applications().ByApplicationId(objectID).FederatedIdentityCredentials().Get(ctx, ficGetOptions)
 	if err != nil {
 		return nil, maybeExtractGraphError(err)
 	}
@@ -146,7 +146,7 @@ func (c *AzureClient) DeleteFederatedCredential(ctx context.Context, objectID, f
 		"objectID", objectID,
 		"federatedCredentialID", federatedCredentialID,
 	)
-	return c.graphServiceClient.ApplicationsById(objectID).FederatedIdentityCredentialsById(federatedCredentialID).Delete(ctx, nil)
+	return c.graphServiceClient.Applications().ByApplicationId(objectID).FederatedIdentityCredentials().ByFederatedIdentityCredentialId(federatedCredentialID).Delete(ctx, nil)
 }
 
 // getDisplayNameFilter returns a filter string for the given display name.
