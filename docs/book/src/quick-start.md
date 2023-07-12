@@ -419,7 +419,8 @@ az group delete --name "${RESOURCE_GROUP}"
 az ad sp delete --id "${APPLICATION_CLIENT_ID}"
 ```
 
-[1]: https://azure.microsoft.com/en-us/services/key-vault/
+<!-- markdown-link-check-disable-next-line -->
+[1]: https://azure.microsoft.com/services/key-vault/
 
 [2]: https://kubernetes.io/docs/tasks/tools/
 
@@ -427,7 +428,8 @@ az ad sp delete --id "${APPLICATION_CLIENT_ID}"
 
 [4]: https://www.docker.com/
 
-[5]: https://azure.microsoft.com/en-us/
+<!-- markdown-link-check-disable-next-line -->
+[5]: https://azure.microsoft.com/
 
 [6]: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli
 

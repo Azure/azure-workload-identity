@@ -35,7 +35,8 @@ Azure AD Workload Identity is an open source project that is [**not** covered by
 <!-- - Ensure backward compatibility when upgrading from [AAD Pod Identity](https://github.com/Azure/aad-pod-identity). -->
 
 [1]: https://github.com/Azure/aad-pod-identity
-[2]: https://azure.microsoft.com/en-us/services/active-directory/
+<!-- markdown-link-check-disable-next-line -->
+[2]: https://azure.microsoft.com/products/active-directory/
 [3]: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
 [4]: https://azure.github.io/azure-workload-identity/docs/quick-start.html
 [5]: https://azure.github.io/azure-workload-identity/docs/installation/mutating-admission-webhook.html
