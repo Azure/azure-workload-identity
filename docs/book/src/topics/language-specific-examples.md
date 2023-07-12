@@ -4,6 +4,7 @@ Azure AD Workload Identity works especially well with the [Azure SDK][1] and the
 
 > You can swap the demo image used in the [quick start](../quick-start.md#7-deploy-workload) with images built from these example projects.
 
-[1]: https://azure.microsoft.com/en-us/downloads/
+<!-- markdown-link-check-disable-next-line -->
+[1]: https://azure.microsoft.com/downloads/
 
-[2]: https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-overview
+[2]: https://docs.microsoft.com/azure/active-directory/develop/msal-overview

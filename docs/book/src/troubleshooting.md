@@ -70,8 +70,8 @@ export SERVICE_ACCOUNT_ISSUER="<your service account issuer url>" # see section 
 curl ${SERVICE_ACCOUNT_ISSUER}/.well-known/openid-configuration
 curl ${SERVICE_ACCOUNT_ISSUER}/openid/v1/jwks
 ```
-
-If you're seeing this issue with an AKS cluster, to resolve the issue try to reconcile the cluster by running [`az aks update`](https://learn.microsoft.com/en-us/cli/azure/aks?view=azure-cli-latest#az-aks-update). If the issue persists after reconciliation, create an [Azure support ticket](https://azure.microsoft.com/en-us/support/create-ticket). 
+<!-- markdown-link-check-disable-next-line -->
+If you're seeing this issue with an AKS cluster, to resolve the issue try to reconcile the cluster by running [`az aks update`](https://learn.microsoft.com/cli/azure/aks?view=azure-cli-latest#az-aks-update). If the issue persists after reconciliation, create an [Azure support ticket](https://azure.microsoft.com/support/create-ticket).
 
 ## Workload pod doesn't have the Azure specific environment variables and projected service account token volume after upgrading to v1.0.0
 
