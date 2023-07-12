@@ -157,7 +157,7 @@
 <li><a href="#7-deploy-workload">7. Deploy workload</a></li>
 <li><a href="#8-cleanup">8. Cleanup</a></li>
 </ul>
-<p>In this tutorial, we will cover the basics of how to use the webhook to acquire an Azure AD token to access a secret in an <a href="https://azure.microsoft.com/en-us/services/key-vault/">Azure Key Vault</a>.</p>
+<p>In this tutorial, we will cover the basics of how to use the webhook to acquire an Azure AD token to access a secret in an <a href="https://azure.microsoft.com/services/key-vault/">Azure Key Vault</a>.</p>
 <blockquote>
 <p>While this tutorial shows a 1:1 mapping between a Kubernetes service account and an Azure AD identity, it is possible to map:</p>
 <ol>
@@ -476,6 +476,8 @@ az group delete --name &quot;${RESOURCE_GROUP}&quot;
 # if you used Azure AD Application for tutorial, delete it by running the following command
 az ad sp delete --id &quot;${APPLICATION_CLIENT_ID}&quot;
 </code></pre>
+<!-- markdown-link-check-disable-next-line -->
+<!-- markdown-link-check-disable-next-line -->
 
                     </main>
 

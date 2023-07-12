@@ -657,7 +657,7 @@ mutatingwebhookconfiguration.admissionregistration.k8s.io/azure-wi-webhook-mutat
 <li><a href="quick-start.html#7-deploy-workload">7. Deploy workload</a></li>
 <li><a href="quick-start.html#8-cleanup">8. Cleanup</a></li>
 </ul>
-<p>In this tutorial, we will cover the basics of how to use the webhook to acquire an Azure AD token to access a secret in an <a href="https://azure.microsoft.com/en-us/services/key-vault/">Azure Key Vault</a>.</p>
+<p>In this tutorial, we will cover the basics of how to use the webhook to acquire an Azure AD token to access a secret in an <a href="https://azure.microsoft.com/services/key-vault/">Azure Key Vault</a>.</p>
 <blockquote>
 <p>While this tutorial shows a 1:1 mapping between a Kubernetes service account and an Azure AD identity, it is possible to map:</p>
 <ol>
@@ -976,6 +976,8 @@ az group delete --name &quot;${RESOURCE_GROUP}&quot;
 # if you used Azure AD Application for tutorial, delete it by running the following command
 az ad sp delete --id &quot;${APPLICATION_CLIENT_ID}&quot;
 </code></pre>
+<!-- markdown-link-check-disable-next-line -->
+<!-- markdown-link-check-disable-next-line -->
 <div style="break-before: page; page-break-before: always;"></div><h1 id="concepts"><a class="header" href="#concepts">Concepts</a></h1>
 <p><img src="./images/flow-diagram.png" alt="Flow Diagram" /></p>
 <h2 id="service-account"><a class="header" href="#service-account">Service Account</a></h2>
@@ -1563,10 +1565,11 @@ azure-workload-identity-control-plane   Ready    control-plane,master   2m28s   
 </details>
 <p>Now that we have confirmed the cluster is up and running with the required configuration, you can follow the tutorial in <a href="topics/self-managed-clusters/examples/../../../quick-start.html">Quick Start</a> to learn the basics of how to use the Azure AD Workload Identity webhook to acquire a token to access a secret in an <a href="topics/self-managed-clusters/examples/../../../installation/self-managed-clusters/configurations.html">Azure Key Vault</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="language-specific-examples"><a class="header" href="#language-specific-examples">Language-Specific Examples</a></h1>
-<p>Azure AD Workload Identity works especially well with the <a href="https://azure.microsoft.com/en-us/downloads/">Azure SDK</a> and the <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-overview">Microsoft Authentication Library (MSAL)</a>. Your workload can leverage any of these library to seamlessly access Azure cloud resources. This section contains example projects using both libraries in different programming languages.</p>
+<p>Azure AD Workload Identity works especially well with the <a href="https://azure.microsoft.com/downloads/">Azure SDK</a> and the <a href="https://docs.microsoft.com/azure/active-directory/develop/msal-overview">Microsoft Authentication Library (MSAL)</a>. Your workload can leverage any of these library to seamlessly access Azure cloud resources. This section contains example projects using both libraries in different programming languages.</p>
 <blockquote>
 <p>You can swap the demo image used in the <a href="topics/../quick-start.html#7-deploy-workload">quick start</a> with images built from these example projects.</p>
 </blockquote>
+<!-- markdown-link-check-disable-next-line -->
 <div style="break-before: page; page-break-before: always;"></div><h1 id="azure-identity-sdk"><a class="header" href="#azure-identity-sdk">Azure Identity SDK</a></h1>
 <p>In the Azure Identity client libraries, choose one of the following approaches:</p>
 <ul>
@@ -1777,7 +1780,8 @@ Timestamp: 2022-10-21 04:36:48Z
 curl ${SERVICE_ACCOUNT_ISSUER}/.well-known/openid-configuration
 curl ${SERVICE_ACCOUNT_ISSUER}/openid/v1/jwks
 </code></pre>
-<p>If you’re seeing this issue with an AKS cluster, to resolve the issue try to reconcile the cluster by running <a href="https://learn.microsoft.com/en-us/cli/azure/aks?view=azure-cli-latest#az-aks-update"><code>az aks update</code></a>. If the issue persists after reconciliation, create an <a href="https://azure.microsoft.com/en-us/support/create-ticket">Azure support ticket</a>. </p>
+<!-- markdown-link-check-disable-next-line -->
+<p>If you’re seeing this issue with an AKS cluster, to resolve the issue try to reconcile the cluster by running <a href="https://learn.microsoft.com/cli/azure/aks?view=azure-cli-latest#az-aks-update"><code>az aks update</code></a>. If the issue persists after reconciliation, create an <a href="https://azure.microsoft.com/support/create-ticket">Azure support ticket</a>.</p>
 <h2 id="workload-pod-doesnt-have-the-azure-specific-environment-variables-and-projected-service-account-token-volume-after-upgrading-to-v100"><a class="header" href="#workload-pod-doesnt-have-the-azure-specific-environment-variables-and-projected-service-account-token-volume-after-upgrading-to-v100">Workload pod doesn’t have the Azure specific environment variables and projected service account token volume after upgrading to v1.0.0</a></h2>
 <p>As of v1.0.0 release, the azure-workload-identity mutating admission webhook is defaulting to using <code>failurePolicy: Fail</code> instead of <code>Ignore</code>. With this change, we have added an <a href="https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#matching-requests-objectselector">object selector</a> in the configuration to only intercept and mutate pods that have the <code>azure.workload.identity/use: &quot;true&quot;</code> label. This change reduces the latency impact of the webhook and prevents workload pods that require the injected environment variables and projected service account token volume from starting in an unexpected state. Refer to <a href="https://github.com/Azure/azure-workload-identity/issues/601">issue</a> for more details.</p>
 <p>If you are upgrading from a previous version of the azure-workload-identity, you will need to add the <code>azure.workload.identity/use: &quot;true&quot;</code> label to your workload pods to ensure that the mutating admission webhook is able to inject the required environment variables and projected service account token volume.</p>
