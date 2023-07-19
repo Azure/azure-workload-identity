@@ -31,9 +31,9 @@ cloud.google.com/go/storage v1.6.0/go.mod h1:N7U0C8pVQ/+NIKOBQyamJIeKQKkZ+mxpohl
 cloud.google.com/go/storage v1.8.0/go.mod h1:Wv1Oy7z6Yz3DshWRJFhqM/UCfaWIRTdp0RXyy7KQOVs=
 cloud.google.com/go/storage v1.10.0/go.mod h1:FLPqc6j+Ki4BU591ie1oL6qBQGu2Bl/tZ9ullr3+Kg0=
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
-github.com/Azure/aad-pod-identity v1.8.13 h1:/gUmacA0z7+lsOlGYAYzkGvAB/KOkUe5Pb6qSeiHD0k=
-github.com/Azure/aad-pod-identity v1.8.13/go.mod h1:uxM/lsPo/abzqdk0rwEm4SqO9pavMz0fCmKpYAj4HL8=
-github.com/Azure/azure-sdk-for-go v57.2.0+incompatible h1:zoJapafogLazoyp0x9aQENzNNqxvU6pnGtb2P8/i+HI=
+github.com/Azure/aad-pod-identity v1.8.17 h1:fJ4eGIJs8MO0Y1BN35mwkDcmdVfITuFVsiUBlwng+L8=
+github.com/Azure/aad-pod-identity v1.8.17/go.mod h1:7ud3OsPAmBmebLCcyKO2mQHlJmHbmvgOhv9SFnbXTk8=
+github.com/Azure/azure-sdk-for-go v67.2.0+incompatible h1:Uu/Ww6ernvPTrpq31kITVTIm/I5jlJ1wjtEH/bmSB2k=
 github.com/Azure/azure-sdk-for-go/sdk/azcore v1.6.1 h1:SEy2xmstIphdPwNBUi7uhvjyjhVKISfwjfOJmuy7kg4=
 github.com/Azure/azure-sdk-for-go/sdk/azcore v1.6.1/go.mod h1:bjGvMhVMb+EEm3VRNQawDMUyMMjo+S5ewNjflkep/0Q=
 github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.2.2 h1:uqM+VoHjVH6zdlkLF2b6O0ZANcHoj3rO0PoQ3jglUJA=
