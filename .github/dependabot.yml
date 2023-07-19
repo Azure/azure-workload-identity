@@ -11,6 +11,15 @@ updates:
         update-types:
         - "version-update:semver-major"
         - "version-update:semver-minor"
+    groups:
+      k8s:
+        patterns:
+        - "k8s.io/*"
+        - "sigs.k8s.io/*"
+      azure-sdk:
+        patterns:
+        - "github.com/Azure/azure-sdk-for-go/*"
+
   - package-ecosystem: "npm"
     directory: "/example/msal-node"
     schedule:
@@ -23,6 +32,7 @@ updates:
       interval: "weekly"
     commit-message:
       prefix: "chore"
+
   - package-ecosystem: "gomod"
     directory: "/test/e2e"
     schedule:
@@ -34,7 +44,10 @@ updates:
         update-types:
         - "version-update:semver-major"
         - "version-update:semver-minor"
-
+    groups:
+      k8s:
+        patterns:
+        - "k8s.io/*"
 
   - package-ecosystem: docker
     directory: /examples/azure-identity/dotnet
