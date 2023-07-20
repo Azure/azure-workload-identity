@@ -27,9 +27,9 @@ require (
 	go.opentelemetry.io/otel/metric v0.37.0
 	gopkg.in/ini.v1 v1.62.1
 	gopkg.in/square/go-jose.v2 v2.6.0
-	k8s.io/api v0.26.4
-	k8s.io/apimachinery v0.26.4
-	k8s.io/client-go v0.26.4
+	k8s.io/api v0.26.7
+	k8s.io/apimachinery v0.26.7
+	k8s.io/client-go v0.26.7
 	k8s.io/utils v0.0.0-20221128185143-99ec85e7a448
 	monis.app/mlog v0.0.4
 	sigs.k8s.io/controller-runtime v0.14.6
