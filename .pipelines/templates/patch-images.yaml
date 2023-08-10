@@ -1,0 +1,57 @@
+pr: none
+
+schedules:
+  - cron: "0 0 * * *" # nightly
+    always: true
+    displayName: "Copa Patch"
+    branches:
+      include:
+        - main
+
+pool: staging-pool-amd64-mariner-2
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@ecf95283f03858871ff00b787d79c419715afc34
+
+    - name: Generate Trivy Report
+      uses: aquasecurity/trivy-action@465a07811f14bebb1938fbed4728c6a1ff8901fc
+      with:
+        scan-type: 'image'
+        format: 'json'
+        output: 'report.json'
+        ignore-unfixed: true
+        vuln-type: 'os'
+        image-ref: 'ghcr.io/azure/azure-workload-identity/proxy-init:latest'
+
+    - name: Check Vuln Count
+      id: vuln_cout
+      run: |
+        report_file="report.json"
+        vuln_count=$(jq '.Results | length' "$report_file")
+        echo "vuln_count=$vuln_count" >> $GITHUB_OUTPUT
+
+    - name: Copa Action
+      if: steps.vuln_cout.outputs.vuln_count != '0'
+      id: copa
+      uses: project-copacetic/copa-action@v1.0.0
+      with:
+        image: 'ghcr.io/azure/azure-workload-identity/proxy-init:latest'
+        image-report: 'report.json'
+        patched-tag: 'patched'
+        buildkit-version: 'v0.12.1'
+
+    - name: Login to ghcr.io
+      uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Docker Push Patched Image
+      if: steps.login.conclusion == 'success'
+      run: |
+        docker push ${{ steps.copa.outputs.patched-image }}
