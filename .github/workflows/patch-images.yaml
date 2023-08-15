@@ -14,7 +14,7 @@ jobs:
           images: ['ghcr.io/azure/azure-workload-identity/proxy-init:latest-linux-arm64', 'ghcr.io/azure/azure-workload-identity/proxy-init:latest-linux-amd64']
       steps:
       - name: Generate Trivy Report
-        uses: aquasecurity/trivy-action@41f05d9ecffa2ed3f1580af306000f734b733e54
+        uses: aquasecurity/trivy-action@41f05d9ecffa2ed3f1580af306000f734b733e54 # v0.11.2
         with:
           scan-type: 'image'
           format: 'json'
@@ -31,7 +31,7 @@ jobs:
       - name: Copa Action
         if: steps.vuln_cout.outputs.vuln_count != '0'
         id: copa
-        uses: project-copacetic/copa-action@v1.0.0
+        uses: project-copacetic/copa-action@1eb86b0907bce48225b66dc9488c7d329c2d48a0 # v1.0.0
         with:
           image:  ${{ matrix.images }}
           image-report: 'report.json'
