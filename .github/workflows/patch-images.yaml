@@ -1,24 +1,20 @@
-pr: none
-
-schedules:
-  - cron: "0 0 * * *" # nightly
-    always: true
-    displayName: "Copa Patch"
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  pull_request:
     branches:
-      include:
-        - main
-
-pool: staging-pool-amd64-mariner-2
+      - main
 
 jobs:    
-  - job: patch
+  patch: 
+      runs-on: ubuntu-latest
       strategy:
         fail-fast: false
         matrix:
           images: ['ghcr.io/azure/azure-workload-identity/proxy-init:latest-linux-arm64', 'ghcr.io/azure/azure-workload-identity/proxy-init:latest-linux-amd64']
       steps:
       - name: Generate Trivy Report
-        uses: aquasecurity/trivy-action@465a07811f14bebb1938fbed4728c6a1ff8901fc
+        uses: aquasecurity/trivy-action@41f05d9ecffa2ed3f1580af306000f734b733e54
         with:
           scan-type: 'image'
           format: 'json'
@@ -53,7 +49,8 @@ jobs:
         run: |
           docker tag ghcr.io/azure/azure-workload-identity/proxy-init:patched ${{ matrix.images }}
           docker push ${{ matrix.images }}
-  - job: create and push updated manifest
+  create-updated-manifest:
+      runs-on: ubuntu-latest
       steps:
       - name: docker manifest create
         run: |
