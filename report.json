@@ -1,0 +1,86 @@
+{
+  "SchemaVersion": 2,
+  "ArtifactName": "docker.io/ashnam/proxy-init:latest-linux-amd64",
+  "ArtifactType": "container_image",
+  "Metadata": {
+    "OS": {
+      "Family": "debian",
+      "Name": "11.7"
+    },
+    "ImageID": "sha256:51b4695e80399edf93927e26d5767139709e65b20e536051bda04b374c27683f",
+    "DiffIDs": [
+      "sha256:9db705fd00097a9e56548177232aa04aaa663ae0e68718289af1b7766615af72",
+      "sha256:ddae7878ce5de85063702b8bfcc3e63b1a49f12753787bea067dd2d04a6a4b1e",
+      "sha256:be48637170c1f099f7e2e77cffedcda8ae5d9c64eaa9188ba1cc7af32dc26a7a"
+    ],
+    "RepoTags": [
+      "ashnam/proxy-init:latest-linux-amd64",
+      "ghcr.io/ashnamehrotra/azure-workload-identity/proxy-init:latest-linux-amd64",
+      "ghcr.io/azure/azure-workload-identity/proxy-init:latest-linux-amd64"
+    ],
+    "RepoDigests": [
+      "ashnam/proxy-init@sha256:796e5e24e67d8dfa1743e63673af788a3a39b9cc3619283071c55c0ba4a95593",
+      "ghcr.io/ashnamehrotra/azure-workload-identity/proxy-init@sha256:796e5e24e67d8dfa1743e63673af788a3a39b9cc3619283071c55c0ba4a95593",
+      "ghcr.io/azure/azure-workload-identity/proxy-init@sha256:796e5e24e67d8dfa1743e63673af788a3a39b9cc3619283071c55c0ba4a95593"
+    ],
+    "ImageConfig": {
+      "architecture": "amd64",
+      "created": "2023-08-01T21:31:24.071347496Z",
+      "history": [
+        {
+          "created": "2023-06-07T18:21:32Z",
+          "created_by": "COPY / / # buildkit",
+          "comment": "buildkit.dockerfile.v0"
+        },
+        {
+          "created": "2023-08-01T21:31:23Z",
+          "created_by": "COPY ./init/init-iptables.sh /bin/ # buildkit",
+          "comment": "buildkit.dockerfile.v0"
+        },
+        {
+          "created": "2023-08-01T21:31:24Z",
+          "created_by": "RUN /bin/sh -c chmod +x /bin/init-iptables.sh # buildkit",
+          "comment": "buildkit.dockerfile.v0"
+        },
+        {
+          "created": "2023-08-01T21:31:24Z",
+          "created_by": "USER 65532:65532",
+          "comment": "buildkit.dockerfile.v0",
+          "empty_layer": true
+        },
+        {
+          "created": "2023-08-01T21:31:24Z",
+          "created_by": "ENTRYPOINT [\"./bin/init-iptables.sh\"]",
+          "comment": "buildkit.dockerfile.v0",
+          "empty_layer": true
+        }
+      ],
+      "os": "linux",
+      "rootfs": {
+        "type": "layers",
+        "diff_ids": [
+          "sha256:9db705fd00097a9e56548177232aa04aaa663ae0e68718289af1b7766615af72",
+          "sha256:ddae7878ce5de85063702b8bfcc3e63b1a49f12753787bea067dd2d04a6a4b1e",
+          "sha256:be48637170c1f099f7e2e77cffedcda8ae5d9c64eaa9188ba1cc7af32dc26a7a"
+        ]
+      },
+      "config": {
+        "Entrypoint": [
+          "./bin/init-iptables.sh"
+        ],
+        "Env": [
+          "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        ],
+        "User": "65532:65532",
+        "WorkingDir": "/"
+      }
+    }
+  },
+  "Results": [
+    {
+      "Target": "docker.io/ashnam/proxy-init:latest-linux-amd64 (debian 11.7)",
+      "Class": "os-pkgs",
+      "Type": "debian"
+    }
+  ]
+}
