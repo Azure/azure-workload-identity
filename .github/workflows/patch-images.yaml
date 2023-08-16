@@ -1,6 +1,6 @@
 on:
   schedule:
-    - cron: "0 0 * * *"
+    - cron: "0 0 * * *" # nightly
   pull_request:
     branches:
       - main
@@ -9,14 +9,20 @@ permissions:
   contents: read
   packages: write
 
-jobs:    
-  patch: 
+jobs:
+  patch:
       runs-on: ubuntu-latest
       strategy:
         fail-fast: false
         matrix:
           images: ['ghcr.io/azure/azure-workload-identity/proxy-init:latest-linux-arm64', 'ghcr.io/azure/azure-workload-identity/proxy-init:latest-linux-amd64']
       steps:
+      - name: Login to ghcr.io
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # v2.2.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Generate Trivy Report
         uses: aquasecurity/trivy-action@41f05d9ecffa2ed3f1580af306000f734b733e54 # v0.11.2
         with:
@@ -51,7 +57,7 @@ jobs:
       runs-on: ubuntu-latest
       steps:
       - name: Login to ghcr.io
-        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # v2.2.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
