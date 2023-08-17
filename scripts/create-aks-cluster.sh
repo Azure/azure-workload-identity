@@ -26,7 +26,7 @@ main() {
     echo "Creating an AKS cluster '${CLUSTER_NAME}'"
     LOCATION="$(get_random_region)"
     # get the latest patch version of 1.24
-    KUBERNETES_VERSION="$(az aks get-versions --location "${LOCATION}" --query 'orchestrators[*].orchestratorVersion' -otsv | grep '1.24' | tail -1)"
+    KUBERNETES_VERSION="1.26"
     az group create --name "${CLUSTER_NAME}" --location "${LOCATION}" > /dev/null
     # TODO(chewong): ability to create an arc-enabled cluster
     az aks create \
