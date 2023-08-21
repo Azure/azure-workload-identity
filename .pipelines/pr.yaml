@@ -92,20 +92,20 @@ jobs:
         aks_linux:
           REGISTRY: upstream.azurecr.io/azure-workload-identity
           GINKGO_SKIP: \[AKSSoakOnly\]
-        kind_v1_24_12:
-          KIND_NODE_VERSION: v1.24.12
+        kind_v1_25_11:
+          KIND_NODE_VERSION: v1.25.11
           LOCAL_ONLY: "true"
           TEST_HELM_CHART: "true"
-        kind_v1_25_8:
-          KIND_NODE_VERSION: v1.25.8
+        kind_v1_26_6:
+          KIND_NODE_VERSION: v1.26.6
           LOCAL_ONLY: "true"
           TEST_HELM_CHART: "true"
-        kind_v1_26_3:
-          KIND_NODE_VERSION: v1.26.3
+        kind_v1_27_3:
+          KIND_NODE_VERSION: v1.27.3
           LOCAL_ONLY: "true"
           TEST_HELM_CHART: "true"
-        kind_v1_27_1:
-          KIND_NODE_VERSION: v1.27.1
+        kind_v1_28_0:
+          KIND_NODE_VERSION: v1.28.0
           LOCAL_ONLY: "true"
           TEST_HELM_CHART: "true"
     steps:
