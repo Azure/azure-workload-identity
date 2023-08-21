@@ -3,9 +3,6 @@ name: "Patch"
 on:
   schedule:
     - cron: "0 0 * * *" # nightly
-  pull_request:
-    branches:
-      - main
 
 permissions:
   contents: read
