@@ -19,6 +19,10 @@ jobs:
         matrix:
           images: ['ghcr.io/azure/azure-workload-identity/proxy-init:latest-linux-arm64', 'ghcr.io/azure/azure-workload-identity/proxy-init:latest-linux-amd64']
       steps:
+      - name: Harden Runner 
+        uses: step-security/harden-runner@cba0d00b1fc9a034e1e642ea0f1103c282990604 # v2.5.0 
+        with: 
+          egress-policy: audit 
       - name: Login to ghcr.io
         uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # v2.2.0
         with:
