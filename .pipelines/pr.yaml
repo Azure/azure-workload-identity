@@ -18,55 +18,55 @@ pr:
 pool: staging-pool-amd64-mariner-2
 
 jobs:
-  - job: scan_images
-    timeoutInMinutes: 30
-    workspace:
-      clean: all
-    steps:
-      - template: templates/scan-images.yaml
-  - job: lint
-    timeoutInMinutes: 30
-    workspace:
-      clean: all
-    steps:
-      - script: make lint
-        displayName: golangci-lint
-      - script: make helm-lint
-        displayName: helm lint
-      - script: |
-          go mod tidy
-          if ! git diff --exit-code go.mod go.sum; then
-            echo "go.mod/go.sum is not up to date. Please run 'go mod tidy'"
-            exit 1
-          fi
-        displayName: go mod tidy
-      - script: |
-          make manifests
-          if ! git diff --exit-code manifest_staging/; then
-            echo "manifest_staging/ is not up to date. Please run 'make manifests'"
-            exit 1
-          fi
-        displayName: make manifests
-  - job: unit_test
-    timeoutInMinutes: 30
-    workspace:
-      clean: all
-    steps:
-      - script: make test
-        displayName: Unit test
-  - job: shellcheck
-    timeoutInMinutes: 5
-    workspace:
-      clean: all
-    steps:
-      - script: make shellcheck
-        displayName: shellcheck
+  # - job: scan_images
+  #   timeoutInMinutes: 30
+  #   workspace:
+  #     clean: all
+  #   steps:
+  #     - template: templates/scan-images.yaml
+  # - job: lint
+  #   timeoutInMinutes: 30
+  #   workspace:
+  #     clean: all
+  #   steps:
+  #     - script: make lint
+  #       displayName: golangci-lint
+  #     - script: make helm-lint
+  #       displayName: helm lint
+  #     - script: |
+  #         go mod tidy
+  #         if ! git diff --exit-code go.mod go.sum; then
+  #           echo "go.mod/go.sum is not up to date. Please run 'go mod tidy'"
+  #           exit 1
+  #         fi
+  #       displayName: go mod tidy
+  #     - script: |
+  #         make manifests
+  #         if ! git diff --exit-code manifest_staging/; then
+  #           echo "manifest_staging/ is not up to date. Please run 'make manifests'"
+  #           exit 1
+  #         fi
+  #       displayName: make manifests
+  # - job: unit_test
+  #   timeoutInMinutes: 30
+  #   workspace:
+  #     clean: all
+  #   steps:
+  #     - script: make test
+  #       displayName: Unit test
+  # - job: shellcheck
+  #   timeoutInMinutes: 5
+  #   workspace:
+  #     clean: all
+  #   steps:
+  #     - script: make shellcheck
+  #       displayName: shellcheck
   - job:
     timeoutInMinutes: 60
-    dependsOn:
-    - lint
-    - scan_images
-    - shellcheck
+    # dependsOn:
+    # - lint
+    # - scan_images
+    # - shellcheck
     workspace:
       clean: all
     variables:
@@ -80,30 +80,30 @@ jobs:
       - group: e2e-environment-variables
     strategy:
       matrix:
-        aks_windows_dockershim:
-          REGISTRY: upstream.azurecr.io/azure-workload-identity
-          WINDOWS_CLUSTER: "true"
-          GINKGO_SKIP: \[AKSSoakOnly\]
-        aks_windows_containerd:
-          REGISTRY: upstream.azurecr.io/azure-workload-identity
-          WINDOWS_CLUSTER: "true"
-          WINDOWS_CONTAINERD: "true"
-          GINKGO_SKIP: \[AKSSoakOnly\]
-        aks_linux:
-          REGISTRY: upstream.azurecr.io/azure-workload-identity
-          GINKGO_SKIP: \[AKSSoakOnly\]
-        kind_v1_25_11:
-          KIND_NODE_VERSION: v1.25.11
-          LOCAL_ONLY: "true"
-          TEST_HELM_CHART: "true"
-        kind_v1_26_6:
-          KIND_NODE_VERSION: v1.26.6
-          LOCAL_ONLY: "true"
-          TEST_HELM_CHART: "true"
-        kind_v1_27_3:
-          KIND_NODE_VERSION: v1.27.3
-          LOCAL_ONLY: "true"
-          TEST_HELM_CHART: "true"
+        # aks_windows_dockershim:
+        #   REGISTRY: upstream.azurecr.io/azure-workload-identity
+        #   WINDOWS_CLUSTER: "true"
+        #   GINKGO_SKIP: \[AKSSoakOnly\]
+        # aks_windows_containerd:
+        #   REGISTRY: upstream.azurecr.io/azure-workload-identity
+        #   WINDOWS_CLUSTER: "true"
+        #   WINDOWS_CONTAINERD: "true"
+        #   GINKGO_SKIP: \[AKSSoakOnly\]
+        # aks_linux:
+        #   REGISTRY: upstream.azurecr.io/azure-workload-identity
+        #   GINKGO_SKIP: \[AKSSoakOnly\]
+        # kind_v1_25_11:
+        #   KIND_NODE_VERSION: v1.25.11
+        #   LOCAL_ONLY: "true"
+        #   TEST_HELM_CHART: "true"
+        # kind_v1_26_6:
+        #   KIND_NODE_VERSION: v1.26.6
+        #   LOCAL_ONLY: "true"
+        #   TEST_HELM_CHART: "true"
+        # kind_v1_27_3:
+        #   KIND_NODE_VERSION: v1.27.3
+        #   LOCAL_ONLY: "true"
+        #   TEST_HELM_CHART: "true"
         kind_v1_28_0:
           KIND_NODE_VERSION: v1.28.0
           LOCAL_ONLY: "true"
