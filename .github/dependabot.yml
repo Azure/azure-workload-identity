@@ -26,6 +26,11 @@ updates:
       interval: "weekly"
     commit-message:
       prefix: "chore"
+    groups:
+      all:
+        patterns:
+        - "*"
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -62,6 +67,10 @@ updates:
       interval: weekly
     commit-message:
       prefix: "chore"
+    groups:
+      all:
+        patterns:
+        - "*"
 
   - package-ecosystem: docker
     directory: /examples/azure-identity/go
@@ -76,6 +85,10 @@ updates:
       interval: weekly
     commit-message:
       prefix: "chore"
+    groups:
+      all:
+        patterns:
+        - "*"
 
   - package-ecosystem: docker
     directory: /examples/azure-identity/java
@@ -97,6 +110,10 @@ updates:
       interval: weekly
     commit-message:
       prefix: "chore"
+    groups:
+      all:
+        patterns:
+        - "*"
 
   - package-ecosystem: docker
     directory: /examples/azure-identity/python
@@ -111,6 +128,10 @@ updates:
       interval: weekly
     commit-message:
       prefix: "chore"
+    groups:
+      all:
+        patterns:
+        - "*"
 
   - package-ecosystem: docker
     directory: /examples/msal-go
@@ -125,6 +146,10 @@ updates:
       interval: weekly
     commit-message:
       prefix: "chore"
+    groups:
+      all:
+        patterns:
+        - "*"
 
   - package-ecosystem: docker
     directory: /examples/msal-java
@@ -146,6 +171,10 @@ updates:
       interval: weekly
     commit-message:
       prefix: "chore"
+    groups:
+      all:
+        patterns:
+        - "*"
 
   - package-ecosystem: docker
     directory: /examples/msal-node
@@ -160,6 +189,10 @@ updates:
       interval: weekly
     commit-message:
       prefix: "chore"
+    groups:
+      all:
+        patterns:
+        - "*"
 
   - package-ecosystem: docker
     directory: /examples/msal-python
@@ -174,6 +207,10 @@ updates:
       interval: weekly
     commit-message:
       prefix: "chore"
+    groups:
+      all:
+        patterns:
+        - "*"
 
   - package-ecosystem: maven
     directory: /examples/azure-identity/java
@@ -181,6 +218,10 @@ updates:
       interval: weekly
     commit-message:
       prefix: "chore"
+    groups:
+      all:
+        patterns:
+        - "*"
 
   - package-ecosystem: maven
     directory: /examples/msal-java
@@ -188,3 +229,7 @@ updates:
       interval: weekly
     commit-message:
       prefix: "chore"
+    groups:
+      all:
+        patterns:
+        - "*"
