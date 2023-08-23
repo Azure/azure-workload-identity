@@ -159,10 +159,7 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) (respons
 	pod.Spec.Containers = m.mutateContainers(pod.Spec.Containers, clientID, tenantID, skipContainers)
 
 	// add the projected service account token volume to the pod if not exists
-	if err = addProjectedServiceAccountTokenVolume(pod, serviceAccountTokenExpiration, m.audience); err != nil {
-		logger.Error("failed to add projected service account volume", err)
-		return admission.Errored(http.StatusBadRequest, err)
-	}
+	addProjectedServiceAccountTokenVolume(pod, serviceAccountTokenExpiration, m.audience)
 
 	marshaledPod, err := json.Marshal(pod)
 	if err != nil {
@@ -401,7 +398,7 @@ func addProjectedTokenVolumeMount(container corev1.Container) corev1.Container {
 	return container
 }
 
-func addProjectedServiceAccountTokenVolume(pod *corev1.Pod, serviceAccountTokenExpiration int64, audience string) error {
+func addProjectedServiceAccountTokenVolume(pod *corev1.Pod, serviceAccountTokenExpiration int64, audience string) {
 	// add the projected service account token volume to the pod if not exists
 	for _, volume := range pod.Spec.Volumes {
 		if volume.Projected == nil {
@@ -412,7 +409,7 @@ func addProjectedServiceAccountTokenVolume(pod *corev1.Pod, serviceAccountTokenE
 				continue
 			}
 			if pvs.ServiceAccountToken.Path == TokenFilePathName {
-				return nil
+				return
 			}
 		}
 	}
@@ -436,9 +433,8 @@ func addProjectedServiceAccountTokenVolume(pod *corev1.Pod, serviceAccountTokenE
 					},
 				},
 			},
-		})
-
-	return nil
+		},
+	)
 }
 
 // getAzureAuthorityHost returns the active directory endpoint to use for requesting

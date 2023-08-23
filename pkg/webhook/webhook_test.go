@@ -481,10 +481,8 @@ func TestAddProjectedServiceAccountTokenVolume(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := addProjectedServiceAccountTokenVolume(test.pod, serviceAccountTokenExpiry, DefaultAudience)
-			if err != nil {
-				t.Fatalf("expected err to be nil, got: %v", err)
-			}
+			addProjectedServiceAccountTokenVolume(test.pod, serviceAccountTokenExpiry, DefaultAudience)
+
 			if !reflect.DeepEqual(test.pod.Spec.Volumes, test.expectedVolume) {
 				t.Fatalf("expected: %v, got: %v", test.pod.Spec.Volumes, test.expectedVolume)
 			}
@@ -1296,11 +1294,36 @@ func TestHandleError(t *testing.T) {
 		expectedErr   string
 	}{
 		{
+			name:          "failed to decode pod",
+			object:        runtime.RawExtension{Raw: []byte("invalid")},
+			clientObjects: serviceAccounts,
+			expectedErr:   `couldn't get version/kind`,
+		},
+		{
+			name:        "service account not found",
+			object:      runtime.RawExtension{Raw: newPodRaw("pod", "ns1", "sa", map[string]string{UseWorkloadIdentityLabel: "true"}, nil, true)},
+			expectedErr: `serviceaccounts "sa" not found`,
+		},
+		{
 			name: "pod has host network",
 			object: runtime.RawExtension{Raw: newPodRaw("pod", "ns1", "sa",
 				map[string]string{UseWorkloadIdentityLabel: "true"}, map[string]string{InjectProxySidecarAnnotation: "true"}, true)},
 			clientObjects: serviceAccounts,
 			expectedErr:   "hostNetwork is set to true, cannot inject proxy sidecar",
+		},
+		{
+			name: "invalid proxy port",
+			object: runtime.RawExtension{Raw: newPodRaw("pod", "ns1", "sa", map[string]string{UseWorkloadIdentityLabel: "true"},
+				map[string]string{InjectProxySidecarAnnotation: "true", ProxySidecarPortAnnotation: "invalid"}, false)},
+			clientObjects: serviceAccounts,
+			expectedErr:   `failed to parse proxy sidecar port: strconv.ParseInt: parsing "invalid": invalid syntax`,
+		},
+		{
+			name: "invalid sa token expiry",
+			object: runtime.RawExtension{Raw: newPodRaw("pod", "ns1", "sa", map[string]string{UseWorkloadIdentityLabel: "true"},
+				map[string]string{ServiceAccountTokenExpiryAnnotation: "invalid"}, false)},
+			clientObjects: serviceAccounts,
+			expectedErr:   `strconv.ParseInt: parsing "invalid": invalid syntax`,
 		},
 	}
 
