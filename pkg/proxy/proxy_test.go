@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 
 	"github.com/gorilla/mux"
@@ -336,6 +337,59 @@ func TestGetScope(t *testing.T) {
 			scope := getScope(test.scope)
 			if scope != test.expected {
 				t.Errorf("expected scope %s, got %s", test.expected, scope)
+			}
+		})
+	}
+}
+
+func TestNewProxy(t *testing.T) {
+	testLogger := mlog.New()
+	tests := []struct {
+		name          string
+		tenantID      string
+		authorityHost string
+		expected      *proxy
+		expectedErr   string
+	}{
+		{
+			name:          "tenant id not set",
+			tenantID:      "",
+			authorityHost: "https://login.microsoftonline.com/",
+			expected:      nil,
+			expectedErr:   "AZURE_TENANT_ID not set",
+		},
+		{
+			name:          "authority host not set",
+			tenantID:      "tenant_id",
+			authorityHost: "",
+			expected:      nil,
+			expectedErr:   "AZURE_AUTHORITY_HOST not set",
+		},
+		{
+			name:          "valid tenant id and authority host",
+			tenantID:      "tenant_id",
+			authorityHost: "https://login.microsoftonline.com/",
+			expected:      &proxy{logger: testLogger, tenantID: "tenant_id", authorityHost: "https://login.microsoftonline.com/", port: 8000},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			os.Setenv(webhook.AzureTenantIDEnvVar, test.tenantID)
+			defer os.Unsetenv(webhook.AzureTenantIDEnvVar)
+
+			os.Setenv(webhook.AzureAuthorityHostEnvVar, test.authorityHost)
+			defer os.Unsetenv(webhook.AzureAuthorityHostEnvVar)
+
+			got, err := NewProxy(8000, testLogger)
+			if err != nil && err.Error() != test.expectedErr {
+				t.Errorf("expected error %s, got %s", test.expectedErr, err.Error())
+			}
+			if err == nil && test.expectedErr != "" {
+				t.Errorf("expected error %s, got none", test.expectedErr)
+			}
+			if test.expected != nil && !reflect.DeepEqual(got, test.expected) {
+				t.Errorf("expected proxy %v, got %v", test.expected, got)
 			}
 		})
 	}
