@@ -125,6 +125,14 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) (respons
 	}
 
 	if shouldInjectProxySidecar(pod) {
+		// if the pod has hostNetwork set to true, we cannot inject the proxy sidecar
+		// as it'll end up modifying the network stack of the host and affecting other pods
+		if pod.Spec.HostNetwork {
+			err := errors.New("hostNetwork is set to true, cannot inject proxy sidecar")
+			logger.Error("failed to inject proxy sidecar", err)
+			return admission.Errored(http.StatusBadRequest, err)
+		}
+
 		proxyPort, err := getProxyPort(pod)
 		if err != nil {
 			logger.Error("failed to get proxy port", err)
