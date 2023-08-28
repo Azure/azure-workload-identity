@@ -27,7 +27,7 @@ jobs:
         run: |
           echo "${{ github.event.inputs.release_version }}" | grep -E 'v[0-9]+\.[0-9]+\.[0-9]+(-alpha\.[0-9]+|-beta\.[0-9]+|-rc\.[0-9]+)?$'
           echo "${{ github.event.inputs.based_on_branch }}" | grep -E '^(main|release-[0-9]+\.[0-9]+)$'
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
         with:
           submodules: true
           fetch-depth: 0
