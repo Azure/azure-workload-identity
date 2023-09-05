@@ -65,3 +65,7 @@ az rest --method post --uri "${URI}" --body "${BODY}" --headers "Content-Type=ap
 To protect the stability of the system and prevent custom admission controllers from impacting internal services in the kube-system, namespace AKS has an Admissions Enforcer, which automatically excludes kube-system and AKS internal namespaces. Refer to [doc](https://docs.microsoft.com/en-us/azure/aks/faq#can-admission-controller-webhooks-impact-kube-system-and-internal-aks-namespaces) for more details.
 
 If you're deploying a pod in the `kube-system` namespace of an AKS cluster and need the environment variables, projected service account token volume injected by the Azure Workload Identity Mutating Webhook, add the `"admissions.enforcer/disabled": "true"` label or annotation in the [MutatingWebhookConfiguration](https://github.com/Azure/azure-workload-identity/blob/8644a217f09902fa1ac63e05cf04d9a3f3f1ebc3/deploy/azure-wi-webhook.yaml#L206-L235).
+
+## Proxy sidecar not injected into pods that have `hostNetwork: true`
+
+The proxy sidecar modifies the `iptables` rules to redirect traffic to the Azure Instance Metadata Service (IMDS) endpoint to the proxy sidecar. This is not supported when `hostNetwork: true` is set on the pod as it will modify the host's `iptables` rules which will impact other pods running on the same host.

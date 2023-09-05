@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"strconv"
+	"strings"
 	"testing"
 
 	admissionv1 "k8s.io/api/admission/v1"
@@ -26,12 +27,13 @@ var (
 	serviceAccountTokenExpiry = MinServiceAccountTokenExpiration
 )
 
-func newPod(name, namespace, serviceAccountName string, labels map[string]string) *corev1.Pod {
+func newPod(name, namespace, serviceAccountName string, labels, annotations map[string]string, hostNetwork bool) *corev1.Pod {
 	return &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-			Labels:    labels,
+			Name:        name,
+			Namespace:   namespace,
+			Labels:      labels,
+			Annotations: annotations,
 		},
 		Spec: corev1.PodSpec{
 			ServiceAccountName: serviceAccountName,
@@ -47,12 +49,13 @@ func newPod(name, namespace, serviceAccountName string, labels map[string]string
 					Image: "image",
 				},
 			},
+			HostNetwork: hostNetwork,
 		},
 	}
 }
 
-func newPodRaw(name, namespace, serviceAccountName string, labels map[string]string) []byte {
-	pod := newPod(name, namespace, serviceAccountName, labels)
+func newPodRaw(name, namespace, serviceAccountName string, labels, annotations map[string]string, hostNetwork bool) []byte {
+	pod := newPod(name, namespace, serviceAccountName, labels, annotations, hostNetwork)
 	raw, err := json.Marshal(pod)
 	if err != nil {
 		panic(err)
@@ -478,10 +481,8 @@ func TestAddProjectedServiceAccountTokenVolume(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := addProjectedServiceAccountTokenVolume(test.pod, serviceAccountTokenExpiry, DefaultAudience)
-			if err != nil {
-				t.Fatalf("expected err to be nil, got: %v", err)
-			}
+			addProjectedServiceAccountTokenVolume(test.pod, serviceAccountTokenExpiry, DefaultAudience)
+
 			if !reflect.DeepEqual(test.pod.Spec.Volumes, test.expectedVolume) {
 				t.Fatalf("expected: %v, got: %v", test.pod.Spec.Volumes, test.expectedVolume)
 			}
@@ -785,7 +786,7 @@ func TestHandle(t *testing.T) {
 						Version: "v1",
 						Kind:    "Pod",
 					},
-					Object:    runtime.RawExtension{Raw: newPodRaw("pod", "ns1", test.serviceAccountName, test.podLabels)},
+					Object:    runtime.RawExtension{Raw: newPodRaw("pod", "ns1", test.serviceAccountName, test.podLabels, nil, false)},
 					Namespace: "ns1",
 					Operation: admissionv1.Create,
 				},
@@ -1264,6 +1265,100 @@ func TestGetProxyPort(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("getProxyPort() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestHandleError(t *testing.T) {
+	serviceAccounts := []client.Object{}
+	for _, name := range []string{"default", "sa"} {
+		serviceAccounts = append(serviceAccounts, &corev1.ServiceAccount{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      name,
+				Namespace: "ns1",
+				Annotations: map[string]string{
+					ClientIDAnnotation:                  "clientID",
+					ServiceAccountTokenExpiryAnnotation: "4800",
+				},
+			},
+		})
+	}
+
+	decoder, _ := atypes.NewDecoder(runtime.NewScheme())
+
+	tests := []struct {
+		name          string
+		object        runtime.RawExtension
+		clientObjects []client.Object
+		expectedErr   string
+	}{
+		{
+			name:          "failed to decode pod",
+			object:        runtime.RawExtension{Raw: []byte("invalid")},
+			clientObjects: serviceAccounts,
+			expectedErr:   `couldn't get version/kind`,
+		},
+		{
+			name:        "service account not found",
+			object:      runtime.RawExtension{Raw: newPodRaw("pod", "ns1", "sa", map[string]string{UseWorkloadIdentityLabel: "true"}, nil, true)},
+			expectedErr: `serviceaccounts "sa" not found`,
+		},
+		{
+			name: "pod has host network",
+			object: runtime.RawExtension{Raw: newPodRaw("pod", "ns1", "sa",
+				map[string]string{UseWorkloadIdentityLabel: "true"}, map[string]string{InjectProxySidecarAnnotation: "true"}, true)},
+			clientObjects: serviceAccounts,
+			expectedErr:   "hostNetwork is set to true, cannot inject proxy sidecar",
+		},
+		{
+			name: "invalid proxy port",
+			object: runtime.RawExtension{Raw: newPodRaw("pod", "ns1", "sa", map[string]string{UseWorkloadIdentityLabel: "true"},
+				map[string]string{InjectProxySidecarAnnotation: "true", ProxySidecarPortAnnotation: "invalid"}, false)},
+			clientObjects: serviceAccounts,
+			expectedErr:   `failed to parse proxy sidecar port: strconv.ParseInt: parsing "invalid": invalid syntax`,
+		},
+		{
+			name: "invalid sa token expiry",
+			object: runtime.RawExtension{Raw: newPodRaw("pod", "ns1", "sa", map[string]string{UseWorkloadIdentityLabel: "true"},
+				map[string]string{ServiceAccountTokenExpiryAnnotation: "invalid"}, false)},
+			clientObjects: serviceAccounts,
+			expectedErr:   `strconv.ParseInt: parsing "invalid": invalid syntax`,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if err := registerMetrics(); err != nil {
+				t.Fatalf("failed to register metrics: %v", err)
+			}
+
+			m := &podMutator{
+				client:  fake.NewClientBuilder().WithObjects(test.clientObjects...).Build(),
+				reader:  fake.NewClientBuilder().WithObjects().Build(),
+				config:  &config.Config{TenantID: "tenantID"},
+				decoder: decoder,
+			}
+
+			req := atypes.Request{
+				AdmissionRequest: admissionv1.AdmissionRequest{
+					Kind: metav1.GroupVersionKind{
+						Group:   "",
+						Version: "v1",
+						Kind:    "Pod",
+					},
+					Object:    test.object,
+					Namespace: "ns1",
+					Operation: admissionv1.Create,
+				},
+			}
+
+			resp := m.Handle(context.Background(), req)
+			if resp.Allowed {
+				t.Fatalf("expected to be denied")
+			}
+			if !strings.Contains(resp.Result.Message, test.expectedErr) {
+				t.Fatalf("expected error to contain: %v, got: %v", test.expectedErr, resp.Result.Message)
 			}
 		})
 	}
