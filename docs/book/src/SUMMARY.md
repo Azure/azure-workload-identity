@@ -25,7 +25,7 @@
     - [Examples](./topics/self-managed-clusters/examples.md)
       - [Kubernetes in Docker (kind)](./topics/self-managed-clusters/examples/kind.md)
   - [Language-Specific Examples](./topics/language-specific-examples.md)
-    - [Azure Identity SDK](./topics/language-specific-examples/azure-identity-sdk.md)
+    - [Azure Identity client libraries](./topics/language-specific-examples/azure-identity-sdk.md)
     - [Microsoft Authentication Library (MSAL)](./topics/language-specific-examples/msal.md)
   - [Metrics](./topics/metrics.md)
 - [Frequently Asked Questions](./faq.md)
