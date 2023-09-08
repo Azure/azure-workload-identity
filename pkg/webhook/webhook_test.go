@@ -1128,11 +1128,11 @@ func TestInjectProxySidecarContainer(t *testing.T) {
 				},
 			},
 			expectedContainers: []corev1.Container{
+				proxySidecarContainer,
 				{
 					Name:  "my-container",
 					Image: "my-image",
 				},
-				proxySidecarContainer,
 			},
 		},
 	}

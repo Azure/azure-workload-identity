@@ -233,7 +233,7 @@ func (m *podMutator) injectProxySidecarContainer(containers []corev1.Container, 
 	}
 
 	logLevel := currentLogLevel() // run the proxy at the same log level as the webhook
-	containers = append(containers, corev1.Container{
+	containers = append([]corev1.Container{{
 		Name:            ProxySidecarContainerName,
 		Image:           strings.Join([]string{imageRepository, ProxyImageVersion}, ":"),
 		ImagePullPolicy: corev1.PullIfNotPresent,
@@ -265,7 +265,7 @@ func (m *podMutator) injectProxySidecarContainer(containers []corev1.Container, 
 			ReadOnlyRootFilesystem: pointer.Bool(true),
 			RunAsNonRoot:           pointer.Bool(true),
 		},
-	})
+	}}, containers...)
 
 	return containers
 }
