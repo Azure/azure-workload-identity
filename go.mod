@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/Azure/aad-pod-identity v1.8.17
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.6.1
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.8.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.2.2
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization v1.0.0
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armsubscriptions v1.1.1
@@ -14,7 +14,7 @@ require (
 	github.com/google/uuid v1.3.1
 	github.com/gorilla/mux v1.8.0
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/microsoft/kiota-authentication-azure-go v1.0.0
+	github.com/microsoft/kiota-authentication-azure-go v1.0.1
 	github.com/microsoft/kiota-http-go v1.0.0
 	github.com/microsoftgraph/msgraph-sdk-go v1.8.0
 	github.com/open-policy-agent/cert-controller v0.5.0
@@ -22,9 +22,8 @@ require (
 	github.com/prometheus/client_golang v1.14.0
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/pflag v1.0.5
-	go.opentelemetry.io/otel v1.15.1
+	go.opentelemetry.io/otel v1.19.0
 	go.opentelemetry.io/otel/exporters/prometheus v0.37.0
-	go.opentelemetry.io/otel/metric v0.37.0
 	gopkg.in/ini.v1 v1.62.1
 	gopkg.in/square/go-jose.v2 v2.6.0
 	k8s.io/api v0.26.8
@@ -37,8 +36,10 @@ require (
 
 require (
 	github.com/Azure/go-autorest/autorest/adal v0.9.23 // indirect
-	github.com/microsoft/kiota-abstractions-go v1.0.0 // indirect
+	github.com/microsoft/kiota-abstractions-go v1.3.0 // indirect
 	github.com/microsoft/kiota-serialization-json-go v1.0.2 // indirect
+	github.com/std-uritemplate/std-uritemplate/go v0.0.42 // indirect
+	go.opentelemetry.io/otel/metric v1.19.0 // indirect
 )
 
 require (
@@ -89,10 +90,9 @@ require (
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/smartystreets/goconvey v1.7.2 // indirect
 	github.com/stretchr/testify v1.8.4 // indirect
-	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 	go.opentelemetry.io/otel/sdk v1.14.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v0.37.0
-	go.opentelemetry.io/otel/trace v1.15.1 // indirect
+	go.opentelemetry.io/otel/trace v1.19.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
