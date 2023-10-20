@@ -24,7 +24,7 @@ public class MyClientAssertionCredential : TokenCredential
 
         _confidentialClientApp = ConfidentialClientApplicationBuilder
                 .Create(clientID)
-                .WithTenantId("https://login.microsoftonline.com/", tenantID) // for simplicity, this samples assume the app is in the public cloud
+                .WithAuthority("https://login.microsoftonline.com/", tenantID) // for simplicity, this samples assume the app is in the public cloud
                 .WithClientAssertion(() => ReadJWTFromFS(tokenPath))          // make sure that ReadJWTFromFS always returns a fresh JWT 
                 .WithCacheOptions(CacheOptions.EnableSharedCacheOptions)      // make sure to cache the the AAD tokens in memory                
                 .Build();
