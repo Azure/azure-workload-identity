@@ -22,9 +22,12 @@ public class MyClientAssertionCredential : TokenCredential
         var tokenPath = Environment.GetEnvironmentVariable("AZURE_FEDERATED_TOKEN_FILE");
         var tenantID = Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
 
-        _confidentialClientApp = ConfidentialClientApplicationBuilder.Create(clientID)
-                .WithClientAssertion(ReadJWTFromFS(tokenPath))
-                .WithTenantId(tenantID).Build();
+        _confidentialClientApp = ConfidentialClientApplicationBuilder
+                .Create(clientID)
+                .WithTenantId("https://login.microsoftonline.com/", tenantID) // for simplicity, this samples assume the app is in the public cloud
+                .WithClientAssertion(() => ReadJWTFromFS(tokenPath))          // make sure that ReadJWTFromFS always returns a fresh JWT 
+                .WithCacheOptions(CacheOptions.EnableSharedCacheOptions)      // make sure to cache the the AAD tokens in memory                
+                .Build();
     }
 
     public override AccessToken GetToken(TokenRequestContext requestContext, CancellationToken cancellationToken)
@@ -55,6 +58,7 @@ public class MyClientAssertionCredential : TokenCredential
         return new AccessToken(result.AccessToken, result.ExpiresOn);
     }
 
+    // This assumes the file is always updated with a fresh JWT 
     public string ReadJWTFromFS(string tokenPath)
     {
         string text = System.IO.File.ReadAllText(tokenPath);
