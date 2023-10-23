@@ -28,7 +28,7 @@ require (
 	gopkg.in/ini.v1 v1.62.1
 	gopkg.in/square/go-jose.v2 v2.6.0
 	k8s.io/api v0.26.8
-	k8s.io/apimachinery v0.26.8
+	k8s.io/apimachinery v0.26.10
 	k8s.io/client-go v0.26.8
 	k8s.io/utils v0.0.0-20221128185143-99ec85e7a448
 	monis.app/mlog v0.0.4
