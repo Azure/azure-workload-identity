@@ -18,7 +18,8 @@ Before we get started, ensure the following:
 ## 1. Complete the installation guide
 
 [Installation guide][13]. At this point, you should have already:
-- installed the mutating admission webhook
+- enabled workload identity and OIDC issuer. (az aks update -g "${RESOURCE_GROUP}" -n myAKSCluster --enable-oidc-issuer --enable-workload-identity)
+- installed the mutating admission webhook. (mutating admission webhook installation is not required if workload identity is enabled on the cluster level, using the --enable-workload-identity flag)
 - obtained your cluster's OIDC issuer URL
 - [optional] installed the Azure AD Workload Identity CLI
 
