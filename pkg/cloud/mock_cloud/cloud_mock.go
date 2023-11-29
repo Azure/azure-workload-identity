@@ -8,7 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	authorization "github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
+	armauthorization "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization"
 	gomock "github.com/golang/mock/gomock"
 	models "github.com/microsoftgraph/msgraph-sdk-go/models"
 )
@@ -66,10 +66,10 @@ func (mr *MockInterfaceMockRecorder) CreateApplication(ctx, displayName interfac
 }
 
 // CreateRoleAssignment mocks base method.
-func (m *MockInterface) CreateRoleAssignment(ctx context.Context, scope, roleName, principalID string) (authorization.RoleAssignment, error) {
+func (m *MockInterface) CreateRoleAssignment(ctx context.Context, scope, roleName, principalID string) (armauthorization.RoleAssignment, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateRoleAssignment", ctx, scope, roleName, principalID)
-	ret0, _ := ret[0].(authorization.RoleAssignment)
+	ret0, _ := ret[0].(armauthorization.RoleAssignment)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -124,10 +124,10 @@ func (mr *MockInterfaceMockRecorder) DeleteFederatedCredential(ctx, objectID, fe
 }
 
 // DeleteRoleAssignment mocks base method.
-func (m *MockInterface) DeleteRoleAssignment(ctx context.Context, roleAssignmentID string) (authorization.RoleAssignment, error) {
+func (m *MockInterface) DeleteRoleAssignment(ctx context.Context, roleAssignmentID string) (armauthorization.RoleAssignment, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteRoleAssignment", ctx, roleAssignmentID)
-	ret0, _ := ret[0].(authorization.RoleAssignment)
+	ret0, _ := ret[0].(armauthorization.RoleAssignment)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -183,10 +183,10 @@ func (mr *MockInterfaceMockRecorder) GetFederatedCredential(ctx, objectID, issue
 }
 
 // GetRoleDefinitionIDByName mocks base method.
-func (m *MockInterface) GetRoleDefinitionIDByName(ctx context.Context, scope, roleName string) (authorization.RoleDefinition, error) {
+func (m *MockInterface) GetRoleDefinitionIDByName(ctx context.Context, scope, roleName string) (armauthorization.RoleDefinition, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRoleDefinitionIDByName", ctx, scope, roleName)
-	ret0, _ := ret[0].(authorization.RoleDefinition)
+	ret0, _ := ret[0].(armauthorization.RoleDefinition)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

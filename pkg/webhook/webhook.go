@@ -125,6 +125,14 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) (respons
 	}
 
 	if shouldInjectProxySidecar(pod) {
+		// if the pod has hostNetwork set to true, we cannot inject the proxy sidecar
+		// as it'll end up modifying the network stack of the host and affecting other pods
+		if pod.Spec.HostNetwork {
+			err := errors.New("hostNetwork is set to true, cannot inject proxy sidecar")
+			logger.Error("failed to inject proxy sidecar", err)
+			return admission.Errored(http.StatusBadRequest, err)
+		}
+
 		proxyPort, err := getProxyPort(pod)
 		if err != nil {
 			logger.Error("failed to get proxy port", err)
@@ -160,10 +168,7 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) (respons
 		}
 	} else {
 		// add the projected service account token volume to the pod if not exists
-		if err = addProjectedServiceAccountTokenVolume(pod, serviceAccountTokenExpiration, m.audience); err != nil {
-			logger.Error("failed to add projected service account volume", err)
-			return admission.Errored(http.StatusBadRequest, err)
-		}
+		addProjectedServiceAccountTokenVolume(pod, serviceAccountTokenExpiration, m.audience)
 	}
 
 	marshaledPod, err := json.Marshal(pod)
@@ -238,7 +243,7 @@ func (m *podMutator) injectProxySidecarContainer(containers []corev1.Container, 
 	}
 
 	logLevel := currentLogLevel() // run the proxy at the same log level as the webhook
-	containers = append(containers, corev1.Container{
+	containers = append([]corev1.Container{{
 		Name:            ProxySidecarContainerName,
 		Image:           strings.Join([]string{imageRepository, ProxyImageVersion}, ":"),
 		ImagePullPolicy: corev1.PullIfNotPresent,
@@ -270,7 +275,7 @@ func (m *podMutator) injectProxySidecarContainer(containers []corev1.Container, 
 			ReadOnlyRootFilesystem: pointer.Bool(true),
 			RunAsNonRoot:           pointer.Bool(true),
 		},
-	})
+	}}, containers...)
 
 	return containers
 }
@@ -439,7 +444,6 @@ func addTokenSecretMountVolumne(pod *corev1.Pod, tokenSecretName string) error {
 							Secret: &corev1.SecretProjection{
 								LocalObjectReference: corev1.LocalObjectReference{
 									Name: tokenSecretName,
-									
 								},
 							},
 						},
@@ -451,7 +455,7 @@ func addTokenSecretMountVolumne(pod *corev1.Pod, tokenSecretName string) error {
 	return nil
 }
 
-func addProjectedServiceAccountTokenVolume(pod *corev1.Pod, serviceAccountTokenExpiration int64, audience string) error {
+func addProjectedServiceAccountTokenVolume(pod *corev1.Pod, serviceAccountTokenExpiration int64, audience string) {
 	// add the projected service account token volume to the pod if not exists
 	for _, volume := range pod.Spec.Volumes {
 		if volume.Projected == nil {
@@ -462,7 +466,7 @@ func addProjectedServiceAccountTokenVolume(pod *corev1.Pod, serviceAccountTokenE
 				continue
 			}
 			if pvs.ServiceAccountToken.Path == TokenFilePathName {
-				return nil
+				return
 			}
 		}
 	}
@@ -486,9 +490,8 @@ func addProjectedServiceAccountTokenVolume(pod *corev1.Pod, serviceAccountTokenE
 					},
 				},
 			},
-		})
-
-	return nil
+		},
+	)
 }
 
 // getAzureAuthorityHost returns the active directory endpoint to use for requesting

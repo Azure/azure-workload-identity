@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	authorization "github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
-	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization"
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 
@@ -62,7 +62,7 @@ func TestRoleAssignmentRun(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockAzureClient := mock_cloud.NewMockInterface(ctrl)
-	mockAzureClient.EXPECT().DeleteRoleAssignment(gomock.Any(), data.roleAssignmentID).Return(authorization.RoleAssignment{}, nil)
+	mockAzureClient.EXPECT().DeleteRoleAssignment(gomock.Any(), data.roleAssignmentID).Return(armauthorization.RoleAssignment{}, nil)
 	data.azureClient = mockAzureClient
 
 	if err := phase.Run(context.Background(), data); err != nil {
@@ -70,13 +70,13 @@ func TestRoleAssignmentRun(t *testing.T) {
 	}
 
 	// Test for scenario where it failed to delete role assignment
-	mockAzureClient.EXPECT().DeleteRoleAssignment(gomock.Any(), data.roleAssignmentID).Return(authorization.RoleAssignment{}, errors.New("random error"))
+	mockAzureClient.EXPECT().DeleteRoleAssignment(gomock.Any(), data.roleAssignmentID).Return(armauthorization.RoleAssignment{}, errors.New("random error"))
 	if err := phase.Run(context.Background(), data); err == nil {
 		t.Errorf("expected error but got nil")
 	}
 
 	// Test for scenario where role assignment is not found
-	mockAzureClient.EXPECT().DeleteRoleAssignment(gomock.Any(), data.roleAssignmentID).Return(authorization.RoleAssignment{}, autorest.DetailedError{StatusCode: http.StatusNoContent})
+	mockAzureClient.EXPECT().DeleteRoleAssignment(gomock.Any(), data.roleAssignmentID).Return(armauthorization.RoleAssignment{}, &azcore.ResponseError{StatusCode: http.StatusNoContent})
 	if err := phase.Run(context.Background(), data); err != nil {
 		t.Errorf("expected no error but got: %s", err.Error())
 	}

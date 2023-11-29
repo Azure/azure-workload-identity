@@ -4,24 +4,31 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization"
 	"github.com/pkg/errors"
 	"monis.app/mlog"
 )
 
 // GetRoleDefinitionIDByName returns the role definition ID for the given role name.
-func (c *AzureClient) GetRoleDefinitionIDByName(ctx context.Context, scope, roleName string) (authorization.RoleDefinition, error) {
+func (c *AzureClient) GetRoleDefinitionIDByName(ctx context.Context, scope, roleName string) (armauthorization.RoleDefinition, error) {
 	mlog.Debug("Get role definition ID", "name", roleName)
 
-	roleDefinitionList, err := c.roleDefinitionsClient.List(ctx, scope, getRoleNameFilter(roleName))
-	if err != nil {
-		return authorization.RoleDefinition{}, errors.Wrap(err, "failed to list role definitions")
-	}
-	if len(roleDefinitionList.Values()) == 0 {
-		return authorization.RoleDefinition{}, errors.Errorf("role definition %s not found", roleName)
+	filter := getRoleNameFilter(roleName)
+	pager := c.roleDefinitionsClient.NewListPager(scope, &armauthorization.RoleDefinitionsClientListOptions{
+		Filter: &filter,
+	})
+
+	for pager.More() {
+		nextResult, err := pager.NextPage(ctx)
+		if err != nil {
+			return armauthorization.RoleDefinition{}, errors.Wrap(err, "failed to list role definitions")
+		}
+		if len(nextResult.Value) > 0 {
+			return *nextResult.Value[0], nil
+		}
 	}
 
-	return roleDefinitionList.Values()[0], nil
+	return armauthorization.RoleDefinition{}, errors.Errorf("role definition %s not found", roleName)
 }
 
 // getRoleNameFilter returns a filter string for the given role name.

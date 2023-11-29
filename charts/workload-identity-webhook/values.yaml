@@ -7,7 +7,7 @@ image:
   repository: testpublic.azurecr.io/webhook
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  release: v1.0.0
+  release: v1.2.0
 imagePullSecrets: []
 nodeSelector:
   kubernetes.io/os: linux
@@ -34,3 +34,7 @@ mutatingWebhookAnnotations: {}
 podLabels: {}
 podAnnotations: {}
 mutatingWebhookNamespaceSelector: {}
+# minAvailable and maxUnavailable are mutually exclusive
+podDisruptionBudget:
+  minAvailable: 1
+  # maxUnavailable: 0

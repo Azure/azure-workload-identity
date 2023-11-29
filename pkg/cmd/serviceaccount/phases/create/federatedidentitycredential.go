@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
 	"github.com/pkg/errors"
 	"monis.app/mlog"
@@ -73,10 +73,10 @@ func (p *federatedIdentityPhase) run(ctx context.Context, data workflow.RunData)
 	objectID := createData.AADApplicationObjectID()
 	fic := models.NewFederatedIdentityCredential()
 	fic.SetAudiences(audiences)
-	fic.SetDescription(to.StringPtr(description))
-	fic.SetIssuer(to.StringPtr(createData.ServiceAccountIssuerURL()))
-	fic.SetSubject(to.StringPtr(subject))
-	fic.SetName(to.StringPtr(name))
+	fic.SetDescription(to.Ptr(description))
+	fic.SetIssuer(to.Ptr(createData.ServiceAccountIssuerURL()))
+	fic.SetSubject(to.Ptr(subject))
+	fic.SetName(to.Ptr(name))
 
 	err := createData.AzureClient().AddFederatedCredential(ctx, objectID, fic)
 	if err != nil {
@@ -84,7 +84,7 @@ func (p *federatedIdentityPhase) run(ctx context.Context, data workflow.RunData)
 			mlog.WithValues(
 				"objectID", objectID,
 				"subject", subject,
-			).WithName(federatedIdentityPhaseName).Debug("federated credential has been previously created")
+			).WithName(federatedIdentityPhaseName).Warning("federated credential has been previously created")
 		} else {
 			return errors.Wrap(err, "failed to add federated credential")
 		}

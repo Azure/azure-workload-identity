@@ -12,14 +12,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	armpolicy "github.com/Azure/azure-sdk-for-go/sdk/azcore/arm/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/adal"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armsubscriptions"
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/azure/cli"
-	"github.com/microsoft/kiota-abstractions-go/authentication"
 	kiotaauth "github.com/microsoft/kiota-authentication-azure-go"
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
@@ -44,11 +42,11 @@ type Interface interface {
 	GetApplication(ctx context.Context, displayName string) (models.Applicationable, error)
 
 	// Role assignment methods
-	CreateRoleAssignment(ctx context.Context, scope, roleName, principalID string) (authorization.RoleAssignment, error)
-	DeleteRoleAssignment(ctx context.Context, roleAssignmentID string) (authorization.RoleAssignment, error)
+	CreateRoleAssignment(ctx context.Context, scope, roleName, principalID string) (armauthorization.RoleAssignment, error)
+	DeleteRoleAssignment(ctx context.Context, roleAssignmentID string) (armauthorization.RoleAssignment, error)
 
 	// Role definition methods
-	GetRoleDefinitionIDByName(ctx context.Context, scope, roleName string) (authorization.RoleDefinition, error)
+	GetRoleDefinitionIDByName(ctx context.Context, scope, roleName string) (armauthorization.RoleDefinition, error)
 
 	// Federation methods
 	AddFederatedCredential(ctx context.Context, objectID string, fic models.FederatedIdentityCredentialable) error
@@ -62,51 +60,22 @@ type AzureClient struct {
 
 	graphServiceClient *msgraphsdk.GraphServiceClient
 
-	roleAssignmentsClient authorization.RoleAssignmentsClient
-	roleDefinitionsClient authorization.RoleDefinitionsClient
+	roleAssignmentsClient *armauthorization.RoleAssignmentsClient
+	roleDefinitionsClient *armauthorization.RoleDefinitionsClient
 }
 
 // NewAzureClientWithCLI creates an AzureClient configured from Azure CLI 2.0 for local development scenarios.
-func NewAzureClientWithCLI(env azure.Environment, subscriptionID, tenantID string, client *http.Client) (*AzureClient, error) {
-	_, _, err := getOAuthConfig(env, tenantID)
-	if err != nil {
-		return nil, err
-	}
-
-	token, err := cli.GetTokenFromCLI(env.ResourceManagerEndpoint)
-	if err != nil {
-		return nil, err
-	}
-
-	adalToken, err := token.ToADALToken()
-	if err != nil {
-		return nil, err
-	}
-
+func NewAzureClientWithCLI(env azure.Environment, subscriptionID string, client *http.Client) (*AzureClient, error) {
 	cred, err := azidentity.NewAzureCLICredential(nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create credential")
 	}
-	auth, err := kiotaauth.NewAzureIdentityAuthenticationProviderWithScopes(cred, []string{getGraphScope(env)})
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create authentication provider")
-	}
 
-	return getClient(env, subscriptionID, autorest.NewBearerAuthorizer(&adalToken), auth, client)
+	return getClient(env, subscriptionID, cred, client)
 }
 
 // NewAzureClientWithClientSecret returns an AzureClient via client_id and client_secret
 func NewAzureClientWithClientSecret(env azure.Environment, subscriptionID, clientID, clientSecret, tenantID string, client *http.Client) (*AzureClient, error) {
-	oauthConfig, tenantID, err := getOAuthConfig(env, tenantID)
-	if err != nil {
-		return nil, err
-	}
-
-	armSpt, err := adal.NewServicePrincipalToken(*oauthConfig, clientID, clientSecret, env.ServiceManagementEndpoint)
-	if err != nil {
-		return nil, err
-	}
-
 	cred, err := azidentity.NewClientSecretCredential(tenantID, clientID, clientSecret,
 		&azidentity.ClientSecretCredentialOptions{
 			ClientOptions: azcore.ClientOptions{
@@ -116,12 +85,8 @@ func NewAzureClientWithClientSecret(env azure.Environment, subscriptionID, clien
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create credential")
 	}
-	auth, err := kiotaauth.NewAzureIdentityAuthenticationProviderWithScopes(cred, []string{getGraphScope(env)})
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create authentication provider")
-	}
 
-	return getClient(env, subscriptionID, autorest.NewBearerAuthorizer(armSpt), auth, client)
+	return getClient(env, subscriptionID, cred, client)
 }
 
 // NewAzureClientWithClientCertificateFile returns an AzureClient via client_id and jwt certificate assertion
@@ -151,35 +116,16 @@ func NewAzureClientWithClientCertificateFile(env azure.Environment, subscription
 
 // NewAzureClientWithClientCertificate returns an AzureClient via client_id and jwt certificate assertion
 func NewAzureClientWithClientCertificate(env azure.Environment, subscriptionID, clientID, tenantID string, certificate *x509.Certificate, privateKey *rsa.PrivateKey, client *http.Client) (*AzureClient, error) {
-	oauthConfig, tenantID, err := getOAuthConfig(env, tenantID)
-	if err != nil {
-		return nil, err
-	}
-
-	return newAzureClientWithCertificate(env, oauthConfig, subscriptionID, clientID, tenantID, certificate, privateKey, client)
+	return newAzureClientWithCertificate(env, subscriptionID, clientID, tenantID, certificate, privateKey, client)
 }
 
-func getOAuthConfig(env azure.Environment, tenantID string) (*adal.OAuthConfig, string, error) {
-	oauthConfig, err := adal.NewOAuthConfig(env.ActiveDirectoryEndpoint, tenantID)
-	if err != nil {
-		return nil, "", err
-	}
-
-	return oauthConfig, tenantID, nil
-}
-
-func newAzureClientWithCertificate(env azure.Environment, oauthConfig *adal.OAuthConfig, subscriptionID, clientID, tenantID string, certificate *x509.Certificate, privateKey *rsa.PrivateKey, client *http.Client) (*AzureClient, error) {
+func newAzureClientWithCertificate(env azure.Environment, subscriptionID, clientID, tenantID string, certificate *x509.Certificate, privateKey *rsa.PrivateKey, client *http.Client) (*AzureClient, error) {
 	if certificate == nil {
 		return nil, errors.New("certificate should not be nil")
 	}
 
 	if privateKey == nil {
 		return nil, errors.New("privateKey should not be nil")
-	}
-
-	armSpt, err := adal.NewServicePrincipalTokenFromCertificate(*oauthConfig, clientID, certificate, privateKey, env.ServiceManagementEndpoint)
-	if err != nil {
-		return nil, err
 	}
 
 	cred, err := azidentity.NewClientCertificateCredential(tenantID, clientID, []*x509.Certificate{certificate}, privateKey,
@@ -191,18 +137,29 @@ func newAzureClientWithCertificate(env azure.Environment, oauthConfig *adal.OAut
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create credential")
 	}
-	auth, err := kiotaauth.NewAzureIdentityAuthenticationProviderWithScopes(cred, []string{getGraphScope(env)})
+
+	return getClient(env, subscriptionID, cred, client)
+}
+
+func getClient(env azure.Environment, subscriptionID string, credential azcore.TokenCredential, client *http.Client) (*AzureClient, error) {
+	auth, err := kiotaauth.NewAzureIdentityAuthenticationProviderWithScopes(credential, []string{getGraphScope(env)})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create authentication provider")
 	}
 
-	return getClient(env, subscriptionID, autorest.NewBearerAuthorizer(armSpt), auth, client)
-}
-
-func getClient(env azure.Environment, subscriptionID string, armAuthorizer autorest.Authorizer, auth authentication.AuthenticationProvider, client *http.Client) (*AzureClient, error) {
 	adapter, err := msgraphsdk.NewGraphRequestAdapterWithParseNodeFactoryAndSerializationWriterFactoryAndHttpClient(auth, nil, nil, client)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create request adapter")
+	}
+
+	roleAssignmentsClient, err := armauthorization.NewRoleAssignmentsClient(subscriptionID, credential, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create role assignments client")
+	}
+
+	roleDefinitionsClient, err := armauthorization.NewRoleDefinitionsClient(credential, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create role definitions client")
 	}
 
 	azClient := &AzureClient{
@@ -211,26 +168,36 @@ func getClient(env azure.Environment, subscriptionID string, armAuthorizer autor
 
 		graphServiceClient: msgraphsdk.NewGraphServiceClient(adapter),
 
-		roleAssignmentsClient: authorization.NewRoleAssignmentsClientWithBaseURI(env.ResourceManagerEndpoint, subscriptionID),
-		roleDefinitionsClient: authorization.NewRoleDefinitionsClientWithBaseURI(env.ResourceManagerEndpoint, subscriptionID),
+		roleAssignmentsClient: roleAssignmentsClient,
+		roleDefinitionsClient: roleDefinitionsClient,
 	}
-
-	azClient.roleAssignmentsClient.Authorizer = armAuthorizer
-	azClient.roleDefinitionsClient.Authorizer = armAuthorizer
-
-	azClient.roleAssignmentsClient.Sender = client
-	azClient.roleDefinitionsClient.Sender = client
 
 	return azClient, nil
 }
 
-// GetTenantID figures out the AAD tenant ID of the subscription by making an
-// unauthenticated request to the Get Subscription Details endpoint and parses
-// the value from WWW-Authenticate header.
-// TODO this should probably to to the armhelpers library
-func GetTenantID(resourceManagerEndpoint string, subscriptionID string) (string, error) {
+var _ azcore.TokenCredential = (*dummyCredential)(nil)
+
+// dummyCredential is a dummy implementation of azcore.TokenCredential to be used
+// when we only need to get the tenantID from a subscriptionID
+type dummyCredential struct{}
+
+func (d *dummyCredential) GetToken(_ context.Context, _ policy.TokenRequestOptions) (azcore.AccessToken, error) {
+	return azcore.AccessToken{}, nil
+}
+
+// GetTenantID returns the tenantID for the given subscriptionID
+// The tenantID is parsed from the WWW-Authenticate header of a failed request
+func GetTenantID(subscriptionID string, client *http.Client) (string, error) {
 	const hdrKey = "WWW-Authenticate"
-	c := subscriptions.NewClientWithBaseURI(resourceManagerEndpoint)
+	clientOpts := &armpolicy.ClientOptions{
+		ClientOptions: azcore.ClientOptions{
+			Transport: client,
+		},
+	}
+	subscriptionsClient, err := armsubscriptions.NewClient(&dummyCredential{}, clientOpts)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to create subscriptions client")
+	}
 
 	mlog.Debug("Resolving tenantID", "subscriptionID", subscriptionID)
 
@@ -239,18 +206,16 @@ func GetTenantID(resourceManagerEndpoint string, subscriptionID string) (string,
 	// network error etc)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*150)
 	defer cancel()
-	subs, err := c.Get(ctx, subscriptionID)
-	if subs.Response.Response == nil {
-		return "", errors.Wrap(err, "Request failed")
+
+	_, err = subscriptionsClient.Get(ctx, subscriptionID, &armsubscriptions.ClientGetOptions{})
+	var respErr *azcore.ResponseError
+	if !errors.As(err, &respErr) {
+		return "", errors.Errorf("unexpected response from get subscription: %v", err)
 	}
 
-	// Expecting 401 StatusUnauthorized here, just read the header
-	if subs.StatusCode != http.StatusUnauthorized {
-		return "", errors.Errorf("Unexpected response from Get Subscription: %v", subs.StatusCode)
-	}
-	hdr := subs.Header.Get(hdrKey)
+	hdr := respErr.RawResponse.Header.Get(hdrKey)
 	if hdr == "" {
-		return "", errors.Errorf("Header %v not found in Get Subscription response", hdrKey)
+		return "", errors.Errorf("header %q not found in get subscription response", hdrKey)
 	}
 
 	// Example value for hdr:

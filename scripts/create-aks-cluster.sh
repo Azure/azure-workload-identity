@@ -21,29 +21,12 @@ should_create_aks_cluster() {
   echo "true" && return
 }
 
-register_feature() {
-  # pinning to 0.5.87 because of https://github.com/Azure/azure-cli/issues/23267
-  az extension add --name aks-preview --version 0.5.87
-  # register enable oidc preview feature
-  az feature register --namespace Microsoft.ContainerService --name EnableOIDCIssuerPreview > /dev/null
-  # https://docs.microsoft.com/en-us/azure/aks/windows-container-cli#add-a-windows-server-node-pool-with-containerd-preview
-  az feature register --namespace Microsoft.ContainerService --name UseCustomizedWindowsContainerRuntime > /dev/null
-  while [[ "$(az feature list --query "[?contains(name, 'Microsoft.ContainerService/EnableOIDCIssuerPreview')].{Name:name,State:properties.state}" | jq -r '.[].State')" != "Registered" ]] &&
-    [[ "$(az feature list --query "[?contains(name, 'Microsoft.ContainerService/UseCustomizedWindowsContainerRuntime')].{Name:name,State:properties.state}" | jq -r '.[].State')" != "Registered" ]]; do
-      sleep 20
-  done
-  az provider register --namespace Microsoft.ContainerService
-}
-
 main() {
   if [[ "$(should_create_aks_cluster)" == "true" ]]; then
-    export -f register_feature
-    # might take around 20 minutes to register
-    timeout --foreground 1200 bash -c register_feature
     echo "Creating an AKS cluster '${CLUSTER_NAME}'"
     LOCATION="$(get_random_region)"
-    # get the latest patch version of 1.24
-    KUBERNETES_VERSION="$(az aks get-versions --location "${LOCATION}" --query 'orchestrators[*].orchestratorVersion' -otsv | grep '1.24' | tail -1)"
+    # pin to the minor version and aks will pick the latest patch version
+    KUBERNETES_VERSION="1.26"
     az group create --name "${CLUSTER_NAME}" --location "${LOCATION}" > /dev/null
     # TODO(chewong): ability to create an arc-enabled cluster
     az aks create \
