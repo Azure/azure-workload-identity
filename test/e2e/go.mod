@@ -1,6 +1,6 @@
 module github.com/Azure/azure-workload-identity/test/e2e
 
-go 1.19
+go 1.21
 
 replace (
 	k8s.io/api => k8s.io/api v0.26.3
