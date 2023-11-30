@@ -1,4 +1,4 @@
-ARG BUILDER=mcr.microsoft.com/oss/go/microsoft/golang:1.20-bullseye
+ARG BUILDER=mcr.microsoft.com/oss/go/microsoft/golang:1.21-bullseye
 ARG BASEIMAGE=gcr.io/distroless/static:nonroot
 
 # Build the manager binary

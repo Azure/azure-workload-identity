@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@cba0d00b1fc9a034e1e642ea0f1103c282990604 # v2.5.0
+        uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v2.6.1
         with:
           egress-policy: audit
 
@@ -26,7 +26,8 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
         with:
-          go-version: "1.20"
+          go-version: "1.21"
+          check-latest: true
       - id: get-tag
         name: Get tag
         run: echo "tag=$(echo ${{ github.event.pull_request.head.ref }} | sed -e 's/release-//g')" >> $GITHUB_OUTPUT
