@@ -4,11 +4,14 @@ using System;
 using Microsoft.Identity.Client;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Data;
 // <directives>
 
 public class MyClientAssertionCredential : TokenCredential
 {
     private readonly IConfidentialClientApplication _confidentialClientApp;
+    private DateTimeOffset _lastRead;
+    private string _lastJWT = null;
 
     public MyClientAssertionCredential()
     {
@@ -17,16 +20,18 @@ public class MyClientAssertionCredential : TokenCredential
         // 	AZURE_CLIENT_ID with the clientID set in the service account annotation
         // 	AZURE_TENANT_ID with the tenantID set in the service account annotation. If not defined, then
         // 		the tenantID provided via azure-wi-webhook-config for the webhook will be used.
+        //  AZURE_AUTHORITY_HOST is the Microsoft Entra authority host. It is https://login.microsoftonline.com" for the public cloud.
         // 	AZURE_FEDERATED_TOKEN_FILE is the service account token path
         var clientID = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
         var tokenPath = Environment.GetEnvironmentVariable("AZURE_FEDERATED_TOKEN_FILE");
         var tenantID = Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
+        var host = Environment.GetEnvironmentVariable("AZURE_AUTHORITY_HOST");
 
         _confidentialClientApp = ConfidentialClientApplicationBuilder
                 .Create(clientID)
-                .WithAuthority("https://login.microsoftonline.com/", tenantID) // for simplicity, this samples assume the app is in the public cloud
-                .WithClientAssertion(() => ReadJWTFromFS(tokenPath))          // make sure that ReadJWTFromFS always returns a fresh JWT 
-                .WithCacheOptions(CacheOptions.EnableSharedCacheOptions)      // make sure to cache the the AAD tokens in memory                
+                .WithAuthority(host, tenantID) 
+                .WithClientAssertion(() => ReadJWTFromFSOrCache(tokenPath))   // ReadJWTFromFS should always return a non-expired JWT 
+                .WithCacheOptions(CacheOptions.EnableSharedCacheOptions)      // cache the the AAD tokens in memory                
                 .Build();
     }
 
@@ -58,10 +63,20 @@ public class MyClientAssertionCredential : TokenCredential
         return new AccessToken(result.AccessToken, result.ExpiresOn);
     }
 
-    // This assumes the file is always updated with a fresh JWT 
-    public string ReadJWTFromFS(string tokenPath)
+    /// <summary>
+    /// Read the JWT from the file system, but only do this every few minutes to avoid heavy I/O.
+    /// The JWT lifetime is anywhere from 1 to 24 hours, so we can safely cache the value for a few minutes.
+    /// </summary>
+    private string ReadJWTFromFSOrCache(string tokenPath)
     {
-        string text = System.IO.File.ReadAllText(tokenPath);
-        return text;
+        // read only once every 5 minutes
+        if (_lastJWT == null ||
+            DateTimeOffset.UtcNow.Subtract(_lastRead) > TimeSpan.FromMinutes(5))
+        {            
+            _lastRead = DateTimeOffset.UtcNow;
+            _lastJWT = System.IO.File.ReadAllText(tokenPath);
+        }
+
+        return _lastJWT;
     }
 }
