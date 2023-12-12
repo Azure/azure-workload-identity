@@ -1,7 +1,4 @@
-ARG BUILDER=mcr.microsoft.com/oss/go/microsoft/golang:1.21-bullseye
-ARG BASEIMAGE=gcr.io/distroless/static:nonroot
-
-FROM ${BUILDER} as builder
+FROM mcr.microsoft.com/oss/go/microsoft/golang:1.21-bookworm as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -19,9 +16,7 @@ COPY token_credential.go token_credential.go
 ARG TARGETARCH
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} GO111MODULE=on go build -a -o msalgo .
 
-# Use distroless as minimal base image to package the manager binary
-# Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM --platform=${TARGETPLATFORM:-linux/amd64} ${BASEIMAGE}
+FROM --platform=${TARGETPLATFORM:-linux/amd64} mcr.microsoft.com/cbl-mariner/distroless/minimal:2.0-nonroot
 WORKDIR /
 COPY --from=builder /workspace/msalgo .
 # Kubernetes runAsNonRoot requires USER to be numeric
