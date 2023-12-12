@@ -25,7 +25,7 @@ sequenceDiagram
     Azure Active Directory->>OpenID Connect Issuer:{IssuerURL}/openid/v1/jwks
     OpenID Connect Issuer->>Azure Active Directory:Return the JWKS document
     Azure Active Directory->>Azure Active Directory:Validate the authenticity of the service account token
-    Kubernetes Workload->>Azure Active Directory:Return an AAD token
+    Azure Active Directory->>Kubernetes Workload:Return an AAD token
 ```
 --->
 
