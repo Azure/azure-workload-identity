@@ -1,8 +1,4 @@
-ARG BUILDER=debian:11-slim
-ARG BASEIMAGE=gcr.io/distroless/python3-debian11
-
-# ref: https://github.com/GoogleContainerTools/distroless/blob/main/examples/python3-requirements/Dockerfile
-FROM ${BUILDER}  AS build
+FROM mcr.microsoft.com/mirror/docker/library/debian:bookworm-slim AS build
 RUN apt-get update && \
     apt-get install --no-install-suggests --no-install-recommends --yes python3-venv gcc libpython3-dev && \
     python3 -m venv /venv && \
@@ -14,7 +10,7 @@ COPY requirements.txt /requirements.txt
 RUN /venv/bin/pip install --disable-pip-version-check -r /requirements.txt
 
 # Copy the virtualenv into a distroless image
-FROM ${BASEIMAGE}
+FROM mcr.microsoft.com/cbl-mariner/distroless/python:3.9
 COPY --from=build-venv /venv /venv
 COPY . /app
 WORKDIR /app
