@@ -13,7 +13,7 @@ Below is a list of commands you can use to view relevant logs of azure-workload-
 To get the logs of the mutating admission webhook, run the following command:
 
 ```bash
-kubectl logs -n azure-workload-identity-system -l app=workload-identity-webhook
+kubectl logs -n kube-system -l azure-workload-identity.io/system=true
 ```
 
 #### Isolate errors from logs
@@ -21,7 +21,7 @@ kubectl logs -n azure-workload-identity-system -l app=workload-identity-webhook
 You can use `grep ^E` and `--since` flag from kubectl to isolate any errors occurred after a given duration.
 
 ```bash
-kubectl logs -n azure-workload-identity-system -l app=workload-identity-webhook --since=1h | grep ^E
+kubectl logs -n kube-system -l azure-workload-identity.io/system=true --since=1h | grep ^E
 ```
 
 > It is always a good idea to include relevant logs from the webhook when opening a new [issue][1]
