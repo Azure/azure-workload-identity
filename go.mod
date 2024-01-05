@@ -27,9 +27,9 @@ require (
 	go.opentelemetry.io/otel/metric v0.37.0
 	gopkg.in/ini.v1 v1.62.1
 	gopkg.in/square/go-jose.v2 v2.6.0
-	k8s.io/api v0.26.11
-	k8s.io/apimachinery v0.26.11
-	k8s.io/client-go v0.26.11
+	k8s.io/api v0.26.12
+	k8s.io/apimachinery v0.26.12
+	k8s.io/client-go v0.26.12
 	k8s.io/utils v0.0.0-20221128185143-99ec85e7a448
 	monis.app/mlog v0.0.4
 	sigs.k8s.io/controller-runtime v0.14.7
@@ -96,12 +96,12 @@ require (
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
-	golang.org/x/crypto v0.14.0 // indirect
+	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/net v0.17.0 // indirect; CVE-2022-41717
 	golang.org/x/oauth2 v0.7.0 // indirect
-	golang.org/x/sys v0.13.0 // indirect
-	golang.org/x/term v0.13.0 // indirect
-	golang.org/x/text v0.13.0 // indirect
+	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/term v0.15.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
