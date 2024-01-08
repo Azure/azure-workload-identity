@@ -1,6 +1,6 @@
 ARG BASEIMAGE=mcr.microsoft.com/mirror/gcr/distroless/nodejs-debian11:16
 
-FROM mcr.microsoft.com/cbl-mariner/base/nodejs:16 as build-env
+FROM mcr.microsoft.com/cbl-mariner/base/nodejs:18 as build-env
 ADD . /app
 WORKDIR /app
 RUN npm install
