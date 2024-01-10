@@ -114,6 +114,8 @@ jobs:
         upgrade_aks_linux:
           GINKGO_SKIP: \[AKSSoakOnly\]
   - job:
+    # using the tmp pool as a workaround for the kind cluster creation issue.
+    pool: tmp-staging-pool-amd64-mariner-2
     timeoutInMinutes: 60
     dependsOn:
       - scan_images
@@ -135,14 +137,14 @@ jobs:
         value: "true"
     strategy:
       matrix:
-        kind_v1_24_12:
-          KIND_NODE_VERSION: v1.24.12
-        kind_v1_25_8:
-          KIND_NODE_VERSION: v1.25.8
-        kind_v1_26_3:
-          KIND_NODE_VERSION: v1.26.3
-        kind_v1_27_1:
-          KIND_NODE_VERSION: v1.27.1
+        kind_v1_26_14:
+          KIND_NODE_VERSION: v1.26.14
+        kind_v1_27_11:
+          KIND_NODE_VERSION: v1.27.11
+        kind_v1_28_7:
+          KIND_NODE_VERSION: v1.28.7
+        kind_v1_29_2:
+          KIND_NODE_VERSION: v1.29.2
     steps:
       - script: make test-e2e
         displayName: Webhook E2E test suite
