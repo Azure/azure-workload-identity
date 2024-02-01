@@ -15,8 +15,8 @@ az group create --name "${RESOURCE_GROUP}" --location "${LOCATION}"
 
 export AZURE_STORAGE_ACCOUNT="oidcissuer$(openssl rand -hex 4)"
 export AZURE_STORAGE_CONTAINER="oidc-test"
-az storage account create --resource-group "${RESOURCE_GROUP}" --name "${AZURE_STORAGE_ACCOUNT}"
-az storage container create --name "${AZURE_STORAGE_CONTAINER}" --public-access container
+az storage account create --resource-group "${RESOURCE_GROUP}" --name "${AZURE_STORAGE_ACCOUNT}" --allow-blob-public-access true
+az storage container create --name "${AZURE_STORAGE_CONTAINER}" --public-access blob
 ```
 
 ### 2. Generate the discovery document
