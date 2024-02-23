@@ -1,7 +1,6 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  creationTimestamp: null
   labels:
     app: '{{ template "workload-identity-webhook.name" . }}'
     azure-workload-identity.io/system: "true"
