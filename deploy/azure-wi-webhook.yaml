@@ -22,7 +22,6 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  creationTimestamp: null
   labels:
     azure-workload-identity.io/system: "true"
   name: azure-wi-webhook-manager-role
@@ -44,7 +43,6 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  creationTimestamp: null
   labels:
     azure-workload-identity.io/system: "true"
   name: azure-wi-webhook-manager-role
@@ -162,7 +160,7 @@ spec:
         envFrom:
         - configMapRef:
             name: azure-wi-webhook-config
-        image: mcr.microsoft.com/oss/azure/workload-identity/webhook:v1.2.0
+        image: mcr.microsoft.com/oss/azure/workload-identity/webhook:v1.2.1
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 6
