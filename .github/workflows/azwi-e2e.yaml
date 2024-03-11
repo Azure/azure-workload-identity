@@ -57,7 +57,7 @@ jobs:
           make kind-create
       - name: Build azwi
         run: make bin/azwi
-      - uses: azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.6
+      - uses: azure/login@8c334a195cbb38e46038007b304988d888bf676a # v1.4.6
         with:
           client-id: ${{ env.AZURE_CLIENT_ID }}
           tenant-id: ${{ env.AZURE_TENANT_ID }}
