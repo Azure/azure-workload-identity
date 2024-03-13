@@ -10,9 +10,9 @@ import (
 	"encoding/json"
 	"os"
 
+	"github.com/go-jose/go-jose/v4"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	jose "gopkg.in/square/go-jose.v2"
 	"k8s.io/client-go/util/keyutil"
 	"monis.app/mlog"
 )
