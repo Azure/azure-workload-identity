@@ -14,7 +14,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"monis.app/mlog"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -725,7 +725,7 @@ func TestHandle(t *testing.T) {
 		})
 	}
 
-	decoder, _ := atypes.NewDecoder(runtime.NewScheme())
+	decoder := atypes.NewDecoder(runtime.NewScheme())
 
 	tests := []struct {
 		name          string
@@ -968,7 +968,7 @@ func TestMutateContainers(t *testing.T) {
 		}},
 	}}
 
-	decoder, _ := atypes.NewDecoder(runtime.NewScheme())
+	decoder := atypes.NewDecoder(runtime.NewScheme())
 	m := &podMutator{
 		client:             fake.NewClientBuilder().WithObjects().Build(),
 		reader:             fake.NewClientBuilder().WithObjects().Build(),
@@ -1001,9 +1001,9 @@ func TestInjectProxyInitContainer(t *testing.T) {
 				Add:  []corev1.Capability{"NET_ADMIN"},
 				Drop: []corev1.Capability{"ALL"},
 			},
-			Privileged:   pointer.Bool(true),
-			RunAsNonRoot: pointer.Bool(false),
-			RunAsUser:    pointer.Int64(0),
+			Privileged:   ptr.To(true),
+			RunAsNonRoot: ptr.To(false),
+			RunAsUser:    ptr.To[int64](0),
 		},
 		Env: []corev1.EnvVar{{
 			Name:  ProxyPortEnvVar,
@@ -1104,13 +1104,13 @@ func TestInjectProxySidecarContainer(t *testing.T) {
 			},
 		},
 		SecurityContext: &corev1.SecurityContext{
-			AllowPrivilegeEscalation: pointer.Bool(false),
+			AllowPrivilegeEscalation: ptr.To(false),
 			Capabilities: &corev1.Capabilities{
 				Drop: []corev1.Capability{"ALL"},
 			},
-			Privileged:             pointer.Bool(false),
-			ReadOnlyRootFilesystem: pointer.Bool(true),
-			RunAsNonRoot:           pointer.Bool(true),
+			Privileged:             ptr.To(false),
+			ReadOnlyRootFilesystem: ptr.To(true),
+			RunAsNonRoot:           ptr.To(true),
 		},
 	}
 
@@ -1295,7 +1295,7 @@ func TestHandleError(t *testing.T) {
 		})
 	}
 
-	decoder, _ := atypes.NewDecoder(runtime.NewScheme())
+	decoder := atypes.NewDecoder(runtime.NewScheme())
 
 	tests := []struct {
 		name          string
