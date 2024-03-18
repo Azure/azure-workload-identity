@@ -15,7 +15,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"monis.app/mlog"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
@@ -211,9 +211,9 @@ func (m *podMutator) injectProxyInitContainer(containers []corev1.Container, pro
 				Add:  []corev1.Capability{"NET_ADMIN"},
 				Drop: []corev1.Capability{"ALL"},
 			},
-			Privileged:   pointer.Bool(true),
-			RunAsNonRoot: pointer.Bool(false),
-			RunAsUser:    pointer.Int64(0),
+			Privileged:   ptr.To(true),
+			RunAsNonRoot: ptr.To(false),
+			RunAsUser:    ptr.To[int64](0),
 		},
 		Env: []corev1.EnvVar{{
 			Name:  ProxyPortEnvVar,
@@ -257,13 +257,13 @@ func (m *podMutator) injectProxySidecarContainer(containers []corev1.Container, 
 			},
 		},
 		SecurityContext: &corev1.SecurityContext{
-			AllowPrivilegeEscalation: pointer.Bool(false),
+			AllowPrivilegeEscalation: ptr.To(false),
 			Capabilities: &corev1.Capabilities{
 				Drop: []corev1.Capability{"ALL"},
 			},
-			Privileged:             pointer.Bool(false),
-			ReadOnlyRootFilesystem: pointer.Bool(true),
-			RunAsNonRoot:           pointer.Bool(true),
+			Privileged:             ptr.To(false),
+			ReadOnlyRootFilesystem: ptr.To(true),
+			RunAsNonRoot:           ptr.To(true),
 		},
 	}}, containers...)
 
