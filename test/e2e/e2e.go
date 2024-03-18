@@ -33,7 +33,7 @@ var (
 	}
 )
 
-var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
+var _ = ginkgo.SynchronizedBeforeSuite(func(ctx context.Context) []byte {
 	var err error
 	c, err = framework.LoadClientset()
 	if err != nil {
@@ -43,7 +43,7 @@ var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
 	// Delete any namespaces except those created by the system. This ensures no
 	// lingering resources are left over from a previous test run.
 	if framework.TestContext.CleanStart {
-		deleted, err := framework.DeleteNamespaces(c, nil, /* deleteFilter */
+		deleted, err := framework.DeleteNamespaces(ctx, c, nil, /* deleteFilter */
 			[]string{
 				metav1.NamespaceSystem,
 				metav1.NamespaceDefault,
@@ -54,20 +54,21 @@ var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
 			framework.Failf("error deleting orphaned namespaces: %v", err)
 		}
 
-		if err := framework.WaitForNamespacesDeleted(c, deleted, 5*time.Minute); err != nil {
+		if err := framework.WaitForNamespacesDeleted(ctx, c, deleted, 5*time.Minute); err != nil {
 			framework.Failf("error deleting orphaned namespaces %v: %v", deleted, err)
 		}
 	}
 
+	timeouts := framework.NewTimeoutContext()
 	// ensure all nodes are schedulable
-	framework.ExpectNoError(e2enode.WaitForAllNodesSchedulable(c, framework.TestContext.NodeSchedulableTimeout))
+	framework.ExpectNoError(e2enode.WaitForAllNodesSchedulable(ctx, c, timeouts.NodeSchedulable))
 
 	// Ensure all pods are running and ready before starting tests
-	podStartupTimeout := framework.TestContext.SystemPodsStartupTimeout
+	podStartupTimeout := timeouts.SystemPodsStartup
 	for _, namespace := range coreNamespaces {
-		if err := e2epod.WaitForPodsRunningReady(c, namespace, int32(framework.TestContext.MinStartupPods), int32(framework.TestContext.AllowedNotReadyNodes), podStartupTimeout, map[string]string{}); err != nil {
-			e2edebug.DumpAllNamespaceInfo(c, namespace)
-			e2ekubectl.LogFailedContainers(c, namespace, framework.Logf)
+		if err := e2epod.WaitForPodsRunningReady(ctx, c, namespace, int32(framework.TestContext.MinStartupPods), int32(framework.TestContext.AllowedNotReadyNodes), podStartupTimeout); err != nil {
+			e2edebug.DumpAllNamespaceInfo(ctx, c, namespace)
+			e2ekubectl.LogFailedContainers(ctx, c, namespace, framework.Logf)
 			framework.Failf("error waiting for all pods to be running and ready: %v", err)
 		}
 	}
@@ -83,13 +84,13 @@ var _ = ginkgo.SynchronizedBeforeSuite(func() []byte {
 	return nil
 }, func(data []byte) {})
 
-var _ = ginkgo.SynchronizedAfterSuite(func() {
+var _ = ginkgo.SynchronizedAfterSuite(func(ctx context.Context) {
 	framework.Logf("Running AfterSuite actions on all node")
-}, func() {
-	collectPodLogs()
+}, func(ctx context.Context) {
+	collectPodLogs(ctx)
 })
 
-func collectPodLogs() {
+func collectPodLogs(ctx context.Context) {
 	var wg sync.WaitGroup
 	var since time.Time
 	if os.Getenv("SOAK_CLUSTER") == "true" {
@@ -126,9 +127,9 @@ func collectPodLogs() {
 
 					var log string
 					if since.IsZero() {
-						log, err = e2epod.GetPodLogs(c, namespace, pod.Name, container.Name)
+						log, err = e2epod.GetPodLogs(ctx, c, namespace, pod.Name, container.Name)
 					} else {
-						log, err = e2epod.GetPodLogsSince(c, namespace, pod.Name, container.Name, since)
+						log, err = e2epod.GetPodLogsSince(ctx, c, namespace, pod.Name, container.Name, since)
 					}
 					if err != nil {
 						framework.Logf("error when getting logs from pod %s/%s, container %s: %v", namespace, pod.Name, container.Name, err)

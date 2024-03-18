@@ -28,7 +28,7 @@ const (
 var _ = ginkgo.Describe("Webhook", func() {
 	f := framework.NewDefaultFramework("webhook")
 
-	ginkgo.It("should mutate a labeled pod", func() {
+	ginkgo.It("should mutate a labeled pod", func(ctx context.Context) {
 		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", nil, nil)
 		pod, err := createPodWithServiceAccount(
 			f.ClientSet,
@@ -43,10 +43,10 @@ var _ = ginkgo.Describe("Webhook", func() {
 			false,
 		)
 		framework.ExpectNoError(err, "failed to create pod %s in %s", pod.Name, f.Namespace.Name)
-		validateMutatedPod(f, pod, nil)
+		validateMutatedPod(ctx, f, pod, nil)
 	})
 
-	ginkgo.It("should mutate the init containers within a pod", func() {
+	ginkgo.It("should mutate the init containers within a pod", func(ctx context.Context) {
 		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{useWorkloadIdentityLabel: "true"}, nil)
 
 		pod := generatePodWithServiceAccount(
@@ -83,22 +83,22 @@ var _ = ginkgo.Describe("Webhook", func() {
 		framework.ExpectNoError(err, "failed to create pod %s in %s", pod.Name, f.Namespace.Name)
 		defer f.ClientSet.CoreV1().Pods(f.Namespace.Name).Delete(context.TODO(), pod.Name, metav1.DeleteOptions{})
 
-		validateMutatedPod(f, pod, nil)
+		validateMutatedPod(ctx, f, pod, nil)
 	})
 
-	ginkgo.It("should mutate a deployment pod with a labeled pod spec", func() {
+	ginkgo.It("should mutate a deployment pod with a labeled pod spec", func(ctx context.Context) {
 		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{useWorkloadIdentityLabel: "true"}, nil)
-		pod := createPodUsingDeploymentWithServiceAccount(f, serviceAccount)
-		validateMutatedPod(f, pod, nil)
+		pod := createPodUsingDeploymentWithServiceAccount(ctx, f, serviceAccount)
+		validateMutatedPod(ctx, f, pod, nil)
 	})
 
-	ginkgo.It("should mutate a deployment pod with an annotated service account", func() {
+	ginkgo.It("should mutate a deployment pod with an annotated service account", func(ctx context.Context) {
 		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", nil, map[string]string{useWorkloadIdentityLabel: "true"})
-		pod := createPodUsingDeploymentWithServiceAccount(f, serviceAccount)
-		validateMutatedPod(f, pod, nil)
+		pod := createPodUsingDeploymentWithServiceAccount(ctx, f, serviceAccount)
+		validateMutatedPod(ctx, f, pod, nil)
 	})
 
-	ginkgo.It(fmt.Sprintf("should not mutate selected containers if the pod has %s annotated", skipContainersAnnotation), func() {
+	ginkgo.It(fmt.Sprintf("should not mutate selected containers if the pod has %s annotated", skipContainersAnnotation), func(ctx context.Context) {
 		const skipContainers = busybox1 + ";"
 		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{useWorkloadIdentityLabel: "true"}, nil)
 		pod, err := createPodWithServiceAccount(
@@ -114,7 +114,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 			false,
 		)
 		framework.ExpectNoError(err, "failed to create pod %s in %s", pod.Name, f.Namespace.Name)
-		validateMutatedPod(f, pod, strings.Split(skipContainers, ";"))
+		validateMutatedPod(ctx, f, pod, strings.Split(skipContainers, ";"))
 		validateUnmutatedContainers(f, pod, strings.Split(skipContainers, ";"))
 	})
 
