@@ -3,6 +3,8 @@ package main
 var replacements = map[string]string{
 	`HELMSUBST_DEPLOYMENT_CONTAINER_RESOURCES: ""`: `{{- toYaml .Values.resources | nindent 10 }}`,
 
+	`HELMSUBST_DEPLOYMENT_CONTAINER_SECURITY_CONTEXT: ""`: `{{- toYaml .Values.securityContext | nindent 10 }}`,
+
 	`HELMSUBST_DEPLOYMENT_NODE_SELECTOR: ""`: `{{- toYaml .Values.nodeSelector | nindent 8 }}`,
 
 	"HELMSUBST_DEPLOYMENT_REPLICAS": `{{ .Values.replicaCount }}`,
