@@ -27,9 +27,9 @@ require (
 	go.opentelemetry.io/otel/metric v0.37.0
 	gopkg.in/ini.v1 v1.62.1
 	gopkg.in/square/go-jose.v2 v2.6.0
-	k8s.io/api v0.26.14
-	k8s.io/apimachinery v0.26.14
-	k8s.io/client-go v0.26.14
+	k8s.io/api v0.26.15
+	k8s.io/apimachinery v0.26.15
+	k8s.io/client-go v0.26.15
 	k8s.io/utils v0.0.0-20221128185143-99ec85e7a448
 	monis.app/mlog v0.0.4
 	sigs.k8s.io/controller-runtime v0.14.7
@@ -65,7 +65,7 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/gnostic v0.5.7-v3refs // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
