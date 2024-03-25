@@ -1,8 +1,6 @@
-ARG BUILDER=mcr.microsoft.com/cbl-mariner/base/nodejs:16
 ARG BASEIMAGE=mcr.microsoft.com/mirror/gcr/distroless/nodejs-debian11:16
 
-# ref: https://github.com/GoogleContainerTools/distroless/blob/main/examples/nodejs/Dockerfile
-FROM ${BUILDER} AS build-env
+FROM mcr.microsoft.com/cbl-mariner/base/nodejs:16 as build-env
 ADD . /app
 WORKDIR /app
 RUN npm install
