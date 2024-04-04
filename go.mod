@@ -1,6 +1,6 @@
 module github.com/Azure/azure-workload-identity
 
-go 1.21
+go 1.22
 
 require (
 	github.com/Azure/aad-pod-identity v1.8.17
