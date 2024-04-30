@@ -728,39 +728,44 @@ func TestHandle(t *testing.T) {
 	decoder, _ := atypes.NewDecoder(runtime.NewScheme())
 
 	tests := []struct {
-		name               string
-		serviceAccountName string
-		podLabels          map[string]string
-		clientObjects      []client.Object
-		readerObjects      []client.Object
+		name          string
+		rawPod        []byte
+		clientObjects []client.Object
+		readerObjects []client.Object
 	}{
 		{
-			name:               "service account in cache",
-			serviceAccountName: "sa",
-			clientObjects:      serviceAccounts,
-			readerObjects:      nil,
+			name:          "service account in cache",
+			rawPod:        newPodRaw("pod", "ns1", "sa", nil, nil, false),
+			clientObjects: serviceAccounts,
+			readerObjects: nil,
 		},
 		{
-			name:               "service account not in cache",
-			serviceAccountName: "sa",
-			clientObjects:      nil,
-			readerObjects:      serviceAccounts,
+			name:          "service account not in cache",
+			rawPod:        newPodRaw("pod", "ns1", "sa", nil, nil, false),
+			clientObjects: nil,
+			readerObjects: serviceAccounts,
 		},
 		{
 			name:          "default service account in cache",
+			rawPod:        newPodRaw("pod", "ns1", "", nil, nil, false),
 			clientObjects: serviceAccounts,
 			readerObjects: nil,
 		},
 		{
 			name:          "default service account not in cache",
+			rawPod:        newPodRaw("pod", "ns1", "", nil, nil, false),
 			clientObjects: nil,
 			readerObjects: serviceAccounts,
 		},
 		{
-			name: "pod has the required label, no warnings",
-			podLabels: map[string]string{
-				UseWorkloadIdentityLabel: "true",
-			},
+			name:          "pod has the required label, no warnings",
+			rawPod:        newPodRaw("pod", "ns1", "sa", map[string]string{UseWorkloadIdentityLabel: "true"}, nil, false),
+			clientObjects: serviceAccounts,
+			readerObjects: nil,
+		},
+		{
+			name:          "pod has the required label, restart policy in init container",
+			rawPod:        []byte(`{"metadata":{"name":"pod","namespace":"ns1","labels":{"azure.workload.identity/use":"true"}},"spec":{"initContainers":[{"name":"init-container","image":"init-container-image","restartPolicy":"Always","resources":{}}],"containers":[{"name":"container","image":"image"}]}}`),
 			clientObjects: serviceAccounts,
 			readerObjects: nil,
 		},
@@ -786,7 +791,7 @@ func TestHandle(t *testing.T) {
 						Version: "v1",
 						Kind:    "Pod",
 					},
-					Object:    runtime.RawExtension{Raw: newPodRaw("pod", "ns1", test.serviceAccountName, test.podLabels, nil, false)},
+					Object:    runtime.RawExtension{Raw: test.rawPod},
 					Namespace: "ns1",
 					Operation: admissionv1.Create,
 				},
@@ -795,6 +800,11 @@ func TestHandle(t *testing.T) {
 			resp := m.Handle(context.Background(), req)
 			if !resp.Allowed {
 				t.Fatalf("expected to be allowed")
+			}
+			for _, patch := range resp.Patches {
+				if patch.Operation != "add" {
+					t.Errorf("expected add operation, got: %v", patch)
+				}
 			}
 		})
 	}
