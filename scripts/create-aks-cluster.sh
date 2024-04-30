@@ -25,8 +25,6 @@ main() {
   if [[ "$(should_create_aks_cluster)" == "true" ]]; then
     echo "Creating an AKS cluster '${CLUSTER_NAME}'"
     LOCATION="$(get_random_region)"
-    # pin to the minor version and aks will pick the latest patch version
-    KUBERNETES_VERSION="1.26"
     az group create --name "${CLUSTER_NAME}" --location "${LOCATION}" > /dev/null
     # TODO(chewong): ability to create an arc-enabled cluster
     az aks create \
@@ -35,7 +33,6 @@ main() {
       --node-vm-size Standard_DS3_v2 \
       --enable-managed-identity \
       --network-plugin azure \
-      --kubernetes-version "${KUBERNETES_VERSION}" \
       --node-count 3 \
       --generate-ssh-keys \
       --enable-oidc-issuer > /dev/null
@@ -44,7 +41,7 @@ main() {
         EXTRA_ARGS="--aks-custom-headers WindowsContainerRuntime=containerd"
       fi
       # shellcheck disable=SC2086
-      az aks nodepool add --resource-group "${CLUSTER_NAME}" --cluster-name "${CLUSTER_NAME}" --os-type Windows --name npwin --kubernetes-version "${KUBERNETES_VERSION}" --node-count 3 ${EXTRA_ARGS:-} > /dev/null
+      az aks nodepool add --resource-group "${CLUSTER_NAME}" --cluster-name "${CLUSTER_NAME}" --os-type Windows --name npwin --node-count 3 ${EXTRA_ARGS:-} > /dev/null
     fi
   fi
 }
