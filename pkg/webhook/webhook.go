@@ -12,6 +12,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/pkg/errors"
+	"gomodules.xyz/jsonpatch/v2"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -166,7 +167,21 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) (respons
 		logger.Error("failed to marshal pod object", err)
 		return admission.Errored(http.StatusInternalServerError, err)
 	}
-	return admission.PatchResponseFromRaw(req.Object.Raw, marshaledPod)
+
+	patchResponse := admission.PatchResponseFromRaw(req.Object.Raw, marshaledPod)
+	patches := []jsonpatch.JsonPatchOperation{}
+	for _, patch := range patchResponse.Patches {
+		// drop patches that are removing fields
+		// this prevents patches that remove fields that the webhook doesn't know about
+		// ref: https://github.com/Azure/azure-workload-identity/issues/1312
+		if patch.Operation == "remove" {
+			continue
+		}
+		patches = append(patches, patch)
+	}
+
+	patchResponse.Patches = patches
+	return patchResponse
 }
 
 // PodMutator implements admission.DecoderInjector
