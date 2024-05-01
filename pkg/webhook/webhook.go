@@ -12,10 +12,10 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/pkg/errors"
-	"gomodules.xyz/jsonpatch/v2"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/strategicpatch"
 	"k8s.io/utils/pointer"
 	"monis.app/mlog"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -168,20 +168,29 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) (respons
 		return admission.Errored(http.StatusInternalServerError, err)
 	}
 
-	patchResponse := admission.PatchResponseFromRaw(req.Object.Raw, marshaledPod)
-	patches := []jsonpatch.JsonPatchOperation{}
-	for _, patch := range patchResponse.Patches {
-		// drop patches that are removing fields
-		// this prevents patches that remove fields that the webhook doesn't know about
-		// ref: https://github.com/Azure/azure-workload-identity/issues/1312
-		if patch.Operation == "remove" {
-			continue
-		}
-		patches = append(patches, patch)
+	// patchResponse := admission.PatchResponseFromRaw(req.Object.Raw, marshaledPod)
+	// patches := []jsonpatch.JsonPatchOperation{}
+	// for _, patch := range patchResponse.Patches {
+	// 	// drop patches that are removing fields
+	// 	// this prevents patches that remove fields that the webhook doesn't know about
+	// 	// ref: https://github.com/Azure/azure-workload-identity/issues/1312
+	// 	if patch.Operation == "remove" {
+	// 		continue
+	// 	}
+	// 	patches = append(patches, patch)
+	// }
+	//
+	// patchResponse.Patches = patches
+	// return patchResponse
+
+	// Merge the original raw object with the modified marshaled pod
+	patchedObject, err := strategicpatch.StrategicMergePatch(req.Object.Raw, marshaledPod, corev1.Pod{})
+	if err != nil {
+		logger.Error("failed to merge patches", err)
+		return admission.Errored(http.StatusInternalServerError, err)
 	}
 
-	patchResponse.Patches = patches
-	return patchResponse
+	return admission.PatchResponseFromRaw(req.Object.Raw, patchedObject)
 }
 
 // PodMutator implements admission.DecoderInjector

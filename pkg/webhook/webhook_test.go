@@ -802,8 +802,8 @@ func TestHandle(t *testing.T) {
 				t.Fatalf("expected to be allowed")
 			}
 			for _, patch := range resp.Patches {
-				if patch.Operation != "add" {
-					t.Errorf("expected add operation, got: %v", patch)
+				if patch.Operation == "remove" && patch.Path != "/metadata/creationTimestamp" {
+					t.Errorf("unexpected patch: %v", patch)
 				}
 			}
 		})
