@@ -128,7 +128,7 @@ func createPod(c kubernetes.Interface, pod *corev1.Pod) (*corev1.Pod, error) {
 }
 
 // createPodUsingDeploymentWithServiceAccount creates a deployment containing one pod with customizable service account.
-func createPodUsingDeploymentWithServiceAccount(f *framework.Framework, serviceAccount string) *corev1.Pod {
+func createPodUsingDeploymentWithServiceAccount(ctx context.Context, f *framework.Framework, serviceAccount string) *corev1.Pod {
 	framework.Logf("creating a deployment in %s namespace with service account %s", f.Namespace.Name, serviceAccount)
 
 	podLabels := map[string]string{
@@ -188,13 +188,13 @@ func createPodUsingDeploymentWithServiceAccount(f *framework.Framework, serviceA
 		},
 	})
 
-	d, err := f.ClientSet.AppsV1().Deployments(f.Namespace.Name).Create(context.TODO(), d, metav1.CreateOptions{})
+	d, err := f.ClientSet.AppsV1().Deployments(f.Namespace.Name).Create(ctx, d, metav1.CreateOptions{})
 	framework.ExpectNoError(err, "failed to create deployment %s", d.Name)
 
 	err = e2edeploy.WaitForDeploymentComplete(f.ClientSet, d)
 	framework.ExpectNoError(err, "failed to complete deployment %s", d.Name)
 
-	podList, err := e2edeploy.GetPodsForDeployment(f.ClientSet, d)
+	podList, err := e2edeploy.GetPodsForDeployment(ctx, f.ClientSet, d)
 	framework.ExpectNoError(err, "failed to get pods for deployment %s", d.Name)
 	pod := &podList.Items[0]
 
@@ -207,7 +207,7 @@ func createPodUsingDeploymentWithServiceAccount(f *framework.Framework, serviceA
 // 2. verify that all containers except the one in skipContainers have azure-identity-token mounted;
 // 3. verify that the pod has a service account token volume projected;
 // 4. verify that the pod has access to token file via `cat /var/run/secrets/azure/tokens/azure-identity-token`.
-func validateMutatedPod(f *framework.Framework, pod *corev1.Pod, skipContainers []string) {
+func validateMutatedPod(ctx context.Context, f *framework.Framework, pod *corev1.Pod, skipContainers []string) {
 	withoutSkipContainers := []corev1.Container{}
 	// consider init containers as well
 	allContainers := append(pod.Spec.Containers, pod.Spec.InitContainers...)
@@ -283,7 +283,7 @@ func validateMutatedPod(f *framework.Framework, pod *corev1.Pod, skipContainers 
 	}
 
 	if len(withoutSkipContainers) > 0 {
-		err := e2epod.WaitForPodNameRunningInNamespace(f.ClientSet, pod.Name, pod.Namespace)
+		err := e2epod.WaitForPodNameRunningInNamespace(ctx, f.ClientSet, pod.Name, pod.Namespace)
 		framework.ExpectNoError(err, "failed to start pod %s", pod.Name)
 		_ = e2epod.ExecCommandInContainer(f, pod.Name, withoutSkipContainers[0].Name, "cat", filepath.Join(tokenFileMountPath, tokenFilePathName))
 	}

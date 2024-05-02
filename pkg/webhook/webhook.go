@@ -14,8 +14,9 @@ import (
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"monis.app/mlog"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
@@ -52,7 +53,7 @@ type podMutator struct {
 }
 
 // NewPodMutator returns a pod mutation handler
-func NewPodMutator(client client.Client, reader client.Reader, audience string) (admission.Handler, error) {
+func NewPodMutator(client client.Client, reader client.Reader, audience string, scheme *runtime.Scheme) (admission.Handler, error) {
 	c, err := config.ParseConfig()
 	if err != nil {
 		return nil, err
@@ -75,6 +76,7 @@ func NewPodMutator(client client.Client, reader client.Reader, audience string) 
 		client:             client,
 		reader:             reader,
 		config:             c,
+		decoder:            admission.NewDecoder(scheme),
 		audience:           audience,
 		azureAuthorityHost: azureAuthorityHost,
 	}, nil
@@ -169,15 +171,6 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) (respons
 	return admission.PatchResponseFromRaw(req.Object.Raw, marshaledPod)
 }
 
-// PodMutator implements admission.DecoderInjector
-// A decoder will be automatically injected
-
-// InjectDecoder injects the decoder
-func (m *podMutator) InjectDecoder(d *admission.Decoder) error {
-	m.decoder = d
-	return nil
-}
-
 // mutateContainers mutates the containers by injecting the projected
 // service account token volume and environment variables
 func (m *podMutator) mutateContainers(containers []corev1.Container, clientID string, tenantID string, skipContainers map[string]struct{}) []corev1.Container {
@@ -211,9 +204,9 @@ func (m *podMutator) injectProxyInitContainer(containers []corev1.Container, pro
 				Add:  []corev1.Capability{"NET_ADMIN"},
 				Drop: []corev1.Capability{"ALL"},
 			},
-			Privileged:   pointer.Bool(true),
-			RunAsNonRoot: pointer.Bool(false),
-			RunAsUser:    pointer.Int64(0),
+			Privileged:   ptr.To(true),
+			RunAsNonRoot: ptr.To(false),
+			RunAsUser:    ptr.To[int64](0),
 		},
 		Env: []corev1.EnvVar{{
 			Name:  ProxyPortEnvVar,
@@ -257,13 +250,13 @@ func (m *podMutator) injectProxySidecarContainer(containers []corev1.Container, 
 			},
 		},
 		SecurityContext: &corev1.SecurityContext{
-			AllowPrivilegeEscalation: pointer.Bool(false),
+			AllowPrivilegeEscalation: ptr.To(false),
 			Capabilities: &corev1.Capabilities{
 				Drop: []corev1.Capability{"ALL"},
 			},
-			Privileged:             pointer.Bool(false),
-			ReadOnlyRootFilesystem: pointer.Bool(true),
-			RunAsNonRoot:           pointer.Bool(true),
+			Privileged:             ptr.To(false),
+			ReadOnlyRootFilesystem: ptr.To(true),
+			RunAsNonRoot:           ptr.To(true),
 		},
 	}}, containers...)
 
