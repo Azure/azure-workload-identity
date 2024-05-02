@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/oss/go/microsoft/golang:1.21-bookworm as builder
+FROM mcr.microsoft.com/oss/go/microsoft/golang:1.22-bookworm as builder
 
 ARG LDFLAGS
 
