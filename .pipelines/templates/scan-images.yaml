@@ -11,8 +11,7 @@ steps:
       tar zxvf trivy_${TRIVY_VERSION:-0.24.4}_Linux-64bit.tar.gz
       # show all vulnerabilities in the logs
       ./trivy image --reset
-      # TODO(aramase): add proxy-init image after https://github.com/kubernetes/release/issues/3593 is fixed
-      for IMAGE_NAME in "proxy" "webhook"; do
+      for IMAGE_NAME in "proxy" "proxy-init" "webhook"; do
         ./trivy image "${REGISTRY}/${IMAGE_NAME}:${IMAGE_VERSION}-linux-amd64"
         ./trivy image --exit-code 1 --ignore-unfixed --severity MEDIUM,HIGH,CRITICAL "${REGISTRY}/${IMAGE_NAME}:${IMAGE_VERSION}-linux-amd64" || exit 1
       done
