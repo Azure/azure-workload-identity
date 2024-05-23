@@ -27,12 +27,12 @@ require (
 	go.opentelemetry.io/otel/metric v1.24.0
 	gopkg.in/ini.v1 v1.62.1
 	gopkg.in/square/go-jose.v2 v2.6.0
-	k8s.io/api v0.29.4
-	k8s.io/apimachinery v0.29.4
-	k8s.io/client-go v0.29.4
+	k8s.io/api v0.29.5
+	k8s.io/apimachinery v0.29.5
+	k8s.io/client-go v0.29.5
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
 	monis.app/mlog v0.0.4
-	sigs.k8s.io/controller-runtime v0.17.3
+	sigs.k8s.io/controller-runtime v0.17.5
 )
 
 require (
