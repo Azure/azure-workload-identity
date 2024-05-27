@@ -3,7 +3,7 @@ module github.com/Azure/azure-workload-identity/example/msal-go
 go 1.19
 
 require (
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.9.2
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.11.1
 	github.com/Azure/azure-sdk-for-go/sdk/keyvault/azsecrets v0.12.0
 	github.com/AzureAD/microsoft-authentication-library-for-go v1.2.2
 	k8s.io/klog/v2 v2.120.1
