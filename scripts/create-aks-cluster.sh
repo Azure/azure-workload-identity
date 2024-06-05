@@ -37,9 +37,6 @@ main() {
       --generate-ssh-keys \
       --enable-oidc-issuer > /dev/null
     if [[ "${WINDOWS_CLUSTER:-}" == "true" ]]; then
-      if [[ "${WINDOWS_CONTAINERD:-}" == "true" ]]; then
-        EXTRA_ARGS="--aks-custom-headers WindowsContainerRuntime=containerd"
-      fi
       # shellcheck disable=SC2086
       az aks nodepool add --resource-group "${CLUSTER_NAME}" --cluster-name "${CLUSTER_NAME}" --os-type Windows --name npwin --node-count 3 ${EXTRA_ARGS:-} > /dev/null
     fi

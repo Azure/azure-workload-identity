@@ -79,11 +79,7 @@ jobs:
         value: "true"
     strategy:
       matrix:
-        soak_aks_windows_dockershim:
-          WINDOWS_CLUSTER: "true"
-          GINKGO_SKIP: \[LinuxOnly\]
-          CLUSTER_NAME: "azwi-aks-win-dockershim"
-        soak_aks_windows_containerd:
+        soak_aks_windows:
           WINDOWS_CLUSTER: "true"
           GINKGO_SKIP: \[LinuxOnly\]
           CLUSTER_NAME: "azwi-aks-win-containerd"
@@ -104,12 +100,8 @@ jobs:
         - scan_images
         - verify_deployment_yaml
       matrix:
-        upgrade_aks_windows_dockershim:
+        upgrade_aks_windows:
           WINDOWS_CLUSTER: "true"
-          GINKGO_SKIP: \[AKSSoakOnly\]
-        upgrade_aks_windows_containerd:
-          WINDOWS_CLUSTER: "true"
-          WINDOWS_CONTAINERD: "true"
           GINKGO_SKIP: \[AKSSoakOnly\]
         upgrade_aks_linux:
           GINKGO_SKIP: \[AKSSoakOnly\]
