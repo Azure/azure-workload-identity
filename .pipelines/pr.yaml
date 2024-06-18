@@ -80,14 +80,9 @@ jobs:
       - group: e2e-environment-variables
     strategy:
       matrix:
-        aks_windows_dockershim:
+        aks_windows:
           REGISTRY: upstream.azurecr.io/azure-workload-identity
           WINDOWS_CLUSTER: "true"
-          GINKGO_SKIP: \[AKSSoakOnly\]
-        aks_windows_containerd:
-          REGISTRY: upstream.azurecr.io/azure-workload-identity
-          WINDOWS_CLUSTER: "true"
-          WINDOWS_CONTAINERD: "true"
           GINKGO_SKIP: \[AKSSoakOnly\]
         aks_linux:
           REGISTRY: upstream.azurecr.io/azure-workload-identity
