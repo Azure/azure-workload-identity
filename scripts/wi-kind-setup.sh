@@ -49,8 +49,9 @@ fi
 LOCATION="${1}"
 RESOURCE_GROUP="${2}"
 AZURE_STORAGE_ACCOUNT="oidcissuer$(openssl rand -hex 4)"
-AZURE_STORAGE_CONTAINER="oidc"
-SERVICE_ACCOUNT_ISSUER="https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${AZURE_STORAGE_CONTAINER}/"
+# This $web container is a special container that serves static web content without requiring public access enablement.
+# See https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blob-static-website
+AZURE_STORAGE_CONTAINER="\$web"
 
 validate() {
     # check if user is logged into azure cli
@@ -74,12 +75,15 @@ create_azure_blob_storage_account() {
 
     if ! az storage account show --name "${AZURE_STORAGE_ACCOUNT}" --resource-group "${RESOURCE_GROUP}" > /dev/null 2>&1; then
         echo "Creating storage account '${AZURE_STORAGE_ACCOUNT}' in '${RESOURCE_GROUP}'"
-        az storage account create --resource-group "${RESOURCE_GROUP}" --name "${AZURE_STORAGE_ACCOUNT}" --allow-blob-public-access true --output none --only-show-errors
+        az storage account create --resource-group "${RESOURCE_GROUP}" --name "${AZURE_STORAGE_ACCOUNT}" --output none --only-show-errors
     fi
+
+    # Enable static website serving
+    az storage blob service-properties update --account-name "${AZURE_STORAGE_ACCOUNT}" --static-website --output none --only-show-errors
 
     if ! az storage container show --name "${AZURE_STORAGE_CONTAINER}" --account-name "${AZURE_STORAGE_ACCOUNT}" > /dev/null 2>&1; then
         echo "Creating storage container '${AZURE_STORAGE_CONTAINER}' in '${AZURE_STORAGE_ACCOUNT}'"
-        az storage container create --name "${AZURE_STORAGE_CONTAINER}" --account-name "${AZURE_STORAGE_ACCOUNT}" --public-access blob --output none --only-show-errors
+        az storage container create --name "${AZURE_STORAGE_CONTAINER}" --account-name "${AZURE_STORAGE_ACCOUNT}" --output none --only-show-errors
     fi
 }
 
@@ -124,6 +128,8 @@ upload_to_blob() {
 }
 
 create_kind_cluster() {
+    SERVICE_ACCOUNT_ISSUER=$(az storage account show --name "${AZURE_STORAGE_ACCOUNT}" -o json | jq -r .primaryEndpoints.web)
+
     if [ "${SKIP_CLUSTER:-}" = "true" ]; then
         echo "Skipping cluster creation"
         return
