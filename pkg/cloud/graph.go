@@ -120,8 +120,8 @@ func (c *AzureClient) GetFederatedCredential(ctx context.Context, objectID, issu
 		"subject", subject,
 	)
 
-	ficGetOptions := &applications.ItemFederatedIdentityCredentialsRequestBuilderGetRequestConfiguration{
-		QueryParameters: &applications.ItemFederatedIdentityCredentialsRequestBuilderGetQueryParameters{
+	ficGetOptions := &applications.ItemFederatedidentitycredentialsFederatedIdentityCredentialsRequestBuilderGetRequestConfiguration{
+		QueryParameters: &applications.ItemFederatedidentitycredentialsFederatedIdentityCredentialsRequestBuilderGetQueryParameters{
 			// Filtering on more than one resource is currently not supported.
 			Filter: to.Ptr(getSubjectFilter(subject)),
 		},

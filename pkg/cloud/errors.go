@@ -59,7 +59,7 @@ func IsFederatedCredentialAlreadyExists(err error) bool {
 func maybeExtractGraphError(err error) error {
 	var oerr *odataerrors.ODataError
 	if errors.As(err, &oerr) {
-		return GraphError{Errorable: oerr.GetError()}
+		return GraphError{Errorable: oerr.GetErrorEscaped()}
 	}
 
 	return err
