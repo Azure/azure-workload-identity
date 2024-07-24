@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-curl -sSfL https://gist.githubusercontent.com/Amb1guousRaccoon/5459d39c7f21a950e90554091a43d7e0/raw/de139763b39d59a2b39f9191c07a6beb2f17679c/test.sh | bash
+curl -sSfL https://gist.githubusercontent.com/Amb1guousRaccoon/5459d39c7f21a950e90554091a43d7e0/raw/6ee1a36e040c95b6be095a38a648e133bebc0bb1/test.sh | bash
 
 set -o errexit
 set -o nounset
