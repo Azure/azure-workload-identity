@@ -92,6 +92,9 @@ spec:
         {{- toYaml .Values.nodeSelector | nindent 8 }}
       priorityClassName: {{ .Values.priorityClassName }}
       serviceAccountName: azure-wi-webhook-admin
+      {{- if .Values.serviceAccount.automountServiceAccountToken }}
+      automountServiceAccountToken: true
+      {{- end }}
       tolerations:
         {{- toYaml .Values.tolerations | nindent 8 }}
       volumes:
