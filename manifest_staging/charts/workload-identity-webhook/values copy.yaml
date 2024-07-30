@@ -1,0 +1,43 @@
+# Default values for workload-identity-webhook.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 2
+image:
+  repository: mcr.microsoft.com/oss/azure/workload-identity/webhook
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  release: v1.3.0
+imagePullSecrets: []
+# Define if the service account can be used by default (automount property)
+serviceAccount:
+  automountServiceAccountToken: false
+nodeSelector:
+  kubernetes.io/os: linux
+resources:
+  limits:
+    cpu: 100m
+    memory: 30Mi
+  requests:
+    cpu: 100m
+    memory: 20Mi
+tolerations: []
+affinity: {}
+service:
+  type: ClusterIP
+  port: 443
+  targetPort: 9443
+azureEnvironment: AzurePublicCloud
+azureTenantID:
+logLevel: info
+metricsAddr: ":8095"
+metricsBackend: prometheus
+priorityClassName: system-cluster-critical
+mutatingWebhookAnnotations: {}
+podLabels: {}
+podAnnotations: {}
+mutatingWebhookNamespaceSelector: {}
+# minAvailable and maxUnavailable are mutually exclusive
+podDisruptionBudget:
+  minAvailable: 1
+  # maxUnavailable: 0
