@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"os"
 	"time"
 
@@ -37,7 +38,12 @@ func newClientAssertionCredential(tenantID, clientID, authorityHost, file string
 		},
 	)
 
-	client, err := confidential.New(fmt.Sprintf("%s%s/oauth2/token", authorityHost, tenantID), clientID, cred)
+	authority, err := url.JoinPath(authorityHost, tenantID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to construct authority URL: %w", err)
+	}
+
+	client, err := confidential.New(authority, clientID, cred)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create confidential client: %w", err)
 	}
