@@ -20,6 +20,8 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/rest"
 	"k8s.io/utils/ptr"
 
 	"github.com/Azure/azure-workload-identity/pkg/config"
@@ -53,10 +55,11 @@ type podMutator struct {
 	azureAuthorityHost string
 	proxyImage         string
 	proxyInitImage     string
+	useNativeSidecar   bool
 }
 
 // NewPodMutator returns a pod mutation handler
-func NewPodMutator(client client.Client, reader client.Reader, audience string, scheme *runtime.Scheme) (admission.Handler, error) {
+func NewPodMutator(client client.Client, reader client.Reader, audience string, scheme *runtime.Scheme, restConfig *rest.Config) (admission.Handler, error) {
 	c, err := config.ParseConfig()
 	if err != nil {
 		return nil, err
@@ -64,6 +67,19 @@ func NewPodMutator(client client.Client, reader client.Reader, audience string, 
 	if audience == "" {
 		audience = DefaultAudience
 	}
+
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(restConfig)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create discovery client")
+	}
+	// "SidecarContainers" went beta in 1.29. With the 3 version skew policy,
+	// between API server and kubelet, 1.32 is the earliest version this can be
+	// safely used.
+	useNativeSidecar, err := isSupportedKubernetesVersion(discoveryClient, 1, 32)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to check kubernetes version")
+	}
+
 	// this is used to configure the AZURE_AUTHORITY_HOST env var that's
 	// used by the azure sdk
 	azureAuthorityHost, err := getAzureAuthorityHost(c)
@@ -92,6 +108,7 @@ func NewPodMutator(client client.Client, reader client.Reader, audience string, 
 		azureAuthorityHost: azureAuthorityHost,
 		proxyImage:         proxyImage,
 		proxyInitImage:     proxyInitImage,
+		useNativeSidecar:   useNativeSidecar,
 	}, nil
 }
 
@@ -155,7 +172,11 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) (respons
 		}
 
 		pod.Spec.InitContainers = m.injectProxyInitContainer(pod.Spec.InitContainers, proxyPort)
-		pod.Spec.Containers = m.injectProxySidecarContainer(pod.Spec.Containers, proxyPort)
+		if m.useNativeSidecar {
+			pod.Spec.InitContainers = m.injectProxySidecarContainer(pod.Spec.InitContainers, proxyPort, ptr.To(corev1.ContainerRestartPolicyAlways))
+		} else {
+			pod.Spec.Containers = m.injectProxySidecarContainer(pod.Spec.Containers, proxyPort, nil)
+		}
 	}
 
 	// get service account token expiration
@@ -228,13 +249,14 @@ func (m *podMutator) injectProxyInitContainer(containers []corev1.Container, pro
 	return containers
 }
 
-func (m *podMutator) injectProxySidecarContainer(containers []corev1.Container, proxyPort int32) []corev1.Container {
+func (m *podMutator) injectProxySidecarContainer(containers []corev1.Container, proxyPort int32, restartPolicy *corev1.ContainerRestartPolicy) []corev1.Container {
 	for _, container := range containers {
 		if container.Name == ProxySidecarContainerName {
 			return containers
 		}
 	}
 	logLevel := currentLogLevel() // run the proxy at the same log level as the webhook
+
 	containers = append([]corev1.Container{{
 		Name:            ProxySidecarContainerName,
 		Image:           m.proxyImage,
@@ -267,6 +289,7 @@ func (m *podMutator) injectProxySidecarContainer(containers []corev1.Container, 
 			ReadOnlyRootFilesystem: ptr.To(true),
 			RunAsNonRoot:           ptr.To(true),
 		},
+		RestartPolicy: restartPolicy,
 	}}, containers...)
 
 	return containers
@@ -466,4 +489,27 @@ func currentLogLevel() string {
 		}
 	}
 	return "" // this is unreachable
+}
+
+// isSupportedKubernetesVersion checks if the Kubernetes version is supported
+// by comparing the major and minor version numbers.
+// It returns true if the version is greater than or equal to the specified
+// minimum version, and false otherwise.
+func isSupportedKubernetesVersion(discoveryClient discovery.DiscoveryInterface, minMajor, minMinor int) (bool, error) {
+	// check if the kubernetes version is supported
+	version, err := discoveryClient.ServerVersion()
+	if err != nil {
+		return false, err
+	}
+
+	major, err := strconv.Atoi(version.Major)
+	if err != nil {
+		return false, err
+	}
+	minor, err := strconv.Atoi(version.Minor)
+	if err != nil {
+		return false, err
+	}
+
+	return major > minMajor || (major == minMajor && minor >= minMinor), nil
 }

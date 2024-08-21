@@ -19,6 +19,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/version"
+	discoveryfake "k8s.io/client-go/discovery/fake"
+	kubernetesfake "k8s.io/client-go/kubernetes/fake"
 	"k8s.io/utils/ptr"
 
 	"github.com/Azure/azure-workload-identity/pkg/config"
@@ -1115,20 +1118,26 @@ func TestInjectProxySidecarContainer(t *testing.T) {
 		},
 	}
 
+	proxyNativeSidecarContainer := proxySidecarContainer
+	proxyNativeSidecarContainer.RestartPolicy = ptr.To(corev1.ContainerRestartPolicyAlways)
+
 	tests := []struct {
 		name               string
 		containers         []corev1.Container
 		expectedContainers []corev1.Container
+		restartPolicy      *corev1.ContainerRestartPolicy
 	}{
 		{
 			name:               "no containers",
 			containers:         []corev1.Container{},
 			expectedContainers: []corev1.Container{proxySidecarContainer},
+			restartPolicy:      nil,
 		},
 		{
 			name:               "proxy sidecar container manually injected",
 			containers:         []corev1.Container{proxySidecarContainer},
 			expectedContainers: []corev1.Container{proxySidecarContainer},
+			restartPolicy:      nil,
 		},
 		{
 			name: "inject proxy sidecar container to existing containers",
@@ -1145,13 +1154,31 @@ func TestInjectProxySidecarContainer(t *testing.T) {
 					Image: "my-image",
 				},
 			},
+			restartPolicy: nil,
+		},
+		{
+			name: "inject proxy native sidecar container to existing containers when restartPolicy is set",
+			containers: []corev1.Container{
+				{
+					Name:  "my-container",
+					Image: "my-image",
+				},
+			},
+			expectedContainers: []corev1.Container{
+				proxyNativeSidecarContainer,
+				{
+					Name:  "my-container",
+					Image: "my-image",
+				},
+			},
+			restartPolicy: ptr.To(corev1.ContainerRestartPolicyAlways),
 		},
 	}
 
 	m := &podMutator{proxyImage: imageURL}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			containers := m.injectProxySidecarContainer(test.containers, proxyPort)
+			containers := m.injectProxySidecarContainer(test.containers, proxyPort, test.restartPolicy)
 			if !reflect.DeepEqual(containers, test.expectedContainers) {
 				t.Errorf("expected: %v, got: %v", test.expectedContainers, containers)
 			}
@@ -1370,6 +1397,84 @@ func TestHandleError(t *testing.T) {
 			}
 			if !strings.Contains(resp.Result.Message, test.expectedErr) {
 				t.Fatalf("expected error to contain: %v, got: %v", test.expectedErr, resp.Result.Message)
+			}
+		})
+	}
+}
+
+func TestIsSupportedKubernetesVersion(t *testing.T) {
+	tests := []struct {
+		name        string
+		versionInfo *version.Info
+		minMajor    int
+		minMinor    int
+		want        bool
+		wantErr     bool
+	}{
+		{
+			name:        "Exact match",
+			versionInfo: &version.Info{Major: "1", Minor: "20"},
+			minMajor:    1,
+			minMinor:    20,
+			want:        true,
+		},
+		{
+			name:        "Higher major version",
+			versionInfo: &version.Info{Major: "2", Minor: "0"},
+			minMajor:    1,
+			minMinor:    25,
+			want:        true,
+		},
+		{
+			name:        "Higher minor version",
+			versionInfo: &version.Info{Major: "1", Minor: "25"},
+			minMajor:    1,
+			minMinor:    20,
+			want:        true,
+		},
+		{
+			name:        "Lower minor version",
+			versionInfo: &version.Info{Major: "1", Minor: "18"},
+			minMajor:    1,
+			minMinor:    20,
+			want:        false,
+		},
+		{
+			name:        "Lower major version",
+			versionInfo: &version.Info{Major: "0", Minor: "25"},
+			minMajor:    1,
+			minMinor:    20,
+			want:        false,
+		},
+		{
+			name:        "Invalid major version",
+			versionInfo: &version.Info{Major: "invalid", Minor: "20"},
+			minMajor:    1,
+			minMinor:    20,
+			wantErr:     true,
+		},
+		{
+			name:        "Invalid minor version",
+			versionInfo: &version.Info{Major: "1", Minor: "invalid"},
+			minMajor:    1,
+			minMinor:    20,
+			wantErr:     true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			discoveryClient := kubernetesfake.NewClientset().Discovery()
+			discoveryClient.(*discoveryfake.FakeDiscovery).FakedServerVersion = tt.versionInfo
+
+			got, err := isSupportedKubernetesVersion(discoveryClient, tt.minMajor, tt.minMinor)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("isSupportedKubernetesVersion() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("isSupportedKubernetesVersion() = %v, want %v", got, tt.want)
 			}
 		})
 	}
