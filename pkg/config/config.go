@@ -7,8 +7,10 @@ import (
 
 // Config holds configuration from the env variables
 type Config struct {
-	Cloud    string `envconfig:"AZURE_ENVIRONMENT" default:"AzurePublicCloud"`
-	TenantID string `envconfig:"AZURE_TENANT_ID" required:"true"`
+	Cloud          string `envconfig:"AZURE_ENVIRONMENT" default:"AzurePublicCloud"`
+	TenantID       string `envconfig:"AZURE_TENANT_ID" required:"true"`
+	ProxyImage     string `envconfig:"PROXY_IMAGE"`
+	ProxyInitImage string `envconfig:"PROXY_INIT_IMAGE"`
 }
 
 // ParseConfig parses the configuration from env variables

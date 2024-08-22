@@ -1044,7 +1044,7 @@ func TestInjectProxyInitContainer(t *testing.T) {
 		},
 	}
 
-	m := &podMutator{}
+	m := &podMutator{proxyInitImage: imageURL}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			containers := m.injectProxyInitContainer(test.containers, proxyPort)
@@ -1147,7 +1147,7 @@ func TestInjectProxySidecarContainer(t *testing.T) {
 		},
 	}
 
-	m := &podMutator{}
+	m := &podMutator{proxyImage: imageURL}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			containers := m.injectProxySidecarContainer(test.containers, proxyPort)
