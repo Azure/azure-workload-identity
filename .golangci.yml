@@ -1,6 +1,6 @@
 run:
   deadline: 20m
-  go-version: "1.22"
+  go-version: "1.23"
 
 linters:
   disable-all: true
