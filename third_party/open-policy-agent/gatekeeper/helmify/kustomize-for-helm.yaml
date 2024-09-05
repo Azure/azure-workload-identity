@@ -46,6 +46,13 @@ spec:
         - --metrics-backend={{ .Values.metricsBackend }}
         command:
         - /manager
+        env:
+        {{- with .Values.goEnvVars }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.extraEnvVars }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
         envFrom:
         - configMapRef:
             name: azure-wi-webhook-config
