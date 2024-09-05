@@ -7,8 +7,10 @@ import (
 
 // Config holds configuration from the env variables
 type Config struct {
-	Cloud    string `envconfig:"AZURE_ENVIRONMENT"`
-	TenantID string `envconfig:"AZURE_TENANT_ID"`
+	Cloud          string `envconfig:"AZURE_ENVIRONMENT" default:"AzurePublicCloud"`
+	TenantID       string `envconfig:"AZURE_TENANT_ID" required:"true"`
+	ProxyImage     string `envconfig:"PROXY_IMAGE"`
+	ProxyInitImage string `envconfig:"PROXY_INIT_IMAGE"`
 }
 
 // ParseConfig parses the configuration from env variables
@@ -28,7 +30,7 @@ func ParseConfig() (*Config, error) {
 // validateConfig validates the configuration
 func validateConfig(c *Config) error {
 	if c.TenantID == "" {
-		return errors.New("tenant ID is required")
+		return errors.New("AZURE_TENANT_ID is required")
 	}
 	return nil
 }
