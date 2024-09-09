@@ -17,6 +17,8 @@ const (
 	SkipContainersAnnotation = "azure.workload.identity/skip-containers"
 	// InjectProxySidecarAnnotation represents the annotation to be used to inject proxy sidecar into the pod
 	InjectProxySidecarAnnotation = "azure.workload.identity/inject-proxy-sidecar"
+	// UseNativeSidecarAnnotation represents the annotation to be used to inject the proxy as a native sidecar into the pod
+	UseNativeSidecarAnnotation = "azure.workload.identity/use-native-sidecar"
 	// ProxySidecarPortAnnotation represents the annotation to be used to specify the port for proxy sidecar
 	ProxySidecarPortAnnotation = "azure.workload.identity/proxy-sidecar-port"
 
