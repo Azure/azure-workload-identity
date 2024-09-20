@@ -79,11 +79,7 @@ jobs:
         value: "true"
     strategy:
       matrix:
-        soak_aks_windows_dockershim:
-          WINDOWS_CLUSTER: "true"
-          GINKGO_SKIP: \[LinuxOnly\]
-          CLUSTER_NAME: "azwi-aks-win-dockershim"
-        soak_aks_windows_containerd:
+        soak_aks_windows:
           WINDOWS_CLUSTER: "true"
           GINKGO_SKIP: \[LinuxOnly\]
           CLUSTER_NAME: "azwi-aks-win-containerd"
@@ -104,12 +100,8 @@ jobs:
         - scan_images
         - verify_deployment_yaml
       matrix:
-        upgrade_aks_windows_dockershim:
+        upgrade_aks_windows:
           WINDOWS_CLUSTER: "true"
-          GINKGO_SKIP: \[AKSSoakOnly\]
-        upgrade_aks_windows_containerd:
-          WINDOWS_CLUSTER: "true"
-          WINDOWS_CONTAINERD: "true"
           GINKGO_SKIP: \[AKSSoakOnly\]
         upgrade_aks_linux:
           GINKGO_SKIP: \[AKSSoakOnly\]
@@ -139,14 +131,12 @@ jobs:
         value: "true"
     strategy:
       matrix:
-        kind_v1_26_14:
-          KIND_NODE_VERSION: v1.26.14
-        kind_v1_27_11:
-          KIND_NODE_VERSION: v1.27.11
-        kind_v1_28_7:
-          KIND_NODE_VERSION: v1.28.7
-        kind_v1_29_2:
-          KIND_NODE_VERSION: v1.29.2
+        kind_v1_28_9:
+          KIND_NODE_VERSION: v1.28.9
+        kind_v1_29_4:
+          KIND_NODE_VERSION: v1.29.4
+        kind_v1_30_2:
+          KIND_NODE_VERSION: v1.30.2
     steps:
       - script: make test-e2e
         displayName: Webhook E2E test suite

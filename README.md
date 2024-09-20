@@ -7,10 +7,9 @@ Azure AD Workload Identity is the next iteration of [Azure AD Pod Identity][1] t
 
 | Kubernetes Version | Supported |
 | ------------------ | --------- |
+| 1.30               | ✅         |
 | 1.29               | ✅         |
 | 1.28               | ✅         |
-| 1.27               | ✅         |
-| 1.26               | ✅         |
 
 ## Installation
 

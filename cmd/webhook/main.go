@@ -1,22 +1,22 @@
 package main
 
 import (
+	"crypto/tls"
 	"flag"
 	"fmt"
 	"net/http"
 
 	"github.com/open-policy-agent/cert-controller/pkg/rotator"
-	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/client-go/rest"
 	"monis.app/mlog"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	"github.com/Azure/azure-workload-identity/pkg/metrics"
@@ -104,15 +104,24 @@ func mainErr() error {
 	// log the user agent as it makes it easier to debug issues
 	entryLog.Info("setting up manager", "userAgent", config.UserAgent)
 
+	tlsVersion, err := parseTLSVersion(tlsMinVersion)
+	if err != nil {
+		return fmt.Errorf("entrypoint: unable to parse TLS version: %w", err)
+	}
+
+	serverOpts := webhook.Options{
+		CertDir: webhookCertDir,
+		TLSOpts: []func(c *tls.Config){func(c *tls.Config) { c.MinVersion = tlsVersion }},
+	}
 	mgr, err := ctrl.NewManager(config, ctrl.Options{
 		Scheme:                 scheme,
 		LeaderElection:         false,
 		HealthProbeBindAddress: healthAddr,
-		MetricsBindAddress:     metricsAddr,
-		CertDir:                webhookCertDir,
-		MapperProvider: func(c *rest.Config) (meta.RESTMapper, error) {
-			return apiutil.NewDynamicRESTMapper(c)
+		Metrics: metricsserver.Options{
+			BindAddress: metricsAddr,
 		},
+		WebhookServer:  webhook.NewServer(serverOpts),
+		MapperProvider: apiutil.NewDynamicRESTMapper,
 	})
 	if err != nil {
 		return fmt.Errorf("entrypoint: unable to set up controller manager: %w", err)
@@ -156,11 +165,10 @@ func setupWebhook(mgr manager.Manager, setupFinished chan struct{}) {
 	<-setupFinished
 
 	hookServer := mgr.GetWebhookServer()
-	hookServer.TLSMinVersion = tlsMinVersion
 
 	// setup webhooks
 	entryLog.Info("registering webhook to the webhook server")
-	podMutator, err := wh.NewPodMutator(mgr.GetClient(), mgr.GetAPIReader(), audience)
+	podMutator, err := wh.NewPodMutator(mgr.GetClient(), mgr.GetAPIReader(), audience, mgr.GetScheme())
 	if err != nil {
 		panic(fmt.Errorf("unable to set up pod mutator: %w", err))
 	}
@@ -189,4 +197,19 @@ func setupProbeEndpoints(mgr ctrl.Manager, setupFinished chan struct{}) {
 		panic(fmt.Errorf("unable to add readyz check: %w", err))
 	}
 	entryLog.Info("added healthz and readyz check")
+}
+
+func parseTLSVersion(tlsVersion string) (uint16, error) {
+	switch tlsVersion {
+	case "1.0":
+		return tls.VersionTLS10, nil
+	case "1.1":
+		return tls.VersionTLS11, nil
+	case "1.2":
+		return tls.VersionTLS12, nil
+	case "1.3":
+		return tls.VersionTLS13, nil
+	default:
+		return 0, fmt.Errorf("invalid TLS version. Must be one of: 1.0, 1.1, 1.2, 1.3")
+	}
 }

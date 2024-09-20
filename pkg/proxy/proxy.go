@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -197,8 +198,12 @@ func doTokenRequest(ctx context.Context, clientID, resource, tenantID, authority
 	cred := confidential.NewCredFromAssertionCallback(func(context.Context, confidential.AssertionRequestOptions) (string, error) {
 		return readJWTFromFS(tokenFilePath)
 	})
+	authority, err := url.JoinPath(authorityHost, tenantID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to construct authority URL")
+	}
 
-	confidentialClientApp, err := confidential.New(fmt.Sprintf("%s%s/oauth2/token", authorityHost, tenantID), clientID, cred)
+	confidentialClientApp, err := confidential.New(authority, clientID, cred)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create confidential client app")
 	}

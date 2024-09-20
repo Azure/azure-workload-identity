@@ -2,7 +2,7 @@ REGISTRY ?= mcr.microsoft.com/oss/azure/workload-identity
 PROXY_IMAGE_NAME := proxy
 INIT_IMAGE_NAME := proxy-init
 WEBHOOK_IMAGE_NAME := webhook
-IMAGE_VERSION ?= v1.2.1
+IMAGE_VERSION ?= v1.3.0
 
 ORG_PATH := github.com/Azure
 PROJECT_NAME := azure-workload-identity
@@ -43,7 +43,7 @@ GINKGO_VER := v2.1.6
 GINKGO_BIN := ginkgo
 GINKGO := $(TOOLS_BIN_DIR)/$(GINKGO_BIN)-$(GINKGO_VER)
 
-KIND_VER := v0.21.0
+KIND_VER := v0.23.0
 KIND_BIN := kind
 KIND := $(TOOLS_BIN_DIR)/$(KIND_BIN)-$(KIND_VER)
 

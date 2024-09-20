@@ -22,7 +22,7 @@ var _ = ginkgo.Describe("TokenExchange [AKSSoakOnly]", func() {
 	f := framework.NewDefaultFramework("token-exchange")
 
 	// E2E scenario from https://github.com/Azure/azure-workload-identity/tree/main/examples/msal-go
-	ginkgo.It("should exchange the service account token for a valid AAD token", func() {
+	ginkgo.It("should exchange the service account token for a valid AAD token", func(ctx context.Context) {
 		clientID, ok := os.LookupEnv("APPLICATION_CLIENT_ID")
 		gomega.Expect(ok).To(gomega.BeTrue(), "APPLICATION_CLIENT_ID must be set")
 		keyvaultURL, ok := os.LookupEnv("KEYVAULT_URL")
@@ -59,7 +59,7 @@ var _ = ginkgo.Describe("TokenExchange [AKSSoakOnly]", func() {
 		for _, container := range []string{busybox1, busybox2} {
 			framework.Logf("validating that %s in %s has exchanged its service account token for a valid AAD token", container, pod.Name)
 			gomega.Eventually(func() bool {
-				stdout, err := e2epod.GetPodLogs(f.ClientSet, namespace, pod.Name, container)
+				stdout, err := e2epod.GetPodLogs(ctx, f.ClientSet, namespace, pod.Name, container)
 				if err != nil {
 					framework.Logf("failed to get logs from container %s in %s/%s: %v. Retrying...", container, namespace, pod.Name, err)
 					return false

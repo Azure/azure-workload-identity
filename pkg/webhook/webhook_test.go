@@ -14,7 +14,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"monis.app/mlog"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -725,42 +725,47 @@ func TestHandle(t *testing.T) {
 		})
 	}
 
-	decoder, _ := atypes.NewDecoder(runtime.NewScheme())
+	decoder := atypes.NewDecoder(runtime.NewScheme())
 
 	tests := []struct {
-		name               string
-		serviceAccountName string
-		podLabels          map[string]string
-		clientObjects      []client.Object
-		readerObjects      []client.Object
+		name          string
+		rawPod        []byte
+		clientObjects []client.Object
+		readerObjects []client.Object
 	}{
 		{
-			name:               "service account in cache",
-			serviceAccountName: "sa",
-			clientObjects:      serviceAccounts,
-			readerObjects:      nil,
+			name:          "service account in cache",
+			rawPod:        newPodRaw("pod", "ns1", "sa", nil, nil, false),
+			clientObjects: serviceAccounts,
+			readerObjects: nil,
 		},
 		{
-			name:               "service account not in cache",
-			serviceAccountName: "sa",
-			clientObjects:      nil,
-			readerObjects:      serviceAccounts,
+			name:          "service account not in cache",
+			rawPod:        newPodRaw("pod", "ns1", "sa", nil, nil, false),
+			clientObjects: nil,
+			readerObjects: serviceAccounts,
 		},
 		{
 			name:          "default service account in cache",
+			rawPod:        newPodRaw("pod", "ns1", "", nil, nil, false),
 			clientObjects: serviceAccounts,
 			readerObjects: nil,
 		},
 		{
 			name:          "default service account not in cache",
+			rawPod:        newPodRaw("pod", "ns1", "", nil, nil, false),
 			clientObjects: nil,
 			readerObjects: serviceAccounts,
 		},
 		{
-			name: "pod has the required label, no warnings",
-			podLabels: map[string]string{
-				UseWorkloadIdentityLabel: "true",
-			},
+			name:          "pod has the required label, no warnings",
+			rawPod:        newPodRaw("pod", "ns1", "sa", map[string]string{UseWorkloadIdentityLabel: "true"}, nil, false),
+			clientObjects: serviceAccounts,
+			readerObjects: nil,
+		},
+		{
+			name:          "pod has the required label, restart policy in init container",
+			rawPod:        []byte(`{"metadata":{"name":"pod","namespace":"ns1","creationTimestamp":null,"labels":{"azure.workload.identity/use":"true"}},"spec":{"initContainers":[{"name":"init-container","image":"init-container-image","restartPolicy":"Always"}],"containers":[{"name":"container","image":"image","resources":{}}]}}`),
 			clientObjects: serviceAccounts,
 			readerObjects: nil,
 		},
@@ -786,7 +791,7 @@ func TestHandle(t *testing.T) {
 						Version: "v1",
 						Kind:    "Pod",
 					},
-					Object:    runtime.RawExtension{Raw: newPodRaw("pod", "ns1", test.serviceAccountName, test.podLabels, nil, false)},
+					Object:    runtime.RawExtension{Raw: test.rawPod},
 					Namespace: "ns1",
 					Operation: admissionv1.Create,
 				},
@@ -795,6 +800,11 @@ func TestHandle(t *testing.T) {
 			resp := m.Handle(context.Background(), req)
 			if !resp.Allowed {
 				t.Fatalf("expected to be allowed")
+			}
+			for _, patch := range resp.Patches {
+				if patch.Operation == "remove" {
+					t.Errorf("expected no remove patches, got: %v", patch)
+				}
 			}
 		})
 	}
@@ -958,7 +968,7 @@ func TestMutateContainers(t *testing.T) {
 		}},
 	}}
 
-	decoder, _ := atypes.NewDecoder(runtime.NewScheme())
+	decoder := atypes.NewDecoder(runtime.NewScheme())
 	m := &podMutator{
 		client:             fake.NewClientBuilder().WithObjects().Build(),
 		reader:             fake.NewClientBuilder().WithObjects().Build(),
@@ -991,9 +1001,9 @@ func TestInjectProxyInitContainer(t *testing.T) {
 				Add:  []corev1.Capability{"NET_ADMIN"},
 				Drop: []corev1.Capability{"ALL"},
 			},
-			Privileged:   pointer.Bool(true),
-			RunAsNonRoot: pointer.Bool(false),
-			RunAsUser:    pointer.Int64(0),
+			Privileged:   ptr.To(true),
+			RunAsNonRoot: ptr.To(false),
+			RunAsUser:    ptr.To[int64](0),
 		},
 		Env: []corev1.EnvVar{{
 			Name:  ProxyPortEnvVar,
@@ -1034,7 +1044,7 @@ func TestInjectProxyInitContainer(t *testing.T) {
 		},
 	}
 
-	m := &podMutator{}
+	m := &podMutator{proxyInitImage: imageURL}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			containers := m.injectProxyInitContainer(test.containers, proxyPort)
@@ -1094,13 +1104,13 @@ func TestInjectProxySidecarContainer(t *testing.T) {
 			},
 		},
 		SecurityContext: &corev1.SecurityContext{
-			AllowPrivilegeEscalation: pointer.Bool(false),
+			AllowPrivilegeEscalation: ptr.To(false),
 			Capabilities: &corev1.Capabilities{
 				Drop: []corev1.Capability{"ALL"},
 			},
-			Privileged:             pointer.Bool(false),
-			ReadOnlyRootFilesystem: pointer.Bool(true),
-			RunAsNonRoot:           pointer.Bool(true),
+			Privileged:             ptr.To(false),
+			ReadOnlyRootFilesystem: ptr.To(true),
+			RunAsNonRoot:           ptr.To(true),
 		},
 	}
 
@@ -1137,7 +1147,7 @@ func TestInjectProxySidecarContainer(t *testing.T) {
 		},
 	}
 
-	m := &podMutator{}
+	m := &podMutator{proxyImage: imageURL}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			containers := m.injectProxySidecarContainer(test.containers, proxyPort)
@@ -1285,7 +1295,7 @@ func TestHandleError(t *testing.T) {
 		})
 	}
 
-	decoder, _ := atypes.NewDecoder(runtime.NewScheme())
+	decoder := atypes.NewDecoder(runtime.NewScheme())
 
 	tests := []struct {
 		name          string

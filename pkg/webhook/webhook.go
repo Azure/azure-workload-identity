@@ -14,8 +14,9 @@ import (
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"monis.app/mlog"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
@@ -49,10 +50,12 @@ type podMutator struct {
 	decoder            *admission.Decoder
 	audience           string
 	azureAuthorityHost string
+	proxyImage         string
+	proxyInitImage     string
 }
 
 // NewPodMutator returns a pod mutation handler
-func NewPodMutator(client client.Client, reader client.Reader, audience string) (admission.Handler, error) {
+func NewPodMutator(client client.Client, reader client.Reader, audience string, scheme *runtime.Scheme) (admission.Handler, error) {
 	c, err := config.ParseConfig()
 	if err != nil {
 		return nil, err
@@ -66,6 +69,14 @@ func NewPodMutator(client client.Client, reader client.Reader, audience string) 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get AAD endpoint")
 	}
+	proxyImage := c.ProxyImage
+	if len(proxyImage) == 0 {
+		proxyImage = fmt.Sprintf("%s/%s:%s", ProxyImageRegistry, ProxySidecarImageName, ProxyImageVersion)
+	}
+	proxyInitImage := c.ProxyInitImage
+	if len(proxyInitImage) == 0 {
+		proxyInitImage = fmt.Sprintf("%s/%s:%s", ProxyImageRegistry, ProxyInitImageName, ProxyImageVersion)
+	}
 
 	if err := registerMetrics(); err != nil {
 		return nil, errors.Wrap(err, "failed to register metrics")
@@ -75,8 +86,11 @@ func NewPodMutator(client client.Client, reader client.Reader, audience string) 
 		client:             client,
 		reader:             reader,
 		config:             c,
+		decoder:            admission.NewDecoder(scheme),
 		audience:           audience,
 		azureAuthorityHost: azureAuthorityHost,
+		proxyImage:         proxyImage,
+		proxyInitImage:     proxyInitImage,
 	}, nil
 }
 
@@ -169,15 +183,6 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) (respons
 	return admission.PatchResponseFromRaw(req.Object.Raw, marshaledPod)
 }
 
-// PodMutator implements admission.DecoderInjector
-// A decoder will be automatically injected
-
-// InjectDecoder injects the decoder
-func (m *podMutator) InjectDecoder(d *admission.Decoder) error {
-	m.decoder = d
-	return nil
-}
-
 // mutateContainers mutates the containers by injecting the projected
 // service account token volume and environment variables
 func (m *podMutator) mutateContainers(containers []corev1.Container, clientID string, tenantID string, skipContainers map[string]struct{}) []corev1.Container {
@@ -195,25 +200,23 @@ func (m *podMutator) mutateContainers(containers []corev1.Container, clientID st
 }
 
 func (m *podMutator) injectProxyInitContainer(containers []corev1.Container, proxyPort int32) []corev1.Container {
-	imageRepository := strings.Join([]string{ProxyImageRegistry, ProxyInitImageName}, "/")
 	for _, container := range containers {
-		if strings.HasPrefix(container.Image, imageRepository) || container.Name == ProxyInitContainerName {
+		if container.Name == ProxyInitContainerName {
 			return containers
 		}
 	}
-
 	containers = append(containers, corev1.Container{
 		Name:            ProxyInitContainerName,
-		Image:           strings.Join([]string{imageRepository, ProxyImageVersion}, ":"),
+		Image:           m.proxyInitImage,
 		ImagePullPolicy: corev1.PullIfNotPresent,
 		SecurityContext: &corev1.SecurityContext{
 			Capabilities: &corev1.Capabilities{
 				Add:  []corev1.Capability{"NET_ADMIN"},
 				Drop: []corev1.Capability{"ALL"},
 			},
-			Privileged:   pointer.Bool(true),
-			RunAsNonRoot: pointer.Bool(false),
-			RunAsUser:    pointer.Int64(0),
+			Privileged:   ptr.To(true),
+			RunAsNonRoot: ptr.To(false),
+			RunAsUser:    ptr.To[int64](0),
 		},
 		Env: []corev1.EnvVar{{
 			Name:  ProxyPortEnvVar,
@@ -225,17 +228,15 @@ func (m *podMutator) injectProxyInitContainer(containers []corev1.Container, pro
 }
 
 func (m *podMutator) injectProxySidecarContainer(containers []corev1.Container, proxyPort int32) []corev1.Container {
-	imageRepository := strings.Join([]string{ProxyImageRegistry, ProxySidecarImageName}, "/")
 	for _, container := range containers {
-		if strings.HasPrefix(container.Image, imageRepository) || container.Name == ProxySidecarContainerName {
+		if container.Name == ProxySidecarContainerName {
 			return containers
 		}
 	}
-
 	logLevel := currentLogLevel() // run the proxy at the same log level as the webhook
 	containers = append([]corev1.Container{{
 		Name:            ProxySidecarContainerName,
-		Image:           strings.Join([]string{imageRepository, ProxyImageVersion}, ":"),
+		Image:           m.proxyImage,
 		ImagePullPolicy: corev1.PullIfNotPresent,
 		Args: []string{
 			fmt.Sprintf("--proxy-port=%d", proxyPort),
@@ -257,13 +258,13 @@ func (m *podMutator) injectProxySidecarContainer(containers []corev1.Container, 
 			},
 		},
 		SecurityContext: &corev1.SecurityContext{
-			AllowPrivilegeEscalation: pointer.Bool(false),
+			AllowPrivilegeEscalation: ptr.To(false),
 			Capabilities: &corev1.Capabilities{
 				Drop: []corev1.Capability{"ALL"},
 			},
-			Privileged:             pointer.Bool(false),
-			ReadOnlyRootFilesystem: pointer.Bool(true),
-			RunAsNonRoot:           pointer.Bool(true),
+			Privileged:             ptr.To(false),
+			ReadOnlyRootFilesystem: ptr.To(true),
+			RunAsNonRoot:           ptr.To(true),
 		},
 	}}, containers...)
 
