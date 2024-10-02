@@ -334,7 +334,7 @@ func getProxyPort(pod *corev1.Pod) (int32, error) {
 		return 0, errors.Wrap(err, "failed to parse proxy sidecar port")
 	}
 
-	return int32(parsed), nil
+	return int32(parsed), nil //nolint:gosec // disable G115
 }
 
 func validServiceAccountTokenExpiry(tokenExpiry int64) bool {

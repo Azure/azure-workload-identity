@@ -28,6 +28,14 @@ linters:
   # Run with --fast=false for more extensive checks
   fast: true
 
+issues:
+  # default: 50
+  max-issues-per-linter: 0
+  exclude-rules:
+    - text: "unused-parameter: parameter '.*' seems to be unused, consider removing or renaming it as _"
+      linters:
+        - revive
+
 linters-settings:
   goimports:
     local-prefixes: github.com/Azure/azure-workload-identity
