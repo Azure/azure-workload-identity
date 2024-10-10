@@ -28,7 +28,7 @@ const (
 	// This is the Kubernetes default value for projected service account token
 	DefaultServiceAccountTokenExpiration = int64(3600)
 	// DefaultProxySidecarPort is the default port for proxy sidecar
-	DefaultProxySidecarPort = int32(8000)
+	DefaultProxySidecarPort = 8000
 )
 
 const (
