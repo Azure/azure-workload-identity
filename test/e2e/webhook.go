@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/onsi/ginkgo/v2"
+	"github.com/onsi/gomega"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/kubernetes/test/e2e/framework"
@@ -137,7 +139,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 				false,
 			)
 			framework.Logf("ensuring that the creation of pod is denied by the webhook")
-			framework.ExpectError(err, "creation of pod should be denied by the webhook")
+			gomega.ExpectWithOffset(1, err).To(gomega.HaveOccurred(), "creation of pod should be denied by the webhook")
 		})
 
 		ginkgo.It(fmt.Sprintf("should not mutate a pod if '%s: \"%s\"' is annotated to the pod", serviceAccountTokenExpiryAnnotation, annotations[serviceAccountTokenExpiryAnnotation]), func() {
@@ -155,7 +157,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 				false,
 			)
 			framework.Logf("ensuring that the creation of pod is denied by the webhook")
-			framework.ExpectError(err, "creation of pod should be denied by the webhook")
+			gomega.ExpectWithOffset(1, err).To(gomega.HaveOccurred(), "creation of pod should be denied by the webhook")
 		})
 	}
 })

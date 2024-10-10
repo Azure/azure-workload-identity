@@ -13,6 +13,7 @@ import (
 
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -66,7 +67,7 @@ var _ = ginkgo.SynchronizedBeforeSuite(func(ctx context.Context) []byte {
 	// Ensure all pods are running and ready before starting tests
 	podStartupTimeout := timeouts.SystemPodsStartup
 	for _, namespace := range coreNamespaces {
-		if err := e2epod.WaitForPodsRunningReady(ctx, c, namespace, int32(framework.TestContext.MinStartupPods), int32(framework.TestContext.AllowedNotReadyNodes), podStartupTimeout); err != nil {
+		if err := e2epod.WaitForPodsRunningReady(ctx, c, namespace, framework.TestContext.MinStartupPods, podStartupTimeout); err != nil {
 			e2edebug.DumpAllNamespaceInfo(ctx, c, namespace)
 			e2ekubectl.LogFailedContainers(ctx, c, namespace, framework.Logf)
 			framework.Failf("error waiting for all pods to be running and ready: %v", err)
