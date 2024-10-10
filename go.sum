@@ -126,8 +126,8 @@ github.com/microsoft/kiota-abstractions-go v1.6.0 h1:qbGBNMU0/o5myKbikCBXJFohVCF
 github.com/microsoft/kiota-abstractions-go v1.6.0/go.mod h1:7YH20ZbRWXGfHSSvdHkdztzgCB9mRdtFx13+hrYIEpo=
 github.com/microsoft/kiota-authentication-azure-go v1.0.2 h1:tClGeyFZJ+4Bakf8u0euPM4wqy4ethycdOgx3jyH3pI=
 github.com/microsoft/kiota-authentication-azure-go v1.0.2/go.mod h1:aTcti0bUJEcq7kBfQG4Sr4ElvRNuaalXcFEu4iEyQ6M=
-github.com/microsoft/kiota-http-go v1.4.4 h1:HM0KT/Q7o+JsGatFkkbTIqJL24Jzo5eMI5NNe9N4TQ4=
-github.com/microsoft/kiota-http-go v1.4.4/go.mod h1:Kup5nMDD3a9sjdgRKHCqZWqtrv3FbprjcPaGjLR6FzM=
+github.com/microsoft/kiota-http-go v1.4.5 h1:BrI9TZ0cWiU1ucP5oSWR6UmP2vR3PaKbQ61TQ/qM5cM=
+github.com/microsoft/kiota-http-go v1.4.5/go.mod h1:Kup5nMDD3a9sjdgRKHCqZWqtrv3FbprjcPaGjLR6FzM=
 github.com/microsoft/kiota-serialization-form-go v1.0.0 h1:UNdrkMnLFqUCccQZerKjblsyVgifS11b3WCx+eFEsAI=
 github.com/microsoft/kiota-serialization-form-go v1.0.0/go.mod h1:h4mQOO6KVTNciMF6azi1J9QB19ujSw3ULKcSNyXXOMA=
 github.com/microsoft/kiota-serialization-json-go v1.0.7 h1:yMbckSTPrjZdM4EMXgzLZSA3CtDaUBI350u0VoYRz7Y=
