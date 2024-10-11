@@ -30,7 +30,9 @@ jobs:
           check-latest: true
       - id: get-tag
         name: Get tag
-        run: echo "tag=$(echo ${{ github.event.pull_request.head.ref }} | sed -e 's/release-//g')" >> $GITHUB_OUTPUT
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: echo "tag=$(echo $HEAD_REF | sed -e 's/release-//g')" >> $GITHUB_OUTPUT
       - name: Create tag
         run: |
           git tag ${{ steps.get-tag.outputs.tag }}
