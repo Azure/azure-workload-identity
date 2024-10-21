@@ -1,18 +1,15 @@
 name: create_release
 on:
-  workflow_dispatch:
-  pull_request:
-    branches:
-      - main
-      - release-**
-    types: [closed]
+on:
+  push:
+    tags:
+      - 'v*'
 
 permissions:
   contents: write
 
 jobs:
   create-release:
-    if: github.event.pull_request.merged == true && contains(github.event.pull_request.title, 'update manifest and helm charts')
     runs-on: ubuntu-20.04
     steps:
       - name: Harden Runner
@@ -28,12 +25,6 @@ jobs:
         with:
           go-version: "1.23"
           check-latest: true
-      - id: get-tag
-        name: Get tag
-        run: echo "tag=$(echo ${{ github.event.pull_request.head.ref }} | sed -e 's/release-//g')" >> $GITHUB_OUTPUT
-      - name: Create tag
-        run: |
-          git tag ${{ steps.get-tag.outputs.tag }}
       - name: Goreleaser
         uses: goreleaser/goreleaser-action@336e29918d653399e599bfca99fadc1d7ffbc9f7 # v4.3.0
         with:
