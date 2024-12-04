@@ -1,6 +1,5 @@
 name: create_release
 on:
-on:
   push:
     tags:
       - 'v*'
