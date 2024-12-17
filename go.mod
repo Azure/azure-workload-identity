@@ -15,7 +15,7 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/microsoft/kiota-authentication-azure-go v1.0.2
-	github.com/microsoft/kiota-http-go v1.4.5
+	github.com/microsoft/kiota-http-go v1.4.7
 	github.com/microsoftgraph/msgraph-sdk-go v1.45.0
 	github.com/open-policy-agent/cert-controller v0.11.0
 	github.com/pkg/errors v0.9.1
