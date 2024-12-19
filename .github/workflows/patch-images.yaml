@@ -17,7 +17,7 @@ jobs:
           images: ['ghcr.io/azure/azure-workload-identity/proxy-init:latest-linux-arm64', 'ghcr.io/azure/azure-workload-identity/proxy-init:latest-linux-amd64']
       steps:
       - name: Harden Runner 
-        uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v2.6.1
+        uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.10.2
         with: 
           egress-policy: audit 
       - name: Login to ghcr.io
@@ -61,7 +61,7 @@ jobs:
       runs-on: ubuntu-latest
       steps:
       - name: Harden Runner 
-        uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v2.6.1
+        uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.10.2
         with: 
           egress-policy: audit 
       - name: Login to ghcr.io
