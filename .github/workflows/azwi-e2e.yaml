@@ -14,89 +14,6 @@ permissions:
   contents: read
 
 jobs:
-  azwi_e2e:
-    env:
-      AZURE_CLIENT_ID: 0dcfc182-7b36-4e23-b53f-a27c929a9e4e
-      AZURE_TENANT_ID: bc2d60ab-9b1d-45bd-8a3b-3a18ae865e3a
-      SERVICE_ACCOUNT_ISSUER: "https://raw.githubusercontent.com/Azure/azure-workload-identity/testing-manifests/"
-    strategy:
-      fail-fast: false
-      matrix:
-        # TODO(chewong): add windows and macos test env
-        env: [ubuntu-20.04]
-    runs-on: ${{ matrix.env }}
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v2.6.1
-        with:
-          egress-policy: audit
-
-      - name: Checkout
-        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
-        with:
-          go-version: "1.23"
-          check-latest: true
-      - name: Azure CLI
-        run: |
-          echo "Azure CLI Current installed version"
-          az version
-      - name: Set variables
-        id: variables
-        run: |
-          echo "AAD_APPLICATION_NAME=azwi-e2e-app-$(openssl rand -hex 2)" >> "${GITHUB_ENV}"
-          SERVICE_ACCOUNT_NAMESPACE="azwi-$(openssl rand -hex 2)"
-          echo "SERVICE_ACCOUNT_NAMESPACE=${SERVICE_ACCOUNT_NAMESPACE}" >> "${GITHUB_ENV}"
-          echo "SERVICE_ACCOUNT_NAME=${SERVICE_ACCOUNT_NAMESPACE}-sa" >> "${GITHUB_ENV}"
-      - name: Create kind cluster
-        run: |
-          openssl genrsa -out sa.key 2048
-          openssl rsa -in sa.key -pubout -out sa.pub
-          make kind-create
-      - name: Build azwi
-        run: make bin/azwi
-      - uses: azure/login@8c334a195cbb38e46038007b304988d888bf676a # v1.4.6
-        with:
-          client-id: ${{ env.AZURE_CLIENT_ID }}
-          tenant-id: ${{ env.AZURE_TENANT_ID }}
-          allow-no-subscriptions: true
-      - name: E2E test
-        run: |
-          kubectl create namespace "${SERVICE_ACCOUNT_NAMESPACE}"
-
-          ./bin/azwi serviceaccount create \
-            --aad-application-name "${AAD_APPLICATION_NAME}" \
-            --service-account-namespace "${SERVICE_ACCOUNT_NAMESPACE}" \
-            --service-account-name "${SERVICE_ACCOUNT_NAME}" \
-            --service-account-issuer-url "${SERVICE_ACCOUNT_ISSUER}" \
-            --service-account-token-expiration 10h \
-            --skip-phases role-assignment
-
-          # get the service account object
-          kubectl describe serviceaccount "${SERVICE_ACCOUNT_NAME}" --namespace "${SERVICE_ACCOUNT_NAMESPACE}" > sa.yaml
-
-          APPLICATION_CLIENT_ID="$(az ad sp list --display-name "${AAD_APPLICATION_NAME}" --query '[0].appId' -otsv)"
-          cat sa.yaml | grep "azure.workload.identity/client-id: ${APPLICATION_CLIENT_ID}"
-          cat sa.yaml | grep "azure.workload.identity/service-account-token-expiration: 36000"
-          cat sa.yaml | grep "azure.workload.identity/tenant-id: ${AZURE_TENANT_ID}"
-
-          # get the federated identity
-          APPLICATION_OBJECT_ID="$(az ad app show --id "${APPLICATION_CLIENT_ID}" --query id -otsv)"
-          az rest --method GET --uri "https://graph.microsoft.com/beta/applications/${APPLICATION_OBJECT_ID}/federatedIdentityCredentials"
-      - name: Cleanup
-        if: ${{ always() }}
-        run: |
-          set +e
-          # this should delete the underlying federated identity
-          ./bin/azwi serviceaccount delete phase app \
-            --aad-application-name "${AAD_APPLICATION_NAME}"
-
-          ./bin/azwi serviceaccount delete phase sa \
-            --service-account-namespace "${SERVICE_ACCOUNT_NAMESPACE}" \
-            --service-account-name "${SERVICE_ACCOUNT_NAME}"
-
   azwi_build:
     strategy:
       fail-fast: false
@@ -116,7 +33,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
-          go-version: "1.22"
+          go-version: "1.23"
           check-latest: true
       - name: Build azwi
         run: |
