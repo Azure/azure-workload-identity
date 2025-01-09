@@ -15,7 +15,7 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/microsoft/kiota-authentication-azure-go v1.0.2
-	github.com/microsoft/kiota-http-go v1.4.5
+	github.com/microsoft/kiota-http-go v1.4.7
 	github.com/microsoftgraph/msgraph-sdk-go v1.45.0
 	github.com/open-policy-agent/cert-controller v0.11.0
 	github.com/pkg/errors v0.9.1
@@ -27,9 +27,9 @@ require (
 	go.opentelemetry.io/otel/metric v1.28.0
 	gopkg.in/ini.v1 v1.62.1
 	gopkg.in/square/go-jose.v2 v2.6.0
-	k8s.io/api v0.31.3
-	k8s.io/apimachinery v0.31.3
-	k8s.io/client-go v0.31.3
+	k8s.io/api v0.31.4
+	k8s.io/apimachinery v0.31.4
+	k8s.io/client-go v0.31.4
 	k8s.io/utils v0.0.0-20240711033017-18e509b52bc8
 	monis.app/mlog v0.0.4
 	sigs.k8s.io/controller-runtime v0.19.3
