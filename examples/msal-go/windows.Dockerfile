@@ -13,7 +13,6 @@ RUN go mod download
 
 # Copy the go source
 COPY main.go main.go
-COPY token_credential.go token_credential.go
 
 # Build
 RUN CGO_ENABLED=0 GOOS=windows GO111MODULE=on go build -a -o msalgo.exe .
