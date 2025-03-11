@@ -1115,20 +1115,26 @@ func TestInjectProxySidecarContainer(t *testing.T) {
 		},
 	}
 
+	proxyNativeSidecarContainer := proxySidecarContainer
+	proxyNativeSidecarContainer.RestartPolicy = ptr.To(corev1.ContainerRestartPolicyAlways)
+
 	tests := []struct {
 		name               string
 		containers         []corev1.Container
 		expectedContainers []corev1.Container
+		restartPolicy      *corev1.ContainerRestartPolicy
 	}{
 		{
 			name:               "no containers",
 			containers:         []corev1.Container{},
 			expectedContainers: []corev1.Container{proxySidecarContainer},
+			restartPolicy:      nil,
 		},
 		{
 			name:               "proxy sidecar container manually injected",
 			containers:         []corev1.Container{proxySidecarContainer},
 			expectedContainers: []corev1.Container{proxySidecarContainer},
+			restartPolicy:      nil,
 		},
 		{
 			name: "inject proxy sidecar container to existing containers",
@@ -1145,13 +1151,31 @@ func TestInjectProxySidecarContainer(t *testing.T) {
 					Image: "my-image",
 				},
 			},
+			restartPolicy: nil,
+		},
+		{
+			name: "inject proxy native sidecar container to existing containers when restartPolicy is set",
+			containers: []corev1.Container{
+				{
+					Name:  "my-container",
+					Image: "my-image",
+				},
+			},
+			expectedContainers: []corev1.Container{
+				proxyNativeSidecarContainer,
+				{
+					Name:  "my-container",
+					Image: "my-image",
+				},
+			},
+			restartPolicy: ptr.To(corev1.ContainerRestartPolicyAlways),
 		},
 	}
 
 	m := &podMutator{proxyImage: imageURL}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			containers := m.injectProxySidecarContainer(test.containers, proxyPort, nil)
+			containers := m.injectProxySidecarContainer(test.containers, proxyPort, test.restartPolicy)
 			if !reflect.DeepEqual(containers, test.expectedContainers) {
 				t.Errorf("expected: %v, got: %v", test.expectedContainers, containers)
 			}
@@ -1191,45 +1215,6 @@ func TestShouldInjectProxySidecar(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			actual := shouldInjectProxySidecar(test.pod)
-			if actual != test.expected {
-				t.Fatalf("expected: %v, got: %v", test.expected, actual)
-			}
-		})
-	}
-}
-
-func TestShouldUseNativeSidecar(t *testing.T) {
-	tests := []struct {
-		name     string
-		pod      *corev1.Pod
-		expected bool
-	}{
-		{
-			name: "pod not annotated",
-			pod: &corev1.Pod{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "pod",
-				},
-			},
-			expected: false,
-		},
-		{
-			name: "pod is annotated with azure.workload.identity/use-native-sidecar=true",
-			pod: &corev1.Pod{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "pod",
-					Annotations: map[string]string{
-						UseNativeSidecarAnnotation: "true",
-					},
-				},
-			},
-			expected: true,
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			actual := useNativeProxySidecar(test.pod)
 			if actual != test.expected {
 				t.Fatalf("expected: %v, got: %v", test.expected, actual)
 			}
