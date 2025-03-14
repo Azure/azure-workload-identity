@@ -23,7 +23,6 @@ All annotations are optional. If the annotation is not specified, the default va
 | `azure.workload.identity/inject-proxy-sidecar`             | Injects a proxy init container and proxy sidecar into the pod. The proxy sidecar is used to intercept token requests to IMDS and acquire an AAD token on behalf of the user with federated identity credential.                                                                                                                                                                                                                               | `true`                                    |
 | `azure.workload.identity/proxy-sidecar-port`               | Represents the port of the proxy sidecar.                                                                                                                                                                                                                                                                                                                                                                                                     | `8000`                                    |
 
-
 ## Service Account
 
 ### Annotations
