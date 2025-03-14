@@ -61,6 +61,8 @@ spec:
           protocol: TCP
         resources:
           HELMSUBST_DEPLOYMENT_CONTAINER_RESOURCES: ""
+        securityContext:
+          HELMSUBST_DEPLOYMENT_CONTAINER_SECURITY_CONTEXT: ""
       nodeSelector:
         HELMSUBST_DEPLOYMENT_NODE_SELECTOR: ""
       tolerations:
