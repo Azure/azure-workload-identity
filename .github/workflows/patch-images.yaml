@@ -21,7 +21,7 @@ jobs:
         with: 
           egress-policy: audit 
       - name: Login to ghcr.io
-        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # v2.2.0
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v2.2.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -65,7 +65,7 @@ jobs:
         with: 
           egress-policy: audit 
       - name: Login to ghcr.io
-        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # v2.2.0
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v2.2.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
