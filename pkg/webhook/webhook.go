@@ -20,9 +20,11 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/rest"
 	"k8s.io/utils/ptr"
 
 	"github.com/Azure/azure-workload-identity/pkg/config"
+	"github.com/Azure/azure-workload-identity/pkg/util"
 )
 
 var (
@@ -53,10 +55,11 @@ type podMutator struct {
 	azureAuthorityHost string
 	proxyImage         string
 	proxyInitImage     string
+	useNativeSidecar   bool
 }
 
 // NewPodMutator returns a pod mutation handler
-func NewPodMutator(client client.Client, reader client.Reader, audience string, scheme *runtime.Scheme) (admission.Handler, error) {
+func NewPodMutator(client client.Client, reader client.Reader, audience string, scheme *runtime.Scheme, k8sConfig *rest.Config) (admission.Handler, error) {
 	c, err := config.ParseConfig()
 	if err != nil {
 		return nil, err
@@ -64,6 +67,12 @@ func NewPodMutator(client client.Client, reader client.Reader, audience string, 
 	if audience == "" {
 		audience = DefaultAudience
 	}
+
+	useNativeSidecar, err := util.AssertK8sMinVersion(k8sConfig, 1, 28)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get kubernetes version")
+	}
+
 	// this is used to configure the AZURE_AUTHORITY_HOST env var that's
 	// used by the azure sdk
 	azureAuthorityHost, err := getAzureAuthorityHost(c)
@@ -92,6 +101,7 @@ func NewPodMutator(client client.Client, reader client.Reader, audience string, 
 		azureAuthorityHost: azureAuthorityHost,
 		proxyImage:         proxyImage,
 		proxyInitImage:     proxyInitImage,
+		useNativeSidecar:   useNativeSidecar,
 	}, nil
 }
 
@@ -155,7 +165,11 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) (respons
 		}
 
 		pod.Spec.InitContainers = m.injectProxyInitContainer(pod.Spec.InitContainers, proxyPort)
-		pod.Spec.Containers = m.injectProxySidecarContainer(pod.Spec.Containers, proxyPort)
+		if m.useNativeSidecar {
+			pod.Spec.InitContainers = m.injectProxySidecarContainer(pod.Spec.InitContainers, proxyPort, ptr.To(corev1.ContainerRestartPolicyAlways))
+		} else {
+			pod.Spec.Containers = m.injectProxySidecarContainer(pod.Spec.Containers, proxyPort, nil)
+		}
 	}
 
 	// get service account token expiration
@@ -228,13 +242,14 @@ func (m *podMutator) injectProxyInitContainer(containers []corev1.Container, pro
 	return containers
 }
 
-func (m *podMutator) injectProxySidecarContainer(containers []corev1.Container, proxyPort int32) []corev1.Container {
+func (m *podMutator) injectProxySidecarContainer(containers []corev1.Container, proxyPort int32, restartPolicy *corev1.ContainerRestartPolicy) []corev1.Container {
 	for _, container := range containers {
 		if container.Name == ProxySidecarContainerName {
 			return containers
 		}
 	}
 	logLevel := currentLogLevel() // run the proxy at the same log level as the webhook
+
 	containers = append([]corev1.Container{{
 		Name:            ProxySidecarContainerName,
 		Image:           m.proxyImage,
@@ -267,6 +282,7 @@ func (m *podMutator) injectProxySidecarContainer(containers []corev1.Container, 
 			ReadOnlyRootFilesystem: ptr.To(true),
 			RunAsNonRoot:           ptr.To(true),
 		},
+		RestartPolicy: restartPolicy,
 	}}, containers...)
 
 	return containers
