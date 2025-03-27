@@ -57,4 +57,10 @@ azwi_mutation_request_sum{namespace="default",service_name="webhook",telemetry_s
 azwi_mutation_request_count{namespace="default",service_name="webhook",telemetry_sdk_language="go",telemetry_sdk_name="opentelemetry",telemetry_sdk_version="0.20.0"} 1
 ```
 
-Please note that there are many webhook specific metrics that may be useful to monitor as well.  Here are some webhook controller examples: controller_runtime_webhook_requests_total, controller_runtime_webhook_latency_seconds.sum, workqueue_depth, certwatcher_read_certificate_total, certwatcher_read_certificate_errors_total, and workqueue_retries_total.
+Please note that there are many webhook specific metrics that may be useful to monitor as well.  Here are some webhook controller examples: 
+- `controller_runtime_webhook_requests_total`
+- `controller_runtime_webhook_latency_seconds.sum`
+- `workqueue_depth`
+- `certwatcher_read_certificate_total`
+- `certwatcher_read_certificate_errors_total`
+- `workqueue_retries_total`
