@@ -1628,6 +1628,16 @@ azwi_mutation_request_bucket{namespace=&quot;default&quot;,service_name=&quot;we
 azwi_mutation_request_sum{namespace=&quot;default&quot;,service_name=&quot;webhook&quot;,telemetry_sdk_language=&quot;go&quot;,telemetry_sdk_name=&quot;opentelemetry&quot;,telemetry_sdk_version=&quot;0.20.0&quot;} 0.104694953
 azwi_mutation_request_count{namespace=&quot;default&quot;,service_name=&quot;webhook&quot;,telemetry_sdk_language=&quot;go&quot;,telemetry_sdk_name=&quot;opentelemetry&quot;,telemetry_sdk_version=&quot;0.20.0&quot;} 1
 </code></pre>
+<p>Please note that there are many webhook specific metrics that may be useful to monitor as well.  Here are some webhook controller examples:</p>
+<ul>
+<li><code>controller_runtime_webhook_requests_total</code></li>
+<li><code>controller_runtime_webhook_latency_seconds</code></li>
+<li><code>workqueue_depth</code></li>
+<li><code>certwatcher_read_certificate_total</code></li>
+<li><code>certwatcher_read_certificate_errors_total</code></li>
+<li><code>workqueue_retries_total</code></li>
+</ul>
+<p>To learn more about these metrics, please see <a href="https://book.kubebuilder.io/reference/metrics-reference.html">Default Exported Metrics References</a></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="frequently-asked-questions"><a class="header" href="#frequently-asked-questions">Frequently Asked Questions</a></h1>
 <ul>
 <li><a href="faq.html#how-does-the-azwi-cli-differ-from-the-azure-cli">How does the azwi-cli differ from the azure-cli?</a></li>
