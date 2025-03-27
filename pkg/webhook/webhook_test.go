@@ -506,21 +506,23 @@ func TestAddEnvironmentVariables(t *testing.T) {
 			expectedContainer: corev1.Container{
 				Name:  "cont1",
 				Image: "image",
+				// this test uses literals instead of constants for env var
+				// names so that it will fail if the constant values change
 				Env: []corev1.EnvVar{
 					{
-						Name:  AzureClientIDEnvVar,
+						Name:  "AZURE_CLIENT_ID",
 						Value: "clientID",
 					},
 					{
-						Name:  AzureTenantIDEnvVar,
+						Name:  "AZURE_TENANT_ID",
 						Value: "tenantID",
 					},
 					{
-						Name:  AzureFederatedTokenFileEnvVar,
+						Name:  "AZURE_FEDERATED_TOKEN_FILE",
 						Value: filepath.Join(TokenFileMountPath, TokenFilePathName),
 					},
 					{
-						Name:  AzureAuthorityHostEnvVar,
+						Name:  "AZURE_AUTHORITY_HOST",
 						Value: "https://login.microsoftonline.com/",
 					},
 				},
