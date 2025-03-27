@@ -65,3 +65,5 @@ Please note that there are many webhook specific metrics that may be useful to m
 - `certwatcher_read_certificate_total`
 - `certwatcher_read_certificate_errors_total`
 - `workqueue_retries_total`
+
+To learn more about these metrics, please see [Default Exported Metrics References](https://book.kubebuilder.io/reference/metrics-reference.html)
