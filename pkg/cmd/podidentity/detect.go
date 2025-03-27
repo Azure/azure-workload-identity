@@ -35,7 +35,7 @@ var (
 
 const (
 	imageRepository = "mcr.microsoft.com/oss/azure/workload-identity"
-	imageTag        = "v1.3.0"
+	imageTag        = "v1.4.1"
 
 	proxyInitImageName     = "proxy-init"
 	proxyImageName         = "proxy"
@@ -60,7 +60,7 @@ func init() {
 type detectCmd struct {
 	namespace                     string
 	outputDir                     string
-	proxyPort                     int
+	proxyPort                     int32
 	serviceAccountTokenExpiration time.Duration
 	tenantID                      string
 	kubeClient                    client.Client
@@ -85,7 +85,7 @@ func newDetectCmd() *cobra.Command {
 	f := cmd.Flags()
 	f.StringVar(&detectCmd.namespace, "namespace", "default", "Namespace to detect the configuration")
 	f.StringVarP(&detectCmd.outputDir, "output-dir", "o", "", "Output directory to write the configuration files")
-	f.IntVarP(&detectCmd.proxyPort, "proxy-port", "p", 8000, "Proxy port to use for the proxy container")
+	f.Int32VarP(&detectCmd.proxyPort, "proxy-port", "p", 8000, "Proxy port to use for the proxy container")
 	f.DurationVar(&detectCmd.serviceAccountTokenExpiration, options.ServiceAccountTokenExpiration.Flag, time.Duration(webhook.DefaultServiceAccountTokenExpiration)*time.Second, options.ServiceAccountTokenExpiration.Description)
 	f.StringVar(&detectCmd.tenantID, "tenant-id", "", "Managed identity tenant id. If specified, the tenant id will be set as an annotation on the service account.")
 
@@ -349,7 +349,7 @@ func (dc *detectCmd) addProxyInitContainer(initContainers []corev1.Container) []
 		Env: []corev1.EnvVar{
 			{
 				Name:  "PROXY_PORT",
-				Value: strconv.Itoa(dc.proxyPort),
+				Value: strconv.FormatInt(int64(dc.proxyPort), 10),
 			},
 		},
 	}
@@ -381,7 +381,7 @@ func (dc *detectCmd) addProxyContainer(containers []corev1.Container) []corev1.C
 		},
 		Ports: []corev1.ContainerPort{
 			{
-				ContainerPort: int32(dc.proxyPort),
+				ContainerPort: dc.proxyPort,
 			},
 		},
 		Lifecycle: &corev1.Lifecycle{

@@ -164,7 +164,7 @@ Output the projected service account token:
 kubectl exec dummy-pod -- cat /var/run/secrets/azure/tokens/azure-identity-token
 ```
 
-Decode your token using [jwt.io][3]. The `kid` field in the token header should be the same as the `kid` of `azwi jwks --public-keys sa-new.pub | jq -r '.keys[0].kid'`. This means that the service account token is signed by the new private key.
+Decode your token using [jwt.ms][3]. The `kid` field in the token header should be the same as the `kid` of `azwi jwks --public-keys sa-new.pub | jq -r '.keys[0].kid'`. This means that the service account token is signed by the new private key.
 
 ### 6. Cleanup
 
@@ -208,6 +208,6 @@ rm sa.*
 
 [2]: ../../quick-start.md
 
-[3]: https://jwt.io/
+[3]: https://jwt.ms
 
 [4]: https://github.com/Azure/azure-workload-identity/releases

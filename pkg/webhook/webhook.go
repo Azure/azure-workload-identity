@@ -12,14 +12,15 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/pkg/errors"
+	"monis.app/mlog"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/ptr"
-	"monis.app/mlog"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	"github.com/Azure/azure-workload-identity/pkg/config"
 )
@@ -47,7 +48,7 @@ type podMutator struct {
 	// This should be used sparingly and only when the client does not fit the use case.
 	reader             client.Reader
 	config             *config.Config
-	decoder            *admission.Decoder
+	decoder            admission.Decoder
 	audience           string
 	azureAuthorityHost string
 	proxyImage         string
@@ -334,7 +335,7 @@ func getProxyPort(pod *corev1.Pod) (int32, error) {
 		return 0, errors.Wrap(err, "failed to parse proxy sidecar port")
 	}
 
-	return int32(parsed), nil
+	return int32(parsed), nil //nolint:gosec // disable G115
 }
 
 func validServiceAccountTokenExpiry(tokenExpiry int64) bool {
