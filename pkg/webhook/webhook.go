@@ -12,14 +12,15 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/pkg/errors"
+	"monis.app/mlog"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/ptr"
-	"monis.app/mlog"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	"github.com/Azure/azure-workload-identity/pkg/config"
 )
@@ -47,9 +48,11 @@ type podMutator struct {
 	// This should be used sparingly and only when the client does not fit the use case.
 	reader             client.Reader
 	config             *config.Config
-	decoder            *admission.Decoder
+	decoder            admission.Decoder
 	audience           string
 	azureAuthorityHost string
+	proxyImage         string
+	proxyInitImage     string
 }
 
 // NewPodMutator returns a pod mutation handler
@@ -67,6 +70,14 @@ func NewPodMutator(client client.Client, reader client.Reader, audience string, 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get AAD endpoint")
 	}
+	proxyImage := c.ProxyImage
+	if len(proxyImage) == 0 {
+		proxyImage = fmt.Sprintf("%s/%s:%s", ProxyImageRegistry, ProxySidecarImageName, ProxyImageVersion)
+	}
+	proxyInitImage := c.ProxyInitImage
+	if len(proxyInitImage) == 0 {
+		proxyInitImage = fmt.Sprintf("%s/%s:%s", ProxyImageRegistry, ProxyInitImageName, ProxyImageVersion)
+	}
 
 	if err := registerMetrics(); err != nil {
 		return nil, errors.Wrap(err, "failed to register metrics")
@@ -79,6 +90,8 @@ func NewPodMutator(client client.Client, reader client.Reader, audience string, 
 		decoder:            admission.NewDecoder(scheme),
 		audience:           audience,
 		azureAuthorityHost: azureAuthorityHost,
+		proxyImage:         proxyImage,
+		proxyInitImage:     proxyInitImage,
 	}, nil
 }
 
@@ -188,16 +201,14 @@ func (m *podMutator) mutateContainers(containers []corev1.Container, clientID st
 }
 
 func (m *podMutator) injectProxyInitContainer(containers []corev1.Container, proxyPort int32) []corev1.Container {
-	imageRepository := strings.Join([]string{ProxyImageRegistry, ProxyInitImageName}, "/")
 	for _, container := range containers {
-		if strings.HasPrefix(container.Image, imageRepository) || container.Name == ProxyInitContainerName {
+		if container.Name == ProxyInitContainerName {
 			return containers
 		}
 	}
-
 	containers = append(containers, corev1.Container{
 		Name:            ProxyInitContainerName,
-		Image:           strings.Join([]string{imageRepository, ProxyImageVersion}, ":"),
+		Image:           m.proxyInitImage,
 		ImagePullPolicy: corev1.PullIfNotPresent,
 		SecurityContext: &corev1.SecurityContext{
 			Capabilities: &corev1.Capabilities{
@@ -218,17 +229,15 @@ func (m *podMutator) injectProxyInitContainer(containers []corev1.Container, pro
 }
 
 func (m *podMutator) injectProxySidecarContainer(containers []corev1.Container, proxyPort int32) []corev1.Container {
-	imageRepository := strings.Join([]string{ProxyImageRegistry, ProxySidecarImageName}, "/")
 	for _, container := range containers {
-		if strings.HasPrefix(container.Image, imageRepository) || container.Name == ProxySidecarContainerName {
+		if container.Name == ProxySidecarContainerName {
 			return containers
 		}
 	}
-
 	logLevel := currentLogLevel() // run the proxy at the same log level as the webhook
 	containers = append([]corev1.Container{{
 		Name:            ProxySidecarContainerName,
-		Image:           strings.Join([]string{imageRepository, ProxyImageVersion}, ":"),
+		Image:           m.proxyImage,
 		ImagePullPolicy: corev1.PullIfNotPresent,
 		Args: []string{
 			fmt.Sprintf("--proxy-port=%d", proxyPort),
@@ -326,7 +335,7 @@ func getProxyPort(pod *corev1.Pod) (int32, error) {
 		return 0, errors.Wrap(err, "failed to parse proxy sidecar port")
 	}
 
-	return int32(parsed), nil
+	return int32(parsed), nil //nolint:gosec // disable G115
 }
 
 func validServiceAccountTokenExpiry(tokenExpiry int64) bool {

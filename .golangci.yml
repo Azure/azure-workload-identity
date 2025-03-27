@@ -1,6 +1,6 @@
 run:
   deadline: 20m
-  go-version: "1.22"
+  go-version: "1.23"
 
 linters:
   disable-all: true
@@ -27,6 +27,14 @@ linters:
     - whitespace
   # Run with --fast=false for more extensive checks
   fast: true
+
+issues:
+  # default: 50
+  max-issues-per-linter: 0
+  exclude-rules:
+    - text: "unused-parameter: parameter '.*' seems to be unused, consider removing or renaming it as _"
+      linters:
+        - revive
 
 linters-settings:
   goimports:

@@ -10,15 +10,16 @@ import (
 	"strings"
 	"testing"
 
+	"monis.app/mlog"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	atypes "sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+
 	admissionv1 "k8s.io/api/admission/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/utils/ptr"
-	"monis.app/mlog"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	atypes "sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	"github.com/Azure/azure-workload-identity/pkg/config"
 )
@@ -1044,7 +1045,7 @@ func TestInjectProxyInitContainer(t *testing.T) {
 		},
 	}
 
-	m := &podMutator{}
+	m := &podMutator{proxyInitImage: imageURL}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			containers := m.injectProxyInitContainer(test.containers, proxyPort)
@@ -1147,7 +1148,7 @@ func TestInjectProxySidecarContainer(t *testing.T) {
 		},
 	}
 
-	m := &podMutator{}
+	m := &podMutator{proxyImage: imageURL}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			containers := m.injectProxySidecarContainer(test.containers, proxyPort)
