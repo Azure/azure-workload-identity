@@ -21,7 +21,7 @@ class MyClientAssertionCredential(object):
 
     def get_token(self, *scopes, **kwargs):
         # get the token using the application
-        token = self.app.acquire_token_for_client(scopes)
+        token = self.app.acquire_token_for_client(list(scopes))
         if 'error' in token:
             raise Exception(token['error_description'])
         expires_on = time.time() + token['expires_in']
