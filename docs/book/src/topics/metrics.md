@@ -60,7 +60,7 @@ azwi_mutation_request_count{namespace="default",service_name="webhook",telemetry
 Please note that there are many webhook specific metrics that may be useful to monitor as well.  Here are some webhook controller examples:
 
 - `controller_runtime_webhook_requests_total`
-- `controller_runtime_webhook_latency_seconds.sum`
+- `controller_runtime_webhook_latency_seconds`
 - `workqueue_depth`
 - `certwatcher_read_certificate_total`
 - `certwatcher_read_certificate_errors_total`
