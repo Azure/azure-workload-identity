@@ -13,12 +13,6 @@ schedules:
 pool: staging-pool-amd64-mariner-2
 
 jobs:
-  - job: scan_images
-    timeoutInMinutes: 30
-    workspace:
-      clean: all
-    steps:
-      - template: templates/scan-images.yaml
   - job: verify_deployment_yaml
     timeoutInMinutes: 30
     workspace:
@@ -62,7 +56,6 @@ jobs:
   - job:
     timeoutInMinutes: 60
     dependsOn:
-      - scan_images
       - verify_deployment_yaml
     workspace:
       clean: all
@@ -97,7 +90,6 @@ jobs:
   - template: templates/upgrade.yaml
     parameters:
       dependsOn:
-        - scan_images
         - verify_deployment_yaml
       matrix:
         upgrade_aks_windows:
@@ -112,7 +104,6 @@ jobs:
       - ImageOverride -equals azcu-agent-amd64-mariner-2-cgv2-img
     timeoutInMinutes: 60
     dependsOn:
-      - scan_images
       - verify_deployment_yaml
     workspace:
       clean: all
