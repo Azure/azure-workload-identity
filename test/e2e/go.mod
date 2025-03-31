@@ -1,6 +1,7 @@
 module github.com/Azure/azure-workload-identity/test/e2e
 
 go 1.23.1
+toolchain go1.24.1
 
 replace (
 	k8s.io/api => k8s.io/api v0.31.1
@@ -41,7 +42,7 @@ require (
 	k8s.io/api v0.31.1
 	k8s.io/apimachinery v0.31.1
 	k8s.io/client-go v0.31.1
-	k8s.io/kubernetes v1.31.3
+	k8s.io/kubernetes v1.31.7
 	k8s.io/utils v0.0.0-20240711033017-18e509b52bc8
 )
 
