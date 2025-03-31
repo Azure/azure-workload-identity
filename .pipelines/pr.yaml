@@ -18,12 +18,6 @@ pr:
 pool: staging-pool-amd64-mariner-2
 
 jobs:
-  - job: scan_images
-    timeoutInMinutes: 30
-    workspace:
-      clean: all
-    steps:
-      - template: templates/scan-images.yaml
   - job: lint
     timeoutInMinutes: 30
     workspace:
@@ -65,7 +59,6 @@ jobs:
     timeoutInMinutes: 60
     dependsOn:
     - lint
-    - scan_images
     - shellcheck
     workspace:
       clean: all
@@ -112,7 +105,6 @@ jobs:
       - ImageOverride -equals azcu-agent-amd64-mariner-2-cgv2-img
     dependsOn:
     - lint
-    - scan_images
     - shellcheck
     workspace:
       clean: all

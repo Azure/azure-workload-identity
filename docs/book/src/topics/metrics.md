@@ -56,3 +56,14 @@ azwi_mutation_request_bucket{namespace="default",service_name="webhook",telemetr
 azwi_mutation_request_sum{namespace="default",service_name="webhook",telemetry_sdk_language="go",telemetry_sdk_name="opentelemetry",telemetry_sdk_version="0.20.0"} 0.104694953
 azwi_mutation_request_count{namespace="default",service_name="webhook",telemetry_sdk_language="go",telemetry_sdk_name="opentelemetry",telemetry_sdk_version="0.20.0"} 1
 ```
+
+Please note that there are many webhook specific metrics that may be useful to monitor as well.  Here are some webhook controller examples:
+
+- `controller_runtime_webhook_requests_total`
+- `controller_runtime_webhook_latency_seconds`
+- `workqueue_depth`
+- `certwatcher_read_certificate_total`
+- `certwatcher_read_certificate_errors_total`
+- `workqueue_retries_total`
+
+To learn more about these metrics, please see [Default Exported Metrics References](https://book.kubebuilder.io/reference/metrics-reference.html)
