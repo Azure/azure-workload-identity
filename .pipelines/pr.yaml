@@ -119,20 +119,16 @@ jobs:
       - group: e2e-environment-variables
     strategy:
       matrix:
-        kind_v1_28_13:
-          KIND_NODE_VERSION: v1.28.13
+        kind_v1_30_10:
+          KIND_NODE_VERSION: v1.30.10
           LOCAL_ONLY: "true"
           TEST_HELM_CHART: "true"
-        kind_v1_29_8:
-          KIND_NODE_VERSION: v1.29.8
+        kind_v1_31_6:
+          KIND_NODE_VERSION: v1.31.6
           LOCAL_ONLY: "true"
           TEST_HELM_CHART: "true"
-        kind_v1_30_4:
-          KIND_NODE_VERSION: v1.30.4
-          LOCAL_ONLY: "true"
-          TEST_HELM_CHART: "true"
-        kind_v1_31_1:
-          KIND_NODE_VERSION: v1.31.1
+        kind_v1_32_3:
+          KIND_NODE_VERSION: v1.32.3
           LOCAL_ONLY: "true"
           TEST_HELM_CHART: "true"
     steps:
