@@ -168,7 +168,7 @@ func setupWebhook(mgr manager.Manager, setupFinished chan struct{}) {
 
 	// setup webhooks
 	entryLog.Info("registering webhook to the webhook server")
-	podMutator, err := wh.NewPodMutator(mgr.GetClient(), mgr.GetAPIReader(), audience, mgr.GetScheme())
+	podMutator, err := wh.NewPodMutator(mgr.GetClient(), mgr.GetAPIReader(), audience, mgr.GetScheme(), mgr.GetConfig())
 	if err != nil {
 		panic(fmt.Errorf("unable to set up pod mutator: %w", err))
 	}
