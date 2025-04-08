@@ -76,7 +76,7 @@ func NewPodMutator(client client.Client, reader client.Reader, audience string, 
 	// "SidecarContainers" went beta in 1.29. With the 3 version skew policy,
 	// between API server and kubelet, 1.32 is the earliest version this can be
 	// safely used.
-	useNativeSidecar, err := serverVersionGTE(discoveryClient, utilversion.MajorMinor(1, 32))
+	useNativeSidecar, err := serverVersionGTE(discoveryClient, utilversion.MajorMinor(1, 33))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to check kubernetes version")
 	}
