@@ -59,6 +59,8 @@ var _ = ginkgo.Describe("Proxy [LinuxOnly] [AKSSoakOnly]", func() {
 			}
 		}()
 
+		validateProxySideCarInMutatedPod(pod)
+
 		for _, container := range []string{busybox1, busybox2} {
 			framework.Logf("validating that %s in %s has acquired a valid AAD token via the proxy", container, pod.Name)
 			gomega.Eventually(func() bool {
@@ -112,6 +114,8 @@ var _ = ginkgo.Describe("Proxy [LinuxOnly] [AKSSoakOnly]", func() {
 				framework.Logf("%s logs: %s", container, stdout)
 			}
 		}()
+
+		validateProxySideCarInMutatedPod(pod)
 
 		for _, container := range []string{busybox1, busybox2} {
 			framework.Logf("validating that %s in %s has acquired a valid AAD token via the proxy using AZURE_CLIENT_ID", container, pod.Name)
