@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/keyvault/azsecrets"
+	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
 	"k8s.io/klog/v2"
 )
 
@@ -25,25 +26,9 @@ func main() {
 	// 	the tenantID provided via azure-wi-webhook-config for the webhook will be used.
 	// 	AZURE_FEDERATED_TOKEN_FILE is the service account token path
 	// 	AZURE_AUTHORITY_HOST is the AAD authority hostname
-	clientID := os.Getenv("AZURE_CLIENT_ID")
-	tenantID := os.Getenv("AZURE_TENANT_ID")
-	tokenFilePath := os.Getenv("AZURE_FEDERATED_TOKEN_FILE")
-	authorityHost := os.Getenv("AZURE_AUTHORITY_HOST")
+	// They are automatically picked up when calling azidentity.NewWorkloadIdentityCredential
 
-	if clientID == "" {
-		klog.Fatal("AZURE_CLIENT_ID environment variable is not set")
-	}
-	if tenantID == "" {
-		klog.Fatal("AZURE_TENANT_ID environment variable is not set")
-	}
-	if tokenFilePath == "" {
-		klog.Fatal("AZURE_FEDERATED_TOKEN_FILE environment variable is not set")
-	}
-	if authorityHost == "" {
-		klog.Fatal("AZURE_AUTHORITY_HOST environment variable is not set")
-	}
-
-	cred, err := newClientAssertionCredential(tenantID, clientID, authorityHost, tokenFilePath, nil)
+	cred, err := azidentity.NewWorkloadIdentityCredential(nil)
 	if err != nil {
 		klog.Fatal(err)
 	}
