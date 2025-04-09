@@ -13,12 +13,6 @@ schedules:
 pool: staging-pool-amd64-mariner-2
 
 jobs:
-  - job: scan_images
-    timeoutInMinutes: 30
-    workspace:
-      clean: all
-    steps:
-      - template: templates/scan-images.yaml
   - job: verify_deployment_yaml
     timeoutInMinutes: 30
     workspace:
@@ -62,7 +56,6 @@ jobs:
   - job:
     timeoutInMinutes: 60
     dependsOn:
-      - scan_images
       - verify_deployment_yaml
     workspace:
       clean: all
@@ -97,7 +90,6 @@ jobs:
   - template: templates/upgrade.yaml
     parameters:
       dependsOn:
-        - scan_images
         - verify_deployment_yaml
       matrix:
         upgrade_aks_windows:
@@ -112,7 +104,6 @@ jobs:
       - ImageOverride -equals azcu-agent-amd64-mariner-2-cgv2-img
     timeoutInMinutes: 60
     dependsOn:
-      - scan_images
       - verify_deployment_yaml
     workspace:
       clean: all
@@ -131,14 +122,12 @@ jobs:
         value: "true"
     strategy:
       matrix:
-        kind_v1_28_13:
-          KIND_NODE_VERSION: v1.28.13
-        kind_v1_29_8:
-          KIND_NODE_VERSION: v1.29.8
-        kind_v1_30_4:
-          KIND_NODE_VERSION: v1.30.4
-        kind_v1_31_1:
-          KIND_NODE_VERSION: v1.31.1
+        kind_v1_30_10:
+          KIND_NODE_VERSION: v1.30.10
+        kind_v1_31_6:
+          KIND_NODE_VERSION: v1.31.6
+        kind_v1_32_3:
+          KIND_NODE_VERSION: v1.32.3
     steps:
       - script: make test-e2e
         displayName: Webhook E2E test suite

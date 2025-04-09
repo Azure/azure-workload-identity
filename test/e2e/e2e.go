@@ -16,6 +16,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	utilversion "k8s.io/apimachinery/pkg/util/version"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/test/e2e/framework"
 	e2edebug "k8s.io/kubernetes/test/e2e/framework/debug"
@@ -32,6 +33,8 @@ var (
 		metav1.NamespaceSystem,
 		"azure-workload-identity-system",
 	}
+
+	useNativeSidecar bool
 )
 
 var _ = ginkgo.SynchronizedBeforeSuite(func(ctx context.Context) []byte {
@@ -81,7 +84,15 @@ var _ = ginkgo.SynchronizedBeforeSuite(func(ctx context.Context) []byte {
 	if serverVersion != nil {
 		framework.Logf("kube-apiserver version: %s", serverVersion.GitVersion)
 	}
-
+	sv, err := utilversion.ParseSemantic(serverVersion.GitVersion)
+	if err != nil {
+		framework.Failf("unexpected server error parsing version: %v", err)
+	}
+	// "SidecarContainers" went beta in 1.29. With the 3 version skew policy,
+	// between API server and kubelet, 1.32 is the earliest version this can be
+	// safely used.
+	useNativeSidecar = sv.AtLeast(utilversion.MajorMinor(1, 32))
+	framework.Logf("proxy should use native sidecar: %t", useNativeSidecar)
 	return nil
 }, func(data []byte) {})
 
