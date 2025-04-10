@@ -9,8 +9,18 @@ permissions:
 
 jobs:
   create-release:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
+      - name: Cleanup disk
+        run: |
+          # Cleaning up unused tools based on the suggested workaround:
+          # https://github.com/actions/runner-images/issues/2840#issuecomment-790492173
+
+          # Partial cleanup from the suggested workaround.
+          # If we continue running out of space, we can remove everything listed in the workaround.
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
       - name: Harden Runner
         uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v2.6.1
         with:
