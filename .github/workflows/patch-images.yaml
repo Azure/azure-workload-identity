@@ -27,7 +27,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Generate Trivy Report
-        uses: aquasecurity/trivy-action@41f05d9ecffa2ed3f1580af306000f734b733e54 # v0.11.2
+        uses: aquasecurity/trivy-action@6c175e9c4083a92bbca2f9724c8a5e33bc2d97a5 # v0.30.0
         with:
           scan-type: 'image'
           format: 'json'
