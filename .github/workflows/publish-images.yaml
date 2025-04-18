@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   export-registry:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     outputs:
       registry: ${{ steps.export.outputs.registry }}
     steps:
@@ -33,7 +33,7 @@ jobs:
       fail-fast: false
       matrix:
         image: [webhook, proxy, proxy-init]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v2.6.1
@@ -65,7 +65,7 @@ jobs:
       fail-fast: false
       matrix:
         dir: [examples/msal-go, examples/msal-net/akvdotnet, examples/msal-node, examples/msal-python, examples/msal-java]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v2.6.1
