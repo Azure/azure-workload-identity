@@ -387,11 +387,11 @@ func addEnvironmentVariables(container corev1.Container, clientID, tenantID, azu
 		m[env.Name] = env.Value
 	}
 	// add the clientID env var
-	if _, ok := m[AzureClientIDEnvVar]; !ok {
+	if _, ok := m[AzureClientIDEnvVar]; !ok && clientID != "" {
 		container.Env = append(container.Env, corev1.EnvVar{Name: AzureClientIDEnvVar, Value: clientID})
 	}
 	// add the tenantID env var
-	if _, ok := m[AzureTenantIDEnvVar]; !ok {
+	if _, ok := m[AzureTenantIDEnvVar]; !ok && tenantID != "" {
 		container.Env = append(container.Env, corev1.EnvVar{Name: AzureTenantIDEnvVar, Value: tenantID})
 	}
 	// add the token file env var
@@ -399,7 +399,7 @@ func addEnvironmentVariables(container corev1.Container, clientID, tenantID, azu
 		container.Env = append(container.Env, corev1.EnvVar{Name: AzureFederatedTokenFileEnvVar, Value: filepath.Join(TokenFileMountPath, TokenFilePathName)})
 	}
 	// add the azure authority host env var
-	if _, ok := m[AzureAuthorityHostEnvVar]; !ok {
+	if _, ok := m[AzureAuthorityHostEnvVar]; !ok && azureAuthorityHost != "" {
 		container.Env = append(container.Env, corev1.EnvVar{Name: AzureAuthorityHostEnvVar, Value: azureAuthorityHost})
 	}
 
