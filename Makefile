@@ -2,7 +2,7 @@ REGISTRY ?= mcr.microsoft.com/oss/azure/workload-identity
 PROXY_IMAGE_NAME := proxy
 INIT_IMAGE_NAME := proxy-init
 WEBHOOK_IMAGE_NAME := webhook
-IMAGE_VERSION ?= v1.4.1
+IMAGE_VERSION ?= v1.5.0
 
 ORG_PATH := github.com/Azure
 PROJECT_NAME := azure-workload-identity
@@ -55,7 +55,7 @@ KUSTOMIZE_VER := v4.1.2
 KUSTOMIZE_BIN := kustomize
 KUSTOMIZE := $(TOOLS_BIN_DIR)/$(KUSTOMIZE_BIN)-$(KUSTOMIZE_VER)
 
-GOLANGCI_LINT_VER := v1.61.0
+GOLANGCI_LINT_VER := v1.64.8
 GOLANGCI_LINT_BIN := golangci-lint
 GOLANGCI_LINT := $(TOOLS_BIN_DIR)/$(GOLANGCI_LINT_BIN)-$(GOLANGCI_LINT_VER)
 
