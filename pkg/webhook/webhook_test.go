@@ -530,7 +530,7 @@ func TestAddEnvironmentVariables(t *testing.T) {
 			},
 		},
 		{
-			name: "existing environment variables not replaced",
+			name: "existing environment variables should be replaced to support admission reinvocation",
 			container: corev1.Container{
 				Name:  "cont1",
 				Image: "image",
@@ -545,11 +545,11 @@ func TestAddEnvironmentVariables(t *testing.T) {
 					},
 					{
 						Name:  AzureFederatedTokenFileEnvVar,
-						Value: filepath.Join(TokenFileMountPath, TokenFilePathName),
+						Value: "/tmp/token",
 					},
 					{
 						Name:  AzureAuthorityHostEnvVar,
-						Value: "https://login.microsoftonline.com/",
+						Value: "https://localhost:8080/",
 					},
 				},
 			},
@@ -559,11 +559,11 @@ func TestAddEnvironmentVariables(t *testing.T) {
 				Env: []corev1.EnvVar{
 					{
 						Name:  AzureClientIDEnvVar,
-						Value: "myClientID",
+						Value: "clientID",
 					},
 					{
 						Name:  AzureTenantIDEnvVar,
-						Value: "myTenantID",
+						Value: "tenantID",
 					},
 					{
 						Name:  AzureFederatedTokenFileEnvVar,
@@ -619,7 +619,7 @@ func TestAddEnvironmentVariables(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			actualContainer := addEnvironmentVariables(test.container, "clientID", "tenantID", "https://login.microsoftonline.com/")
+			actualContainer := setEnvironmentVariables(test.container, "clientID", "tenantID", "https://login.microsoftonline.com/")
 			if !reflect.DeepEqual(actualContainer, test.expectedContainer) {
 				t.Fatalf("expected: %v, got: %v", test.expectedContainer, actualContainer)
 			}
