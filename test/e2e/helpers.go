@@ -320,3 +320,31 @@ func getVolumeProjectionSources(serviceAccountName string) []corev1.VolumeProjec
 		}},
 	}
 }
+
+func validateProxySideCarInMutatedPod(pod *corev1.Pod) {
+	framework.Logf("validating that the proxy sidecar is injected to %s", pod.Name)
+	containers := pod.Spec.Containers
+	if useNativeSidecar {
+		framework.Logf("validating that the proxy init container is injected as native sidecar to %s", pod.Name)
+		containers = pod.Spec.InitContainers
+	}
+
+	proxySidecar := getProxySidecarContainer(containers)
+	gomega.Expect(proxySidecar).NotTo(gomega.BeNil(), "proxy sidecar is not injected to pod %s", pod.Name)
+
+	if useNativeSidecar {
+		gomega.Expect(proxySidecar.RestartPolicy).ToNot(gomega.BeNil(), "proxy sidecar in pod %s should have a restart policy", pod.Name)
+		gomega.Expect(*proxySidecar.RestartPolicy).To(gomega.Equal(corev1.ContainerRestartPolicyAlways), "proxy sidecar in pod %s should have restart policy 'Always'", pod.Name)
+	} else {
+		gomega.Expect(proxySidecar.RestartPolicy).To(gomega.BeNil(), "proxy sidecar in pod %s should not have a restart policy", pod.Name)
+	}
+}
+
+func getProxySidecarContainer(containers []corev1.Container) *corev1.Container {
+	for _, container := range containers {
+		if container.Name == "azwi-proxy" {
+			return &container
+		}
+	}
+	return nil
+}

@@ -1,2 +1,4 @@
 azure-keyvault-secrets==4.7.0
-msal==1.22.0
+# MSAL's acquire_token_for_client() comes with built-in cache since 1.23
+# And it is safe to upgrade to any new versions in 1.x series
+msal>=1.23,<2
