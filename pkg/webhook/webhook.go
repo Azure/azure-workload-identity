@@ -386,21 +386,19 @@ func addEnvironmentVariables(container corev1.Container, clientID, tenantID, azu
 	for _, env := range container.Env {
 		m[env.Name] = env.Value
 	}
-	// add the clientID env var
-	if _, ok := m[AzureClientIDEnvVar]; !ok {
-		container.Env = append(container.Env, corev1.EnvVar{Name: AzureClientIDEnvVar, Value: clientID})
+
+	desiredEnvs := []corev1.EnvVar{
+		{Name: AzureClientIDEnvVar, Value: clientID},
+		{Name: AzureTenantIDEnvVar, Value: tenantID},
+		{Name: AzureFederatedTokenFileEnvVar, Value: filepath.Join(TokenFileMountPath, TokenFilePathName)},
+		{Name: AzureAuthorityHostEnvVar, Value: azureAuthorityHost},
 	}
-	// add the tenantID env var
-	if _, ok := m[AzureTenantIDEnvVar]; !ok {
-		container.Env = append(container.Env, corev1.EnvVar{Name: AzureTenantIDEnvVar, Value: tenantID})
-	}
-	// add the token file env var
-	if _, ok := m[AzureFederatedTokenFileEnvVar]; !ok {
-		container.Env = append(container.Env, corev1.EnvVar{Name: AzureFederatedTokenFileEnvVar, Value: filepath.Join(TokenFileMountPath, TokenFilePathName)})
-	}
-	// add the azure authority host env var
-	if _, ok := m[AzureAuthorityHostEnvVar]; !ok {
-		container.Env = append(container.Env, corev1.EnvVar{Name: AzureAuthorityHostEnvVar, Value: azureAuthorityHost})
+
+	// append only the ones not already present
+	for _, env := range desiredEnvs {
+		if _, ok := m[env.Name]; !ok {
+			container.Env = append(container.Env, env)
+		}
 	}
 
 	return container
