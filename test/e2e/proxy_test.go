@@ -26,7 +26,7 @@ var _ = ginkgo.Describe("Proxy [LinuxOnly] [AKSSoakOnly]", func() {
 		gomega.Expect(ok).To(gomega.BeTrue(), "APPLICATION_CLIENT_ID must be set")
 		// trust is only set up for 'proxy-test-sa' service account in the default namespace for now
 		const namespace = "default"
-		serviceAccount := createServiceAccount(f.ClientSet, namespace, "proxy-test-sa", map[string]string{useWorkloadIdentityLabel: "true"}, map[string]string{clientIDAnnotation: clientID})
+		serviceAccount := createServiceAccount(f.ClientSet, namespace, "proxy-test-sa", map[string]string{clientIDAnnotation: clientID})
 		defer f.ClientSet.CoreV1().ServiceAccounts(namespace).Delete(context.TODO(), serviceAccount, metav1.DeleteOptions{})
 
 		proxyAnnotations := map[string]string{
@@ -81,7 +81,7 @@ var _ = ginkgo.Describe("Proxy [LinuxOnly] [AKSSoakOnly]", func() {
 		gomega.Expect(ok).To(gomega.BeTrue(), "APPLICATION_CLIENT_ID must be set")
 		// trust is only set up for 'proxy-test-sa' service account in the default namespace for now
 		const namespace = "default"
-		serviceAccount := createServiceAccount(f.ClientSet, namespace, "proxy-test-sa", map[string]string{useWorkloadIdentityLabel: "true"}, map[string]string{clientIDAnnotation: clientID})
+		serviceAccount := createServiceAccount(f.ClientSet, namespace, "proxy-test-sa", map[string]string{clientIDAnnotation: clientID})
 		defer f.ClientSet.CoreV1().ServiceAccounts(namespace).Delete(context.TODO(), serviceAccount, metav1.DeleteOptions{})
 
 		proxyAnnotations := map[string]string{
