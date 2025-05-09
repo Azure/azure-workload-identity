@@ -5,6 +5,8 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	_ "net/http/pprof" // #nosec
+	"time"
 
 	"github.com/open-policy-agent/cert-controller/pkg/rotator"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -48,6 +50,8 @@ var (
 	disableCertRotation bool
 	metricsBackend      string
 	logLevel            string
+	enableProfile       bool
+	profilePort         int
 
 	// DNSName is <service name>.<namespace>.svc
 	dnsName = fmt.Sprintf("%s.%s.svc", serviceName, util.GetNamespace())
@@ -78,6 +82,8 @@ func mainErr() error {
 	flag.StringVar(&metricsBackend, "metrics-backend", "prometheus", "Backend used for metrics")
 	flag.StringVar(&logLevel, "log-level", "",
 		"In order of increasing verbosity: unset (empty string), info, debug, trace and all.")
+	flag.BoolVar(&enableProfile, "enable-pprof", false, "enable pprof profiling")
+	flag.IntVar(&profilePort, "pprof-port", 6065, "port for pprof profiling")
 	flag.Parse()
 
 	ctx := signals.SetupSignalHandler()
@@ -94,6 +100,19 @@ func mainErr() error {
 	log.SetLogger(mlog.Logr())
 	config := ctrl.GetConfigOrDie()
 	config.UserAgent = version.GetUserAgent("webhook")
+
+	if enableProfile {
+		entryLog.Info("enabling pprof profiling", "port", profilePort)
+		go func() {
+			server := &http.Server{
+				Addr:              fmt.Sprintf("localhost:%d", profilePort),
+				ReadHeaderTimeout: 5 * time.Second,
+			}
+			if err := server.ListenAndServe(); err != nil {
+				panic(fmt.Errorf("entrypoint: failed to start pprof server: %w", err))
+			}
+		}()
+	}
 
 	// initialize metrics exporter before creating measurements
 	entryLog.Info("initializing metrics backend", "backend", metricsBackend)
