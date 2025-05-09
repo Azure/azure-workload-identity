@@ -394,9 +394,9 @@ func addEnvironmentVariables(container corev1.Container, clientID, tenantID, azu
 		{Name: AzureAuthorityHostEnvVar, Value: azureAuthorityHost},
 	}
 
-	// append only the ones not already present
+	// append the ones that are not already present (only if desired env contains a non-empty value)
 	for _, env := range desiredEnvs {
-		if _, ok := m[env.Name]; !ok {
+		if _, ok := m[env.Name]; !ok && env.Value != "" {
 			container.Env = append(container.Env, env)
 		}
 	}

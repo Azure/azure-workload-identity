@@ -627,6 +627,29 @@ func TestAddEnvironmentVariables(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("environment variables are not added when empty", func(t *testing.T) {
+		container := corev1.Container{
+			Name:  "cont1",
+			Image: "image",
+		}
+
+		expectedContainer := corev1.Container{
+			Name:  "cont1",
+			Image: "image",
+			Env: []corev1.EnvVar{
+				{
+					Name:  AzureFederatedTokenFileEnvVar,
+					Value: filepath.Join(TokenFileMountPath, TokenFilePathName),
+				},
+			},
+		}
+
+		actualContainer := addEnvironmentVariables(container, "", "", "")
+		if !reflect.DeepEqual(actualContainer, expectedContainer) {
+			t.Fatalf("expected: %v, got: %v", expectedContainer, actualContainer)
+		}
+	})
 }
 
 func TestAddProjectServiceAccountTokenVolumeMount(t *testing.T) {
