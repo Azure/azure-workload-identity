@@ -94,7 +94,7 @@ EOF
 }
 
 download_service_account_keys() {
-  if [[ -z "${SERVICE_ACCOUNT_KEYVAULT_NAME:-}" ]]; then
+  if [[ -z "${SERVICE_ACCOUNT_KEYVAULT_NAME:-}" ]] || [[ "${SKIP_PREFLIGHT:-}" == "true" ]]; then
     return
   fi
   az keyvault secret show --vault-name "${SERVICE_ACCOUNT_KEYVAULT_NAME}" --name sa-pub | jq -r .value | base64 -d > "${SERVICE_ACCOUNT_KEY_FILE}"
