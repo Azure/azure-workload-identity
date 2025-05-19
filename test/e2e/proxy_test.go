@@ -40,7 +40,7 @@ var _ = ginkgo.Describe("Proxy [LinuxOnly] [AKSSoakOnly]", func() {
 			serviceAccount,
 			"mcr.microsoft.com/azure-cli",
 			nil,
-			[]string{"/bin/sh", "-c", fmt.Sprintf("az login -i -u %s --allow-no-subscriptions --debug; sleep 3600", clientID)},
+			[]string{"/bin/sh", "-c", fmt.Sprintf("az login -i --client-id %s --allow-no-subscriptions --debug; sleep 3600", clientID)},
 			nil,
 			proxyAnnotations,
 			map[string]string{useWorkloadIdentityLabel: "true"},
