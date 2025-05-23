@@ -54,6 +54,9 @@ var (
 	scheme  = runtime.NewScheme()
 
 	entryLog = mlog.New().WithName("entrypoint")
+
+	customTokenEndpointAnnotationSuffix string
+	customTokenEndpointAudience         string
 )
 
 func init() {
@@ -78,6 +81,14 @@ func mainErr() error {
 	flag.StringVar(&metricsBackend, "metrics-backend", "prometheus", "Backend used for metrics")
 	flag.StringVar(&logLevel, "log-level", "",
 		"In order of increasing verbosity: unset (empty string), info, debug, trace and all.")
+
+	flag.StringVar(&customTokenEndpointAnnotationSuffix, "custom-token-endpoint-annotation-suffix", "identity-binding",
+		"Suffix to append to 'azure.workload.identity/use-' when defining a custom token endpoint annotation. "+
+			"Example: 'identity-binding' becomes 'azure.workload.identity/use-identity-binding'.")
+
+	flag.StringVar(&customTokenEndpointAudience, "custom-token-endpoint-audience", "api://AKSIdentityBinding",
+		"Audience to use when configuring service account tokens for custom token endpoints.")
+
 	flag.Parse()
 
 	ctx := signals.SetupSignalHandler()
@@ -168,7 +179,7 @@ func setupWebhook(mgr manager.Manager, setupFinished chan struct{}) {
 
 	// setup webhooks
 	entryLog.Info("registering webhook to the webhook server")
-	podMutator, err := wh.NewPodMutator(mgr.GetClient(), mgr.GetAPIReader(), audience, mgr.GetScheme(), mgr.GetConfig())
+	podMutator, err := wh.NewPodMutator(mgr.GetClient(), mgr.GetAPIReader(), audience, mgr.GetScheme(), mgr.GetConfig(), customTokenEndpointAnnotationSuffix, customTokenEndpointAudience)
 	if err != nil {
 		panic(fmt.Errorf("unable to set up pod mutator: %w", err))
 	}
