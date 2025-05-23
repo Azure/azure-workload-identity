@@ -5,6 +5,7 @@ package e2e
 import (
 	"context"
 	"path/filepath"
+	"strings"
 
 	"github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
@@ -206,7 +207,7 @@ func createPodUsingDeploymentWithServiceAccount(ctx context.Context, f *framewor
 // 2. verify that all containers except the one in skipContainers have azure-identity-token mounted;
 // 3. verify that the pod has a service account token volume projected;
 // 4. verify that the pod has access to token file via `cat /var/run/secrets/azure/tokens/azure-identity-token`.
-func validateMutatedPod(ctx context.Context, f *framework.Framework, pod *corev1.Pod, skipContainers []string) {
+func validateMutatedPod(ctx context.Context, f *framework.Framework, pod *corev1.Pod, skipContainers []string, customTokenEndpoint bool) {
 	withoutSkipContainers := []corev1.Container{}
 	// consider init containers as well
 	allContainers := append(pod.Spec.Containers, pod.Spec.InitContainers...)
@@ -223,6 +224,18 @@ func validateMutatedPod(ctx context.Context, f *framework.Framework, pod *corev1
 		}
 	}
 
+	desiredEnvVars := []string{
+		"AZURE_CLIENT_ID",
+		"AZURE_TENANT_ID",
+		"AZURE_AUTHORITY_HOST",
+		"AZURE_FEDERATED_TOKEN_FILE",
+	}
+	if customTokenEndpoint {
+		desiredEnvVars = append(desiredEnvVars, "AZURE_KUBERNETES_TOKEN_ENDPOINT")
+		desiredEnvVars = append(desiredEnvVars, "AZURE_KUBERNETES_SNI_NAME")
+		desiredEnvVars = append(desiredEnvVars, "AZURE_KUBERNETES_CA_FILE")
+	}
+
 	for _, container := range withoutSkipContainers {
 		m := make(map[string]struct{})
 		for _, env := range container.Env {
@@ -230,12 +243,7 @@ func validateMutatedPod(ctx context.Context, f *framework.Framework, pod *corev1
 		}
 
 		framework.Logf("ensuring that the correct environment variables are injected to %s in %s", container.Name, pod.Name)
-		for _, injected := range []string{
-			"AZURE_CLIENT_ID",
-			"AZURE_TENANT_ID",
-			"AZURE_AUTHORITY_HOST",
-			"AZURE_FEDERATED_TOKEN_FILE",
-		} {
+		for _, injected := range desiredEnvVars {
 			if _, ok := m[injected]; !ok {
 				framework.Failf("container %s in pod %s does not have env var %s injected", container.Name, pod.Name, injected)
 			}
@@ -244,11 +252,11 @@ func validateMutatedPod(ctx context.Context, f *framework.Framework, pod *corev1
 		framework.Logf("ensuring that azure-identity-token is mounted to %s", container.Name)
 		found := false
 		for _, volumeMount := range container.VolumeMounts {
-			if volumeMount.Name == "azure-identity-token" {
+			if strings.HasPrefix(volumeMount.Name, projectedVolumeNamePrefix) {
 				found = true
 				gomega.Expect(volumeMount).To(gomega.Equal(corev1.VolumeMount{
-					Name:      tokenFilePathName,
-					MountPath: tokenFileMountPath,
+					Name:      volumeMount.Name,
+					MountPath: volumeMountPath,
 					ReadOnly:  true,
 				}))
 				break
@@ -263,13 +271,13 @@ func validateMutatedPod(ctx context.Context, f *framework.Framework, pod *corev1
 	defaultMode := int32(420)
 	found := false
 	for _, volume := range pod.Spec.Volumes {
-		if volume.Name == tokenFilePathName {
+		if strings.HasPrefix(volume.Name, projectedVolumeNamePrefix) {
 			found = true
 			gomega.Expect(volume).To(gomega.Equal(corev1.Volume{
-				Name: tokenFilePathName,
+				Name: volume.Name,
 				VolumeSource: corev1.VolumeSource{
 					Projected: &corev1.ProjectedVolumeSource{
-						Sources:     getVolumeProjectionSources(pod.Spec.ServiceAccountName),
+						Sources:     getVolumeProjectionSources(pod.Spec.ServiceAccountName, customTokenEndpoint),
 						DefaultMode: &defaultMode,
 					},
 				},
@@ -284,7 +292,7 @@ func validateMutatedPod(ctx context.Context, f *framework.Framework, pod *corev1
 	if len(withoutSkipContainers) > 0 {
 		err := e2epod.WaitForPodNameRunningInNamespace(ctx, f.ClientSet, pod.Name, pod.Namespace)
 		framework.ExpectNoError(err, "failed to start pod %s", pod.Name)
-		_ = e2epod.ExecCommandInContainer(f, pod.Name, withoutSkipContainers[0].Name, "cat", filepath.Join(tokenFileMountPath, tokenFilePathName))
+		_ = e2epod.ExecCommandInContainer(f, pod.Name, withoutSkipContainers[0].Name, "cat", filepath.Join(volumeMountPath, tokenFilePath))
 	}
 }
 
@@ -297,7 +305,7 @@ func validateUnmutatedContainers(f *framework.Framework, pod *corev1.Pod, skipCo
 	}
 	noVolumeMount := func(c corev1.Container) {
 		for _, volumeMount := range c.VolumeMounts {
-			gomega.Expect(volumeMount.Name).NotTo(gomega.Equal(tokenFilePathName))
+			gomega.Expect(volumeMount.Name).NotTo(gomega.HavePrefix(projectedVolumeNamePrefix))
 		}
 	}
 	for _, c := range pod.Spec.Containers {
@@ -310,14 +318,37 @@ func validateUnmutatedContainers(f *framework.Framework, pod *corev1.Pod, skipCo
 	}
 }
 
-func getVolumeProjectionSources(serviceAccountName string) []corev1.VolumeProjection {
-	return []corev1.VolumeProjection{{
+func getVolumeProjectionSources(serviceAccountName string, customTokenEndpoint bool) []corev1.VolumeProjection {
+	audience := "api://AzureADTokenExchange"
+	if customTokenEndpoint {
+		audience = "api://AKSIdentityBinding"
+	}
+	volumeProjection := []corev1.VolumeProjection{{
 		ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
-			Path:              tokenFilePathName,
+			Path:              tokenFilePath,
 			ExpirationSeconds: pointer.Int64(3600),
-			Audience:          "api://AzureADTokenExchange",
+			Audience:          audience,
 		}},
 	}
+
+	if customTokenEndpoint {
+		// check the existence of the custom token endpoint config map
+		volumeProjection = append(volumeProjection, corev1.VolumeProjection{
+			ConfigMap: &corev1.ConfigMapProjection{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: "kube-root-ca.crt",
+				},
+				Items: []corev1.KeyToPath{
+					{
+						Key:  "ca.crt",
+						Path: "ca-cert/ca.crt",
+					},
+				},
+				Optional: pointer.Bool(false),
+			},
+		})
+	}
+	return volumeProjection
 }
 
 func validateProxySideCarInMutatedPod(pod *corev1.Pod) {

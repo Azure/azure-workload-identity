@@ -73,7 +73,9 @@ main() {
     export E2E_ARGS
   fi
 
-  make test-e2e-run
+  # skipping here because don't set the custom token endpoint config when deploying yaml manifests
+  # this is tested in the next step with helm chart
+  GINKGO_SKIP=should.mutate.a.deployment.pod.with.an.annotated.service.account.for.custom.token.endpoint\|AKSSoakOnly make test-e2e-run
 
   if [[ "${TEST_HELM_CHART:-}" == "true" ]]; then
     make uninstall-deploy
@@ -95,12 +97,15 @@ test_helm_chart() {
     -v=5 \
     --devel
   poll_webhook_readiness
-  GINKGO_SKIP=Proxy make test-e2e-run
+  GINKGO_SKIP=Proxy\|Webhook\|AKSSoakOnly make test-e2e-run
 
   ${HELM} upgrade --install workload-identity-webhook "${REPO_ROOT}/manifest_staging/charts/workload-identity-webhook" \
     --set image.repository="${REGISTRY:-mcr.microsoft.com/oss/azure/workload-identity/webhook}" \
     --set image.release="${IMAGE_VERSION}" \
     --set azureTenantID="${AZURE_TENANT_ID}" \
+    --set customTokenEndpoint.azureKubernetesSniName="2183187515ff64fc2fff014fd0e749f92578a466dc345b" \
+    --set customTokenEndpoint.azureKubernetesTokenEndpoint="https://kubernetes.default.svc" \
+    --set customTokenEndpoint.azureKubernetesCAConfigMapName="kube-root-ca.crt" \
     --namespace azure-workload-identity-system \
     --reuse-values \
     -f "${REPO_ROOT}/manifest_staging/charts/workload-identity-webhook/values.yaml" \

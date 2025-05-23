@@ -21,6 +21,25 @@ var replacements = map[string]string{
 
 	"HELMSUBST_CONFIGMAP_AZURE_TENANT_ID": `{{ required "A valid .Values.azureTenantID entry required!" .Values.azureTenantID }}`,
 
+	`HELMSUBST_CONFIGMAP_CUSTOM_TOKEN_ENDPOINT_CONFIG: ""`: `{{- if .Values.customTokenEndpoint.azureKubernetesCaData }}
+  AZURE_KUBERNETES_CA_DATA: {{ .Values.customTokenEndpoint.azureKubernetesCaData | quote }}
+  {{- end }}
+  {{- if .Values.customTokenEndpoint.azureKubernetesSniName }}
+  AZURE_KUBERNETES_SNI_NAME: {{ .Values.customTokenEndpoint.azureKubernetesSniName | quote }}
+  {{- end }}
+  {{- if .Values.customTokenEndpoint.azureKubernetesTokenEndpoint }}
+  AZURE_KUBERNETES_TOKEN_ENDPOINT: {{ .Values.customTokenEndpoint.azureKubernetesTokenEndpoint | quote }}
+  {{- end }}
+  {{- if .Values.customTokenEndpoint.azureKubernetesCAConfigMapName }}
+  AZURE_KUBERNETES_CA_CONFIGMAP_NAME: {{ .Values.customTokenEndpoint.azureKubernetesCAConfigMapName | quote }}
+  {{- end }}
+  {{- if .Values.customTokenEndpoint.azureKubernetesCACTBSignerName }}
+  AZURE_KUBERNETES_CA_CTB_SIGNER_NAME: {{ .Values.customTokenEndpoint.azureKubernetesCACTBSignerName | quote }}
+  {{- end }}
+  {{- if .Values.customTokenEndpoint.azureKubernetesCACTBLabelSelector }}
+  AZURE_KUBERNETES_CA_CTB_LABEL_SELECTOR: {{ .Values.customTokenEndpoint.azureKubernetesCACTBLabelSelector | quote }}
+  {{- end }}`,
+
 	`HELMSUBST_SERVICE_TYPE: ""`: `{{- if .Values.service }}
   type: {{  .Values.service.type | default "ClusterIP" }}
   {{- end }}`,

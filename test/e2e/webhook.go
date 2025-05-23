@@ -23,8 +23,9 @@ const (
 	serviceAccountTokenExpiryAnnotation = "azure.workload.identity/service-account-token-expiration"
 	injectProxySidecarAnnotation        = "azure.workload.identity/inject-proxy-sidecar"
 	proxySidecarPortAnnotation          = "azure.workload.identity/proxy-sidecar-port"
-	tokenFilePathName                   = "azure-identity-token"
-	tokenFileMountPath                  = "/var/run/secrets/azure/tokens" // #nosec
+	volumeMountPath                     = "/var/run/secrets/azure/wi" // #nosec
+	projectedVolumeNamePrefix           = "azure-workload-identity-reserved-"
+	tokenFilePath                       = "token/azure-identity-token"
 )
 
 var _ = ginkgo.Describe("Webhook", func() {
@@ -45,7 +46,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 			false,
 		)
 		framework.ExpectNoError(err, "failed to create pod %s in %s", pod.Name, f.Namespace.Name)
-		validateMutatedPod(ctx, f, pod, nil)
+		validateMutatedPod(ctx, f, pod, nil, false)
 	})
 
 	ginkgo.It("should mutate the init containers within a pod", func(ctx context.Context) {
@@ -85,19 +86,19 @@ var _ = ginkgo.Describe("Webhook", func() {
 		framework.ExpectNoError(err, "failed to create pod %s in %s", pod.Name, f.Namespace.Name)
 		defer f.ClientSet.CoreV1().Pods(f.Namespace.Name).Delete(context.TODO(), pod.Name, metav1.DeleteOptions{})
 
-		validateMutatedPod(ctx, f, pod, nil)
+		validateMutatedPod(ctx, f, pod, nil, false)
 	})
 
 	ginkgo.It("should mutate a deployment pod with a labeled pod spec", func(ctx context.Context) {
 		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{clientIDAnnotation: "000-0000-0000-0000"})
 		pod := createPodUsingDeploymentWithServiceAccount(ctx, f, serviceAccount)
-		validateMutatedPod(ctx, f, pod, nil)
+		validateMutatedPod(ctx, f, pod, nil, false)
 	})
 
 	ginkgo.It("should mutate a deployment pod with an annotated service account", func(ctx context.Context) {
 		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{clientIDAnnotation: "000-0000-0000-0000"})
 		pod := createPodUsingDeploymentWithServiceAccount(ctx, f, serviceAccount)
-		validateMutatedPod(ctx, f, pod, nil)
+		validateMutatedPod(ctx, f, pod, nil, false)
 	})
 
 	ginkgo.It(fmt.Sprintf("should not mutate selected containers if the pod has %s annotated", skipContainersAnnotation), func(ctx context.Context) {
@@ -116,7 +117,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 			false,
 		)
 		framework.ExpectNoError(err, "failed to create pod %s in %s", pod.Name, f.Namespace.Name)
-		validateMutatedPod(ctx, f, pod, strings.Split(skipContainers, ";"))
+		validateMutatedPod(ctx, f, pod, strings.Split(skipContainers, ";"), false)
 		validateUnmutatedContainers(f, pod, strings.Split(skipContainers, ";"))
 	})
 
@@ -160,4 +161,22 @@ var _ = ginkgo.Describe("Webhook", func() {
 			gomega.ExpectWithOffset(1, err).To(gomega.HaveOccurred(), "creation of pod should be denied by the webhook")
 		})
 	}
+
+	ginkgo.It("should mutate a deployment pod with an annotated service account for custom token endpoint", func(ctx context.Context) {
+		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{clientIDAnnotation: "000-0000-0000-0000"})
+		pod, err := createPodWithServiceAccount(
+			f.ClientSet,
+			f.Namespace.Name,
+			serviceAccount,
+			"registry.k8s.io/e2e-test-images/busybox:1.29-4",
+			[]string{"sleep"},
+			[]string{"3600"},
+			nil,
+			map[string]string{"azure.workload.identity/use-identity-binding": "true"},
+			map[string]string{useWorkloadIdentityLabel: "true"},
+			false,
+		)
+		framework.ExpectNoError(err, "failed to create pod %s in %s", pod.Name, f.Namespace.Name)
+		validateMutatedPod(ctx, f, pod, nil, true)
+	})
 })
