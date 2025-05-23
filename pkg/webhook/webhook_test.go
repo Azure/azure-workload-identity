@@ -19,6 +19,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/sets"
 	utilversion "k8s.io/apimachinery/pkg/util/version"
 	discoveryfake "k8s.io/client-go/discovery/fake"
 	kubernetesfake "k8s.io/client-go/kubernetes/fake"
@@ -29,6 +30,7 @@ import (
 
 var (
 	serviceAccountTokenExpiry = MinServiceAccountTokenExpiration
+	decoder                   = atypes.NewDecoder(runtime.NewScheme())
 )
 
 func newPod(name, namespace, serviceAccountName string, labels, annotations map[string]string, hostNetwork bool) *corev1.Pod {
@@ -281,7 +283,7 @@ func TestGetSkipContainers(t *testing.T) {
 	tests := []struct {
 		name                   string
 		pod                    *corev1.Pod
-		expectedSkipContainers map[string]struct{}
+		expectedSkipContainers sets.Set[string]
 	}{
 		{
 			name: "no skip containers defined",
@@ -302,7 +304,7 @@ func TestGetSkipContainers(t *testing.T) {
 					Annotations: map[string]string{SkipContainersAnnotation: "container1"},
 				},
 			},
-			expectedSkipContainers: map[string]struct{}{"container1": {}},
+			expectedSkipContainers: sets.New("container1"),
 		},
 		{
 			name: "multiple skip containers defined delimited by ;",
@@ -313,7 +315,7 @@ func TestGetSkipContainers(t *testing.T) {
 					Annotations: map[string]string{SkipContainersAnnotation: "container1;container2"},
 				},
 			},
-			expectedSkipContainers: map[string]struct{}{"container1": {}, "container2": {}},
+			expectedSkipContainers: sets.New("container1", "container2"),
 		},
 		{
 			name: "multiple skip containers defined with extra space",
@@ -324,7 +326,7 @@ func TestGetSkipContainers(t *testing.T) {
 					Annotations: map[string]string{SkipContainersAnnotation: "container1; container2"},
 				},
 			},
-			expectedSkipContainers: map[string]struct{}{"container1": {}, "container2": {}},
+			expectedSkipContainers: sets.New("container1", "container2"),
 		},
 	}
 
@@ -619,9 +621,15 @@ func TestAddEnvironmentVariables(t *testing.T) {
 		},
 	}
 
+	m := &podMutator{
+		config:  &config.Config{TenantID: "tenantID"},
+		decoder: decoder,
+	}
+
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			actualContainer := addEnvironmentVariables(test.container, "clientID", "tenantID", "https://login.microsoftonline.com/")
+
+			actualContainer := m.addEnvironmentVariables(test.container, "clientID", "tenantID", "https://login.microsoftonline.com/", false)
 			if !reflect.DeepEqual(actualContainer, test.expectedContainer) {
 				t.Fatalf("expected: %v, got: %v", test.expectedContainer, actualContainer)
 			}
@@ -645,7 +653,7 @@ func TestAddEnvironmentVariables(t *testing.T) {
 			},
 		}
 
-		actualContainer := addEnvironmentVariables(container, "", "", "")
+		actualContainer := m.addEnvironmentVariables(container, "", "", "", false)
 		if !reflect.DeepEqual(actualContainer, expectedContainer) {
 			t.Fatalf("expected: %v, got: %v", expectedContainer, actualContainer)
 		}
@@ -753,8 +761,6 @@ func TestHandle(t *testing.T) {
 			},
 		})
 	}
-
-	decoder := atypes.NewDecoder(runtime.NewScheme())
 
 	tests := []struct {
 		name          string
@@ -910,7 +916,7 @@ func TestMutateContainers(t *testing.T) {
 	tests := []struct {
 		name               string
 		containers         []corev1.Container
-		skipContainers     map[string]struct{}
+		skipContainers     sets.Set[string]
 		expectedContainers []corev1.Container
 	}{{
 		name:               "no containers",
@@ -960,9 +966,7 @@ func TestMutateContainers(t *testing.T) {
 			Name:  "skip-container",
 			Image: "skip-image",
 		}},
-		skipContainers: map[string]struct{}{
-			"skip-container": {},
-		},
+		skipContainers: sets.New("skip-container"),
 		expectedContainers: []corev1.Container{{
 			Name:  "my-container",
 			Image: "my-image",
@@ -997,7 +1001,6 @@ func TestMutateContainers(t *testing.T) {
 		}},
 	}}
 
-	decoder := atypes.NewDecoder(runtime.NewScheme())
 	m := &podMutator{
 		client:             fake.NewClientBuilder().WithObjects().Build(),
 		reader:             fake.NewClientBuilder().WithObjects().Build(),
@@ -1008,7 +1011,7 @@ func TestMutateContainers(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			containers := m.mutateContainers(test.containers, azureClientID, azureTenantID, test.skipContainers)
+			containers := m.mutateContainers(test.containers, azureClientID, azureTenantID, test.skipContainers, false)
 			if !reflect.DeepEqual(containers, test.expectedContainers) {
 				t.Errorf("expected: %v, got: %v", test.expectedContainers, test.containers)
 			}
@@ -1347,8 +1350,6 @@ func TestHandleError(t *testing.T) {
 			},
 		})
 	}
-
-	decoder := atypes.NewDecoder(runtime.NewScheme())
 
 	tests := []struct {
 		name          string

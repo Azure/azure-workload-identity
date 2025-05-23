@@ -20,6 +20,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/sets"
 	utilversion "k8s.io/apimachinery/pkg/util/version"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
@@ -57,6 +58,11 @@ type podMutator struct {
 	proxyImage         string
 	proxyInitImage     string
 	useNativeSidecar   bool
+
+	azureKubernetesTokenEndpoint string
+	azureKubernetesSNIName       string
+	azureKubernetesCAFile        string
+	azureKubernetesCAData        string
 }
 
 // NewPodMutator returns a pod mutation handler
@@ -192,11 +198,16 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) (respons
 	tenantID := getTenantID(serviceAccount, m.config)
 	// get containers to skip
 	skipContainers := getSkipContainers(pod)
-	pod.Spec.InitContainers = m.mutateContainers(pod.Spec.InitContainers, clientID, tenantID, skipContainers)
-	pod.Spec.Containers = m.mutateContainers(pod.Spec.Containers, clientID, tenantID, skipContainers)
+	podUsingIdentityBinding := isUsingIdentityBinding(pod)
+	pod.Spec.InitContainers = m.mutateContainers(pod.Spec.InitContainers, clientID, tenantID, skipContainers, podUsingIdentityBinding)
+	pod.Spec.Containers = m.mutateContainers(pod.Spec.Containers, clientID, tenantID, skipContainers, podUsingIdentityBinding)
 
 	// add the projected service account token volume to the pod if not exists
-	addProjectedServiceAccountTokenVolume(pod, serviceAccountTokenExpiration, m.audience)
+	aud := m.audience
+	if podUsingIdentityBinding {
+		aud = DefaultIdentityBindingAudience
+	}
+	addProjectedServiceAccountTokenVolume(pod, serviceAccountTokenExpiration, aud)
 
 	marshaledPod, err := json.Marshal(pod)
 	if err != nil {
@@ -208,14 +219,14 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) (respons
 
 // mutateContainers mutates the containers by injecting the projected
 // service account token volume and environment variables
-func (m *podMutator) mutateContainers(containers []corev1.Container, clientID string, tenantID string, skipContainers map[string]struct{}) []corev1.Container {
+func (m *podMutator) mutateContainers(containers []corev1.Container, clientID, tenantID string, skipContainers sets.Set[string], podUsingIdentityBinding bool) []corev1.Container {
 	for i := range containers {
 		// container is in the skip list
-		if _, ok := skipContainers[containers[i].Name]; ok {
+		if skipContainers.Has(containers[i].Name) {
 			continue
 		}
 		// add environment variables to container if not exists
-		containers[i] = addEnvironmentVariables(containers[i], clientID, tenantID, m.azureAuthorityHost)
+		containers[i] = m.addEnvironmentVariables(containers[i], clientID, tenantID, m.azureAuthorityHost, podUsingIdentityBinding)
 		// add the volume mount if not exists
 		containers[i] = addProjectedTokenVolumeMount(containers[i])
 	}
@@ -303,18 +314,28 @@ func shouldInjectProxySidecar(pod *corev1.Pod) bool {
 	return ok
 }
 
+func isUsingIdentityBinding(pod *corev1.Pod) bool {
+	if len(pod.Annotations) == 0 {
+		return false
+	}
+	if val, ok := pod.Annotations[UseIdentityBindingAnnotation]; ok {
+		return strings.EqualFold(val, "true")
+	}
+	return false
+}
+
 // getSkipContainers gets the list of containers to skip based on the annotation
-func getSkipContainers(pod *corev1.Pod) map[string]struct{} {
+func getSkipContainers(pod *corev1.Pod) sets.Set[string] {
 	skipContainers := pod.Annotations[SkipContainersAnnotation]
 	if len(skipContainers) == 0 {
 		return nil
 	}
 	skipContainersList := strings.Split(skipContainers, ";")
-	m := make(map[string]struct{})
+	sc := sets.New[string]()
 	for _, skipContainer := range skipContainersList {
-		m[strings.TrimSpace(skipContainer)] = struct{}{}
+		sc.Insert(strings.TrimSpace(skipContainer))
 	}
-	return m
+	return sc
 }
 
 // getServiceAccountTokenExpiration returns the expiration seconds for the project service account token volume
@@ -381,10 +402,10 @@ func getTenantID(sa *corev1.ServiceAccount, c *config.Config) string {
 }
 
 // addEnvironmentVariables adds the clientID, tenantID and token file path environment variables needed for SDK
-func addEnvironmentVariables(container corev1.Container, clientID, tenantID, azureAuthorityHost string) corev1.Container {
-	m := make(map[string]string)
+func (m *podMutator) addEnvironmentVariables(container corev1.Container, clientID, tenantID, azureAuthorityHost string, podUsingIdentityBinding bool) corev1.Container {
+	envs := make(map[string]string)
 	for _, env := range container.Env {
-		m[env.Name] = env.Value
+		envs[env.Name] = env.Value
 	}
 
 	desiredEnvs := []corev1.EnvVar{
@@ -394,9 +415,16 @@ func addEnvironmentVariables(container corev1.Container, clientID, tenantID, azu
 		{Name: AzureAuthorityHostEnvVar, Value: azureAuthorityHost},
 	}
 
+	if podUsingIdentityBinding {
+		desiredEnvs = append(desiredEnvs, corev1.EnvVar{Name: AzureKubernetesTokenEndpointEnvVar, Value: m.azureKubernetesTokenEndpoint})
+		desiredEnvs = append(desiredEnvs, corev1.EnvVar{Name: AzureKubernetesSNINameEnvVar, Value: m.azureKubernetesSNIName})
+		desiredEnvs = append(desiredEnvs, corev1.EnvVar{Name: AzureKubernetesCAFileEnvVar, Value: m.azureKubernetesCAFile})
+		desiredEnvs = append(desiredEnvs, corev1.EnvVar{Name: AzureKubernetesCADataEnvVar, Value: m.azureKubernetesCAData})
+	}
+
 	// append the ones that are not already present (only if desired env contains a non-empty value)
 	for _, env := range desiredEnvs {
-		if _, ok := m[env.Name]; !ok && env.Value != "" {
+		if _, ok := envs[env.Name]; !ok && len(env.Value) > 0 {
 			container.Env = append(container.Env, env)
 		}
 	}
