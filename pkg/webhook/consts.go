@@ -19,6 +19,8 @@ const (
 	InjectProxySidecarAnnotation = "azure.workload.identity/inject-proxy-sidecar"
 	// ProxySidecarPortAnnotation represents the annotation to be used to specify the port for proxy sidecar
 	ProxySidecarPortAnnotation = "azure.workload.identity/proxy-sidecar-port"
+	// UseIdentityBindingAnnotation represents the service account is to be used for identity binding
+	UseIdentityBindingAnnotation = "azure.workload.identity/use-identity-binding"
 
 	// MinServiceAccountTokenExpiration is the minimum service account token expiration in seconds
 	MinServiceAccountTokenExpiration = int64(3600)
@@ -56,4 +58,10 @@ const (
 	// This value is to be consistent with other token exchange flows in AAD and has
 	// no impact on the actual token exchange flow.
 	DefaultAudience = "api://AzureADTokenExchange"
+
+	AzureKubernetesCADataEnvVar        = "AZURE_KUBERNETES_CA_DATA" // #nosec
+	AzureKubernetesCAFileEnvVar        = "AZURE_KUBERNETES_CA_FILE" // #nosec
+	AzureKubernetesSNINameEnvVar       = "AZURE_KUBERNETES_SNI_NAME"
+	AzureKubernetesTokenEndpointEnvVar = "AZURE_KUBERNETES_TOKEN_ENDPOINT"
+	DefaultIdentityBindingAudience     = "api://AKSIdentityBinding"
 )
