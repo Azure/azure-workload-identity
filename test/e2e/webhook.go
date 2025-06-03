@@ -31,7 +31,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 	f := framework.NewDefaultFramework("webhook")
 
 	ginkgo.It("should mutate a labeled pod", func(ctx context.Context) {
-		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", nil, nil)
+		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{clientIDAnnotation: "000-0000-0000-0000"})
 		pod, err := createPodWithServiceAccount(
 			f.ClientSet,
 			f.Namespace.Name,
@@ -49,7 +49,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 	})
 
 	ginkgo.It("should mutate the init containers within a pod", func(ctx context.Context) {
-		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{useWorkloadIdentityLabel: "true"}, nil)
+		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{clientIDAnnotation: "000-0000-0000-0000"})
 
 		pod := generatePodWithServiceAccount(
 			f.ClientSet,
@@ -89,20 +89,20 @@ var _ = ginkgo.Describe("Webhook", func() {
 	})
 
 	ginkgo.It("should mutate a deployment pod with a labeled pod spec", func(ctx context.Context) {
-		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{useWorkloadIdentityLabel: "true"}, nil)
+		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{clientIDAnnotation: "000-0000-0000-0000"})
 		pod := createPodUsingDeploymentWithServiceAccount(ctx, f, serviceAccount)
 		validateMutatedPod(ctx, f, pod, nil)
 	})
 
 	ginkgo.It("should mutate a deployment pod with an annotated service account", func(ctx context.Context) {
-		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", nil, map[string]string{useWorkloadIdentityLabel: "true"})
+		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{clientIDAnnotation: "000-0000-0000-0000"})
 		pod := createPodUsingDeploymentWithServiceAccount(ctx, f, serviceAccount)
 		validateMutatedPod(ctx, f, pod, nil)
 	})
 
 	ginkgo.It(fmt.Sprintf("should not mutate selected containers if the pod has %s annotated", skipContainersAnnotation), func(ctx context.Context) {
 		const skipContainers = busybox1 + ";"
-		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{useWorkloadIdentityLabel: "true"}, nil)
+		serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{clientIDAnnotation: "000-0000-0000-0000"})
 		pod, err := createPodWithServiceAccount(
 			f.ClientSet,
 			f.Namespace.Name,
@@ -125,7 +125,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 		{serviceAccountTokenExpiryAnnotation: "invalid"}, // non-numeric value
 	} {
 		ginkgo.It(fmt.Sprintf("should not mutate a pod if '%s: \"%s\"' is annotated to the service account", serviceAccountTokenExpiryAnnotation, annotations[serviceAccountTokenExpiryAnnotation]), func() {
-			serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{useWorkloadIdentityLabel: "true"}, annotations)
+			serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", annotations)
 			_, err := createPodWithServiceAccount(
 				f.ClientSet,
 				f.Namespace.Name,
@@ -143,7 +143,7 @@ var _ = ginkgo.Describe("Webhook", func() {
 		})
 
 		ginkgo.It(fmt.Sprintf("should not mutate a pod if '%s: \"%s\"' is annotated to the pod", serviceAccountTokenExpiryAnnotation, annotations[serviceAccountTokenExpiryAnnotation]), func() {
-			serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", map[string]string{useWorkloadIdentityLabel: "true"}, nil)
+			serviceAccount := createServiceAccount(f.ClientSet, f.Namespace.Name, f.Namespace.Name+"-sa", nil)
 			_, err := createPodWithServiceAccount(
 				f.ClientSet,
 				f.Namespace.Name,

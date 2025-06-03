@@ -24,12 +24,11 @@ const (
 )
 
 // createServiceAccount creates a service account with customizable name, namespace, labels and annotations.
-func createServiceAccount(c kubernetes.Interface, namespace, name string, labels, annotations map[string]string) string {
+func createServiceAccount(c kubernetes.Interface, namespace, name string, annotations map[string]string) string {
 	account := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        name,
 			Namespace:   namespace,
-			Labels:      labels,
 			Annotations: annotations,
 		},
 	}

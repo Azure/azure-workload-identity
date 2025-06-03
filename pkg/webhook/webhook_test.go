@@ -509,21 +509,23 @@ func TestAddEnvironmentVariables(t *testing.T) {
 			expectedContainer: corev1.Container{
 				Name:  "cont1",
 				Image: "image",
+				// this test uses literals instead of constants for env var
+				// names so that it will fail if the constant values change
 				Env: []corev1.EnvVar{
 					{
-						Name:  AzureClientIDEnvVar,
+						Name:  "AZURE_CLIENT_ID",
 						Value: "clientID",
 					},
 					{
-						Name:  AzureTenantIDEnvVar,
+						Name:  "AZURE_TENANT_ID",
 						Value: "tenantID",
 					},
 					{
-						Name:  AzureFederatedTokenFileEnvVar,
+						Name:  "AZURE_FEDERATED_TOKEN_FILE",
 						Value: filepath.Join(TokenFileMountPath, TokenFilePathName),
 					},
 					{
-						Name:  AzureAuthorityHostEnvVar,
+						Name:  "AZURE_AUTHORITY_HOST",
 						Value: "https://login.microsoftonline.com/",
 					},
 				},
@@ -625,6 +627,29 @@ func TestAddEnvironmentVariables(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("environment variables are not added when empty", func(t *testing.T) {
+		container := corev1.Container{
+			Name:  "cont1",
+			Image: "image",
+		}
+
+		expectedContainer := corev1.Container{
+			Name:  "cont1",
+			Image: "image",
+			Env: []corev1.EnvVar{
+				{
+					Name:  AzureFederatedTokenFileEnvVar,
+					Value: filepath.Join(TokenFileMountPath, TokenFilePathName),
+				},
+			},
+		}
+
+		actualContainer := addEnvironmentVariables(container, "", "", "")
+		if !reflect.DeepEqual(actualContainer, expectedContainer) {
+			t.Fatalf("expected: %v, got: %v", expectedContainer, actualContainer)
+		}
+	})
 }
 
 func TestAddProjectServiceAccountTokenVolumeMount(t *testing.T) {
