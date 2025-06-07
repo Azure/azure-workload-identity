@@ -9,6 +9,8 @@ var replacements = map[string]string{
 
 	`HELMSUBST_DEPLOYMENT_AFFINITY: ""`: `{{- toYaml .Values.affinity | nindent 8 }}`,
 
+	`HELMSUBST_DEPLOYMENT_TOPOLOGY_SPREAD_CONSTRAINTS: ""`: `{{- toYaml .Values.topologySpreadConstraints | nindent 8 }}`,
+
 	`HELMSUBST_DEPLOYMENT_TOLERATIONS: ""`: `{{- toYaml .Values.tolerations | nindent 8 }}`,
 
 	"HELMSUBST_CONFIGMAP_AZURE_ENVIRONMENT": `{{ .Values.azureEnvironment | default "AzurePublicCloud" }}`,
