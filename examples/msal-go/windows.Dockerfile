@@ -1,7 +1,7 @@
 ARG SERVERCORE_CACHE=gcr.io/k8s-staging-e2e-test-images/windows-servercore-cache:1.0-linux-amd64-${OS_VERSION:-1809}
 ARG BASEIMAGE=mcr.microsoft.com/windows/nanoserver:${OS_VERSION:-1809}
 
-FROM --platform=linux/amd64 mcr.microsoft.com/oss/go/microsoft/golang:1.23.8-bookworm@sha256:e052bd5581c75956d08a78b47ba5d12b746aef722f4cd577c98fb571e3072188 as builder
+FROM --platform=linux/amd64 mcr.microsoft.com/oss/go/microsoft/golang:1.23.10-bookworm@sha256:4f480656fdca8aad2269a469d601659fd1b498e573d84591a7088291b947ca60 as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
