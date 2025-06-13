@@ -29,6 +29,7 @@ metadata:
   namespace: azure-workload-identity-system
 spec:
   replicas: HELMSUBST_DEPLOYMENT_REPLICAS
+  HELMSUBST_DEPLOYMENT_REVISION_HISTORY_LIMIT: ""
   selector:
     matchLabels:
       azure-workload-identity.io/system: "true"

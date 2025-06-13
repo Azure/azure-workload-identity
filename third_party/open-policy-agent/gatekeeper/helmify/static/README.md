@@ -56,6 +56,7 @@ helm upgrade -n azure-workload-identity-system [RELEASE_NAME] azure-workload-ide
 | mutatingWebhookNamespaceSelector   | The namespace selector to further refine which namespaces will be selected by the webhook.                                        | `{}`                                                    |
 | podDisruptionBudget.minAvailable   | The minimum number of pods that must be available for the webhook to be considered available                                      | `1`                                                     |
 | podDisruptionBudget.maxUnavailable | The maximum number of pods that may be unavailable for the webhook to be considered available                                     | `nil`                                                   |
+| revisionHistoryLimit               | The number of old ReplicaSets to retain for the webhook deployment                                                                | `10`                                                    |
 
 ## Contributing Changes
 
