@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/oss/go/microsoft/golang:1.23.8-bookworm@sha256:e052bd5581c75956d08a78b47ba5d12b746aef722f4cd577c98fb571e3072188 as builder
+FROM mcr.microsoft.com/oss/go/microsoft/golang:1.23.10-bookworm@sha256:1b9955f4f779e11096819e0a2594c9cf568aa2337fea85a45b220bf632376e58 as builder
 
 ARG LDFLAGS
 
