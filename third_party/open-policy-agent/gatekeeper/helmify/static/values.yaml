@@ -7,7 +7,7 @@ image:
   repository: mcr.microsoft.com/oss/azure/workload-identity/webhook
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  release: v1.5.0
+  release: v1.5.1
 imagePullSecrets: []
 nodeSelector:
   kubernetes.io/os: linux
