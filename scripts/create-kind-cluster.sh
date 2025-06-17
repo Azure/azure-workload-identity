@@ -3,6 +3,7 @@
 set -o errexit
 set -o nounset
 set -o pipefail
+set -x
 
 : "${SERVICE_ACCOUNT_ISSUER:?Environment variable empty or not defined.}"
 
@@ -57,7 +58,7 @@ EOF
 
 create_kind_cluster() {
   # create a kind cluster
-  cat <<EOF | ${KIND} create cluster --name "${KIND_CLUSTER_NAME}" --image "mcr.microsoft.com/mirror/kindest/node:${KIND_NODE_VERSION:-v1.32.3}" --config=-
+  cat <<EOF | ${KIND} create cluster -v=5 --name "${KIND_CLUSTER_NAME}" --image "mcr.microsoft.com/mirror/kindest/node:${KIND_NODE_VERSION:-v1.32.3}" --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
@@ -85,8 +86,6 @@ nodes:
     controllerManager:
       extraArgs:
         service-account-private-key-file: /etc/kubernetes/pki/sa.key
-- role: worker
-- role: worker
 - role: worker
 EOF
 

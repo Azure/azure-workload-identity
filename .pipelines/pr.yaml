@@ -18,133 +18,173 @@ pr:
 pool: staging-pool-amd64-mariner-2
 
 jobs:
-  - job: lint
+  # - job: lint
+  #   timeoutInMinutes: 30
+  #   workspace:
+  #     clean: all
+  #   steps:
+  #     - script: make lint
+  #       displayName: golangci-lint
+  #     - script: make helm-lint
+  #       displayName: helm lint
+  #     - script: |
+  #         go mod tidy
+  #         if ! git diff --exit-code go.mod go.sum; then
+  #           echo "go.mod/go.sum is not up to date. Please run 'go mod tidy'"
+  #           exit 1
+  #         fi
+  #       displayName: go mod tidy
+  #     - script: |
+  #         make manifests
+  #         if ! git diff --exit-code manifest_staging/; then
+  #           echo "manifest_staging/ is not up to date. Please run 'make manifests'"
+  #           exit 1
+  #         fi
+  #       displayName: make manifests
+  # - job: unit_test
+  #   timeoutInMinutes: 30
+  #   workspace:
+  #     clean: all
+  #   steps:
+  #     - script: make test
+  #       displayName: Unit test
+  # - job: shellcheck
+  #   timeoutInMinutes: 5
+  #   workspace:
+  #     clean: all
+  #   steps:
+  #     - script: make shellcheck
+  #       displayName: shellcheck
+  # - job:
+  #   timeoutInMinutes: 60
+  #   dependsOn:
+  #   - lint
+  #   - shellcheck
+  #   workspace:
+  #     clean: all
+  #   variables:
+  #     # contains the following environment variables:
+  #     # - APPLICATION_CLIENT_ID
+  #     # - AZURE_TENANT_ID
+  #     # - KEYVAULT_URL
+  #     # - KEYVAULT_SECRET_NAME
+  #     # - SERVICE_ACCOUNT_ISSUER
+  #     # - SERVICE_ACCOUNT_KEYVAULT_NAME
+  #     - group: e2e-environment-variables
+  #   strategy:
+  #     matrix:
+  #       aks_windows:
+  #         REGISTRY: upstream.azurecr.io/azure-workload-identity
+  #         WINDOWS_CLUSTER: "true"
+  #         GINKGO_SKIP: \[AKSSoakOnly\]
+  #       aks_linux:
+  #         REGISTRY: upstream.azurecr.io/azure-workload-identity
+  #         GINKGO_SKIP: \[AKSSoakOnly\]
+  #   steps:
+  #     - script: echo "##vso[task.setvariable variable=CLUSTER_NAME]azwi-e2e-$(openssl rand -hex 2)"
+  #       displayName: Set CLUSTER_NAME
+  #       condition: ne(variables.LOCAL_ONLY, 'true')
+  #     - script: make test-e2e
+  #       displayName: Webhook E2E test suite
+  #       env:
+  #         APPLICATION_CLIENT_ID: $(APPLICATION_CLIENT_ID)
+  #         AZURE_TENANT_ID: $(AZURE_TENANT_ID)
+  #         KEYVAULT_URL: $(KEYVAULT_URL)
+  #         KEYVAULT_SECRET_NAME: $(KEYVAULT_SECRET_NAME)
+  #         SERVICE_ACCOUNT_ISSUER: $(SERVICE_ACCOUNT_ISSUER)
+  #         SERVICE_ACCOUNT_KEYVAULT_NAME: $(SERVICE_ACCOUNT_KEYVAULT_NAME)
+  #     - script: az group delete --name "${CLUSTER_NAME}" --yes --no-wait || true
+  #       displayName: Cleanup
+  #       condition: ne(variables.LOCAL_ONLY, 'true')
+  #     - template: templates/publish-logs.yaml
+  # - job:
+  #   timeoutInMinutes: 60
+  #   pool:
+  #     name: staging-pool-amd64-mariner-2
+  #     demands:
+  #     - ImageOverride -equals azcu-agent-amd64-mariner-2-cgv2-img
+  #   dependsOn:
+  #   - lint
+  #   - shellcheck
+  #   workspace:
+  #     clean: all
+  #   variables:
+  #     # contains the following environment variables:
+  #     # - APPLICATION_CLIENT_ID
+  #     # - AZURE_TENANT_ID
+  #     # - KEYVAULT_URL
+  #     # - KEYVAULT_SECRET_NAME
+  #     # - SERVICE_ACCOUNT_ISSUER
+  #     # - SERVICE_ACCOUNT_KEYVAULT_NAME
+  #     - group: e2e-environment-variables
+  #   strategy:
+  #     matrix:
+  #       kind_v1_30_10:
+  #         KIND_NODE_VERSION: v1.30.10
+  #         LOCAL_ONLY: "true"
+  #         TEST_HELM_CHART: "true"
+  #       kind_v1_31_6:
+  #         KIND_NODE_VERSION: v1.31.6
+  #         LOCAL_ONLY: "true"
+  #         TEST_HELM_CHART: "true"
+  #       kind_v1_32_3:
+  #         KIND_NODE_VERSION: v1.32.3
+  #         LOCAL_ONLY: "true"
+  #         TEST_HELM_CHART: "true"
+  #   steps:
+  #     - script: echo "##vso[task.setvariable variable=CLUSTER_NAME]azwi-e2e-$(openssl rand -hex 2)"
+  #       displayName: Set CLUSTER_NAME
+  #       condition: ne(variables.LOCAL_ONLY, 'true')
+  #     - script: make test-e2e
+  #       displayName: Webhook E2E test suite
+  #       env:
+  #         APPLICATION_CLIENT_ID: $(APPLICATION_CLIENT_ID)
+  #         AZURE_TENANT_ID: $(AZURE_TENANT_ID)
+  #         KEYVAULT_URL: $(KEYVAULT_URL)
+  #         KEYVAULT_SECRET_NAME: $(KEYVAULT_SECRET_NAME)
+  #         SERVICE_ACCOUNT_ISSUER: $(SERVICE_ACCOUNT_ISSUER)
+  #         SERVICE_ACCOUNT_KEYVAULT_NAME: $(SERVICE_ACCOUNT_KEYVAULT_NAME)
+  #     - script: az group delete --name "${CLUSTER_NAME}" --yes --no-wait || true
+  #       displayName: Cleanup
+  #       condition: ne(variables.LOCAL_ONLY, 'true')
+  #     - template: templates/publish-logs.yaml
+  - job: verify_deployment_yaml
     timeoutInMinutes: 30
-    workspace:
-      clean: all
-    steps:
-      - script: make lint
-        displayName: golangci-lint
-      - script: make helm-lint
-        displayName: helm lint
-      - script: |
-          go mod tidy
-          if ! git diff --exit-code go.mod go.sum; then
-            echo "go.mod/go.sum is not up to date. Please run 'go mod tidy'"
-            exit 1
-          fi
-        displayName: go mod tidy
-      - script: |
-          make manifests
-          if ! git diff --exit-code manifest_staging/; then
-            echo "manifest_staging/ is not up to date. Please run 'make manifests'"
-            exit 1
-          fi
-        displayName: make manifests
-  - job: unit_test
-    timeoutInMinutes: 30
-    workspace:
-      clean: all
-    steps:
-      - script: make test
-        displayName: Unit test
-  - job: shellcheck
-    timeoutInMinutes: 5
-    workspace:
-      clean: all
-    steps:
-      - script: make shellcheck
-        displayName: shellcheck
-  - job:
-    timeoutInMinutes: 60
-    dependsOn:
-    - lint
-    - shellcheck
     workspace:
       clean: all
     variables:
       # contains the following environment variables:
-      # - APPLICATION_CLIENT_ID
       # - AZURE_TENANT_ID
-      # - KEYVAULT_URL
-      # - KEYVAULT_SECRET_NAME
       # - SERVICE_ACCOUNT_ISSUER
-      # - SERVICE_ACCOUNT_KEYVAULT_NAME
       - group: e2e-environment-variables
-    strategy:
-      matrix:
-        aks_windows:
-          REGISTRY: upstream.azurecr.io/azure-workload-identity
-          WINDOWS_CLUSTER: "true"
-          GINKGO_SKIP: \[AKSSoakOnly\]
-        aks_linux:
-          REGISTRY: upstream.azurecr.io/azure-workload-identity
-          GINKGO_SKIP: \[AKSSoakOnly\]
+      - name: OUTPUT_TYPE
+        value: "type=docker"
     steps:
-      - script: echo "##vso[task.setvariable variable=CLUSTER_NAME]azwi-e2e-$(openssl rand -hex 2)"
-        displayName: Set CLUSTER_NAME
-        condition: ne(variables.LOCAL_ONLY, 'true')
-      - script: make test-e2e
-        displayName: Webhook E2E test suite
+      - script: |
+          openssl genrsa -out sa.key 2048
+          openssl rsa -in sa.key -pubout -out sa.pub
+          make kind-create
+        displayName: Create a kind cluster
         env:
-          APPLICATION_CLIENT_ID: $(APPLICATION_CLIENT_ID)
-          AZURE_TENANT_ID: $(AZURE_TENANT_ID)
-          KEYVAULT_URL: $(KEYVAULT_URL)
-          KEYVAULT_SECRET_NAME: $(KEYVAULT_SECRET_NAME)
+          SKIP_PREFLIGHT: "true"
           SERVICE_ACCOUNT_ISSUER: $(SERVICE_ACCOUNT_ISSUER)
-          SERVICE_ACCOUNT_KEYVAULT_NAME: $(SERVICE_ACCOUNT_KEYVAULT_NAME)
-      - script: az group delete --name "${CLUSTER_NAME}" --yes --no-wait || true
-        displayName: Cleanup
-        condition: ne(variables.LOCAL_ONLY, 'true')
-      - template: templates/publish-logs.yaml
-  - job:
-    timeoutInMinutes: 60
-    pool:
-      name: staging-pool-amd64-mariner-2
-      demands:
-      - ImageOverride -equals azcu-agent-amd64-mariner-2-cgv2-img
-    dependsOn:
-    - lint
-    - shellcheck
-    workspace:
-      clean: all
-    variables:
-      # contains the following environment variables:
-      # - APPLICATION_CLIENT_ID
-      # - AZURE_TENANT_ID
-      # - KEYVAULT_URL
-      # - KEYVAULT_SECRET_NAME
-      # - SERVICE_ACCOUNT_ISSUER
-      # - SERVICE_ACCOUNT_KEYVAULT_NAME
-      - group: e2e-environment-variables
-    strategy:
-      matrix:
-        kind_v1_30_10:
-          KIND_NODE_VERSION: v1.30.10
-          LOCAL_ONLY: "true"
-          TEST_HELM_CHART: "true"
-        kind_v1_31_6:
-          KIND_NODE_VERSION: v1.31.6
-          LOCAL_ONLY: "true"
-          TEST_HELM_CHART: "true"
-        kind_v1_32_3:
-          KIND_NODE_VERSION: v1.32.3
-          LOCAL_ONLY: "true"
-          TEST_HELM_CHART: "true"
-    steps:
-      - script: echo "##vso[task.setvariable variable=CLUSTER_NAME]azwi-e2e-$(openssl rand -hex 2)"
-        displayName: Set CLUSTER_NAME
-        condition: ne(variables.LOCAL_ONLY, 'true')
-      - script: make test-e2e
-        displayName: Webhook E2E test suite
+      - script: |
+          # build the same image as the one in the deployment YAML
+          # then load it into the kind cluster
+          make docker-build kind-load-images
+        displayName: Build the webhook image
         env:
-          APPLICATION_CLIENT_ID: $(APPLICATION_CLIENT_ID)
+          ALL_IMAGES: webhook
+          ALL_LINUX_ARCH: amd64
+          OUTPUT_TYPE: type=docker
+      - script: |
+          # deploy the webhook, wait for it to
+          # be ready, then uninstall it
+          make deploy uninstall-deploy
+        displayName: Verify deployment YAML in manifest_staging/
+        env:
           AZURE_TENANT_ID: $(AZURE_TENANT_ID)
-          KEYVAULT_URL: $(KEYVAULT_URL)
-          KEYVAULT_SECRET_NAME: $(KEYVAULT_SECRET_NAME)
-          SERVICE_ACCOUNT_ISSUER: $(SERVICE_ACCOUNT_ISSUER)
-          SERVICE_ACCOUNT_KEYVAULT_NAME: $(SERVICE_ACCOUNT_KEYVAULT_NAME)
-      - script: az group delete --name "${CLUSTER_NAME}" --yes --no-wait || true
+          DEPLOYMENT_YAML: true
+      - script: make kind-delete
         displayName: Cleanup
-        condition: ne(variables.LOCAL_ONLY, 'true')
-      - template: templates/publish-logs.yaml
+        condition: always()
