@@ -79,6 +79,9 @@ main() {
     make uninstall-deploy
     test_helm_chart
   fi
+
+  test_version_flag "webhook"
+  test_version_flag "proxy"
 }
 
 test_helm_chart() {
@@ -113,6 +116,58 @@ test_helm_chart() {
 
 poll_webhook_readiness() {
   ${KUBECTL} wait --for=condition=available --timeout=5m deployment/azure-wi-webhook-controller-manager -n azure-workload-identity-system
+}
+
+test_version_flag() {
+  echo "Testing version flag for $1 image..."
+  local image_name="$1"
+  message=$(docker run --platform linux/amd64 --quiet "${REGISTRY:-mcr.microsoft.com/oss/azure/workload-identity}/${image_name}:${IMAGE_VERSION}" --version 2>&1)
+
+  # Validate that it's valid JSON
+  if ! echo "$message" | jq empty > /dev/null 2>&1; then
+    echo "Invalid JSON output: $message"
+    return 1
+  fi
+
+  # Extract and validate fields
+  build_version=$(echo "$message" | jq -r .buildVersion)
+  git_commit=$(echo "$message" | jq -r .gitCommit)
+  build_date=$(echo "$message" | jq -r .buildDate)
+  go_version=$(echo "$message" | jq -r .goVersion)
+  platform=$(echo "$message" | jq -r .platform)
+
+  if [[ -z "$build_version" || "$build_version" == "null" ]]; then
+    echo "Missing BuildVersion"
+    return 1
+  fi
+
+  if [[ "$build_version" != "$IMAGE_VERSION" ]]; then
+    echo "BuildVersion does not match IMAGE_VERSION: $build_version != $IMAGE_VERSION"
+    return 1
+  fi
+
+  if [[ -z "$git_commit" || "$git_commit" == "null" ]]; then
+    echo "Missing GitCommit"
+    return 1
+  fi
+
+  if [[ -z "$build_date" || "$build_date" == "null" ]]; then
+    echo "Missing BuildDate"
+    return 1
+  fi
+
+  if [[ -z "$go_version" || "$go_version" == "null" ]]; then
+    echo "Missing GoVersion"
+    return 1
+  fi
+
+  if [[ -z "$platform" || "$platform" == "null" ]]; then
+    echo "Missing Platform"
+    return 1
+  fi
+
+  echo "Version info looks good:"
+  echo "$message"
 }
 
 main
