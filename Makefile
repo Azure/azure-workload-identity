@@ -178,7 +178,7 @@ deploy: $(KUBECTL) $(KUSTOMIZE) $(ENVSUBST)
 	@if [ "$(DEPLOYMENT_YAML)" = "true" ]; then \
 		cat manifest_staging/deploy/azure-wi-webhook.yaml | $(ENVSUBST) | $(KUBECTL) apply -f -; \
 	else \
-		cd config/manager && $(KUSTOMIZE) edit set image manager=$(WEBHOOK_IMAGE); \
+		cd config/manager && $(KUSTOMIZE) edit set image manager=upstream.azurecr.io/oss/v2/azure/workload-identity/webhook:v1.5.1; \
 		$(KUSTOMIZE) build ../default | $(ENVSUBST) | $(KUBECTL) apply -f -; \
 	fi
 	$(KUBECTL) wait --for=condition=Available --timeout=5m -n azure-workload-identity-system deployment/azure-wi-webhook-controller-manager

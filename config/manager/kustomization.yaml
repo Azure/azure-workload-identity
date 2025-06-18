@@ -10,6 +10,8 @@ configMapGenerator:
 - literals:
   - AZURE_TENANT_ID="${AZURE_TENANT_ID}"
   - AZURE_ENVIRONMENT="${AZURE_ENVIRONMENT:-AzurePublicCloud}"
+  - PROXY_IMAGE=upstream.azurecr.io/oss/v2/azure/workload-identity/proxy:v1.5.1
+  - PROXY_INIT_IMAGE=upstream.azurecr.io/oss/v2/azure/workload-identity/proxy-init:v1.5.1
   name: config
 generatorOptions:
   disableNameSuffixHash: true

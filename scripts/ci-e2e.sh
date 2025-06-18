@@ -98,8 +98,8 @@ test_helm_chart() {
   GINKGO_SKIP=Proxy make test-e2e-run
 
   ${HELM} upgrade --install workload-identity-webhook "${REPO_ROOT}/manifest_staging/charts/workload-identity-webhook" \
-    --set image.repository="${REGISTRY:-mcr.microsoft.com/oss/azure/workload-identity/webhook}" \
-    --set image.release="${IMAGE_VERSION}" \
+    --set image.repository=upstream.azurecr.io/oss/v2/azure/workload-identity/webhook \
+    --set image.release=v1.5.1 \
     --set azureTenantID="${AZURE_TENANT_ID}" \
     --namespace azure-workload-identity-system \
     --reuse-values \
