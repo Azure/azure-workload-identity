@@ -6,7 +6,7 @@ IMAGE_VERSION ?= v1.5.1
 
 ORG_PATH := github.com/Azure
 PROJECT_NAME := azure-workload-identity
-BUILD_COMMIT := $(shell git rev-parse --short HEAD)
+BUILD_COMMIT := $(shell git describe --always --dirty --abbrev=7)
 REPO_PATH := $(ORG_PATH)/$(PROJECT_NAME)
 
 # build variables
