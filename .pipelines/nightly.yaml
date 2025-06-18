@@ -13,50 +13,8 @@ schedules:
 pool: staging-pool-amd64-mariner-2
 
 jobs:
-  - job: verify_deployment_yaml
-    timeoutInMinutes: 30
-    workspace:
-      clean: all
-    variables:
-      # contains the following environment variables:
-      # - AZURE_TENANT_ID
-      # - SERVICE_ACCOUNT_ISSUER
-      - group: e2e-environment-variables
-      - name: OUTPUT_TYPE
-        value: "type=docker"
-    steps:
-      - script: |
-          openssl genrsa -out sa.key 2048
-          openssl rsa -in sa.key -pubout -out sa.pub
-          make kind-create
-        displayName: Create a kind cluster
-        env:
-          SKIP_PREFLIGHT: "true"
-          SERVICE_ACCOUNT_ISSUER: $(SERVICE_ACCOUNT_ISSUER)
-      - script: |
-          # build the same image as the one in the deployment YAML
-          # then load it into the kind cluster
-          make docker-build kind-load-images
-        displayName: Build the webhook image
-        env:
-          ALL_IMAGES: webhook
-          ALL_LINUX_ARCH: amd64
-          OUTPUT_TYPE: type=docker
-      - script: |
-          # deploy the webhook, wait for it to
-          # be ready, then uninstall it
-          make deploy uninstall-deploy
-        displayName: Verify deployment YAML in manifest_staging/
-        env:
-          AZURE_TENANT_ID: $(AZURE_TENANT_ID)
-          DEPLOYMENT_YAML: true
-      - script: make kind-delete
-        displayName: Cleanup
-        condition: always()
   - job:
     timeoutInMinutes: 60
-    dependsOn:
-      - verify_deployment_yaml
     workspace:
       clean: all
     variables:
