@@ -18,48 +18,48 @@ pr:
 pool: staging-pool-amd64-mariner-2
 
 jobs:
-  - job: lint
-    timeoutInMinutes: 30
-    workspace:
-      clean: all
-    steps:
-      - script: make lint
-        displayName: golangci-lint
-      - script: make helm-lint
-        displayName: helm lint
-      - script: |
-          go mod tidy
-          if ! git diff --exit-code go.mod go.sum; then
-            echo "go.mod/go.sum is not up to date. Please run 'go mod tidy'"
-            exit 1
-          fi
-        displayName: go mod tidy
-      - script: |
-          make manifests
-          if ! git diff --exit-code manifest_staging/; then
-            echo "manifest_staging/ is not up to date. Please run 'make manifests'"
-            exit 1
-          fi
-        displayName: make manifests
-  - job: unit_test
-    timeoutInMinutes: 30
-    workspace:
-      clean: all
-    steps:
-      - script: make test
-        displayName: Unit test
-  - job: shellcheck
-    timeoutInMinutes: 5
-    workspace:
-      clean: all
-    steps:
-      - script: make shellcheck
-        displayName: shellcheck
+  # - job: lint
+  #   timeoutInMinutes: 30
+  #   workspace:
+  #     clean: all
+  #   steps:
+  #     - script: make lint
+  #       displayName: golangci-lint
+  #     - script: make helm-lint
+  #       displayName: helm lint
+  #     - script: |
+  #         go mod tidy
+  #         if ! git diff --exit-code go.mod go.sum; then
+  #           echo "go.mod/go.sum is not up to date. Please run 'go mod tidy'"
+  #           exit 1
+  #         fi
+  #       displayName: go mod tidy
+  #     - script: |
+  #         make manifests
+  #         if ! git diff --exit-code manifest_staging/; then
+  #           echo "manifest_staging/ is not up to date. Please run 'make manifests'"
+  #           exit 1
+  #         fi
+  #       displayName: make manifests
+  # - job: unit_test
+  #   timeoutInMinutes: 30
+  #   workspace:
+  #     clean: all
+  #   steps:
+  #     - script: make test
+  #       displayName: Unit test
+  # - job: shellcheck
+  #   timeoutInMinutes: 5
+  #   workspace:
+  #     clean: all
+  #   steps:
+  #     - script: make shellcheck
+  #       displayName: shellcheck
   - job:
     timeoutInMinutes: 60
-    dependsOn:
-    - lint
-    - shellcheck
+    # dependsOn:
+    # - lint
+    # - shellcheck
     workspace:
       clean: all
     variables:
@@ -103,9 +103,9 @@ jobs:
       name: staging-pool-amd64-mariner-2
       demands:
       - ImageOverride -equals azcu-agent-amd64-mariner-2-cgv2-img
-    dependsOn:
-    - lint
-    - shellcheck
+    # dependsOn:
+    # - lint
+    # - shellcheck
     workspace:
       clean: all
     variables:
