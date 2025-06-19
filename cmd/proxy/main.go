@@ -12,12 +12,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 
 	"github.com/Azure/azure-workload-identity/pkg/proxy"
+	"github.com/Azure/azure-workload-identity/pkg/version"
 )
 
 var (
-	proxyPort int
-	probe     bool
-	logLevel  string
+	proxyPort   int
+	probe       bool
+	logLevel    string
+	versionInfo bool
 )
 
 func main() {
@@ -33,7 +35,12 @@ func mainErr() error {
 	flag.BoolVar(&probe, "probe", false, "Run a readyz probe on the proxy")
 	flag.StringVar(&logLevel, "log-level", "",
 		"In order of increasing verbosity: unset (empty string), info, debug, trace and all.")
+	flag.BoolVar(&versionInfo, "version", false, "Print version information and exit")
 	flag.Parse()
+
+	if versionInfo {
+		return version.PrintVersionToStdout()
+	}
 
 	if err := mlog.ValidateAndSetLogLevelAndFormatGlobally(signals.SetupSignalHandler(), mlog.LogSpec{
 		Level:  mlog.LogLevel(logLevel),

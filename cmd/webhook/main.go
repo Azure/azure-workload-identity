@@ -48,6 +48,7 @@ var (
 	disableCertRotation bool
 	metricsBackend      string
 	logLevel            string
+	versionInfo         bool
 
 	// DNSName is <service name>.<namespace>.svc
 	dnsName = fmt.Sprintf("%s.%s.svc", serviceName, util.GetNamespace())
@@ -78,7 +79,12 @@ func mainErr() error {
 	flag.StringVar(&metricsBackend, "metrics-backend", "prometheus", "Backend used for metrics")
 	flag.StringVar(&logLevel, "log-level", "",
 		"In order of increasing verbosity: unset (empty string), info, debug, trace and all.")
+	flag.BoolVar(&versionInfo, "version", false, "Print version information and exit")
 	flag.Parse()
+
+	if versionInfo {
+		return version.PrintVersionToStdout()
+	}
 
 	ctx := signals.SetupSignalHandler()
 
