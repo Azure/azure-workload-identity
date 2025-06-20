@@ -19,6 +19,8 @@ const (
 	InjectProxySidecarAnnotation = "azure.workload.identity/inject-proxy-sidecar"
 	// ProxySidecarPortAnnotation represents the annotation to be used to specify the port for proxy sidecar
 	ProxySidecarPortAnnotation = "azure.workload.identity/proxy-sidecar-port"
+	// UseIdentityBindingAnnotation represents the service account is to be used for identity binding
+	UseIdentityBindingAnnotation = "azure.workload.identity/use-identity-binding"
 
 	// MinServiceAccountTokenExpiration is the minimum service account token expiration in seconds
 	MinServiceAccountTokenExpiration = int64(3600)
@@ -50,10 +52,19 @@ const (
 	AzureTenantIDEnvVar           = "AZURE_TENANT_ID"
 	AzureFederatedTokenFileEnvVar = "AZURE_FEDERATED_TOKEN_FILE" // #nosec
 	AzureAuthorityHostEnvVar      = "AZURE_AUTHORITY_HOST"
-	TokenFilePathName             = "azure-identity-token"
-	TokenFileMountPath            = "/var/run/secrets/azure/tokens" // #nosec
+	// ProjectedVolumeNamePrefix is the prefix for the projected volume name
+	// The sha256 hash of the pod name will be appended to this prefix
+	ProjectedVolumeNamePrefix = "azure-workload-identity-reserved-"
+	TokenFilePath             = "token/azure-identity-token"
+	VolumeMountPath           = "/var/run/secrets/azure/wi" // #nosec
 	// DefaultAudience is the audience added to the service account token audience
 	// This value is to be consistent with other token exchange flows in AAD and has
 	// no impact on the actual token exchange flow.
 	DefaultAudience = "api://AzureADTokenExchange"
+
+	AzureKubernetesCADataEnvVar        = "AZURE_KUBERNETES_CA_DATA" // #nosec
+	AzureKubernetesCAFileEnvVar        = "AZURE_KUBERNETES_CA_FILE" // #nosec
+	AzureKubernetesSNINameEnvVar       = "AZURE_KUBERNETES_SNI_NAME"
+	AzureKubernetesTokenEndpointEnvVar = "AZURE_KUBERNETES_TOKEN_ENDPOINT" // #nosec
+	CAFilePath                         = "ca-cert/ca.crt"                  // #nosec
 )

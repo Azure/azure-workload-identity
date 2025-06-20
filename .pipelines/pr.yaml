@@ -5,6 +5,7 @@ pr:
     include:
       - main
       - release-*
+      - feature/*
   paths:
     exclude:
     - docs
