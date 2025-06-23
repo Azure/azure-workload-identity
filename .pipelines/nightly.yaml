@@ -47,8 +47,6 @@ jobs:
       - template: templates/publish-logs.yaml
   - template: templates/upgrade.yaml
     parameters:
-      dependsOn:
-        - verify_deployment_yaml
       matrix:
         upgrade_aks_windows:
           WINDOWS_CLUSTER: "true"
@@ -61,8 +59,6 @@ jobs:
       demands:
       - ImageOverride -equals azcu-agent-amd64-mariner-2-cgv2-img
     timeoutInMinutes: 60
-    dependsOn:
-      - verify_deployment_yaml
     workspace:
       clean: all
     variables:
