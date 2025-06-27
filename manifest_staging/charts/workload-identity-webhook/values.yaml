@@ -9,6 +9,9 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   release: v1.5.1
 imagePullSecrets: []
+# Define if the service account can be used by default (automount property)
+serviceAccount:
+  automountServiceAccountToken: false
 nodeSelector:
   kubernetes.io/os: linux
 resources:
