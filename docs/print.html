@@ -424,9 +424,11 @@ export LOCATION=&quot;westus2&quot;
 az group create --name &quot;${RESOURCE_GROUP}&quot; --location &quot;${LOCATION}&quot;
 
 export AZURE_STORAGE_ACCOUNT=&quot;oidcissuer$(openssl rand -hex 4)&quot;
-export AZURE_STORAGE_CONTAINER=&quot;oidc-test&quot;
-az storage account create --resource-group &quot;${RESOURCE_GROUP}&quot; --name &quot;${AZURE_STORAGE_ACCOUNT}&quot; --allow-blob-public-access true
-az storage container create --name &quot;${AZURE_STORAGE_CONTAINER}&quot; --public-access blob
+# This $web container is a special container that serves static web content without requiring public access enablement.
+# See https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blob-static-website
+AZURE_STORAGE_CONTAINER=&quot;\$web&quot;
+az storage account create --resource-group &quot;${RESOURCE_GROUP}&quot; --name &quot;${AZURE_STORAGE_ACCOUNT}&quot;
+az storage container create --name &quot;${AZURE_STORAGE_CONTAINER}&quot;
 </code></pre>
 <h3 id="2-generate-the-discovery-document"><a class="header" href="#2-generate-the-discovery-document">2. Generate the discovery document</a></h3>
 <pre><code class="language-bash">cat &lt;&lt;EOF &gt; openid-configuration.json
@@ -1892,9 +1894,11 @@ writing RSA key
 </blockquote>
 <p>Azure blob storage will be used to host the OIDC discovery document and JWKS. However, you can host them in anywhere, as long as they are publicly available.</p>
 <pre><code class="language-bash">export AZURE_STORAGE_ACCOUNT=&quot;azwi$(openssl rand -hex 4)&quot;
-export AZURE_STORAGE_CONTAINER=&quot;oidc-test&quot;
+# This $web container is a special container that serves static web content without requiring public access enablement.
+# See https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blob-static-website
+AZURE_STORAGE_CONTAINER=&quot;\$web&quot;
 az storage account create --resource-group &quot;${RESOURCE_GROUP}&quot; --name &quot;${AZURE_STORAGE_ACCOUNT}&quot;
-az storage container create --name &quot;${AZURE_STORAGE_CONTAINER}&quot; --public-access container
+az storage container create --name &quot;${AZURE_STORAGE_CONTAINER}&quot;
 </code></pre>
 <p>Generate and upload the OIDC discovery document:</p>
 <pre><code class="language-bash">cat &lt;&lt;EOF &gt; openid-configuration.json
