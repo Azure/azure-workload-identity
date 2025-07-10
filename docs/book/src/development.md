@@ -53,9 +53,11 @@ Azure blob storage will be used to host the OIDC discovery document and JWKS. Ho
 
 ```bash
 export AZURE_STORAGE_ACCOUNT="azwi$(openssl rand -hex 4)"
-export AZURE_STORAGE_CONTAINER="oidc-test"
+# This $web container is a special container that serves static web content without requiring public access enablement.
+# See https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blob-static-website
+AZURE_STORAGE_CONTAINER="\$web"
 az storage account create --resource-group "${RESOURCE_GROUP}" --name "${AZURE_STORAGE_ACCOUNT}"
-az storage container create --name "${AZURE_STORAGE_CONTAINER}" --public-access container
+az storage container create --name "${AZURE_STORAGE_CONTAINER}"
 ```
 
 Generate and upload the OIDC discovery document:
