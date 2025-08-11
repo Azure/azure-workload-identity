@@ -1,4 +1,4 @@
-FROM --platform=${TARGETPLATFORM:-linux/amd64} registry.k8s.io/build-image/distroless-iptables:v0.7.6
+FROM --platform=${TARGETPLATFORM:-linux/amd64} registry.k8s.io/build-image/distroless-iptables:v0.8.1
 
 COPY ./init/init-iptables.sh /bin/
 RUN chmod +x /bin/init-iptables.sh
