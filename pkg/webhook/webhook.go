@@ -20,6 +20,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/sets"
 	utilversion "k8s.io/apimachinery/pkg/util/version"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
@@ -208,10 +209,10 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) (respons
 
 // mutateContainers mutates the containers by injecting the projected
 // service account token volume and environment variables
-func (m *podMutator) mutateContainers(containers []corev1.Container, clientID string, tenantID string, skipContainers map[string]struct{}) []corev1.Container {
+func (m *podMutator) mutateContainers(containers []corev1.Container, clientID, tenantID string, skipContainers sets.Set[string]) []corev1.Container {
 	for i := range containers {
 		// container is in the skip list
-		if _, ok := skipContainers[containers[i].Name]; ok {
+		if skipContainers.Has(containers[i].Name) {
 			continue
 		}
 		// add environment variables to container if not exists
@@ -304,17 +305,17 @@ func shouldInjectProxySidecar(pod *corev1.Pod) bool {
 }
 
 // getSkipContainers gets the list of containers to skip based on the annotation
-func getSkipContainers(pod *corev1.Pod) map[string]struct{} {
+func getSkipContainers(pod *corev1.Pod) sets.Set[string] {
 	skipContainers := pod.Annotations[SkipContainersAnnotation]
 	if len(skipContainers) == 0 {
 		return nil
 	}
 	skipContainersList := strings.Split(skipContainers, ";")
-	m := make(map[string]struct{})
+	sc := sets.New[string]()
 	for _, skipContainer := range skipContainersList {
-		m[strings.TrimSpace(skipContainer)] = struct{}{}
+		sc.Insert(strings.TrimSpace(skipContainer))
 	}
-	return m
+	return sc
 }
 
 // getServiceAccountTokenExpiration returns the expiration seconds for the project service account token volume

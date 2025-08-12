@@ -19,6 +19,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/sets"
 	utilversion "k8s.io/apimachinery/pkg/util/version"
 	discoveryfake "k8s.io/client-go/discovery/fake"
 	kubernetesfake "k8s.io/client-go/kubernetes/fake"
@@ -281,7 +282,7 @@ func TestGetSkipContainers(t *testing.T) {
 	tests := []struct {
 		name                   string
 		pod                    *corev1.Pod
-		expectedSkipContainers map[string]struct{}
+		expectedSkipContainers sets.Set[string]
 	}{
 		{
 			name: "no skip containers defined",
@@ -302,7 +303,7 @@ func TestGetSkipContainers(t *testing.T) {
 					Annotations: map[string]string{SkipContainersAnnotation: "container1"},
 				},
 			},
-			expectedSkipContainers: map[string]struct{}{"container1": {}},
+			expectedSkipContainers: sets.New("container1"),
 		},
 		{
 			name: "multiple skip containers defined delimited by ;",
@@ -313,7 +314,7 @@ func TestGetSkipContainers(t *testing.T) {
 					Annotations: map[string]string{SkipContainersAnnotation: "container1;container2"},
 				},
 			},
-			expectedSkipContainers: map[string]struct{}{"container1": {}, "container2": {}},
+			expectedSkipContainers: sets.New("container1", "container2"),
 		},
 		{
 			name: "multiple skip containers defined with extra space",
@@ -324,7 +325,7 @@ func TestGetSkipContainers(t *testing.T) {
 					Annotations: map[string]string{SkipContainersAnnotation: "container1; container2"},
 				},
 			},
-			expectedSkipContainers: map[string]struct{}{"container1": {}, "container2": {}},
+			expectedSkipContainers: sets.New("container1", "container2"),
 		},
 	}
 
@@ -910,7 +911,7 @@ func TestMutateContainers(t *testing.T) {
 	tests := []struct {
 		name               string
 		containers         []corev1.Container
-		skipContainers     map[string]struct{}
+		skipContainers     sets.Set[string]
 		expectedContainers []corev1.Container
 	}{{
 		name:               "no containers",
@@ -960,9 +961,7 @@ func TestMutateContainers(t *testing.T) {
 			Name:  "skip-container",
 			Image: "skip-image",
 		}},
-		skipContainers: map[string]struct{}{
-			"skip-container": {},
-		},
+		skipContainers: sets.New("skip-container"),
 		expectedContainers: []corev1.Container{{
 			Name:  "my-container",
 			Image: "my-image",

@@ -11,6 +11,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/test/e2e/framework"
 	e2edeploy "k8s.io/kubernetes/test/e2e/framework/deployment"
@@ -224,9 +225,9 @@ func validateMutatedPod(ctx context.Context, f *framework.Framework, pod *corev1
 	}
 
 	for _, container := range withoutSkipContainers {
-		m := make(map[string]struct{})
+		m := sets.New[string]()
 		for _, env := range container.Env {
-			m[env.Name] = struct{}{}
+			m.Insert(env.Name)
 		}
 
 		framework.Logf("ensuring that the correct environment variables are injected to %s in %s", container.Name, pod.Name)
