@@ -23,6 +23,9 @@ jobs:
     workspace:
       clean: all
     steps:
+      - task: GoTool@0
+        inputs:
+          version: "1.24.6"
       - script: make lint
         displayName: golangci-lint
       - script: make helm-lint
@@ -46,6 +49,9 @@ jobs:
     workspace:
       clean: all
     steps:
+      - task: GoTool@0
+        inputs:
+          version: "1.24.6"
       - script: make test
         displayName: Unit test
   - job: shellcheck
@@ -81,6 +87,9 @@ jobs:
           REGISTRY: upstream.azurecr.io/azure-workload-identity
           GINKGO_SKIP: \[AKSSoakOnly\]
     steps:
+      - task: GoTool@0
+        inputs:
+          version: "1.24.6"
       - script: echo "##vso[task.setvariable variable=CLUSTER_NAME]azwi-e2e-$(openssl rand -hex 2)"
         displayName: Set CLUSTER_NAME
         condition: ne(variables.LOCAL_ONLY, 'true')
@@ -132,6 +141,9 @@ jobs:
           LOCAL_ONLY: "true"
           TEST_HELM_CHART: "true"
     steps:
+      - task: GoTool@0
+        inputs:
+          version: "1.24.6"
       - script: echo "##vso[task.setvariable variable=CLUSTER_NAME]azwi-e2e-$(openssl rand -hex 2)"
         displayName: Set CLUSTER_NAME
         condition: ne(variables.LOCAL_ONLY, 'true')

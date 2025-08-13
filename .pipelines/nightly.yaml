@@ -37,6 +37,9 @@ jobs:
         soak_aks_linux:
           CLUSTER_NAME: "azwi-aks-linux"
     steps:
+      - task: GoTool@0
+        inputs:
+          version: "1.24.6"
       - script: make test-e2e
         displayName: Webhook E2E test suite
         env:
@@ -83,6 +86,9 @@ jobs:
         kind_v1_32_3:
           KIND_NODE_VERSION: v1.32.3
     steps:
+      - task: GoTool@0
+        inputs:
+          version: "1.24.6"
       - script: make test-e2e
         displayName: Webhook E2E test suite
         env:
