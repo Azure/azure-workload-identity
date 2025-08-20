@@ -9,6 +9,9 @@ metadata:
   name: azure-wi-webhook-controller-manager
   namespace: '{{ .Release.Namespace }}'
 spec:
+  {{- if .Values.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  {{- end }}
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
@@ -94,6 +97,8 @@ spec:
       serviceAccountName: azure-wi-webhook-admin
       tolerations:
         {{- toYaml .Values.tolerations | nindent 8 }}
+      topologySpreadConstraints:
+        {{- toYaml .Values.topologySpreadConstraints | nindent 8 }}
       volumes:
       - name: cert
         secret:

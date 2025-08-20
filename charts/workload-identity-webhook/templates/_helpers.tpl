@@ -58,3 +58,19 @@ Adds the pod labels.
 {{- toYaml .Values.podLabels | nindent 8 }}
 {{- end }}
 {{- end }}
+
+{{/*
+Proxy sidecar image
+*/}}
+{{- define "workload-identity-webhook.proxy.image" -}}
+{{- $tag := .Values.proxy.image.tag | default .Chart.AppVersion -}}
+{{- printf "%s/%s:%s" .Values.proxy.image.registry .Values.proxy.image.repository $tag -}}
+{{- end }}
+
+{{/*
+Proxy init image
+*/}}
+{{- define "workload-identity-webhook.proxy.initImage" -}}
+{{- $tag := .Values.proxy.initImage.tag | default .Chart.AppVersion -}}
+{{- printf "%s/%s:%s" .Values.proxy.initImage.registry .Values.proxy.initImage.repository $tag -}}
+{{- end }}

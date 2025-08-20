@@ -8,6 +8,18 @@ image:
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   release: v1.5.1
+# Proxy sidecar image configuration  
+proxy:
+  image:
+    registry: mcr.microsoft.com/oss/azure/workload-identity
+    repository: proxy
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: ""
+  initImage:
+    registry: mcr.microsoft.com/oss/azure/workload-identity
+    repository: proxy-init
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: ""
 imagePullSecrets: []
 nodeSelector:
   kubernetes.io/os: linux
@@ -20,6 +32,7 @@ resources:
     memory: 20Mi
 tolerations: []
 affinity: {}
+topologySpreadConstraints: []
 service:
   type: ClusterIP
   port: 443
