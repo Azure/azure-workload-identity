@@ -1,0 +1,27 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app: '{{ template "workload-identity-webhook.name" . }}'
+    azure-workload-identity.io/system: "true"
+    chart: '{{ template "workload-identity-webhook.name" . }}'
+    release: '{{ .Release.Name }}'
+  name: azure-wi-webhook-manager-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - serviceaccounts
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - mutatingwebhookconfigurations
+  verbs:
+  - get
+  - list
+  - update
+  - watch

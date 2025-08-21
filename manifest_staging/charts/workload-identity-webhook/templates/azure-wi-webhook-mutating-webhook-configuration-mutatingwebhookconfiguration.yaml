@@ -1,0 +1,38 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  annotations:
+    {{- toYaml .Values.mutatingWebhookAnnotations | nindent 4 }}
+  labels:
+    app: '{{ template "workload-identity-webhook.name" . }}'
+    azure-workload-identity.io/system: "true"
+    chart: '{{ template "workload-identity-webhook.name" . }}'
+    release: '{{ .Release.Name }}'
+  name: azure-wi-webhook-mutating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: azure-wi-webhook-webhook-service
+      namespace: '{{ .Release.Namespace }}'
+      path: /mutate-v1-pod
+  failurePolicy: Fail
+  matchPolicy: Equivalent
+  name: mutation.azure-workload-identity.io
+  namespaceSelector: {{- toYaml .Values.mutatingWebhookNamespaceSelector | nindent 4 }}
+  objectSelector:
+    matchLabels:
+      azure.workload.identity/use: "true"
+  reinvocationPolicy: IfNeeded
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    resources:
+    - pods
+  sideEffects: None
