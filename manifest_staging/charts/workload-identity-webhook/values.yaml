@@ -11,13 +11,11 @@ image:
 # Proxy sidecar image configuration  
 proxy:
   image:
-    registry: mcr.microsoft.com/oss/azure/workload-identity
-    repository: proxy
+    repository: mcr.microsoft.com/oss/azure/workload-identity/proxy
     # Overrides the image tag whose default is the chart appVersion.
     tag: ""
   initImage:
-    registry: mcr.microsoft.com/oss/azure/workload-identity
-    repository: proxy-init
+    repository: mcr.microsoft.com/oss/azure/workload-identity/proxy-init
     # Overrides the image tag whose default is the chart appVersion.
     tag: ""
 imagePullSecrets: []

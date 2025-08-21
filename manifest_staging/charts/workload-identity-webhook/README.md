@@ -21,30 +21,6 @@ _See [parameters](#parameters) below._
 
 _See [helm install](https://helm.sh/docs/helm/helm_install/) for command documentation._
 
-## Air-gapped Environments
-
-For air-gapped environments where you need to use a custom registry for proxy sidecar containers, you can configure the proxy image settings:
-
-```console
-# Install with custom registry for proxy images
-helm install -n azure-workload-identity-system workload-identity-webhook azure-workload-identity/workload-identity-webhook \
-  --set azureTenantID="your-tenant-id" \
-  --set proxy.image.registry="your-registry.example.com" \
-  --set proxy.initImage.registry="your-registry.example.com" \
-  --create-namespace
-
-# Or with completely custom image references
-helm install -n azure-workload-identity-system workload-identity-webhook azure-workload-identity/workload-identity-webhook \
-  --set azureTenantID="your-tenant-id" \
-  --set proxy.image.registry="your-registry.example.com" \
-  --set proxy.image.repository="custom-proxy" \
-  --set proxy.image.tag="v1.0.0" \
-  --set proxy.initImage.registry="your-registry.example.com" \
-  --set proxy.initImage.repository="custom-proxy-init" \
-  --set proxy.initImage.tag="v1.0.0" \
-  --create-namespace
-```
-
 ## Upgrade Chart
 
 ```console
@@ -80,11 +56,9 @@ helm upgrade -n azure-workload-identity-system [RELEASE_NAME] azure-workload-ide
 | mutatingWebhookNamespaceSelector   | The namespace selector to further refine which namespaces will be selected by the webhook.                                        | `{}`                                                    |
 | podDisruptionBudget.minAvailable   | The minimum number of pods that must be available for the webhook to be considered available                                      | `1`                                                     |
 | podDisruptionBudget.maxUnavailable | The maximum number of pods that may be unavailable for the webhook to be considered available                                     | `nil`                                                   |
-| proxy.image.registry               | The registry for the proxy sidecar image                                                                                         | `mcr.microsoft.com/oss/azure/workload-identity`        |
-| proxy.image.repository             | The repository for the proxy sidecar image                                                                                       | `proxy`                                                 |
+| proxy.image.repository             | The full image repository for the proxy sidecar image                                                                            | `mcr.microsoft.com/oss/azure/workload-identity/proxy`  |
 | proxy.image.tag                    | The tag for the proxy sidecar image (defaults to chart appVersion)                                                               | ``                                                      |
-| proxy.initImage.registry           | The registry for the proxy init image                                                                                            | `mcr.microsoft.com/oss/azure/workload-identity`        |
-| proxy.initImage.repository         | The repository for the proxy init image                                                                                          | `proxy-init`                                            |
+| proxy.initImage.repository         | The full image repository for the proxy init image                                                                               | `mcr.microsoft.com/oss/azure/workload-identity/proxy-init` |
 | proxy.initImage.tag                | The tag for the proxy init image (defaults to chart appVersion)                                                                  | ``                                                      |
 | revisionHistoryLimit               | The number of old ReplicaSets to retain for the webhook deployment                                                                | `10`                                                    |
 
