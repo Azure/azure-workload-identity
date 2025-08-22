@@ -21,6 +21,10 @@ var replacements = map[string]string{
 
 	"HELMSUBST_CONFIGMAP_AZURE_TENANT_ID": `{{ required "A valid .Values.azureTenantID entry required!" .Values.azureTenantID }}`,
 
+	"HELMSUBST_CONFIGMAP_PROXY_IMAGE": `{{ include "workload-identity-webhook.proxy.image" . }}`,
+
+	"HELMSUBST_CONFIGMAP_PROXY_INIT_IMAGE": `{{ include "workload-identity-webhook.proxy.initImage" . }}`,
+
 	`HELMSUBST_SERVICE_TYPE: ""`: `{{- if .Values.service }}
   type: {{  .Values.service.type | default "ClusterIP" }}
   {{- end }}`,
