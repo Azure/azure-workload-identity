@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/oss/go/microsoft/golang:1.24.6-bookworm@sha256:b55cd0118651789c1c3623f8d8ba7e9f9e131817ec20af3505ca5410603e47a2 as builder
+FROM mcr.microsoft.com/oss/go/microsoft/golang:1.24.6-bookworm@sha256:db9233e112bb9ce280ab7c777e7a7f73a4c58b51cf5f5aa08f98e24bce590360 as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
