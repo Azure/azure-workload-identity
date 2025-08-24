@@ -18,6 +18,17 @@ resources:
   requests:
     cpu: 100m
     memory: 20Mi
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsGroup: 65532
+  runAsNonRoot: true
+  runAsUser: 65532
+  seccompProfile:
+    type: RuntimeDefault
 tolerations: []
 affinity: {}
 topologySpreadConstraints: []
