@@ -231,7 +231,7 @@ func validateMutatedPod(ctx context.Context, f *framework.Framework, pod *corev1
 		"AZURE_FEDERATED_TOKEN_FILE",
 	}
 	if customTokenEndpoint {
-		desiredEnvVars = append(desiredEnvVars, "AZURE_KUBERNETES_TOKEN_ENDPOINT")
+		desiredEnvVars = append(desiredEnvVars, "AZURE_KUBERNETES_TOKEN_PROXY")
 		desiredEnvVars = append(desiredEnvVars, "AZURE_KUBERNETES_SNI_NAME")
 		desiredEnvVars = append(desiredEnvVars, "AZURE_KUBERNETES_CA_FILE")
 	}

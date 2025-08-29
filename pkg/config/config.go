@@ -17,9 +17,9 @@ type Config struct {
 	ProxyImage     string `envconfig:"PROXY_IMAGE"`
 	ProxyInitImage string `envconfig:"PROXY_INIT_IMAGE"`
 
-	AzureKubernetesTokenEndpoint string `envconfig:"AZURE_KUBERNETES_TOKEN_ENDPOINT"`
-	AzureKubernetesSNIName       string `envconfig:"AZURE_KUBERNETES_SNI_NAME"`
-	AzureKubernetesCAData        string `envconfig:"AZURE_KUBERNETES_CA_DATA"`
+	AzureKubernetesTokenProxy string `envconfig:"AZURE_KUBERNETES_TOKEN_PROXY"`
+	AzureKubernetesSNIName    string `envconfig:"AZURE_KUBERNETES_SNI_NAME"`
+	AzureKubernetesCAData     string `envconfig:"AZURE_KUBERNETES_CA_DATA"`
 	// AzureKubernetesCAConfigMapName is the name of the ConfigMap that contains the CA data
 	// The key in the ConfigMap must be "ca.crt".
 	AzureKubernetesCAConfigMapName    string           `envconfig:"AZURE_KUBERNETES_CA_CONFIGMAP_NAME"`

@@ -438,7 +438,7 @@ func (m *podMutator) addEnvironmentVariables(container corev1.Container, clientI
 	}
 
 	if podUsingIdentityBinding {
-		desiredEnvs = append(desiredEnvs, corev1.EnvVar{Name: AzureKubernetesTokenEndpointEnvVar, Value: m.config.AzureKubernetesTokenEndpoint})
+		desiredEnvs = append(desiredEnvs, corev1.EnvVar{Name: AzureKubernetesTokenProxyEnvVar, Value: m.config.AzureKubernetesTokenProxy})
 		desiredEnvs = append(desiredEnvs, corev1.EnvVar{Name: AzureKubernetesSNINameEnvVar, Value: m.config.AzureKubernetesSNIName})
 		desiredEnvs = append(desiredEnvs, corev1.EnvVar{Name: AzureKubernetesCAFileEnvVar, Value: filepath.Join(VolumeMountPath, CAFilePath)})
 		desiredEnvs = append(desiredEnvs, corev1.EnvVar{Name: AzureKubernetesCADataEnvVar, Value: m.config.AzureKubernetesCAData})

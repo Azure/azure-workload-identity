@@ -14,12 +14,12 @@ func createCredentialFromEnv() (azcore.TokenCredential, error) {
 	// Azure AD Workload Identity webhook will inject the following env vars
 	// 	AZURE_CLIENT_ID with the clientID set in the service account annotation
 	// 	AZURE_FEDERATED_TOKEN_FILE is the service account token path
-	// 	AZURE_KUBERNETES_TOKEN_ENDPOINT is the identity binding token endpoint
+	// 	AZURE_KUBERNETES_TOKEN_PROXY is the identity binding token endpoint
 	// 	AZURE_KUBERNETES_SNI_NAME is the SNI name for token endpoint
 	// 	AZURE_KUBERNETES_CA_FILE is the CA file for the token endpoint
 	clientID := os.Getenv("AZURE_CLIENT_ID")
 	tokenFilePath := os.Getenv("AZURE_FEDERATED_TOKEN_FILE")
-	tokenEndpoint := os.Getenv("AZURE_KUBERNETES_TOKEN_ENDPOINT")
+	tokenEndpoint := os.Getenv("AZURE_KUBERNETES_TOKEN_PROXY")
 	sni := os.Getenv("AZURE_KUBERNETES_SNI_NAME")
 	caFile := os.Getenv("AZURE_KUBERNETES_CA_FILE")
 
@@ -30,7 +30,7 @@ func createCredentialFromEnv() (azcore.TokenCredential, error) {
 		klog.Fatal("AZURE_FEDERATED_TOKEN_FILE environment variable is not set")
 	}
 	if tokenEndpoint == "" {
-		klog.Fatal("AZURE_KUBERNETES_TOKEN_ENDPOINT environment variable is not set")
+		klog.Fatal("AZURE_KUBERNETES_TOKEN_PROXY environment variable is not set")
 	}
 	if sni == "" {
 		klog.Fatal("AZURE_KUBERNETES_SNI_NAME environment variable is not set")
