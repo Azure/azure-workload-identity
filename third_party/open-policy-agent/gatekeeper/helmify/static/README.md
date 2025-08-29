@@ -59,7 +59,7 @@ helm upgrade -n azure-workload-identity-system [RELEASE_NAME] azure-workload-ide
 | revisionHistoryLimit               | The number of old ReplicaSets to retain for the webhook deployment                                                                | `10`                                                    |
 | customTokenEndpoint.azureKubernetesCaData           | The CA data to use for the custom token endpoint                                         | `""` |
 | customTokenEndpoint.azureKubernetesSniName          | The SNI name to use for the custom token endpoint                                        | `""` |
-| customTokenEndpoint.azureKubernetesTokenEndpoint    | The custom token endpoint to be configured in the workloads                              | `""` |
+| customTokenEndpoint.azureKubernetesTokenProxy    | The custom token endpoint to be configured in the workloads                              | `""` |
 | customTokenEndpoint.azureKubernetesCAConfigMapName  | The name of the ConfigMap containing the CA data for the custom token endpoint. The key needs to be `ca.crt`. | `""` |
 | customTokenEndpoint.azureKubernetesCACTBSignerName  | The name of the cluster trust bundle signer for the custom token endpoint                | `""` |
 | customTokenEndpoint.azureKubernetesCACTBLabelSelector | The label selector for the cluster trust bundle signer for the custom token endpoint   | `""` |

@@ -104,7 +104,7 @@ test_helm_chart() {
     --set image.release="${IMAGE_VERSION}" \
     --set azureTenantID="${AZURE_TENANT_ID}" \
     --set customTokenEndpoint.azureKubernetesSniName="2183187515ff64fc2fff014fd0e749f92578a466dc345b" \
-    --set customTokenEndpoint.azureKubernetesTokenEndpoint="https://kubernetes.default.svc" \
+    --set customTokenEndpoint.azureKubernetesTokenProxy="https://kubernetes.default.svc" \
     --set customTokenEndpoint.azureKubernetesCAConfigMapName="kube-root-ca.crt" \
     --namespace azure-workload-identity-system \
     --reuse-values \
