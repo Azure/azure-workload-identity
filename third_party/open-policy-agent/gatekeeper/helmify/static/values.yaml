@@ -43,7 +43,7 @@ podDisruptionBudget:
 customTokenEndpoint:
   azureKubernetesCaData: ""
   azureKubernetesSniName: ""
-  azureKubernetesTokenEndpoint: ""
+  azureKubernetesTokenProxy: ""
   azureKubernetesCAConfigMapName: ""
   azureKubernetesCACTBSignerName: ""
   azureKubernetesCACTBLabelSelector: ""

@@ -27,8 +27,8 @@ var replacements = map[string]string{
   {{- if .Values.customTokenEndpoint.azureKubernetesSniName }}
   AZURE_KUBERNETES_SNI_NAME: {{ .Values.customTokenEndpoint.azureKubernetesSniName | quote }}
   {{- end }}
-  {{- if .Values.customTokenEndpoint.azureKubernetesTokenEndpoint }}
-  AZURE_KUBERNETES_TOKEN_ENDPOINT: {{ .Values.customTokenEndpoint.azureKubernetesTokenEndpoint | quote }}
+  {{- if .Values.customTokenEndpoint.azureKubernetesTokenProxy }}
+  AZURE_KUBERNETES_TOKEN_PROXY: {{ .Values.customTokenEndpoint.azureKubernetesTokenProxy | quote }}
   {{- end }}
   {{- if .Values.customTokenEndpoint.azureKubernetesCAConfigMapName }}
   AZURE_KUBERNETES_CA_CONFIGMAP_NAME: {{ .Values.customTokenEndpoint.azureKubernetesCAConfigMapName | quote }}

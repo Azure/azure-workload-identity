@@ -62,9 +62,9 @@ const (
 	// no impact on the actual token exchange flow.
 	DefaultAudience = "api://AzureADTokenExchange"
 
-	AzureKubernetesCADataEnvVar        = "AZURE_KUBERNETES_CA_DATA" // #nosec
-	AzureKubernetesCAFileEnvVar        = "AZURE_KUBERNETES_CA_FILE" // #nosec
-	AzureKubernetesSNINameEnvVar       = "AZURE_KUBERNETES_SNI_NAME"
-	AzureKubernetesTokenEndpointEnvVar = "AZURE_KUBERNETES_TOKEN_ENDPOINT" // #nosec
-	CAFilePath                         = "ca-cert/ca.crt"                  // #nosec
+	AzureKubernetesCADataEnvVar     = "AZURE_KUBERNETES_CA_DATA" // #nosec
+	AzureKubernetesCAFileEnvVar     = "AZURE_KUBERNETES_CA_FILE" // #nosec
+	AzureKubernetesSNINameEnvVar    = "AZURE_KUBERNETES_SNI_NAME"
+	AzureKubernetesTokenProxyEnvVar = "AZURE_KUBERNETES_TOKEN_PROXY" // #nosec
+	CAFilePath                      = "ca-cert/ca.crt"               // #nosec
 )
