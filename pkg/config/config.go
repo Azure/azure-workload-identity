@@ -17,9 +17,11 @@ type Config struct {
 	ProxyImage     string `envconfig:"PROXY_IMAGE"`
 	ProxyInitImage string `envconfig:"PROXY_INIT_IMAGE"`
 
-	AzureKubernetesTokenProxy string `envconfig:"AZURE_KUBERNETES_TOKEN_PROXY"`
-	AzureKubernetesSNIName    string `envconfig:"AZURE_KUBERNETES_SNI_NAME"`
-	AzureKubernetesCAData     string `envconfig:"AZURE_KUBERNETES_CA_DATA"`
+	AzureKubernetesTokenProxy            string `envconfig:"AZURE_KUBERNETES_TOKEN_PROXY"`
+	AzureKubernetesTokenEndpointFallback string `envconfig:"AZURE_KUBERNETES_TOKEN_ENDPOINT"` // this should be removed after AKS side deployment has been done
+
+	AzureKubernetesSNIName string `envconfig:"AZURE_KUBERNETES_SNI_NAME"`
+	AzureKubernetesCAData  string `envconfig:"AZURE_KUBERNETES_CA_DATA"`
 	// AzureKubernetesCAConfigMapName is the name of the ConfigMap that contains the CA data
 	// The key in the ConfigMap must be "ca.crt".
 	AzureKubernetesCAConfigMapName    string           `envconfig:"AZURE_KUBERNETES_CA_CONFIGMAP_NAME"`
@@ -32,6 +34,11 @@ func ParseConfig() (*Config, error) {
 	c := new(Config)
 	if err := envconfig.Process("config", c); err != nil {
 		return c, err
+	}
+
+	if c.AzureKubernetesTokenProxy == "" && c.AzureKubernetesTokenEndpointFallback != "" {
+		// for backward compatibility, if AZURE_KUBERNETES_TOKEN_PROXY is not set, use AZURE_KUBERNETES_TOKEN_ENDPOINT if set
+		c.AzureKubernetesTokenProxy = c.AzureKubernetesTokenEndpointFallback
 	}
 
 	// validate parsed config
