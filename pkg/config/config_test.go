@@ -200,6 +200,56 @@ func TestParseConfig(t *testing.T) {
 	}
 }
 
+func TestParseConfig_TokenEndpointFallback(t *testing.T) {
+	const (
+		tokenEndpointValue = "https://token-endpoint"
+		tokenProxyValue    = "https://token-proxy"
+	)
+
+	t.Run("use token endpoint if token proxy is not set", func(t *testing.T) {
+		setEnvIfNotEmpty(t, "AZURE_ENVIRONMENT", "AzurePublicCloud")
+		setEnvIfNotEmpty(t, "AZURE_TENANT_ID", "tenant-id")
+		setEnvIfNotEmpty(t, "AZURE_KUBERNETES_TOKEN_ENDPOINT", tokenEndpointValue)
+		c, err := ParseConfig()
+		if err != nil {
+			t.Fatalf("ParseConfig() unexpected error = %v", err)
+		}
+		if c.AzureKubernetesTokenProxy != tokenEndpointValue {
+			t.Errorf("ParseConfig() got = %v, want %v", c.AzureKubernetesTokenProxy, tokenEndpointValue)
+		}
+	})
+
+	t.Run("use token proxy if both token proxy and token endpoint are set", func(t *testing.T) {
+		setEnvIfNotEmpty(t, "AZURE_ENVIRONMENT", "AzurePublicCloud")
+		setEnvIfNotEmpty(t, "AZURE_TENANT_ID", "tenant-id")
+		setEnvIfNotEmpty(t, "AZURE_KUBERNETES_TOKEN_ENDPOINT", tokenEndpointValue)
+		setEnvIfNotEmpty(t, "AZURE_KUBERNETES_TOKEN_PROXY", tokenProxyValue)
+		c, err := ParseConfig()
+		if err != nil {
+			t.Fatalf("ParseConfig() unexpected error = %v", err)
+		}
+		if c.AzureKubernetesTokenProxy != tokenProxyValue {
+			t.Errorf("ParseConfig() got = %v, want %v", c.AzureKubernetesTokenProxy, tokenProxyValue)
+		}
+	})
+
+	t.Run("empty if neither token proxy nor token endpoint are set", func(t *testing.T) {
+		setEnvIfNotEmpty(t, "AZURE_ENVIRONMENT", "AzurePublicCloud")
+		setEnvIfNotEmpty(t, "AZURE_TENANT_ID", "tenant-id")
+		// ensure both are unset
+		_ = os.Unsetenv("AZURE_KUBERNETES_TOKEN_ENDPOINT")
+		_ = os.Unsetenv("AZURE_KUBERNETES_TOKEN_PROXY")
+
+		c, err := ParseConfig()
+		if err != nil {
+			t.Fatalf("ParseConfig() unexpected error = %v", err)
+		}
+		if c.AzureKubernetesTokenProxy != "" {
+			t.Errorf("ParseConfig() got = %v, want empty string", c.AzureKubernetesTokenProxy)
+		}
+	})
+}
+
 func setEnvIfNotEmpty(t *testing.T, key, value string) {
 	t.Helper()
 
