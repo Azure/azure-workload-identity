@@ -6,11 +6,11 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
-	"path/filepath"
 	"reflect"
 	"testing"
 
 	"github.com/gorilla/mux"
+	"github.com/stretchr/testify/require"
 	"monis.app/mlog"
 
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
@@ -25,7 +25,6 @@ func setup() {
 	rtr = mux.NewRouter()
 	server = httptest.NewServer(rtr)
 
-	os.Setenv(webhook.AzureAuthorityHostEnvVar, "https://login.microsoftonline.com/")
 	os.Setenv(webhook.AzureTenantIDEnvVar, "tenant_id")
 }
 
@@ -213,54 +212,6 @@ func TestParseTokenRequest(t *testing.T) {
 	}
 }
 
-func TestReadJWTFromFS(t *testing.T) {
-	tests := []struct {
-		name          string
-		writeFile     func() string
-		expectedToken string
-		expectedError bool
-	}{
-		{
-			name: "valid token",
-			writeFile: func() string {
-				tokenFilePath := filepath.Join(os.TempDir(), "test-token")
-				if err := os.WriteFile(tokenFilePath, []byte("token"), 0600); err != nil {
-					t.Error(err)
-				}
-				return tokenFilePath
-			},
-			expectedToken: "token",
-			expectedError: false,
-		},
-		{
-			name: "no token",
-			writeFile: func() string {
-				return filepath.Join(os.TempDir(), "test-token-0")
-			},
-			expectedToken: "",
-			expectedError: true,
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			tokenFilePath := test.writeFile()
-			defer os.Remove(tokenFilePath)
-
-			token, err := readJWTFromFS(tokenFilePath)
-			if err != nil && !test.expectedError {
-				t.Error(err)
-			}
-			if err == nil && test.expectedError {
-				t.Error("expected error, got none")
-			}
-			if token != test.expectedToken {
-				t.Errorf("expected token %s, got %s", test.expectedToken, token)
-			}
-		})
-	}
-}
-
 func testTokenHandler(w http.ResponseWriter, _ *http.Request) {
 	fmt.Fprintf(w, "token_request_handler")
 }
@@ -344,32 +295,25 @@ func TestGetScope(t *testing.T) {
 
 func TestNewProxy(t *testing.T) {
 	testLogger := mlog.New()
+	credCache, err := CreateWICredCache()
+	require.NoError(t, err)
+
 	tests := []struct {
-		name          string
-		tenantID      string
-		authorityHost string
-		expected      *proxy
-		expectedErr   string
+		name        string
+		tenantID    string
+		expected    *proxy
+		expectedErr string
 	}{
 		{
-			name:          "tenant id not set",
-			tenantID:      "",
-			authorityHost: "https://login.microsoftonline.com/",
-			expected:      nil,
-			expectedErr:   "AZURE_TENANT_ID not set",
+			name:        "tenant id not set",
+			tenantID:    "",
+			expected:    nil,
+			expectedErr: "AZURE_TENANT_ID not set",
 		},
 		{
-			name:          "authority host not set",
-			tenantID:      "tenant_id",
-			authorityHost: "",
-			expected:      nil,
-			expectedErr:   "AZURE_AUTHORITY_HOST not set",
-		},
-		{
-			name:          "valid tenant id and authority host",
-			tenantID:      "tenant_id",
-			authorityHost: "https://login.microsoftonline.com/",
-			expected:      &proxy{logger: testLogger, tenantID: "tenant_id", authorityHost: "https://login.microsoftonline.com/", port: 8000},
+			name:     "valid tenant id and authority host",
+			tenantID: "tenant_id",
+			expected: &proxy{logger: testLogger, tenantID: "tenant_id", port: 8000, credCache: credCache},
 		},
 	}
 
@@ -378,10 +322,9 @@ func TestNewProxy(t *testing.T) {
 			os.Setenv(webhook.AzureTenantIDEnvVar, test.tenantID)
 			defer os.Unsetenv(webhook.AzureTenantIDEnvVar)
 
-			os.Setenv(webhook.AzureAuthorityHostEnvVar, test.authorityHost)
 			defer os.Unsetenv(webhook.AzureAuthorityHostEnvVar)
 
-			got, err := NewProxy(8000, testLogger)
+			got, err := NewProxy(8000, testLogger, credCache)
 			if err != nil && err.Error() != test.expectedErr {
 				t.Errorf("expected error %s, got %s", test.expectedErr, err.Error())
 			}

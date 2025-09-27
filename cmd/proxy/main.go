@@ -54,7 +54,12 @@ func mainErr() error {
 
 	ctx := withShutdownSignal(context.Background())
 
-	p, err := proxy.NewProxy(proxyPort, mlog.New().WithName("proxy"))
+	credCache, err := proxy.CreateWICredCache()
+	if err != nil {
+		return fmt.Errorf("setup: failed to create credential cache: %w", err)
+	}
+
+	p, err := proxy.NewProxy(proxyPort, mlog.New().WithName("proxy"), credCache)
 	if err != nil {
 		return fmt.Errorf("setup: failed to create proxy: %w", err)
 	}

@@ -6,17 +6,17 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/AzureAD/microsoft-authentication-library-for-go/apps/confidential"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"monis.app/mlog"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-workload-identity/pkg/version"
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
 )
@@ -45,10 +45,11 @@ type Proxy interface {
 }
 
 type proxy struct {
-	port          int
-	tenantID      string
-	authorityHost string
-	logger        mlog.Logger
+	port     int
+	tenantID string
+	logger   mlog.Logger
+
+	credCache *CredCache
 }
 
 // using this from https://github.com/Azure/go-autorest/blob/b3899c1057425994796c92293e931f334af63b4e/autorest/adal/token.go#L1055-L1067
@@ -68,23 +69,18 @@ type token struct {
 }
 
 // NewProxy returns a proxy instance
-func NewProxy(port int, logger mlog.Logger) (Proxy, error) {
+func NewProxy(port int, logger mlog.Logger, credCache *CredCache) (Proxy, error) {
 	// tenantID is required for fetching a token using client assertions
 	// the mutating webhook will inject the tenantID for the cluster
 	tenantID := os.Getenv(webhook.AzureTenantIDEnvVar)
-	// authorityHost is required for fetching a token using client assertions
-	authorityHost := os.Getenv(webhook.AzureAuthorityHostEnvVar)
 	if tenantID == "" {
 		return nil, errors.Errorf("%s not set", webhook.AzureTenantIDEnvVar)
 	}
-	if authorityHost == "" {
-		return nil, errors.Errorf("%s not set", webhook.AzureAuthorityHostEnvVar)
-	}
 	return &proxy{
-		port:          port,
-		tenantID:      tenantID,
-		authorityHost: authorityHost,
-		logger:        logger,
+		port:      port,
+		tenantID:  tenantID,
+		logger:    logger,
+		credCache: credCache,
 	}, nil
 }
 
@@ -138,8 +134,15 @@ func (p *proxy) msiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// get the token using the msal
-	token, err := doTokenRequest(r.Context(), clientID, resource, p.tenantID, p.authorityHost)
+	cred, err := p.getOrCreateCred(clientID, p.tenantID)
+	if err != nil {
+		p.logger.Error("failed to get or create credential", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// get the token using the azidentity
+	token, err := doTokenRequest(r.Context(), resource, cred)
 	if err != nil {
 		p.logger.Error("failed to get token", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -151,6 +154,28 @@ func (p *proxy) msiHandler(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(token); err != nil {
 		p.logger.Error("failed to encode token", err)
 	}
+}
+
+func (p *proxy) getOrCreateCred(clientID, tenantID string) (*azidentity.WorkloadIdentityCredential, error) {
+	key := wiCredCacheKey{
+		clientID: clientID,
+		tenantID: tenantID,
+	}
+	cred, ok := p.credCache.Get(key)
+	if ok {
+		return cred, nil
+	}
+
+	wi, err := azidentity.NewWorkloadIdentityCredential(&azidentity.WorkloadIdentityCredentialOptions{
+		ClientID: clientID,
+		TenantID: tenantID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	p.credCache.Add(key, wi)
+	return wi, nil
 }
 
 func (p *proxy) defaultPathHandler(w http.ResponseWriter, r *http.Request) {
@@ -193,31 +218,21 @@ func (p *proxy) readyzHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "ok")
 }
 
-func doTokenRequest(ctx context.Context, clientID, resource, tenantID, authorityHost string) (*token, error) {
-	tokenFilePath := os.Getenv(webhook.AzureFederatedTokenFileEnvVar)
-	cred := confidential.NewCredFromAssertionCallback(func(context.Context, confidential.AssertionRequestOptions) (string, error) {
-		return readJWTFromFS(tokenFilePath)
+func doTokenRequest(ctx context.Context, resource string, cred *azidentity.WorkloadIdentityCredential) (*token, error) {
+	result, err := cred.GetToken(ctx, policy.TokenRequestOptions{
+		Scopes: []string{getScope(resource)},
 	})
-	authority, err := url.JoinPath(authorityHost, tenantID)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to construct authority URL")
+		return nil, err
 	}
 
-	confidentialClientApp, err := confidential.New(authority, clientID, cred)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create confidential client app")
-	}
+	expiresIn := int64(time.Until(result.ExpiresOn))
 
-	result, err := confidentialClientApp.AcquireTokenByCredential(ctx, []string{getScope(resource)})
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to acquire token")
-	}
 	return &token{
-		AccessToken: result.AccessToken,
+		AccessToken: result.Token,
 		Resource:    resource,
 		Type:        "Bearer",
-		// -10s is to account for current time changes between the calls
-		ExpiresIn: json.Number(strconv.FormatInt(int64(time.Until(result.ExpiresOn)/time.Second)-10, 10)),
+		ExpiresIn:   json.Number(strconv.FormatInt(expiresIn, 10)),
 		// There is a difference in parsing between the azure sdks and how azure-cli works
 		// Using the unix time to be consistent with response from IMDS which works with
 		// all the clients.
@@ -241,14 +256,6 @@ func copyHeader(dst, src http.Header) {
 			dst.Add(k, v)
 		}
 	}
-}
-
-func readJWTFromFS(tokenFilePath string) (string, error) {
-	token, err := os.ReadFile(tokenFilePath)
-	if err != nil {
-		return "", err
-	}
-	return string(token), nil
 }
 
 // ref: https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/issues/747
