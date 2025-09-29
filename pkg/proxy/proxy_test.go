@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/gorilla/mux"
-	"github.com/stretchr/testify/require"
 	"monis.app/mlog"
 
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
@@ -295,8 +294,7 @@ func TestGetScope(t *testing.T) {
 
 func TestNewProxy(t *testing.T) {
 	testLogger := mlog.New()
-	credCache, err := CreateWICredCache()
-	require.NoError(t, err)
+	credCache := CreateWICredCache()
 
 	tests := []struct {
 		name        string
