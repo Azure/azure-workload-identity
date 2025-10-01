@@ -226,13 +226,12 @@ func doTokenRequest(ctx context.Context, resource string, cred *azidentity.Workl
 		return nil, err
 	}
 
-	expiresIn := int64(time.Until(result.ExpiresOn))
-
 	return &token{
 		AccessToken: result.Token,
 		Resource:    resource,
 		Type:        "Bearer",
-		ExpiresIn:   json.Number(strconv.FormatInt(expiresIn, 10)),
+		// -10s is to account for current time changes between the calls
+		ExpiresIn: json.Number(strconv.FormatInt(int64(time.Until(result.ExpiresOn)/time.Second)-10, 10)),
 		// There is a difference in parsing between the azure sdks and how azure-cli works
 		// Using the unix time to be consistent with response from IMDS which works with
 		// all the clients.
