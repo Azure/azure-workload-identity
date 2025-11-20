@@ -5,17 +5,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/keyvault/azsecrets"
 	"k8s.io/klog/v2"
 )
-
-func createCredential() (azcore.TokenCredential, error) {
-	return azidentity.NewWorkloadIdentityCredential(&azidentity.WorkloadIdentityCredentialOptions{
-		EnableAzureTokenProxy: true,
-	})
-}
 
 func main() {
 	keyvaultURL := os.Getenv("KEYVAULT_URL")
@@ -27,8 +20,9 @@ func main() {
 		klog.Fatal("SECRET_NAME environment variable is not set")
 	}
 
-	var cred azcore.TokenCredential
-	cred, err := createCredential()
+	cred, err := azidentity.NewWorkloadIdentityCredential(&azidentity.WorkloadIdentityCredentialOptions{
+		EnableAzureTokenProxy: true,
+	})
 	if err != nil {
 		klog.Fatal(err)
 	}
