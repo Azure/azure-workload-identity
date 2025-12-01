@@ -25,7 +25,7 @@ jobs:
     steps:
       - task: GoTool@0
         inputs:
-          version: "1.24.6"
+          version: "1.24.11"
       - script: make lint
         displayName: golangci-lint
       - script: make helm-lint
@@ -51,7 +51,7 @@ jobs:
     steps:
       - task: GoTool@0
         inputs:
-          version: "1.24.6"
+          version: "1.24.11"
       - script: make test
         displayName: Unit test
   - job: shellcheck
@@ -89,7 +89,7 @@ jobs:
     steps:
       - task: GoTool@0
         inputs:
-          version: "1.24.6"
+          version: "1.24.11"
       - script: echo "##vso[task.setvariable variable=CLUSTER_NAME]azwi-e2e-$(openssl rand -hex 2)"
         displayName: Set CLUSTER_NAME
         condition: ne(variables.LOCAL_ONLY, 'true')
@@ -143,7 +143,7 @@ jobs:
     steps:
       - task: GoTool@0
         inputs:
-          version: "1.24.6"
+          version: "1.24.11"
       - script: echo "##vso[task.setvariable variable=CLUSTER_NAME]azwi-e2e-$(openssl rand -hex 2)"
         displayName: Set CLUSTER_NAME
         condition: ne(variables.LOCAL_ONLY, 'true')
