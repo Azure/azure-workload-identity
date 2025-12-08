@@ -132,7 +132,7 @@ The `Key Vault Secrets User` [built-in role](https://learn.microsoft.com/en-us/a
 
 > **Role description:** Read secret contents including secret portion of a certificate with private key. Only works for key vaults that use the 'Azure role-based access control' permission model.
 
-```sh
+```bash
 export APPLICATION_CLIENT_ID="$(az ad sp list --display-name "${APPLICATION_NAME}" --query '[0].appId' -otsv)"
 export KEYVAULT_RESOURCE_ID="$(az keyvault show --name "${KEYVAULT_NAME}" --query 'id' -otsv)"
 
