@@ -5,22 +5,24 @@
 In this tutorial, we will cover the basics of how to use the webhook to acquire an Azure AD token to access a secret in an [Azure Key Vault][1].
 
 > While this tutorial shows a 1:1 mapping between a Kubernetes service account and an Azure AD identity, it is possible to map:
+>
 > 1. Multiple Kubernetes service accounts to a single Azure AD identity. Refer to [FAQ][15] for more details.
 > 2. Multiple Azure AD identities to a single Kubernetes service account. Refer to [FAQ][16] for more details.
 
 Before we get started, ensure the following:
 
 * Azure CLI version 2.40.0 or higher. Run `az --version` to verify.
-*  You are logged in with the Azure CLI as a user.
-   *  If you are logged in with a Service Principal, ensure that it has the correct [API permissions][14] enabled.
-*  Your logged in account must have sufficient permissions to create applications and service principals or user-assigned managed identities in Azure AD.
+* You are logged in with the Azure CLI as a user.
+  * If you are logged in with a Service Principal, ensure that it has the correct [API permissions][14] enabled.
+* Your logged in account must have sufficient permissions to create applications and service principals or user-assigned managed identities in Azure AD.
 
 ## 1. Complete the installation guide
 
 [Installation guide][13]. At this point, you should have already:
-- installed the mutating admission webhook
-- obtained your cluster's OIDC issuer URL
-- [optional] installed the Azure AD Workload Identity CLI
+
+* installed the mutating admission webhook
+* obtained your cluster's OIDC issuer URL
+* [optional] installed the Azure AD Workload Identity CLI
 
 ## 2. Export environment variables
 
@@ -113,7 +115,11 @@ az identity create --name "${USER_ASSIGNED_IDENTITY_NAME}" --resource-group "${R
 
 Set access policy for the AAD application or user-assigned managed identity to access the keyvault secret:
 
+Microsoft [recommends](https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-access-policy) for improved security to use the **Azure Role-Based Access Control (RBAC) permission model** instead of the legacy Key Vault access policy model when managing an Azure Key Vault.  
+
 If using Azure AD Application:
+
+Key Vault access policy (legacy):
 
 ```bash
 export APPLICATION_CLIENT_ID="$(az ad sp list --display-name "${APPLICATION_NAME}" --query '[0].appId' -otsv)"
@@ -122,7 +128,25 @@ az keyvault set-policy --name "${KEYVAULT_NAME}" \
   --spn "${APPLICATION_CLIENT_ID}"
 ```
 
-if using user-assigned managed identity:
+Azure RBAC (the recommended approach):
+
+The `Key Vault Secrets User` [built-in role](https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-guide?tabs=azure-cli#azure-built-in-roles-for-key-vault-data-plane-operations) is sufficient and adheres to the principle of least privilege for fetching secret content from an  Azure Key Vault with Azure Workload Identity.
+
+> **Role description:** Read secret contents including secret portion of a certificate with private key. Only works for key vaults that use the 'Azure role-based access control' permission model.
+
+```sh
+export APPLICATION_CLIENT_ID="$(az ad sp list --display-name "${APPLICATION_NAME}" --query '[0].appId' -otsv)"
+export KEYVAULT_RESOURCE_ID="$(az keyvault show --name "${KEYVAULT_NAME}" --query 'id' -otsv)"
+
+az role assignment create \
+  --role "Key Vault Secrets User" \
+  --scope "${KEYVAULT_RESOURCE_ID}" \
+  --assignee "${APPLICATION_CLIENT_ID}"
+```
+
+If using user-assigned managed identity:
+
+Key Vault access policy (legacy):
 
 ```bash
 export USER_ASSIGNED_IDENTITY_CLIENT_ID="$(az identity show --name "${USER_ASSIGNED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP}" --query 'clientId' -otsv)"
@@ -130,6 +154,18 @@ export USER_ASSIGNED_IDENTITY_OBJECT_ID="$(az identity show --name "${USER_ASSIG
 az keyvault set-policy --name "${KEYVAULT_NAME}" \
   --secret-permissions get \
   --object-id "${USER_ASSIGNED_IDENTITY_OBJECT_ID}"
+```
+
+Azure RBAC (the recommended approach):
+
+```bash
+export USER_ASSIGNED_IDENTITY_CLIENT_ID="$(az identity show --name "${USER_ASSIGNED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP}" --query 'clientId' -otsv)"
+export KEYVAULT_RESOURCE_ID="$(az keyvault show --name "${KEYVAULT_NAME}" --query 'id' -otsv)"
+
+az role assignment create \
+  --role "Key Vault Secrets User" \
+  --scope "${KEYVAULT_RESOURCE_ID}" \
+  --assignee "${USER_ASSIGNED_IDENTITY_CLIENT_ID}"
 ```
 
 ## 5. Create a Kubernetes service account
@@ -292,6 +328,7 @@ spec:
     kubernetes.io/os: linux
 EOF
 ```
+
 Note: Newer version of the sample image will only need KEYVAULT_URL variable.
 
 > Feel free to swap the msal-go example image above with a list of [language-specific examples](./topics/language-specific-examples/msal.md) we provide.
@@ -422,28 +459,7 @@ az ad sp delete --id "${APPLICATION_CLIENT_ID}"
 <!-- markdown-link-check-disable-next-line -->
 [1]: https://azure.microsoft.com/services/key-vault/
 
-[2]: https://kubernetes.io/docs/tasks/tools/
-
-[3]: https://kind.sigs.k8s.io/docs/user/quick-start/#installation
-
-[4]: https://www.docker.com/
-
 <!-- markdown-link-check-disable-next-line -->
-[5]: https://azure.microsoft.com/
-
-[6]: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli
-
-[7]: https://github.com/Azure/azure-workload-identity/blob/1cb9d78159458b0c820c9c08fadf967833c8cdb4/deploy/azure-wi-webhook.yaml#L103-L104
-
-[8]: https://portal.azure.com/#cloudshell/
-
-[9]: ./topics/managed-clusters.md
-
-[10]: ./topics/self-managed-clusters.md
-
-[11]: ../installation.md#helm
-
-[12]: ../installation.md#deployment-yaml
 
 [13]: ./installation.md
 
