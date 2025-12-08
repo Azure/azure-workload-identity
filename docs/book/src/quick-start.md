@@ -115,7 +115,7 @@ az identity create --name "${USER_ASSIGNED_IDENTITY_NAME}" --resource-group "${R
 
 Set access policy for the AAD application or user-assigned managed identity to access the keyvault secret:
 
-Microsoft [recommends](https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-access-policy) for improved security to use the **Azure Role-Based Access Control (RBAC) permission model** instead of the legacy Key Vault access policy model when managing an Azure Key Vault.  
+Microsoft [recommends](https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-access-policy) for improved security to use the **Azure Role-Based Access Control (RBAC) permission model** instead of the legacy Key Vault access policy model when managing an Azure Key Vault.
 
 If using Azure AD Application:
 
