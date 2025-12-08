@@ -130,7 +130,7 @@ az keyvault set-policy --name "${KEYVAULT_NAME}" \
 
 Azure RBAC (the recommended approach):
 
-The `Key Vault Secrets User` [built-in role](https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-guide?tabs=azure-cli#azure-built-in-roles-for-key-vault-data-plane-operations) is sufficient and adheres to the principle of least privilege for fetching secret content from an  Azure Key Vault with Azure Workload Identity.
+The `Key Vault Secrets User` [built-in role](https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-guide?tabs=azure-cli#azure-built-in-roles-for-key-vault-data-plane-operations) is sufficient and adheres to the principle of least privilege for fetching secret content from an Azure Key Vault with Azure Workload Identity.
 
 > **Role description:** Read secret contents including secret portion of a certificate with private key. Only works for key vaults that use the 'Azure role-based access control' permission model.
 
