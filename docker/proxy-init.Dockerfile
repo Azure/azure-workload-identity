@@ -1,4 +1,4 @@
-FROM registry.k8s.io/build-image/distroless-iptables:v0.8.2
+FROM registry.k8s.io/build-image/distroless-iptables:v0.8.5
 
 COPY ./init/init-iptables.sh /bin/
 RUN chmod +x /bin/init-iptables.sh
