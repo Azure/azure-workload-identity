@@ -21,7 +21,7 @@ jobs:
       fail-fast: false
       matrix:
         # TODO(aramase): add windows test env
-        env: [ubuntu-latest, macos-13]
+        env: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.env }}
     steps:
       - name: Harden Runner
