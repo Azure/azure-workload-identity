@@ -111,26 +111,15 @@ az identity create --name "${USER_ASSIGNED_IDENTITY_NAME}" --resource-group "${R
 
 </details>
 
-Set access policy for the AAD application or user-assigned managed identity to access the keyvault secret:
-
-Microsoft [recommends](https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-access-policy) for improved security to use the **Azure Role-Based Access Control (RBAC) permission model** instead of the legacy Key Vault access policy model when managing an Azure Key Vault.
+Set access policy for the AAD application or user-assigned managed identity to access the key vault secret:
 
 If using Azure AD Application:
-
-Key Vault access policy (legacy):
-
-```bash
-export APPLICATION_CLIENT_ID="$(az ad sp list --display-name "${APPLICATION_NAME}" --query '[0].appId' -otsv)"
-az keyvault set-policy --name "${KEYVAULT_NAME}" \
-  --secret-permissions get \
-  --spn "${APPLICATION_CLIENT_ID}"
-```
 
 Azure RBAC (the recommended approach):
 
 The `Key Vault Secrets User` [built-in role](https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-guide?tabs=azure-cli#azure-built-in-roles-for-key-vault-data-plane-operations) is sufficient and adheres to the principle of least privilege for fetching secret content from an Azure Key Vault with Azure Workload Identity.
 
-> **Role description:** Read secret contents including secret portion of a certificate with private key. Only works for key vaults that use the 'Azure role-based access control' permission model.
+> **Role description:** Read secret contents including secret portion of a certificate with private key. Only works for key vaults that use the Azure role-based access control permission model.
 
 ```bash
 export APPLICATION_CLIENT_ID="$(az ad sp list --display-name "${APPLICATION_NAME}" --query '[0].appId' -otsv)"
@@ -143,16 +132,6 @@ az role assignment create \
 ```
 
 If using user-assigned managed identity:
-
-Key Vault access policy (legacy):
-
-```bash
-export USER_ASSIGNED_IDENTITY_CLIENT_ID="$(az identity show --name "${USER_ASSIGNED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP}" --query 'clientId' -otsv)"
-export USER_ASSIGNED_IDENTITY_OBJECT_ID="$(az identity show --name "${USER_ASSIGNED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP}" --query 'principalId' -otsv)"
-az keyvault set-policy --name "${KEYVAULT_NAME}" \
-  --secret-permissions get \
-  --object-id "${USER_ASSIGNED_IDENTITY_OBJECT_ID}"
-```
 
 Azure RBAC (the recommended approach):
 
