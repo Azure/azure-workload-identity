@@ -9,6 +9,15 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   release: v1.5.1
 imagePullSecrets: []
+goEnvVars:
+- name: GOMAXPROCS
+  valueFrom:
+    resourceFieldRef:
+      resource: requests.cpu
+- name: GOMEMLIMIT
+  valueFrom:
+    resourceFieldRef:
+      resource: limits.memory
 nodeSelector:
   kubernetes.io/os: linux
 resources:
