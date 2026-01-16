@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/open-policy-agent/cert-controller/pkg/rotator"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -42,6 +43,7 @@ const (
 var (
 	audience            string
 	webhookCertDir      string
+	tlsCipherSuites     string
 	tlsMinVersion       string
 	healthAddr          string
 	metricsAddr         string
@@ -73,6 +75,7 @@ func mainErr() error {
 	flag.StringVar(&audience, "audience", "", "Audience for service account token")
 	flag.StringVar(&webhookCertDir, "webhook-cert-dir", "/certs", "Webhook certificates dir to use. Defaults to /certs")
 	flag.BoolVar(&disableCertRotation, "disable-cert-rotation", false, "disable automatic generation and rotation of webhook TLS certificates/keys")
+	flag.StringVar(&tlsCipherSuites, "tls-cipher-suites", "", "Comma-separated list of TLS cipher suites")
 	flag.StringVar(&tlsMinVersion, "tls-min-version", "1.3", "Minimum TLS version")
 	flag.StringVar(&healthAddr, "health-addr", ":9440", "The address the health endpoint binds to")
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8095", "The address the metrics endpoint binds to")
@@ -114,10 +117,20 @@ func mainErr() error {
 	if err != nil {
 		return fmt.Errorf("entrypoint: unable to parse TLS version: %w", err)
 	}
+	tlsOpts := []func(c *tls.Config){func(c *tls.Config) { c.MinVersion = tlsVersion }}
+
+	cipherSuites, err := parseTLSCipherSuites(tlsCipherSuites)
+	if err != nil {
+		return fmt.Errorf("entrypoint: unable to parse TLS cipher suites: %w", err)
+	}
+
+	if len(cipherSuites) > 0 {
+		tlsOpts = append(tlsOpts, func(c *tls.Config) { c.CipherSuites = cipherSuites })
+	}
 
 	serverOpts := webhook.Options{
 		CertDir: webhookCertDir,
-		TLSOpts: []func(c *tls.Config){func(c *tls.Config) { c.MinVersion = tlsVersion }},
+		TLSOpts: tlsOpts,
 	}
 	mgr, err := ctrl.NewManager(config, ctrl.Options{
 		Scheme:                 scheme,
@@ -218,4 +231,34 @@ func parseTLSVersion(tlsVersion string) (uint16, error) {
 	default:
 		return 0, fmt.Errorf("invalid TLS version. Must be one of: 1.0, 1.1, 1.2, 1.3")
 	}
+}
+
+func parseTLSCipherSuites(cipherSuites string) ([]uint16, error) {
+	if cipherSuites == "" {
+		return nil, nil
+	}
+
+	// Build a map of all available cipher suites
+	availableSuites := make(map[string]uint16)
+	for _, s := range tls.CipherSuites() {
+		availableSuites[s.Name] = s.ID
+	}
+	// Also include insecure suites just in case, though discouraged
+	for _, s := range tls.InsecureCipherSuites() {
+		availableSuites[s.Name] = s.ID
+	}
+
+	var ids []uint16
+	for _, name := range strings.Split(cipherSuites, ",") {
+		name = strings.TrimSpace(name)
+		if name == "" {
+			continue
+		}
+		id, ok := availableSuites[name]
+		if !ok {
+			return nil, fmt.Errorf("unsupported cipher suite: %s", name)
+		}
+		ids = append(ids, id)
+	}
+	return ids, nil
 }
