@@ -257,5 +257,9 @@ func parseRsaPrivateKey(path string) (*rsa.PrivateKey, error) {
 }
 
 func getGraphScope(env azure.Environment) string {
-	return fmt.Sprintf("%s.default", msGraphEndpoint[env])
+	endpoint := msGraphEndpoint[env]
+	if endpoint == "" {
+		endpoint = env.ResourceIdentifiers.MicrosoftGraph
+	}
+	return fmt.Sprintf("%s.default", endpoint)
 }
