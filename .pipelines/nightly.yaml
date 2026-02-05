@@ -81,12 +81,12 @@ jobs:
         value: "true"
     strategy:
       matrix:
-        kind_v1_30_10:
-          KIND_NODE_VERSION: v1.30.10
-        kind_v1_31_6:
-          KIND_NODE_VERSION: v1.31.6
-        kind_v1_32_3:
-          KIND_NODE_VERSION: v1.32.3
+        kind_v1_33_7:
+          KIND_NODE_VERSION: v1.33.7
+        kind_v1_34_3:
+          KIND_NODE_VERSION: v1.34.3
+        kind_v1_35_0:
+          KIND_NODE_VERSION: v1.35.0
     steps:
       - task: GoTool@0
         inputs:
