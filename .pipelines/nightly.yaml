@@ -10,7 +10,10 @@ schedules:
       include:
         - main
 
-pool: staging-pool-amd64-mariner-2
+pool:
+  name: staging-pool-amd64-mariner-2
+  demands:
+  - ImageOverride -equals 1es-azlinux-3-amd64-custom-disk
 
 jobs:
   - job:
@@ -40,6 +43,7 @@ jobs:
       - task: GoTool@0
         inputs:
           version: "1.25.6"
+      - template: templates/prepare-deps.yaml
       - script: make test-e2e
         displayName: Webhook E2E test suite
         env:
@@ -59,8 +63,6 @@ jobs:
   - job:
     pool:
       name: staging-pool-amd64-mariner-2
-      demands:
-      - ImageOverride -equals azcu-agent-amd64-mariner-2-cgv2-img
     timeoutInMinutes: 60
     workspace:
       clean: all
@@ -89,6 +91,7 @@ jobs:
       - task: GoTool@0
         inputs:
           version: "1.25.6"
+      - template: templates/prepare-deps.yaml
       - script: make test-e2e
         displayName: Webhook E2E test suite
         env:
