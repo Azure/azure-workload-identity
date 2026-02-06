@@ -39,7 +39,9 @@ create_cluster() {
     fi
 
     if [[ "${REGISTRY}" =~ \.azurecr\.io ]]; then
-      az acr login --name "${REGISTRY}"
+      # Extract just the registry hostname (e.g., upstream.azurecr.io from upstream.azurecr.io/azure-workload-identity)
+      ACR_NAME="${REGISTRY%%/*}"
+      az acr login --name "${ACR_NAME}" --debug
     fi
 
     # build webhook manager and msal-go-e2e images
