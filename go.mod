@@ -25,8 +25,8 @@ require (
 	go.opentelemetry.io/otel v1.28.0
 	go.opentelemetry.io/otel/exporters/prometheus v0.46.0
 	go.opentelemetry.io/otel/metric v1.28.0
+	gopkg.in/go-jose/go-jose.v2 v2.6.3
 	gopkg.in/ini.v1 v1.62.1
-	gopkg.in/square/go-jose.v2 v2.6.0
 	k8s.io/api v0.31.14
 	k8s.io/apimachinery v0.31.14
 	k8s.io/client-go v0.31.14
