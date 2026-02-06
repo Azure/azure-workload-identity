@@ -16,7 +16,7 @@ COPY main.go main.go
 COPY token_credential.go token_credential.go
 
 # Build
-RUN CGO_ENABLED=0 GOOS=windows GO111MODULE=on go build -a -o msalgo.exe .
+RUN MS_GO_NOSYSTEMCRYPTO=1 CGO_ENABLED=0 GOOS=windows GO111MODULE=on go build -a -o msalgo.exe .
 
 FROM --platform=linux/amd64 ${SERVERCORE_CACHE} as core
 
