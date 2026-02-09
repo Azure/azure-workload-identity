@@ -39,7 +39,9 @@ create_cluster() {
     fi
 
     if [[ "${REGISTRY}" =~ \.azurecr\.io ]]; then
-      az acr login --name "${REGISTRY}"
+      # Extract just the registry hostname (e.g., upstream.azurecr.io from upstream.azurecr.io/azure-workload-identity)
+      ACR_NAME="${REGISTRY%%/*}"
+      az acr login --name "${ACR_NAME}" --debug
     fi
 
     # build webhook manager and msal-go-e2e images
@@ -61,6 +63,7 @@ cleanup() {
 trap cleanup EXIT
 
 main() {
+  az --version || sudo tdnf install -y azure-cli
   az login -i > /dev/null && echo "Using machine identity for az commands" || echo "Using pre-existing credential for az commands"
   az account set --subscription "${AZURE_SUBSCRIPTION_ID}" > /dev/null
 

@@ -15,7 +15,10 @@ pr:
     - '*'
     - examples/msal-go/*
 
-pool: staging-pool-amd64-mariner-2
+pool:
+  name: staging-pool-amd64-mariner-2
+  demands:
+  - ImageOverride -equals 1es-azlinux-3-amd64-custom-disk
 
 jobs:
   - job: lint
@@ -25,7 +28,8 @@ jobs:
     steps:
       - task: GoTool@0
         inputs:
-          version: "1.24.11"
+          version: "1.25.6"
+      - template: templates/prepare-deps.yaml
       - script: make lint
         displayName: golangci-lint
       - script: make helm-lint
@@ -51,7 +55,8 @@ jobs:
     steps:
       - task: GoTool@0
         inputs:
-          version: "1.24.11"
+          version: "1.25.6"
+      - template: templates/prepare-deps.yaml
       - script: make test
         displayName: Unit test
   - job: shellcheck
@@ -59,6 +64,7 @@ jobs:
     workspace:
       clean: all
     steps:
+      - template: templates/prepare-deps.yaml
       - script: make shellcheck
         displayName: shellcheck
   - job:
@@ -89,7 +95,8 @@ jobs:
     steps:
       - task: GoTool@0
         inputs:
-          version: "1.24.11"
+          version: "1.25.6"
+      - template: templates/prepare-deps.yaml
       - script: echo "##vso[task.setvariable variable=CLUSTER_NAME]azwi-e2e-$(openssl rand -hex 2)"
         displayName: Set CLUSTER_NAME
         condition: ne(variables.LOCAL_ONLY, 'true')
@@ -110,8 +117,6 @@ jobs:
     timeoutInMinutes: 60
     pool:
       name: staging-pool-amd64-mariner-2
-      demands:
-      - ImageOverride -equals azcu-agent-amd64-mariner-2-cgv2-img
     dependsOn:
     - lint
     - shellcheck
@@ -143,7 +148,8 @@ jobs:
     steps:
       - task: GoTool@0
         inputs:
-          version: "1.24.11"
+          version: "1.25.6"
+      - template: templates/prepare-deps.yaml
       - script: echo "##vso[task.setvariable variable=CLUSTER_NAME]azwi-e2e-$(openssl rand -hex 2)"
         displayName: Set CLUSTER_NAME
         condition: ne(variables.LOCAL_ONLY, 'true')
