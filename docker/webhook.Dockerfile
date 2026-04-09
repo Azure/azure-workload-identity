@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM mcr.microsoft.com/oss/go/microsoft/golang:1.25.6-bookworm@sha256:7ee2dbc1bae8e4c4d0256aed778a1a9e40fdd8a0c04b87b40cb5f4670774f5b4 as builder
+FROM mcr.microsoft.com/oss/go/microsoft/golang:1.25.8-bookworm@sha256:08fe6546b006881f94776be507d547293beeec44e4c42af24071be530343794c as builder
 
 ARG LDFLAGS
 
