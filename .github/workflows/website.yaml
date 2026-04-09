@@ -24,6 +24,7 @@ jobs:
         with:
           submodules: true
           fetch-depth: 0
+          persist-credentials: false
       - name: Set TOOLS_BIN_DIR and add to PATH
         run: |
           TOOLS_BIN_DIR="${HOME}/.cargo/bin"

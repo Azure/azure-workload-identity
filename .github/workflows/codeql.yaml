@@ -10,7 +10,8 @@ on:
   schedule:
     - cron: "0 7 * * 1" # Mondays at 7:00 AM
 
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
   analyze:
@@ -27,6 +28,8 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          persist-credentials: false
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@eb055d739abdc2e8de2e5f4ba1a8b246daa779aa # v3.26.0
