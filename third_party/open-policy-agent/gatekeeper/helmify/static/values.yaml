@@ -39,3 +39,13 @@ mutatingWebhookNamespaceSelector: {}
 podDisruptionBudget:
   minAvailable: 1
   # maxUnavailable: 0
+# customTokenEndpoint is used to configure the custom token endpoint for fetching Entra tokens.
+customTokenEndpoint:
+  annotationSuffix: ""
+  audience: ""
+  azureKubernetesCaData: ""
+  azureKubernetesSniName: ""
+  azureKubernetesTokenProxy: ""
+  azureKubernetesCAConfigMapName: ""
+  azureKubernetesCACTBSignerName: ""
+  azureKubernetesCACTBLabelSelector: ""

@@ -37,6 +37,12 @@ spec:
         - --log-level={{ .Values.logLevel }}
         - --metrics-addr={{ .Values.metricsAddr }}
         - --metrics-backend={{ .Values.metricsBackend }}
+        {{- if .Values.customTokenEndpoint.annotationSuffix }}
+        - --custom-token-endpoint-annotation-suffix={{ .Values.customTokenEndpoint.annotationSuffix }}
+        {{- end }}
+        {{- if .Values.customTokenEndpoint.audience }}
+        - --custom-token-endpoint-audience={{ .Values.customTokenEndpoint.audience }}
+        {{- end }}
         command:
         - /manager
         env:

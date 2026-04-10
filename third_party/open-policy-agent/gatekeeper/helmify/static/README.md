@@ -57,6 +57,14 @@ helm upgrade -n azure-workload-identity-system [RELEASE_NAME] azure-workload-ide
 | podDisruptionBudget.minAvailable   | The minimum number of pods that must be available for the webhook to be considered available                                      | `1`                                                     |
 | podDisruptionBudget.maxUnavailable | The maximum number of pods that may be unavailable for the webhook to be considered available                                     | `nil`                                                   |
 | revisionHistoryLimit               | The number of old ReplicaSets to retain for the webhook deployment                                                                | `10`                                                    |
+| customTokenEndpoint.annotationSuffix                | Suffix for the custom token endpoint annotation (e.g. results in `azure.workload.identity/use-<suffix>`) | `""` |
+| customTokenEndpoint.audience                        | Audience for service account tokens used with the custom token endpoint                  | `""` |
+| customTokenEndpoint.azureKubernetesCaData           | The CA data to use for the custom token endpoint                                         | `""` |
+| customTokenEndpoint.azureKubernetesSniName          | The SNI name to use for the custom token endpoint                                        | `""` |
+| customTokenEndpoint.azureKubernetesTokenProxy    | The custom token endpoint to be configured in the workloads                              | `""` |
+| customTokenEndpoint.azureKubernetesCAConfigMapName  | The name of the ConfigMap containing the CA data for the custom token endpoint. The key needs to be `ca.crt`. | `""` |
+| customTokenEndpoint.azureKubernetesCACTBSignerName  | The name of the cluster trust bundle signer for the custom token endpoint                | `""` |
+| customTokenEndpoint.azureKubernetesCACTBLabelSelector | The label selector for the cluster trust bundle signer for the custom token endpoint   | `""` |
 
 ## Contributing Changes
 
