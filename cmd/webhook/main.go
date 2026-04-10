@@ -55,6 +55,9 @@ var (
 	scheme  = runtime.NewScheme()
 
 	entryLog = mlog.New().WithName("entrypoint")
+
+	customTokenEndpointAnnotationSuffix string
+	customTokenEndpointAudience         string
 )
 
 func init() {
@@ -80,6 +83,15 @@ func mainErr() error {
 	flag.StringVar(&logLevel, "log-level", "",
 		"In order of increasing verbosity: unset (empty string), info, debug, trace and all.")
 	flag.BoolVar(&versionInfo, "version", false, "Print version information and exit")
+
+	flag.StringVar(&customTokenEndpointAnnotationSuffix, "custom-token-endpoint-annotation-suffix", "",
+		"Suffix to append to 'azure.workload.identity/use-' when defining a custom token endpoint annotation. "+
+			"When empty, custom token endpoint injection is disabled.")
+
+	flag.StringVar(&customTokenEndpointAudience, "custom-token-endpoint-audience", "",
+		"Audience to use when configuring service account tokens for custom token endpoints. "+
+			"When empty, custom token endpoint injection is disabled.")
+
 	flag.Parse()
 
 	if versionInfo {
@@ -174,7 +186,7 @@ func setupWebhook(mgr manager.Manager, setupFinished chan struct{}) {
 
 	// setup webhooks
 	entryLog.Info("registering webhook to the webhook server")
-	podMutator, err := wh.NewPodMutator(mgr.GetClient(), mgr.GetAPIReader(), audience, mgr.GetScheme(), mgr.GetConfig())
+	podMutator, err := wh.NewPodMutator(mgr.GetClient(), mgr.GetAPIReader(), audience, mgr.GetScheme(), mgr.GetConfig(), customTokenEndpointAnnotationSuffix, customTokenEndpointAudience)
 	if err != nil {
 		panic(fmt.Errorf("unable to set up pod mutator: %w", err))
 	}

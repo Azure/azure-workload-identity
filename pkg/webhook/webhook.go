@@ -2,6 +2,7 @@ package webhook
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -12,19 +13,19 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/pkg/errors"
-	"monis.app/mlog"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
-
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/apimachinery/pkg/util/validation"
 	utilversion "k8s.io/apimachinery/pkg/util/version"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 	"k8s.io/utils/ptr"
+	"monis.app/mlog"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	"github.com/Azure/azure-workload-identity/pkg/config"
 )
@@ -50,24 +51,59 @@ type podMutator struct {
 	client client.Client
 	// reader is an instance of mgr.GetAPIReader that is configured to use the API server.
 	// This should be used sparingly and only when the client does not fit the use case.
-	reader             client.Reader
-	config             *config.Config
-	decoder            admission.Decoder
-	audience           string
-	azureAuthorityHost string
-	proxyImage         string
-	proxyInitImage     string
-	useNativeSidecar   bool
+	reader              client.Reader
+	config              *config.Config
+	decoder             admission.Decoder
+	audience            string
+	azureAuthorityHost  string
+	proxyImage          string
+	proxyInitImage      string
+	useNativeSidecar    bool
+	customTokenEndpoint customTokenEndpointConfig
+}
+
+// customTokenEndpointConfig holds the configuration for custom token endpoint
+type customTokenEndpointConfig struct {
+	enabled    bool
+	annotation string
+	audience   string
 }
 
 // NewPodMutator returns a pod mutation handler
-func NewPodMutator(client client.Client, reader client.Reader, audience string, scheme *runtime.Scheme, restConfig *rest.Config) (admission.Handler, error) {
+func NewPodMutator(client client.Client, reader client.Reader, audience string, scheme *runtime.Scheme, restConfig *rest.Config, customTokenEndpointAnnotationSuffix, customTokenEndpointAudience string) (admission.Handler, error) {
 	c, err := config.ParseConfig()
 	if err != nil {
 		return nil, err
 	}
 	if audience == "" {
 		audience = DefaultAudience
+	}
+
+	// Custom token endpoint is disabled when both flags are empty.
+	// When either is set but not both, it's a misconfiguration.
+	customTokenEndpointEnabled := len(customTokenEndpointAnnotationSuffix) > 0 || len(customTokenEndpointAudience) > 0
+	var cteConfig customTokenEndpointConfig
+	if customTokenEndpointEnabled {
+		if len(customTokenEndpointAnnotationSuffix) == 0 {
+			return nil, fmt.Errorf("custom token endpoint annotation suffix cannot be empty when audience is set")
+		}
+		if len(customTokenEndpointAudience) == 0 {
+			return nil, fmt.Errorf("custom token endpoint audience cannot be empty when annotation suffix is set")
+		}
+		if strings.EqualFold(customTokenEndpointAudience, DefaultAudience) {
+			return nil, fmt.Errorf("custom token endpoint audience cannot be equal to default audience %q", DefaultAudience)
+		}
+		// Using the validation logic for keys from https://github.com/kubernetes/kubernetes/blob/69dbc74417304328a9fd3c161643dc4f0a057f41/staging/src/k8s.io/apimachinery/pkg/api/validation/objectmeta.go#L46-L51
+		annotationKey := fmt.Sprintf("azure.workload.identity/use-%s", customTokenEndpointAnnotationSuffix)
+		errs := validation.IsQualifiedName(strings.ToLower(annotationKey))
+		if len(errs) > 0 {
+			return nil, fmt.Errorf("custom token endpoint annotation key %q is not valid: %s", annotationKey, strings.Join(errs, ", "))
+		}
+		cteConfig = customTokenEndpointConfig{
+			enabled:    true,
+			annotation: annotationKey,
+			audience:   customTokenEndpointAudience,
+		}
 	}
 
 	discoveryClient, err := discovery.NewDiscoveryClientForConfig(restConfig)
@@ -102,15 +138,16 @@ func NewPodMutator(client client.Client, reader client.Reader, audience string, 
 	}
 
 	return &podMutator{
-		client:             client,
-		reader:             reader,
-		config:             c,
-		decoder:            admission.NewDecoder(scheme),
-		audience:           audience,
-		azureAuthorityHost: azureAuthorityHost,
-		proxyImage:         proxyImage,
-		proxyInitImage:     proxyInitImage,
-		useNativeSidecar:   useNativeSidecar,
+		client:              client,
+		reader:              reader,
+		config:              c,
+		decoder:             admission.NewDecoder(scheme),
+		audience:            audience,
+		azureAuthorityHost:  azureAuthorityHost,
+		proxyImage:          proxyImage,
+		proxyInitImage:      proxyInitImage,
+		useNativeSidecar:    useNativeSidecar,
+		customTokenEndpoint: cteConfig,
 	}, nil
 }
 
@@ -193,11 +230,13 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) (respons
 	tenantID := getTenantID(serviceAccount, m.config)
 	// get containers to skip
 	skipContainers := getSkipContainers(pod)
-	pod.Spec.InitContainers = m.mutateContainers(pod.Spec.InitContainers, clientID, tenantID, skipContainers)
-	pod.Spec.Containers = m.mutateContainers(pod.Spec.Containers, clientID, tenantID, skipContainers)
+	podUsingCustomTokenEndpoint := m.isUsingCustomTokenEndpoint(pod)
+	volumeName := buildVolumeName(podName)
 
-	// add the projected service account token volume to the pod if not exists
-	addProjectedServiceAccountTokenVolume(pod, serviceAccountTokenExpiration, m.audience)
+	pod.Spec.InitContainers = m.mutateContainers(pod.Spec.InitContainers, clientID, tenantID, skipContainers, podUsingCustomTokenEndpoint, volumeName)
+	pod.Spec.Containers = m.mutateContainers(pod.Spec.Containers, clientID, tenantID, skipContainers, podUsingCustomTokenEndpoint, volumeName)
+
+	m.addProjectedVolume(pod, serviceAccountTokenExpiration, volumeName, podUsingCustomTokenEndpoint)
 
 	marshaledPod, err := json.Marshal(pod)
 	if err != nil {
@@ -209,17 +248,18 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) (respons
 
 // mutateContainers mutates the containers by injecting the projected
 // service account token volume and environment variables
-func (m *podMutator) mutateContainers(containers []corev1.Container, clientID, tenantID string, skipContainers sets.Set[string]) []corev1.Container {
+func (m *podMutator) mutateContainers(containers []corev1.Container, clientID, tenantID string, skipContainers sets.Set[string], podUsingCustomTokenEndpoint bool, volumeName string) []corev1.Container {
 	for i := range containers {
 		// container is in the skip list
 		if skipContainers.Has(containers[i].Name) {
 			continue
 		}
 		// add environment variables to container if not exists
-		containers[i] = addEnvironmentVariables(containers[i], clientID, tenantID, m.azureAuthorityHost)
+		containers[i] = m.addEnvironmentVariables(containers[i], clientID, tenantID, m.azureAuthorityHost, podUsingCustomTokenEndpoint)
 		// add the volume mount if not exists
-		containers[i] = addProjectedTokenVolumeMount(containers[i])
+		containers[i] = addProjectedVolumeMount(containers[i], volumeName)
 	}
+
 	return containers
 }
 
@@ -304,6 +344,19 @@ func shouldInjectProxySidecar(pod *corev1.Pod) bool {
 	return ok
 }
 
+func (m *podMutator) isUsingCustomTokenEndpoint(pod *corev1.Pod) bool {
+	if !m.customTokenEndpoint.enabled {
+		return false
+	}
+	if len(pod.Annotations) == 0 {
+		return false
+	}
+	if val, ok := pod.Annotations[m.customTokenEndpoint.annotation]; ok {
+		return strings.EqualFold(val, "true")
+	}
+	return false
+}
+
 // getSkipContainers gets the list of containers to skip based on the annotation
 func getSkipContainers(pod *corev1.Pod) sets.Set[string] {
 	skipContainers := pod.Annotations[SkipContainersAnnotation]
@@ -382,22 +435,29 @@ func getTenantID(sa *corev1.ServiceAccount, c *config.Config) string {
 }
 
 // addEnvironmentVariables adds the clientID, tenantID and token file path environment variables needed for SDK
-func addEnvironmentVariables(container corev1.Container, clientID, tenantID, azureAuthorityHost string) corev1.Container {
-	m := make(map[string]string)
+func (m *podMutator) addEnvironmentVariables(container corev1.Container, clientID, tenantID, azureAuthorityHost string, podUsingCustomTokenEndpoint bool) corev1.Container {
+	envs := make(map[string]string)
 	for _, env := range container.Env {
-		m[env.Name] = env.Value
+		envs[env.Name] = env.Value
 	}
 
 	desiredEnvs := []corev1.EnvVar{
 		{Name: AzureClientIDEnvVar, Value: clientID},
 		{Name: AzureTenantIDEnvVar, Value: tenantID},
-		{Name: AzureFederatedTokenFileEnvVar, Value: filepath.Join(TokenFileMountPath, TokenFilePathName)},
+		{Name: AzureFederatedTokenFileEnvVar, Value: filepath.Join(VolumeMountPath, TokenFilePath)},
 		{Name: AzureAuthorityHostEnvVar, Value: azureAuthorityHost},
+	}
+
+	if podUsingCustomTokenEndpoint {
+		desiredEnvs = append(desiredEnvs, corev1.EnvVar{Name: AzureKubernetesTokenProxyEnvVar, Value: m.config.AzureKubernetesTokenProxy})
+		desiredEnvs = append(desiredEnvs, corev1.EnvVar{Name: AzureKubernetesSNINameEnvVar, Value: m.config.AzureKubernetesSNIName})
+		desiredEnvs = append(desiredEnvs, corev1.EnvVar{Name: AzureKubernetesCAFileEnvVar, Value: filepath.Join(VolumeMountPath, CAFilePath)})
+		desiredEnvs = append(desiredEnvs, corev1.EnvVar{Name: AzureKubernetesCADataEnvVar, Value: m.config.AzureKubernetesCAData})
 	}
 
 	// append the ones that are not already present (only if desired env contains a non-empty value)
 	for _, env := range desiredEnvs {
-		if _, ok := m[env.Name]; !ok && env.Value != "" {
+		if _, ok := envs[env.Name]; !ok && len(env.Value) > 0 {
 			container.Env = append(container.Env, env)
 		}
 	}
@@ -405,60 +465,90 @@ func addEnvironmentVariables(container corev1.Container, clientID, tenantID, azu
 	return container
 }
 
-// addProjectedTokenVolumeMount adds the projected token volume mount for the container
-func addProjectedTokenVolumeMount(container corev1.Container) corev1.Container {
-	for _, volume := range container.VolumeMounts {
-		if volume.Name == TokenFilePathName {
+func addProjectedVolumeMount(container corev1.Container, volumeName string) corev1.Container {
+	volumeMount := corev1.VolumeMount{
+		Name:      volumeName,
+		MountPath: VolumeMountPath,
+		ReadOnly:  true,
+	}
+
+	for i := range container.VolumeMounts {
+		if container.VolumeMounts[i].Name == volumeName {
+			container.VolumeMounts[i] = volumeMount
 			return container
 		}
 	}
-	container.VolumeMounts = append(container.VolumeMounts,
-		corev1.VolumeMount{
-			Name:      TokenFilePathName,
-			MountPath: TokenFileMountPath,
-			ReadOnly:  true,
-		})
 
+	container.VolumeMounts = append(container.VolumeMounts, volumeMount)
 	return container
 }
 
-func addProjectedServiceAccountTokenVolume(pod *corev1.Pod, serviceAccountTokenExpiration int64, audience string) {
-	// add the projected service account token volume to the pod if not exists
-	for _, volume := range pod.Spec.Volumes {
-		if volume.Projected == nil {
-			continue
-		}
-		for _, pvs := range volume.Projected.Sources {
-			if pvs.ServiceAccountToken == nil {
-				continue
-			}
-			if pvs.ServiceAccountToken.Path == TokenFilePathName {
-				return
-			}
-		}
+func (m *podMutator) addProjectedVolume(pod *corev1.Pod, serviceAccountTokenExpiration int64, volumeName string, podUsingCustomTokenEndpoint bool) {
+	aud := m.audience
+	if podUsingCustomTokenEndpoint {
+		aud = m.customTokenEndpoint.audience
 	}
 
-	// add the projected service account token volume
-	// the path for this volume will always be set to "azure-identity-token"
-	pod.Spec.Volumes = append(
-		pod.Spec.Volumes,
-		corev1.Volume{
-			Name: TokenFilePathName,
-			VolumeSource: corev1.VolumeSource{
-				Projected: &corev1.ProjectedVolumeSource{
-					Sources: []corev1.VolumeProjection{
-						{
-							ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
-								Path:              TokenFilePathName,
-								ExpirationSeconds: &serviceAccountTokenExpiration,
-								Audience:          audience,
-							},
+	volume := corev1.Volume{
+		Name: volumeName,
+		VolumeSource: corev1.VolumeSource{
+			Projected: &corev1.ProjectedVolumeSource{
+				Sources: []corev1.VolumeProjection{
+					{
+						ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
+							Path:              TokenFilePath,
+							ExpirationSeconds: &serviceAccountTokenExpiration,
+							Audience:          aud,
 						},
 					},
 				},
 			},
 		},
-	)
+	}
+
+	if podUsingCustomTokenEndpoint {
+		if len(m.config.AzureKubernetesCAConfigMapName) > 0 {
+			volume.VolumeSource.Projected.Sources = append(volume.VolumeSource.Projected.Sources,
+				corev1.VolumeProjection{
+					ConfigMap: &corev1.ConfigMapProjection{
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: m.config.AzureKubernetesCAConfigMapName,
+						},
+						Items: []corev1.KeyToPath{
+							{
+								Key:  "ca.crt",
+								Path: CAFilePath,
+							},
+						},
+						Optional: ptr.To(false),
+					},
+				},
+			)
+		}
+
+		if len(m.config.AzureKubernetesCACTBSignerName) > 0 {
+			volume.VolumeSource.Projected.Sources = append(volume.VolumeSource.Projected.Sources,
+				corev1.VolumeProjection{
+					ClusterTrustBundle: &corev1.ClusterTrustBundleProjection{
+						SignerName:    ptr.To(m.config.AzureKubernetesCACTBSignerName),
+						LabelSelector: m.config.AzureKubernetesCACTBLabelSelector.Value,
+						Path:          CAFilePath,
+						Optional:      ptr.To(false),
+					},
+				},
+			)
+		}
+	}
+
+	for i := range pod.Spec.Volumes {
+		if pod.Spec.Volumes[i].Name == volumeName {
+			// if the volume already exists, update it
+			pod.Spec.Volumes[i] = volume
+			return
+		}
+	}
+
+	pod.Spec.Volumes = append(pod.Spec.Volumes, volume)
 }
 
 // getAzureAuthorityHost returns the active directory endpoint to use for requesting
@@ -502,4 +592,10 @@ func serverVersionGTE(discoveryClient discovery.ServerVersionInterface, v *utilv
 		return false, err
 	}
 	return sv.AtLeast(v), nil
+}
+
+func buildVolumeName(podName string) string {
+	hash := sha256.Sum256([]byte(podName))
+	truncatedHash := fmt.Sprintf("%x", hash)[:63-len(ProjectedVolumeNamePrefix)] // 63 is the max length for volume names
+	return fmt.Sprintf("%s%s", ProjectedVolumeNamePrefix, truncatedHash)
 }

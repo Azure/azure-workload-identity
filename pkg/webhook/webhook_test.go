@@ -10,11 +10,6 @@ import (
 	"strings"
 	"testing"
 
-	"monis.app/mlog"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	atypes "sigs.k8s.io/controller-runtime/pkg/webhook/admission"
-
 	admissionv1 "k8s.io/api/admission/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -24,13 +19,20 @@ import (
 	discoveryfake "k8s.io/client-go/discovery/fake"
 	kubernetesfake "k8s.io/client-go/kubernetes/fake"
 	"k8s.io/utils/ptr"
+	"monis.app/mlog"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	atypes "sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	"github.com/Azure/azure-workload-identity/pkg/config"
 )
 
 var (
 	serviceAccountTokenExpiry = MinServiceAccountTokenExpiration
+	decoder                   = atypes.NewDecoder(runtime.NewScheme())
 )
+
+const testVolumeName = "azure-workload-identity-reserved-2eb503ce-4af0-45d3-82b1-d79bdfe63d38"
 
 func newPod(name, namespace, serviceAccountName string, labels, annotations map[string]string, hostNetwork bool) *corev1.Pod {
 	return &corev1.Pod{
@@ -339,7 +341,7 @@ func TestGetSkipContainers(t *testing.T) {
 	}
 }
 
-func TestAddProjectedServiceAccountTokenVolume(t *testing.T) {
+func TestAddProjectedVolume(t *testing.T) {
 	tests := []struct {
 		name           string
 		pod            *corev1.Pod
@@ -355,13 +357,13 @@ func TestAddProjectedServiceAccountTokenVolume(t *testing.T) {
 			},
 			expectedVolume: []corev1.Volume{
 				{
-					Name: TokenFilePathName,
+					Name: testVolumeName,
 					VolumeSource: corev1.VolumeSource{
 						Projected: &corev1.ProjectedVolumeSource{
 							Sources: []corev1.VolumeProjection{
 								{
 									ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
-										Path:              TokenFilePathName,
+										Path:              TokenFilePath,
 										ExpirationSeconds: &serviceAccountTokenExpiry,
 										Audience:          DefaultAudience,
 									},
@@ -382,13 +384,13 @@ func TestAddProjectedServiceAccountTokenVolume(t *testing.T) {
 				Spec: corev1.PodSpec{
 					Volumes: []corev1.Volume{
 						{
-							Name: TokenFilePathName,
+							Name: testVolumeName,
 							VolumeSource: corev1.VolumeSource{
 								Projected: &corev1.ProjectedVolumeSource{
 									Sources: []corev1.VolumeProjection{
 										{
 											ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
-												Path:              TokenFilePathName,
+												Path:              TokenFilePath,
 												ExpirationSeconds: &serviceAccountTokenExpiry,
 												Audience:          DefaultAudience,
 											},
@@ -402,13 +404,13 @@ func TestAddProjectedServiceAccountTokenVolume(t *testing.T) {
 			},
 			expectedVolume: []corev1.Volume{
 				{
-					Name: TokenFilePathName,
+					Name: testVolumeName,
 					VolumeSource: corev1.VolumeSource{
 						Projected: &corev1.ProjectedVolumeSource{
 							Sources: []corev1.VolumeProjection{
 								{
 									ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
-										Path:              TokenFilePathName,
+										Path:              TokenFilePath,
 										ExpirationSeconds: &serviceAccountTokenExpiry,
 										Audience:          DefaultAudience,
 									},
@@ -420,7 +422,7 @@ func TestAddProjectedServiceAccountTokenVolume(t *testing.T) {
 			},
 		},
 		{
-			name: "existing projected service account token volume not affected",
+			name: "existing projected service account token volume overridden with desired audience",
 			pod: &corev1.Pod{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "pod",
@@ -429,7 +431,7 @@ func TestAddProjectedServiceAccountTokenVolume(t *testing.T) {
 				Spec: corev1.PodSpec{
 					Volumes: []corev1.Volume{
 						{
-							Name: TokenFilePathName,
+							Name: testVolumeName,
 							VolumeSource: corev1.VolumeSource{
 								Projected: &corev1.ProjectedVolumeSource{
 									Sources: []corev1.VolumeProjection{
@@ -449,29 +451,13 @@ func TestAddProjectedServiceAccountTokenVolume(t *testing.T) {
 			},
 			expectedVolume: []corev1.Volume{
 				{
-					Name: TokenFilePathName,
+					Name: testVolumeName,
 					VolumeSource: corev1.VolumeSource{
 						Projected: &corev1.ProjectedVolumeSource{
 							Sources: []corev1.VolumeProjection{
 								{
 									ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
-										Path:              "my-projected-volume",
-										ExpirationSeconds: &serviceAccountTokenExpiry,
-										Audience:          "aud",
-									},
-								},
-							},
-						},
-					},
-				},
-				{
-					Name: TokenFilePathName,
-					VolumeSource: corev1.VolumeSource{
-						Projected: &corev1.ProjectedVolumeSource{
-							Sources: []corev1.VolumeProjection{
-								{
-									ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
-										Path:              TokenFilePathName,
+										Path:              TokenFilePath,
 										ExpirationSeconds: &serviceAccountTokenExpiry,
 										Audience:          DefaultAudience,
 									},
@@ -484,9 +470,10 @@ func TestAddProjectedServiceAccountTokenVolume(t *testing.T) {
 		},
 	}
 
+	m := &podMutator{audience: DefaultAudience}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			addProjectedServiceAccountTokenVolume(test.pod, serviceAccountTokenExpiry, DefaultAudience)
+			m.addProjectedVolume(test.pod, serviceAccountTokenExpiry, testVolumeName, false)
 
 			if !reflect.DeepEqual(test.pod.Spec.Volumes, test.expectedVolume) {
 				t.Fatalf("expected: %v, got: %v", test.pod.Spec.Volumes, test.expectedVolume)
@@ -523,7 +510,7 @@ func TestAddEnvironmentVariables(t *testing.T) {
 					},
 					{
 						Name:  "AZURE_FEDERATED_TOKEN_FILE",
-						Value: filepath.Join(TokenFileMountPath, TokenFilePathName),
+						Value: filepath.Join(VolumeMountPath, TokenFilePath),
 					},
 					{
 						Name:  "AZURE_AUTHORITY_HOST",
@@ -548,7 +535,7 @@ func TestAddEnvironmentVariables(t *testing.T) {
 					},
 					{
 						Name:  AzureFederatedTokenFileEnvVar,
-						Value: filepath.Join(TokenFileMountPath, TokenFilePathName),
+						Value: filepath.Join(VolumeMountPath, TokenFilePath),
 					},
 					{
 						Name:  AzureAuthorityHostEnvVar,
@@ -570,7 +557,7 @@ func TestAddEnvironmentVariables(t *testing.T) {
 					},
 					{
 						Name:  AzureFederatedTokenFileEnvVar,
-						Value: filepath.Join(TokenFileMountPath, TokenFilePathName),
+						Value: filepath.Join(VolumeMountPath, TokenFilePath),
 					},
 					{
 						Name:  AzureAuthorityHostEnvVar,
@@ -609,7 +596,7 @@ func TestAddEnvironmentVariables(t *testing.T) {
 					},
 					{
 						Name:  AzureFederatedTokenFileEnvVar,
-						Value: filepath.Join(TokenFileMountPath, TokenFilePathName),
+						Value: filepath.Join(VolumeMountPath, TokenFilePath),
 					},
 					{
 						Name:  AzureAuthorityHostEnvVar,
@@ -620,9 +607,14 @@ func TestAddEnvironmentVariables(t *testing.T) {
 		},
 	}
 
+	m := &podMutator{
+		config:  &config.Config{TenantID: "tenantID"},
+		decoder: decoder,
+	}
+
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			actualContainer := addEnvironmentVariables(test.container, "clientID", "tenantID", "https://login.microsoftonline.com/")
+			actualContainer := m.addEnvironmentVariables(test.container, "clientID", "tenantID", "https://login.microsoftonline.com/", false)
 			if !reflect.DeepEqual(actualContainer, test.expectedContainer) {
 				t.Fatalf("expected: %v, got: %v", test.expectedContainer, actualContainer)
 			}
@@ -641,12 +633,12 @@ func TestAddEnvironmentVariables(t *testing.T) {
 			Env: []corev1.EnvVar{
 				{
 					Name:  AzureFederatedTokenFileEnvVar,
-					Value: filepath.Join(TokenFileMountPath, TokenFilePathName),
+					Value: filepath.Join(VolumeMountPath, TokenFilePath),
 				},
 			},
 		}
 
-		actualContainer := addEnvironmentVariables(container, "", "", "")
+		actualContainer := m.addEnvironmentVariables(container, "", "", "", false)
 		if !reflect.DeepEqual(actualContainer, expectedContainer) {
 			t.Fatalf("expected: %v, got: %v", expectedContainer, actualContainer)
 		}
@@ -670,32 +662,9 @@ func TestAddProjectServiceAccountTokenVolumeMount(t *testing.T) {
 				Image: "image",
 				VolumeMounts: []corev1.VolumeMount{
 					{
-						Name:      TokenFilePathName,
-						MountPath: TokenFileMountPath,
+						Name:      testVolumeName,
+						MountPath: VolumeMountPath,
 						ReadOnly:  true,
-					},
-				},
-			},
-		},
-		{
-			name: "volume mount with name already exists, so skipped",
-			container: corev1.Container{
-				Name:  "cont1",
-				Image: "image",
-				VolumeMounts: []corev1.VolumeMount{
-					{
-						Name:      TokenFilePathName,
-						MountPath: "mountPath",
-					},
-				},
-			},
-			expectedContainer: corev1.Container{
-				Name:  "cont1",
-				Image: "image",
-				VolumeMounts: []corev1.VolumeMount{
-					{
-						Name:      TokenFilePathName,
-						MountPath: "mountPath",
 					},
 				},
 			},
@@ -721,8 +690,8 @@ func TestAddProjectServiceAccountTokenVolumeMount(t *testing.T) {
 						MountPath: "/var/run/pods",
 					},
 					{
-						Name:      TokenFilePathName,
-						MountPath: TokenFileMountPath,
+						Name:      testVolumeName,
+						MountPath: VolumeMountPath,
 						ReadOnly:  true,
 					},
 				},
@@ -732,7 +701,7 @@ func TestAddProjectServiceAccountTokenVolumeMount(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			actualContainer := addProjectedTokenVolumeMount(test.container)
+			actualContainer := addProjectedVolumeMount(test.container, testVolumeName)
 			if !reflect.DeepEqual(actualContainer, test.expectedContainer) {
 				t.Fatalf("expected: %v, got: %v", test.expectedContainer, actualContainer)
 			}
@@ -754,8 +723,6 @@ func TestHandle(t *testing.T) {
 			},
 		})
 	}
-
-	decoder := atypes.NewDecoder(runtime.NewScheme())
 
 	tests := []struct {
 		name          string
@@ -937,7 +904,7 @@ func TestMutateContainers(t *testing.T) {
 				},
 				{
 					Name:  AzureFederatedTokenFileEnvVar,
-					Value: filepath.Join(TokenFileMountPath, TokenFilePathName),
+					Value: filepath.Join(VolumeMountPath, TokenFilePath),
 				},
 				{
 					Name:  AzureAuthorityHostEnvVar,
@@ -946,8 +913,8 @@ func TestMutateContainers(t *testing.T) {
 			},
 			VolumeMounts: []corev1.VolumeMount{
 				{
-					Name:      TokenFilePathName,
-					MountPath: TokenFileMountPath,
+					Name:      testVolumeName,
+					MountPath: VolumeMountPath,
 					ReadOnly:  true,
 				},
 			},
@@ -976,7 +943,7 @@ func TestMutateContainers(t *testing.T) {
 				},
 				{
 					Name:  AzureFederatedTokenFileEnvVar,
-					Value: filepath.Join(TokenFileMountPath, TokenFilePathName),
+					Value: filepath.Join(VolumeMountPath, TokenFilePath),
 				},
 				{
 					Name:  AzureAuthorityHostEnvVar,
@@ -985,8 +952,8 @@ func TestMutateContainers(t *testing.T) {
 			},
 			VolumeMounts: []corev1.VolumeMount{
 				{
-					Name:      TokenFilePathName,
-					MountPath: TokenFileMountPath,
+					Name:      testVolumeName,
+					MountPath: VolumeMountPath,
 					ReadOnly:  true,
 				},
 			},
@@ -996,7 +963,6 @@ func TestMutateContainers(t *testing.T) {
 		}},
 	}}
 
-	decoder := atypes.NewDecoder(runtime.NewScheme())
 	m := &podMutator{
 		client:             fake.NewClientBuilder().WithObjects().Build(),
 		reader:             fake.NewClientBuilder().WithObjects().Build(),
@@ -1007,7 +973,7 @@ func TestMutateContainers(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			containers := m.mutateContainers(test.containers, azureClientID, azureTenantID, test.skipContainers)
+			containers := m.mutateContainers(test.containers, azureClientID, azureTenantID, test.skipContainers, false, testVolumeName)
 			if !reflect.DeepEqual(containers, test.expectedContainers) {
 				t.Errorf("expected: %v, got: %v", test.expectedContainers, test.containers)
 			}
@@ -1346,8 +1312,6 @@ func TestHandleError(t *testing.T) {
 			},
 		})
 	}
-
-	decoder := atypes.NewDecoder(runtime.NewScheme())
 
 	tests := []struct {
 		name          string
