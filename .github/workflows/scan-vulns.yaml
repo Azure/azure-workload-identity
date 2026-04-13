@@ -31,10 +31,7 @@ jobs:
       - uses: golang/govulncheck-action@31f7c5463448f83528bd771c2d978d940080c9fd # v1.0.4
 
       - name: Golang vulncheck - test/e2e
-        uses: golang/govulncheck-action@31f7c5463448f83528bd771c2d978d940080c9fd # v1.0.4
-        with:
-          repo-checkout: false
-          work-dir: test/e2e
+        run: govulncheck -C test/e2e -format text ./...
 
   scan_vulnerabilities:
     name: "[Trivy] Scan for vulnerabilities"
