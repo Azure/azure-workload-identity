@@ -16,7 +16,7 @@ set -o pipefail
 
 SCRIPT_PATH="$(dirname "${BASH_SOURCE[0]}")"
 KIND_CLUSTER_NAME="azure-workload-identity"
-KIND_IMAGE_VERSION="${KIND_IMAGE_VERSION:-v1.29.0}"
+KIND_IMAGE_VERSION="${KIND_IMAGE_VERSION:-v1.35.1}"
 
 help() {
     echo "Usage: $0 [LOCATION] [RESOURCE_GROUP]"
@@ -137,7 +137,7 @@ create_kind_cluster() {
 
     echo "Creating kind cluster"    
     kind delete cluster --name "${KIND_CLUSTER_NAME}"
-    cat <<EOF | kind create cluster --name ${KIND_CLUSTER_NAME} --image kindest/node:"${KIND_IMAGE_VERSION}" --config=-
+    kind create cluster --name ${KIND_CLUSTER_NAME} --image kindest/node:"${KIND_IMAGE_VERSION}" --config=- <<EOF
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
