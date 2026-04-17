@@ -43,7 +43,7 @@ GINKGO_VER := v2.1.6
 GINKGO_BIN := ginkgo
 GINKGO := $(TOOLS_BIN_DIR)/$(GINKGO_BIN)-$(GINKGO_VER)
 
-KIND_VER := v0.27.0
+KIND_VER := v0.31.0
 KIND_BIN := kind
 KIND := $(TOOLS_BIN_DIR)/$(KIND_BIN)-$(KIND_VER)
 
@@ -304,7 +304,7 @@ test: generate manifests
 	go test -v ./... -coverprofile cover.out
 
 $(E2E_TEST):
-	(cd test/e2e && go test -tags=e2e -c . -o $(E2E_TEST))
+	(cd test/e2e && go test -c . -o $(E2E_TEST))
 
 # Ginkgo configurations
 GINKGO_FOCUS ?=
