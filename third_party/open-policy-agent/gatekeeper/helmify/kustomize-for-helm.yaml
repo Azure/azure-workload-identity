@@ -49,6 +49,13 @@ spec:
         - HELMSUBST_DEPLOYMENT_CUSTOM_TOKEN_ENDPOINT_ARGS
         command:
         - /manager
+        env:
+        {{- with .Values.goEnvVars }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.extraEnvVars }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
         envFrom:
         - configMapRef:
             name: azure-wi-webhook-config
