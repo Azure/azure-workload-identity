@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -337,11 +338,12 @@ func (m *podMutator) injectProxySidecarContainer(containers []corev1.Container, 
 }
 
 func shouldInjectProxySidecar(pod *corev1.Pod) bool {
+	positiveAnnotationVal := []string{"true", "1", "yes"}
 	if len(pod.Annotations) == 0 {
 		return false
 	}
-	_, ok := pod.Annotations[InjectProxySidecarAnnotation]
-	return ok
+	val, ok := pod.Annotations[InjectProxySidecarAnnotation]
+	return ok && slices.Contains(positiveAnnotationVal, val)
 }
 
 func (m *podMutator) isUsingCustomTokenEndpoint(pod *corev1.Pod) bool {
