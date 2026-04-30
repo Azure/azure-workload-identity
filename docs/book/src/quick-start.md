@@ -111,25 +111,38 @@ az identity create --name "${USER_ASSIGNED_IDENTITY_NAME}" --resource-group "${R
 
 </details>
 
-Set access policy for the AAD application or user-assigned managed identity to access the keyvault secret:
+Set access policy for the AAD application or user-assigned managed identity to access the key vault secret:
 
 If using Azure AD Application:
 
+Azure RBAC (the recommended approach):
+
+The `Key Vault Secrets User` [built-in role](https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-guide?tabs=azure-cli#azure-built-in-roles-for-key-vault-data-plane-operations) is sufficient and adheres to the principle of least privilege for fetching secret content from an Azure Key Vault with Azure Workload Identity.
+
+> **Role description:** Read secret contents including secret portion of a certificate with private key. Only works for key vaults that use the Azure role-based access control permission model.
+
 ```bash
 export APPLICATION_CLIENT_ID="$(az ad sp list --display-name "${APPLICATION_NAME}" --query '[0].appId' -otsv)"
-az keyvault set-policy --name "${KEYVAULT_NAME}" \
-  --secret-permissions get \
-  --spn "${APPLICATION_CLIENT_ID}"
+export KEYVAULT_RESOURCE_ID="$(az keyvault show --name "${KEYVAULT_NAME}" --query 'id' -otsv)"
+
+az role assignment create \
+  --role "Key Vault Secrets User" \
+  --scope "${KEYVAULT_RESOURCE_ID}" \
+  --assignee "${APPLICATION_CLIENT_ID}"
 ```
 
-if using user-assigned managed identity:
+If using user-assigned managed identity:
+
+Azure RBAC (the recommended approach):
 
 ```bash
 export USER_ASSIGNED_IDENTITY_CLIENT_ID="$(az identity show --name "${USER_ASSIGNED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP}" --query 'clientId' -otsv)"
-export USER_ASSIGNED_IDENTITY_OBJECT_ID="$(az identity show --name "${USER_ASSIGNED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP}" --query 'principalId' -otsv)"
-az keyvault set-policy --name "${KEYVAULT_NAME}" \
-  --secret-permissions get \
-  --object-id "${USER_ASSIGNED_IDENTITY_OBJECT_ID}"
+export KEYVAULT_RESOURCE_ID="$(az keyvault show --name "${KEYVAULT_NAME}" --query 'id' -otsv)"
+
+az role assignment create \
+  --role "Key Vault Secrets User" \
+  --scope "${KEYVAULT_RESOURCE_ID}" \
+  --assignee "${USER_ASSIGNED_IDENTITY_CLIENT_ID}"
 ```
 
 ## 5. Create a Kubernetes service account
