@@ -47,7 +47,7 @@ jobs:
     steps:
       - task: GoTool@0
         inputs:
-          version: "1.25.9"
+          version: "1.26.4"
       - template: templates/prepare-deps.yaml
       - template: templates/az-login.yaml
         parameters:
@@ -99,7 +99,7 @@ jobs:
     steps:
       - task: GoTool@0
         inputs:
-          version: "1.25.9"
+          version: "1.26.4"
       - template: templates/prepare-deps.yaml
       - template: templates/az-login.yaml
         parameters:
