@@ -10,6 +10,11 @@ schedules:
       include:
         - main
 
+parameters:
+  - name: serviceConnection
+    type: string
+    default: 'Upstream-CI-ServiceConnection'
+
 pool:
   name: staging-pool-amd64-mariner-2
   demands:
@@ -44,6 +49,9 @@ jobs:
         inputs:
           version: "1.25.9"
       - template: templates/prepare-deps.yaml
+      - template: templates/az-login.yaml
+        parameters:
+          serviceConnection: ${{ parameters.serviceConnection }}
       - script: make test-e2e
         displayName: Webhook E2E test suite
         env:
@@ -54,6 +62,7 @@ jobs:
       - template: templates/publish-logs.yaml
   - template: templates/upgrade.yaml
     parameters:
+      serviceConnection: ${{ parameters.serviceConnection }}
       matrix:
         upgrade_aks_windows:
           WINDOWS_CLUSTER: "true"
@@ -92,6 +101,9 @@ jobs:
         inputs:
           version: "1.25.9"
       - template: templates/prepare-deps.yaml
+      - template: templates/az-login.yaml
+        parameters:
+          serviceConnection: ${{ parameters.serviceConnection }}
       - script: make test-e2e
         displayName: Webhook E2E test suite
         env:

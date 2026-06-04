@@ -15,6 +15,11 @@ pr:
     - '*'
     - examples/msal-go/*
 
+parameters:
+  - name: serviceConnection
+    type: string
+    default: 'Upstream-CI-ServiceConnection'
+
 pool:
   name: staging-pool-amd64-mariner-2
   demands:
@@ -97,6 +102,9 @@ jobs:
         inputs:
           version: "1.25.9"
       - template: templates/prepare-deps.yaml
+      - template: templates/az-login.yaml
+        parameters:
+          serviceConnection: ${{ parameters.serviceConnection }}
       - script: echo "##vso[task.setvariable variable=CLUSTER_NAME]azwi-e2e-$(openssl rand -hex 2)"
         displayName: Set CLUSTER_NAME
         condition: ne(variables.LOCAL_ONLY, 'true')
@@ -150,6 +158,9 @@ jobs:
         inputs:
           version: "1.25.9"
       - template: templates/prepare-deps.yaml
+      - template: templates/az-login.yaml
+        parameters:
+          serviceConnection: ${{ parameters.serviceConnection }}
       - script: echo "##vso[task.setvariable variable=CLUSTER_NAME]azwi-e2e-$(openssl rand -hex 2)"
         displayName: Set CLUSTER_NAME
         condition: ne(variables.LOCAL_ONLY, 'true')

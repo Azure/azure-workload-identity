@@ -63,10 +63,6 @@ cleanup() {
 trap cleanup EXIT
 
 main() {
-  az --version || sudo tdnf install -y azure-cli
-  az login -i > /dev/null && echo "Using machine identity for az commands" || echo "Using pre-existing credential for az commands"
-  az account set --subscription "${AZURE_SUBSCRIPTION_ID}" > /dev/null
-
   create_cluster
   make deploy
   poll_webhook_readiness
