@@ -49,3 +49,9 @@ customTokenEndpoint:
   azureKubernetesCAConfigMapName: ""
   azureKubernetesCACTBSignerName: ""
   azureKubernetesCACTBLabelSelector: ""
+# extraEnv adds environment variables to the webhook container.
+extraEnv: []
+# extraVolumes adds volumes to the webhook pod (typically paired with extraVolumeMounts).
+extraVolumes: []
+# extraVolumeMounts adds volumeMounts to the webhook container.
+extraVolumeMounts: []

@@ -47,6 +47,21 @@ var replacements = map[string]string{
         - --custom-token-endpoint-audience={{ .Values.customTokenEndpoint.audience }}
         {{- end }}`,
 
+	`- name: HELMSUBST_DEPLOYMENT_EXTRA_ENV
+          value: HELMSUBST_DEPLOYMENT_EXTRA_ENV`: `{{- with .Values.extraEnv }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}`,
+
+	`- mountPath: HELMSUBST_DEPLOYMENT_EXTRA_VOLUME_MOUNT
+          name: HELMSUBST_DEPLOYMENT_EXTRA_VOLUME_MOUNT`: `{{- with .Values.extraVolumeMounts }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}`,
+
+	`- emptyDir: {}
+        name: HELMSUBST_DEPLOYMENT_EXTRA_VOLUME`: `{{- with .Values.extraVolumes }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}`,
+
 	`HELMSUBST_SERVICE_TYPE: ""`: `{{- if .Values.service }}
   type: {{  .Values.service.type | default "ClusterIP" }}
   {{- end }}`,
