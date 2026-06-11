@@ -34,11 +34,12 @@ helm upgrade -n azure-workload-identity-system [RELEASE_NAME] azure-workload-ide
 | replicaCount                       | The number of azure-workload-identity replicas to deploy for the webhook                                                          | `2`                                                     |
 | image.repository                   | Image repository                                                                                                                  | `mcr.microsoft.com/oss/azure/workload-identity/webhook` |
 | image.pullPolicy                   | Image pullPolicy                                                                                                                  | `IfNotPresent`                                          |
-| image.release                      | The image release tag to use                                                                                                      | Current release version: `v1.5.1`                       |
+| image.release                      | The image release tag to use                                                                                                      | Current release version: `v1.6.0`                       |
 | imagePullSecrets                   | Image pull secrets to use for retrieving images from private registries                                                           | `[]`                                                    |
 | nodeSelector                       | The node selector to use for pod scheduling                                                                                       | `kubernetes.io/os: linux`                               |
 | resources                          | The resource request/limits for the container image                                                                               | limits: 100m CPU, 30Mi, requests: 100m CPU, 20Mi        |
 | affinity                           | The node affinity to use for pod scheduling                                                                                       | `{}`                                                    |
+| topologySpreadConstraints          | The topology spread constraints to use for pod scheduling                                                                         | `[]`                                                    |
 | tolerations                        | The tolerations to use for pod scheduling                                                                                         | `[]`                                                    |
 | service.type                       | Service type                                                                                                                      | `ClusterIP`                                             |
 | service.port                       | Service port                                                                                                                      | `443`                                                   |
@@ -52,9 +53,21 @@ helm upgrade -n azure-workload-identity-system [RELEASE_NAME] azure-workload-ide
 | mutatingWebhookAnnotations         | The annotations to add to the MutatingWebhookConfiguration                                                                        | `{}`                                                    |
 | podLabels                          | The labels to add to the azure-workload-identity webhook pods                                                                     | `{}`                                                    |
 | podAnnotations                     | The annotations to add to the azure-workload-identity webhook pods                                                                | `{}`                                                    |
+| extraEnv                           | Additional environment variables to set on the webhook container. The chart reserves `POD_NAMESPACE`; reusing it will fail admission as a duplicate `env` name. | `[]`                                                    |
+| extraVolumes                       | Additional volumes to add to the webhook pod. The chart reserves the volume name `cert`; reusing it will fail admission as a duplicate volume name. | `[]`                                                    |
+| extraVolumeMounts                  | Additional volume mounts to add to the webhook container. The chart reserves the mount name `cert` (mounted at `/certs`); reusing it will fail admission as a duplicate `volumeMount` name. | `[]`                                                    |
 | mutatingWebhookNamespaceSelector   | The namespace selector to further refine which namespaces will be selected by the webhook.                                        | `{}`                                                    |
 | podDisruptionBudget.minAvailable   | The minimum number of pods that must be available for the webhook to be considered available                                      | `1`                                                     |
 | podDisruptionBudget.maxUnavailable | The maximum number of pods that may be unavailable for the webhook to be considered available                                     | `nil`                                                   |
+| revisionHistoryLimit               | The number of old ReplicaSets to retain for the webhook deployment                                                                | `10`                                                    |
+| customTokenEndpoint.annotationSuffix                | Suffix for the custom token endpoint annotation (e.g. results in `azure.workload.identity/use-<suffix>`) | `""` |
+| customTokenEndpoint.audience                        | Audience for service account tokens used with the custom token endpoint                  | `""` |
+| customTokenEndpoint.azureKubernetesCaData           | The CA data to use for the custom token endpoint                                         | `""` |
+| customTokenEndpoint.azureKubernetesSniName          | The SNI name to use for the custom token endpoint                                        | `""` |
+| customTokenEndpoint.azureKubernetesTokenProxy    | The custom token endpoint to be configured in the workloads                              | `""` |
+| customTokenEndpoint.azureKubernetesCAConfigMapName  | The name of the ConfigMap containing the CA data for the custom token endpoint. The key needs to be `ca.crt`. | `""` |
+| customTokenEndpoint.azureKubernetesCACTBSignerName  | The name of the cluster trust bundle signer for the custom token endpoint                | `""` |
+| customTokenEndpoint.azureKubernetesCACTBLabelSelector | The label selector for the cluster trust bundle signer for the custom token endpoint   | `""` |
 
 ## Contributing Changes
 
