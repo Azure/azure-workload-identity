@@ -9,6 +9,9 @@ metadata:
   name: azure-wi-webhook-controller-manager
   namespace: '{{ .Release.Namespace }}'
 spec:
+  {{- if .Values.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  {{- end }}
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
@@ -34,6 +37,12 @@ spec:
         - --log-level={{ .Values.logLevel }}
         - --metrics-addr={{ .Values.metricsAddr }}
         - --metrics-backend={{ .Values.metricsBackend }}
+        {{- if .Values.customTokenEndpoint.annotationSuffix }}
+        - --custom-token-endpoint-annotation-suffix={{ .Values.customTokenEndpoint.annotationSuffix }}
+        {{- end }}
+        {{- if .Values.customTokenEndpoint.audience }}
+        - --custom-token-endpoint-audience={{ .Values.customTokenEndpoint.audience }}
+        {{- end }}
         command:
         - /manager
         env:
@@ -42,6 +51,9 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: metadata.namespace
+        {{- with .Values.extraEnv }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
         envFrom:
         - configMapRef:
             name: azure-wi-webhook-config
@@ -88,14 +100,22 @@ spec:
         - mountPath: /certs
           name: cert
           readOnly: true
+        {{- with .Values.extraVolumeMounts }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       nodeSelector:
         {{- toYaml .Values.nodeSelector | nindent 8 }}
       priorityClassName: {{ .Values.priorityClassName }}
       serviceAccountName: azure-wi-webhook-admin
       tolerations:
         {{- toYaml .Values.tolerations | nindent 8 }}
+      topologySpreadConstraints:
+        {{- toYaml .Values.topologySpreadConstraints | nindent 8 }}
       volumes:
       - name: cert
         secret:
           defaultMode: 420
           secretName: azure-wi-webhook-server-cert
+      {{- with .Values.extraVolumes }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}

@@ -7,7 +7,7 @@ image:
   repository: mcr.microsoft.com/oss/azure/workload-identity/webhook
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  release: v1.5.1
+  release: v1.6.0
 imagePullSecrets: []
 nodeSelector:
   kubernetes.io/os: linux
@@ -20,6 +20,7 @@ resources:
     memory: 20Mi
 tolerations: []
 affinity: {}
+topologySpreadConstraints: []
 service:
   type: ClusterIP
   port: 443
@@ -38,3 +39,19 @@ mutatingWebhookNamespaceSelector: {}
 podDisruptionBudget:
   minAvailable: 1
   # maxUnavailable: 0
+# customTokenEndpoint is used to configure the custom token endpoint for fetching Entra tokens.
+customTokenEndpoint:
+  annotationSuffix: ""
+  audience: ""
+  azureKubernetesCaData: ""
+  azureKubernetesSniName: ""
+  azureKubernetesTokenProxy: ""
+  azureKubernetesCAConfigMapName: ""
+  azureKubernetesCACTBSignerName: ""
+  azureKubernetesCACTBLabelSelector: ""
+# extraEnv adds environment variables to the webhook container.
+extraEnv: []
+# extraVolumes adds volumes to the webhook pod (typically paired with extraVolumeMounts).
+extraVolumes: []
+# extraVolumeMounts adds volumeMounts to the webhook container.
+extraVolumeMounts: []
