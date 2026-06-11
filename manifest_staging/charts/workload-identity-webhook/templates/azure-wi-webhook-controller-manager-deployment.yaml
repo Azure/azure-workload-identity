@@ -51,6 +51,9 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: metadata.namespace
+        {{- with .Values.extraEnv }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
         envFrom:
         - configMapRef:
             name: azure-wi-webhook-config
@@ -97,6 +100,9 @@ spec:
         - mountPath: /certs
           name: cert
           readOnly: true
+        {{- with .Values.extraVolumeMounts }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       nodeSelector:
         {{- toYaml .Values.nodeSelector | nindent 8 }}
       priorityClassName: {{ .Values.priorityClassName }}
@@ -110,3 +116,6 @@ spec:
         secret:
           defaultMode: 420
           secretName: azure-wi-webhook-server-cert
+      {{- with .Values.extraVolumes }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}

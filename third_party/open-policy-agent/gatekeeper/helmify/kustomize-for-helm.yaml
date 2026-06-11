@@ -49,6 +49,14 @@ spec:
         - HELMSUBST_DEPLOYMENT_CUSTOM_TOKEN_ENDPOINT_ARGS
         command:
         - /manager
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        - name: HELMSUBST_DEPLOYMENT_EXTRA_ENV
+          value: HELMSUBST_DEPLOYMENT_EXTRA_ENV
         envFrom:
         - configMapRef:
             name: azure-wi-webhook-config
@@ -64,6 +72,12 @@ spec:
           protocol: TCP
         resources:
           HELMSUBST_DEPLOYMENT_CONTAINER_RESOURCES: ""
+        volumeMounts:
+        - mountPath: /certs
+          name: cert
+          readOnly: true
+        - mountPath: HELMSUBST_DEPLOYMENT_EXTRA_VOLUME_MOUNT
+          name: HELMSUBST_DEPLOYMENT_EXTRA_VOLUME_MOUNT
       nodeSelector:
         HELMSUBST_DEPLOYMENT_NODE_SELECTOR: ""
       tolerations:
@@ -77,6 +91,8 @@ spec:
         secret:
           defaultMode: 420
           secretName: azure-wi-webhook-server-cert
+      - emptyDir: {}
+        name: HELMSUBST_DEPLOYMENT_EXTRA_VOLUME
       priorityClassName: HELMSUBST_DEPLOYMENT_PRIORITY_CLASS_NAME
 ---
 apiVersion: admissionregistration.k8s.io/v1
