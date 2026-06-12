@@ -102,7 +102,7 @@ test_helm_chart() {
   GINKGO_SKIP=Proxy\|Webhook\|AKSSoakOnly make test-e2e-run
 
   ${HELM} upgrade --install workload-identity-webhook "${REPO_ROOT}/manifest_staging/charts/workload-identity-webhook" \
-    --set image.repository="${REGISTRY:-mcr.microsoft.com/oss/azure/workload-identity/webhook}" \
+    --set image.repository="${REGISTRY:-mcr.microsoft.com/oss/v2/azure/workload-identity/webhook}" \
     --set image.release="${IMAGE_VERSION}" \
     --set azureTenantID="${AZURE_TENANT_ID}" \
     --set customTokenEndpoint.annotationSuffix="identity-binding" \
@@ -127,7 +127,7 @@ poll_webhook_readiness() {
 test_version_flag() {
   echo "Testing version flag for $1 image..."
   local image_name="$1"
-  message=$(docker run --platform linux/amd64 --quiet "${REGISTRY:-mcr.microsoft.com/oss/azure/workload-identity}/${image_name}:${IMAGE_VERSION}" --version 2>&1)
+  message=$(docker run --platform linux/amd64 --quiet "${REGISTRY:-mcr.microsoft.com/oss/v2/azure/workload-identity}/${image_name}:${IMAGE_VERSION}" --version 2>&1)
 
   # Validate that it's valid JSON
   if ! echo "$message" | jq empty > /dev/null 2>&1; then
