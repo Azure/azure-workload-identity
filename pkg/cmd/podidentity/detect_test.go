@@ -143,13 +143,13 @@ func TestAddProxyInitContainers(t *testing.T) {
 			actualContainers: []corev1.Container{
 				{
 					Name:  "proxy-init",
-					Image: "mcr.microsoft.com/oss/azure/workload-identity/proxy-init:v0.8.0",
+					Image: "mcr.microsoft.com/oss/v2/azure/workload-identity/proxy-init:v0.8.0",
 				},
 			},
 			wantContainers: []corev1.Container{
 				{
 					Name:  "proxy-init",
-					Image: "mcr.microsoft.com/oss/azure/workload-identity/proxy-init:v0.8.0",
+					Image: "mcr.microsoft.com/oss/v2/azure/workload-identity/proxy-init:v0.8.0",
 				},
 			},
 		},
@@ -200,13 +200,13 @@ func TestAddProxyContainer(t *testing.T) {
 			actualContainers: []corev1.Container{
 				{
 					Name:  "proxy",
-					Image: "mcr.microsoft.com/oss/azure/workload-identity/proxy:v0.8.0",
+					Image: "mcr.microsoft.com/oss/v2/azure/workload-identity/proxy:v0.8.0",
 				},
 			},
 			wantContainers: []corev1.Container{
 				{
 					Name:  "proxy",
-					Image: "mcr.microsoft.com/oss/azure/workload-identity/proxy:v0.8.0",
+					Image: "mcr.microsoft.com/oss/v2/azure/workload-identity/proxy:v0.8.0",
 				},
 			},
 		},

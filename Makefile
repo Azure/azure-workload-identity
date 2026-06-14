@@ -1,4 +1,4 @@
-REGISTRY ?= mcr.microsoft.com/oss/azure/workload-identity
+REGISTRY ?= mcr.microsoft.com/oss/v2/azure/workload-identity
 PROXY_IMAGE_NAME := proxy
 INIT_IMAGE_NAME := proxy-init
 WEBHOOK_IMAGE_NAME := webhook
