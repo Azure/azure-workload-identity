@@ -231,7 +231,7 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) (respons
 	// get containers to skip
 	skipContainers := getSkipContainers(pod)
 	podUsingCustomTokenEndpoint := m.isUsingCustomTokenEndpoint(pod)
-	volumeName := buildVolumeName(podName)
+	volumeName := getOrBuildVolumeName(pod, podName)
 
 	pod.Spec.InitContainers = m.mutateContainers(pod.Spec.InitContainers, clientID, tenantID, skipContainers, podUsingCustomTokenEndpoint, volumeName)
 	pod.Spec.Containers = m.mutateContainers(pod.Spec.Containers, clientID, tenantID, skipContainers, podUsingCustomTokenEndpoint, volumeName)
@@ -598,4 +598,20 @@ func buildVolumeName(podName string) string {
 	hash := sha256.Sum256([]byte(podName))
 	truncatedHash := fmt.Sprintf("%x", hash)[:63-len(ProjectedVolumeNamePrefix)] // 63 is the max length for volume names
 	return fmt.Sprintf("%s%s", ProjectedVolumeNamePrefix, truncatedHash)
+}
+
+// getOrBuildVolumeName returns the name of the existing workload identity projected
+// volume if one has already been injected into the pod
+func getOrBuildVolumeName(pod *corev1.Pod, podName string) string {
+	for _, v := range pod.Spec.Volumes {
+		if v.Projected == nil {
+			continue
+		}
+		for _, src := range v.Projected.Sources {
+			if src.ServiceAccountToken != nil && src.ServiceAccountToken.Path == TokenFilePath {
+				return v.Name
+			}
+		}
+	}
+	return buildVolumeName(podName)
 }
