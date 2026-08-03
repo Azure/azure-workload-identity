@@ -232,9 +232,10 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) (respons
 	skipContainers := getSkipContainers(pod)
 	podUsingCustomTokenEndpoint := m.isUsingCustomTokenEndpoint(pod)
 	volumeName := buildVolumeName(podName)
+	volumeMountPath := buildVolumeMountPath(podName)
 
-	pod.Spec.InitContainers = m.mutateContainers(pod.Spec.InitContainers, clientID, tenantID, skipContainers, podUsingCustomTokenEndpoint, volumeName)
-	pod.Spec.Containers = m.mutateContainers(pod.Spec.Containers, clientID, tenantID, skipContainers, podUsingCustomTokenEndpoint, volumeName)
+	pod.Spec.InitContainers = m.mutateContainers(pod.Spec.InitContainers, clientID, tenantID, skipContainers, podUsingCustomTokenEndpoint, volumeName, volumeMountPath)
+	pod.Spec.Containers = m.mutateContainers(pod.Spec.Containers, clientID, tenantID, skipContainers, podUsingCustomTokenEndpoint, volumeName, volumeMountPath)
 
 	m.addProjectedVolume(pod, serviceAccountTokenExpiration, volumeName, podUsingCustomTokenEndpoint)
 
@@ -248,16 +249,16 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) (respons
 
 // mutateContainers mutates the containers by injecting the projected
 // service account token volume and environment variables
-func (m *podMutator) mutateContainers(containers []corev1.Container, clientID, tenantID string, skipContainers sets.Set[string], podUsingCustomTokenEndpoint bool, volumeName string) []corev1.Container {
+func (m *podMutator) mutateContainers(containers []corev1.Container, clientID, tenantID string, skipContainers sets.Set[string], podUsingCustomTokenEndpoint bool, volumeName, volumeMountPath string) []corev1.Container {
 	for i := range containers {
 		// container is in the skip list
 		if skipContainers.Has(containers[i].Name) {
 			continue
 		}
 		// add environment variables to container if not exists
-		containers[i] = m.addEnvironmentVariables(containers[i], clientID, tenantID, m.azureAuthorityHost, podUsingCustomTokenEndpoint)
+		containers[i] = m.addEnvironmentVariables(containers[i], clientID, tenantID, m.azureAuthorityHost, podUsingCustomTokenEndpoint, volumeMountPath)
 		// add the volume mount if not exists
-		containers[i] = addProjectedVolumeMount(containers[i], volumeName)
+		containers[i] = addProjectedVolumeMount(containers[i], volumeName, volumeMountPath)
 	}
 
 	return containers
@@ -435,7 +436,7 @@ func getTenantID(sa *corev1.ServiceAccount, c *config.Config) string {
 }
 
 // addEnvironmentVariables adds the clientID, tenantID and token file path environment variables needed for SDK
-func (m *podMutator) addEnvironmentVariables(container corev1.Container, clientID, tenantID, azureAuthorityHost string, podUsingCustomTokenEndpoint bool) corev1.Container {
+func (m *podMutator) addEnvironmentVariables(container corev1.Container, clientID, tenantID, azureAuthorityHost string, podUsingCustomTokenEndpoint bool, volumeMountPath string) corev1.Container {
 	envs := make(map[string]string)
 	for _, env := range container.Env {
 		envs[env.Name] = env.Value
@@ -444,14 +445,14 @@ func (m *podMutator) addEnvironmentVariables(container corev1.Container, clientI
 	desiredEnvs := []corev1.EnvVar{
 		{Name: AzureClientIDEnvVar, Value: clientID},
 		{Name: AzureTenantIDEnvVar, Value: tenantID},
-		{Name: AzureFederatedTokenFileEnvVar, Value: filepath.Join(VolumeMountPath, TokenFilePath)},
+		{Name: AzureFederatedTokenFileEnvVar, Value: filepath.Join(volumeMountPath, TokenFilePath)},
 		{Name: AzureAuthorityHostEnvVar, Value: azureAuthorityHost},
 	}
 
 	if podUsingCustomTokenEndpoint {
 		desiredEnvs = append(desiredEnvs, corev1.EnvVar{Name: AzureKubernetesTokenProxyEnvVar, Value: m.config.AzureKubernetesTokenProxy})
 		desiredEnvs = append(desiredEnvs, corev1.EnvVar{Name: AzureKubernetesSNINameEnvVar, Value: m.config.AzureKubernetesSNIName})
-		desiredEnvs = append(desiredEnvs, corev1.EnvVar{Name: AzureKubernetesCAFileEnvVar, Value: filepath.Join(VolumeMountPath, CAFilePath)})
+		desiredEnvs = append(desiredEnvs, corev1.EnvVar{Name: AzureKubernetesCAFileEnvVar, Value: filepath.Join(volumeMountPath, CAFilePath)})
 		desiredEnvs = append(desiredEnvs, corev1.EnvVar{Name: AzureKubernetesCADataEnvVar, Value: m.config.AzureKubernetesCAData})
 	}
 
@@ -465,10 +466,10 @@ func (m *podMutator) addEnvironmentVariables(container corev1.Container, clientI
 	return container
 }
 
-func addProjectedVolumeMount(container corev1.Container, volumeName string) corev1.Container {
+func addProjectedVolumeMount(container corev1.Container, volumeName, volumeMountPath string) corev1.Container {
 	volumeMount := corev1.VolumeMount{
 		Name:      volumeName,
-		MountPath: VolumeMountPath,
+		MountPath: volumeMountPath,
 		ReadOnly:  true,
 	}
 
@@ -594,8 +595,26 @@ func serverVersionGTE(discoveryClient discovery.ServerVersionInterface, v *utilv
 	return sv.AtLeast(v), nil
 }
 
-func buildVolumeName(podName string) string {
+// volumeHash returns a deterministic hash of the pod identity, truncated so the
+// resulting reserved volume name stays within the 63 character limit.
+func volumeHash(podName string) string {
 	hash := sha256.Sum256([]byte(podName))
-	truncatedHash := fmt.Sprintf("%x", hash)[:63-len(ProjectedVolumeNamePrefix)] // 63 is the max length for volume names
-	return fmt.Sprintf("%s%s", ProjectedVolumeNamePrefix, truncatedHash)
+	return fmt.Sprintf("%x", hash)[:63-len(ProjectedVolumeNamePrefix)] // 63 is the max length for volume names
+}
+
+// buildVolumeName returns the deterministic reserved name for the projected
+// service account token volume.
+func buildVolumeName(podName string) string {
+	return ProjectedVolumeNamePrefix + volumeHash(podName)
+}
+
+// buildVolumeMountPath returns the deterministic mount path for the projected
+// service account token volume. The hash suffix ensures that if the pod name
+// changes between webhook (re)invocations (for example, another mutating webhook
+// populates metadata.name before this webhook is reinvoked under
+// reinvocationPolicy: IfNeeded), the mount lands at a unique path rather than
+// colliding with the previously injected mount, which the API server rejects
+// with "spec.containers[*].volumeMounts[*].mountPath: must be unique".
+func buildVolumeMountPath(podName string) string {
+	return filepath.Join(ProjectedVolumePathPrefix, volumeHash(podName))
 }

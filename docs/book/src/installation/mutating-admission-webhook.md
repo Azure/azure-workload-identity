@@ -14,13 +14,15 @@ Azure AD Workload Identity uses a [mutating admission webhook][1] to project a s
 | `AZURE_TENANT_ID`            | The tenant ID of the Azure subscription.                                                 |
 | `AZURE_FEDERATED_TOKEN_FILE` | The path of the projected service account token file.                                    |
 
-| Volume                 | Description                           |
-| ---------------------- | ------------------------------------- |
-| `azure-identity-token` | The projected service account volume. |
+| Volume                                    | Description                           |
+| ----------------------------------------- | ------------------------------------- |
+| `azure-workload-identity-reserved-<hash>` | The projected service account volume. |
 
-| Volume mount                                         | Description                                           |
-| ---------------------------------------------------- | ----------------------------------------------------- |
-| `/var/run/secrets/azure/tokens/azure-identity-token` | The path of the projected service account token file. |
+| Volume mount                                                  | Description                                           |
+| ------------------------------------------------------------- | ----------------------------------------------------- |
+| `/var/run/secrets/azure/wi/<hash>/token/azure-identity-token` | The path of the projected service account token file. |
+
+> `<hash>` is a per-pod value derived from the pod's identity, so the volume name and mount path are unique per pod.
 
 </details>
 

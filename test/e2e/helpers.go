@@ -253,9 +253,12 @@ func validateMutatedPod(ctx context.Context, f *framework.Framework, pod *corev1
 		for _, volumeMount := range container.VolumeMounts {
 			if strings.HasPrefix(volumeMount.Name, projectedVolumeNamePrefix) {
 				found = true
+				// the mount path is suffixed with a per-pod hash, so assert on the
+				// base path prefix and match the remaining fields exactly
+				gomega.Expect(volumeMount.MountPath).To(gomega.HavePrefix(volumeMountPath + "/"))
 				gomega.Expect(volumeMount).To(gomega.Equal(corev1.VolumeMount{
 					Name:      volumeMount.Name,
-					MountPath: volumeMountPath,
+					MountPath: volumeMount.MountPath,
 					ReadOnly:  true,
 				}))
 				break
@@ -291,7 +294,16 @@ func validateMutatedPod(ctx context.Context, f *framework.Framework, pod *corev1
 	if len(withoutSkipContainers) > 0 {
 		err := e2epod.WaitForPodNameRunningInNamespace(ctx, f.ClientSet, pod.Name, pod.Namespace)
 		framework.ExpectNoError(err, "failed to start pod %s", pod.Name)
-		_ = e2epod.ExecCommandInContainer(f, pod.Name, withoutSkipContainers[0].Name, "cat", filepath.Join(volumeMountPath, tokenFilePath))
+		// the token mount path is suffixed with a per-pod hash, so read it back
+		// from the mutated container rather than assuming the base path
+		tokenMountPath := volumeMountPath
+		for _, volumeMount := range withoutSkipContainers[0].VolumeMounts {
+			if strings.HasPrefix(volumeMount.Name, projectedVolumeNamePrefix) {
+				tokenMountPath = volumeMount.MountPath
+				break
+			}
+		}
+		_ = e2epod.ExecCommandInContainer(f, pod.Name, withoutSkipContainers[0].Name, "cat", filepath.Join(tokenMountPath, tokenFilePath))
 	}
 }
 

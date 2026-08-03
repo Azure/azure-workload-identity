@@ -32,7 +32,10 @@ var (
 	decoder                   = atypes.NewDecoder(runtime.NewScheme())
 )
 
-const testVolumeName = "azure-workload-identity-reserved-2eb503ce-4af0-45d3-82b1-d79bdfe63d38"
+const (
+	testVolumeName      = "azure-workload-identity-reserved-2eb503ce-4af0-45d3-82b1-d79bdfe63d38"
+	testVolumeMountPath = "/var/run/secrets/azure/wi/2eb503ce-4af0-45d3-82b1-d79bdfe63d38" // #nosec
+)
 
 func newPod(name, namespace, serviceAccountName string, labels, annotations map[string]string, hostNetwork bool) *corev1.Pod {
 	return &corev1.Pod{
@@ -510,7 +513,7 @@ func TestAddEnvironmentVariables(t *testing.T) {
 					},
 					{
 						Name:  "AZURE_FEDERATED_TOKEN_FILE",
-						Value: filepath.Join(VolumeMountPath, TokenFilePath),
+						Value: filepath.Join(testVolumeMountPath, TokenFilePath),
 					},
 					{
 						Name:  "AZURE_AUTHORITY_HOST",
@@ -535,7 +538,7 @@ func TestAddEnvironmentVariables(t *testing.T) {
 					},
 					{
 						Name:  AzureFederatedTokenFileEnvVar,
-						Value: filepath.Join(VolumeMountPath, TokenFilePath),
+						Value: filepath.Join(testVolumeMountPath, TokenFilePath),
 					},
 					{
 						Name:  AzureAuthorityHostEnvVar,
@@ -557,7 +560,7 @@ func TestAddEnvironmentVariables(t *testing.T) {
 					},
 					{
 						Name:  AzureFederatedTokenFileEnvVar,
-						Value: filepath.Join(VolumeMountPath, TokenFilePath),
+						Value: filepath.Join(testVolumeMountPath, TokenFilePath),
 					},
 					{
 						Name:  AzureAuthorityHostEnvVar,
@@ -596,7 +599,7 @@ func TestAddEnvironmentVariables(t *testing.T) {
 					},
 					{
 						Name:  AzureFederatedTokenFileEnvVar,
-						Value: filepath.Join(VolumeMountPath, TokenFilePath),
+						Value: filepath.Join(testVolumeMountPath, TokenFilePath),
 					},
 					{
 						Name:  AzureAuthorityHostEnvVar,
@@ -614,7 +617,7 @@ func TestAddEnvironmentVariables(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			actualContainer := m.addEnvironmentVariables(test.container, "clientID", "tenantID", "https://login.microsoftonline.com/", false)
+			actualContainer := m.addEnvironmentVariables(test.container, "clientID", "tenantID", "https://login.microsoftonline.com/", false, testVolumeMountPath)
 			if !reflect.DeepEqual(actualContainer, test.expectedContainer) {
 				t.Fatalf("expected: %v, got: %v", test.expectedContainer, actualContainer)
 			}
@@ -633,12 +636,12 @@ func TestAddEnvironmentVariables(t *testing.T) {
 			Env: []corev1.EnvVar{
 				{
 					Name:  AzureFederatedTokenFileEnvVar,
-					Value: filepath.Join(VolumeMountPath, TokenFilePath),
+					Value: filepath.Join(testVolumeMountPath, TokenFilePath),
 				},
 			},
 		}
 
-		actualContainer := m.addEnvironmentVariables(container, "", "", "", false)
+		actualContainer := m.addEnvironmentVariables(container, "", "", "", false, testVolumeMountPath)
 		if !reflect.DeepEqual(actualContainer, expectedContainer) {
 			t.Fatalf("expected: %v, got: %v", expectedContainer, actualContainer)
 		}
@@ -663,7 +666,7 @@ func TestAddProjectServiceAccountTokenVolumeMount(t *testing.T) {
 				VolumeMounts: []corev1.VolumeMount{
 					{
 						Name:      testVolumeName,
-						MountPath: VolumeMountPath,
+						MountPath: testVolumeMountPath,
 						ReadOnly:  true,
 					},
 				},
@@ -691,7 +694,7 @@ func TestAddProjectServiceAccountTokenVolumeMount(t *testing.T) {
 					},
 					{
 						Name:      testVolumeName,
-						MountPath: VolumeMountPath,
+						MountPath: testVolumeMountPath,
 						ReadOnly:  true,
 					},
 				},
@@ -701,11 +704,74 @@ func TestAddProjectServiceAccountTokenVolumeMount(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			actualContainer := addProjectedVolumeMount(test.container, testVolumeName)
+			actualContainer := addProjectedVolumeMount(test.container, testVolumeName, testVolumeMountPath)
 			if !reflect.DeepEqual(actualContainer, test.expectedContainer) {
 				t.Fatalf("expected: %v, got: %v", test.expectedContainer, actualContainer)
 			}
 		})
+	}
+}
+
+func TestBuildVolumeMountPath(t *testing.T) {
+	id := "some-pod (prefix)"
+	// the mount path must live under the well-known base directory
+	if got := buildVolumeMountPath(id); !strings.HasPrefix(got, ProjectedVolumePathPrefix+"/") {
+		t.Fatalf("expected mount path under %q, got %q", ProjectedVolumePathPrefix, got)
+	}
+	// distinct pod identities must yield distinct mount paths so that a mount
+	// injected on a later (re)invocation does not collide with an earlier one
+	if buildVolumeMountPath("a") == buildVolumeMountPath("b") {
+		t.Fatalf("expected different mount paths for different pod identities")
+	}
+}
+
+// TestReinvocationDoesNotProduceDuplicateMountPath reproduces the v1.6.0
+// regression where a pod could end up with two volume mounts at the same
+// mountPath, which the API server rejects with
+// "spec.containers[*].volumeMounts[*].mountPath: must be unique". This happens
+// when metadata.name changes between the webhook invocation and its
+// reinvocation (reinvocationPolicy: IfNeeded), for example when another mutating
+// webhook populates the name. Because both the volume name and the mount path
+// are derived from the pod identity, a changed identity yields a unique volume
+// mount instead of one colliding at the previously injected path.
+func TestReinvocationDoesNotProduceDuplicateMountPath(t *testing.T) {
+	container := corev1.Container{Name: "app", Image: "image"}
+
+	// pass 1: metadata.name is empty during admission, identity derives from generateName
+	id1 := "dml-v1-expo-api-5864db4bfb- (prefix)"
+	container = addProjectedVolumeMount(container, buildVolumeName(id1), buildVolumeMountPath(id1))
+
+	// pass 2 (reinvocation): another webhook populated metadata.name
+	id2 := "dml-v1-expo-api-5864db4bfb-g4c9r"
+	container = addProjectedVolumeMount(container, buildVolumeName(id2), buildVolumeMountPath(id2))
+
+	mountPaths := sets.New[string]()
+	for _, vm := range container.VolumeMounts {
+		if mountPaths.Has(vm.MountPath) {
+			t.Fatalf("duplicate mountPath %q injected across webhook invocations", vm.MountPath)
+		}
+		mountPaths.Insert(vm.MountPath)
+	}
+
+	names := sets.New[string]()
+	for _, vm := range container.VolumeMounts {
+		if names.Has(vm.Name) {
+			t.Fatalf("duplicate volumeMount name %q injected across webhook invocations", vm.Name)
+		}
+		names.Insert(vm.Name)
+	}
+}
+
+// TestReinvocationWithStableIdentityIsIdempotent verifies that the common
+// reinvocation case, where the pod identity does not change between passes,
+// still results in exactly one injected volume mount.
+func TestReinvocationWithStableIdentityIsIdempotent(t *testing.T) {
+	container := corev1.Container{Name: "app", Image: "image"}
+	id := "dml-v1-expo-api-5864db4bfb-g4c9r"
+	container = addProjectedVolumeMount(container, buildVolumeName(id), buildVolumeMountPath(id))
+	container = addProjectedVolumeMount(container, buildVolumeName(id), buildVolumeMountPath(id))
+	if len(container.VolumeMounts) != 1 {
+		t.Fatalf("expected exactly one volume mount for a stable identity, got %d", len(container.VolumeMounts))
 	}
 }
 
@@ -904,7 +970,7 @@ func TestMutateContainers(t *testing.T) {
 				},
 				{
 					Name:  AzureFederatedTokenFileEnvVar,
-					Value: filepath.Join(VolumeMountPath, TokenFilePath),
+					Value: filepath.Join(testVolumeMountPath, TokenFilePath),
 				},
 				{
 					Name:  AzureAuthorityHostEnvVar,
@@ -914,7 +980,7 @@ func TestMutateContainers(t *testing.T) {
 			VolumeMounts: []corev1.VolumeMount{
 				{
 					Name:      testVolumeName,
-					MountPath: VolumeMountPath,
+					MountPath: testVolumeMountPath,
 					ReadOnly:  true,
 				},
 			},
@@ -943,7 +1009,7 @@ func TestMutateContainers(t *testing.T) {
 				},
 				{
 					Name:  AzureFederatedTokenFileEnvVar,
-					Value: filepath.Join(VolumeMountPath, TokenFilePath),
+					Value: filepath.Join(testVolumeMountPath, TokenFilePath),
 				},
 				{
 					Name:  AzureAuthorityHostEnvVar,
@@ -953,7 +1019,7 @@ func TestMutateContainers(t *testing.T) {
 			VolumeMounts: []corev1.VolumeMount{
 				{
 					Name:      testVolumeName,
-					MountPath: VolumeMountPath,
+					MountPath: testVolumeMountPath,
 					ReadOnly:  true,
 				},
 			},
@@ -973,7 +1039,7 @@ func TestMutateContainers(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			containers := m.mutateContainers(test.containers, azureClientID, azureTenantID, test.skipContainers, false, testVolumeName)
+			containers := m.mutateContainers(test.containers, azureClientID, azureTenantID, test.skipContainers, false, testVolumeName, testVolumeMountPath)
 			if !reflect.DeepEqual(containers, test.expectedContainers) {
 				t.Errorf("expected: %v, got: %v", test.expectedContainers, test.containers)
 			}
