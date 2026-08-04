@@ -316,15 +316,17 @@ You can verify the following injected properties in the output:
 
 <br/>
 
-| Volume mount                                         | Description                                           |
-| ---------------------------------------------------- | ----------------------------------------------------- |
-| `/var/run/secrets/azure/tokens/azure-identity-token` | The path of the projected service account token file. |
+| Volume mount                                                    | Description                                           |
+| --------------------------------------------------------------- | ----------------------------------------------------- |
+| `/var/run/secrets/azure/wi/<hash>/token/azure-identity-token`   | The path of the projected service account token file. |
 
 <br/>
 
-| Volume                 | Description                           |
-| ---------------------- | ------------------------------------- |
-| `azure-identity-token` | The projected service account volume. |
+| Volume                                     | Description                           |
+| ------------------------------------------ | ------------------------------------- |
+| `azure-workload-identity-reserved-<hash>`  | The projected service account volume. |
+
+> `<hash>` is a per-pod value derived from the pod's identity, so the volume name and mount path are unique per pod.
 
 ```log
 Name:         quick-start
@@ -358,7 +360,7 @@ Containers:
       AZURE_FEDERATED_TOKEN_FILE: (Injected by the webhook)
     Mounts:
       /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-844ns (ro)
-      /var/run/secrets/azure/tokens from azure-identity-token (ro) (Injected by the webhook)
+      /var/run/secrets/azure/wi/<hash> from azure-workload-identity-reserved-<hash> (ro) (Injected by the webhook)
 Conditions:
   Type              Status
   Initialized       True
@@ -372,7 +374,7 @@ Volumes:
     ConfigMapName:           kube-root-ca.crt
     ConfigMapOptional:       <nil>
     DownwardAPI:             true
-  azure-identity-token: (Injected by the webhook)
+  azure-workload-identity-reserved-<hash>: (Injected by the webhook)
     Type:                    Projected (a volume that contains injected data from multiple sources)
     TokenExpirationSeconds:  3600
 QoS Class:                   BestEffort
