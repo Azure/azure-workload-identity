@@ -212,7 +212,7 @@ sequenceDiagram
 </tbody></table>
 <h2 id="azure-ad-workload-identity-components"><a class="header" href="#azure-ad-workload-identity-components">Azure AD Workload Identity Components</a></h2>
 <table><thead><tr><th>Component</th><th>Description</th><th>Guide</th></tr></thead><tbody>
-<tr><td>Mutating Admission Webhook</td><td>Projects a signed service account token to a well-known path (<code>/var/run/secrets/azure/tokens/azure-identity-token</code>) and inject authentication-related environment variables to your pods based on annotated service account.</td><td><a href="./installation/mutating-admission-webhook.html">Link</a></td></tr>
+<tr><td>Mutating Admission Webhook</td><td>Projects a signed service account token to a well-known path (<code>/var/run/secrets/azure/wi</code>) and inject authentication-related environment variables to your pods based on annotated service account.</td><td><a href="./installation/mutating-admission-webhook.html">Link</a></td></tr>
 <tr><td>Azure AD Workload Identity CLI (<code>azwi</code>)</td><td>A utility CLI that helps manage Azure AD Workload Identity and automate error-prone operations.</td><td><a href="./installation/azwi.html">Link</a></td></tr>
 </tbody></table>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="managed-clusters"><a class="header" href="#managed-clusters">Managed Clusters</a></h1>
@@ -577,11 +577,14 @@ EOF
 <tr><td><code>AZURE_FEDERATED_TOKEN_FILE</code></td><td>The path of the projected service account token file.</td></tr>
 </tbody></table>
 <table><thead><tr><th>Volume</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>azure-identity-token</code></td><td>The projected service account volume.</td></tr>
+<tr><td><code>azure-workload-identity-reserved-&lt;hash&gt;</code></td><td>The projected service account volume.</td></tr>
 </tbody></table>
 <table><thead><tr><th>Volume mount</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>/var/run/secrets/azure/tokens/azure-identity-token</code></td><td>The path of the projected service account token file.</td></tr>
+<tr><td><code>/var/run/secrets/azure/wi/&lt;hash&gt;/token/azure-identity-token</code></td><td>The path of the projected service account token file.</td></tr>
 </tbody></table>
+<blockquote>
+<p><code>&lt;hash&gt;</code> is a per-pod value derived from the pod’s identity, so the volume name and mount path are unique per pod.</p>
+</blockquote>
 </details>
 <p>The webhook allows pods to use a <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-token-volume-projection">service account token</a> projected to a well-known volume path to exchange for an Azure AD access token by leveraging the above properties with the Azure Identity SDKs or the <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-overview">Microsoft Authentication Library</a> (MSAL).</p>
 <h2 id="prerequisites-1"><a class="header" href="#prerequisites-1">Prerequisites</a></h2>
@@ -893,12 +896,15 @@ EOF
 </tbody></table>
 <br/>
 <table><thead><tr><th>Volume mount</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>/var/run/secrets/azure/tokens/azure-identity-token</code></td><td>The path of the projected service account token file.</td></tr>
+<tr><td><code>/var/run/secrets/azure/wi/&lt;hash&gt;/token/azure-identity-token</code></td><td>The path of the projected service account token file.</td></tr>
 </tbody></table>
 <br/>
 <table><thead><tr><th>Volume</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>azure-identity-token</code></td><td>The projected service account volume.</td></tr>
+<tr><td><code>azure-workload-identity-reserved-&lt;hash&gt;</code></td><td>The projected service account volume.</td></tr>
 </tbody></table>
+<blockquote>
+<p><code>&lt;hash&gt;</code> is a per-pod value derived from the pod’s identity, so the volume name and mount path are unique per pod.</p>
+</blockquote>
 <pre><code class="language-log">Name:         quick-start
 Namespace:    default
 Priority:     0
@@ -930,7 +936,7 @@ Containers:
       AZURE_FEDERATED_TOKEN_FILE: (Injected by the webhook)
     Mounts:
       /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-844ns (ro)
-      /var/run/secrets/azure/tokens from azure-identity-token (ro) (Injected by the webhook)
+      /var/run/secrets/azure/wi/&lt;hash&gt; from azure-workload-identity-reserved-&lt;hash&gt; (ro) (Injected by the webhook)
 Conditions:
   Type              Status
   Initialized       True
@@ -944,7 +950,7 @@ Volumes:
     ConfigMapName:           kube-root-ca.crt
     ConfigMapOptional:       &lt;nil&gt;
     DownwardAPI:             true
-  azure-identity-token: (Injected by the webhook)
+  azure-workload-identity-reserved-&lt;hash&gt;: (Injected by the webhook)
     Type:                    Projected (a volume that contains injected data from multiple sources)
     TokenExpirationSeconds:  3600
 QoS Class:                   BestEffort
@@ -1454,7 +1460,7 @@ spec:
 EOF
 </code></pre>
 <p>Output the projected service account token:</p>
-<pre><code class="language-bash">kubectl exec dummy-pod -- cat /var/run/secrets/azure/tokens/azure-identity-token
+<pre><code class="language-bash">kubectl exec dummy-pod -- sh -c 'cat &quot;$AZURE_FEDERATED_TOKEN_FILE&quot;'
 </code></pre>
 <p>Decode your token using <a href="https://jwt.ms">jwt.ms</a>. The <code>kid</code> field in the token header should be the same as the <code>kid</code> of <code>azwi jwks --public-keys sa-new.pub | jq -r '.keys[0].kid'</code>. This means that the service account token is signed by the new private key.</p>
 <h3 id="6-cleanup"><a class="header" href="#6-cleanup">6. Cleanup</a></h3>

@@ -166,11 +166,14 @@
 <tr><td><code>AZURE_FEDERATED_TOKEN_FILE</code></td><td>The path of the projected service account token file.</td></tr>
 </tbody></table>
 <table><thead><tr><th>Volume</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>azure-identity-token</code></td><td>The projected service account volume.</td></tr>
+<tr><td><code>azure-workload-identity-reserved-&lt;hash&gt;</code></td><td>The projected service account volume.</td></tr>
 </tbody></table>
 <table><thead><tr><th>Volume mount</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>/var/run/secrets/azure/tokens/azure-identity-token</code></td><td>The path of the projected service account token file.</td></tr>
+<tr><td><code>/var/run/secrets/azure/wi/&lt;hash&gt;/token/azure-identity-token</code></td><td>The path of the projected service account token file.</td></tr>
 </tbody></table>
+<blockquote>
+<p><code>&lt;hash&gt;</code> is a per-pod value derived from the pod’s identity, so the volume name and mount path are unique per pod.</p>
+</blockquote>
 </details>
 <p>The webhook allows pods to use a <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-token-volume-projection">service account token</a> projected to a well-known volume path to exchange for an Azure AD access token by leveraging the above properties with the Azure Identity SDKs or the <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-overview">Microsoft Authentication Library</a> (MSAL).</p>
 <h2 id="prerequisites"><a class="header" href="#prerequisites">Prerequisites</a></h2>

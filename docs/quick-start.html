@@ -391,12 +391,15 @@ EOF
 </tbody></table>
 <br/>
 <table><thead><tr><th>Volume mount</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>/var/run/secrets/azure/tokens/azure-identity-token</code></td><td>The path of the projected service account token file.</td></tr>
+<tr><td><code>/var/run/secrets/azure/wi/&lt;hash&gt;/token/azure-identity-token</code></td><td>The path of the projected service account token file.</td></tr>
 </tbody></table>
 <br/>
 <table><thead><tr><th>Volume</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>azure-identity-token</code></td><td>The projected service account volume.</td></tr>
+<tr><td><code>azure-workload-identity-reserved-&lt;hash&gt;</code></td><td>The projected service account volume.</td></tr>
 </tbody></table>
+<blockquote>
+<p><code>&lt;hash&gt;</code> is a per-pod value derived from the pod’s identity, so the volume name and mount path are unique per pod.</p>
+</blockquote>
 <pre><code class="language-log">Name:         quick-start
 Namespace:    default
 Priority:     0
@@ -428,7 +431,7 @@ Containers:
       AZURE_FEDERATED_TOKEN_FILE: (Injected by the webhook)
     Mounts:
       /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-844ns (ro)
-      /var/run/secrets/azure/tokens from azure-identity-token (ro) (Injected by the webhook)
+      /var/run/secrets/azure/wi/&lt;hash&gt; from azure-workload-identity-reserved-&lt;hash&gt; (ro) (Injected by the webhook)
 Conditions:
   Type              Status
   Initialized       True
@@ -442,7 +445,7 @@ Volumes:
     ConfigMapName:           kube-root-ca.crt
     ConfigMapOptional:       &lt;nil&gt;
     DownwardAPI:             true
-  azure-identity-token: (Injected by the webhook)
+  azure-workload-identity-reserved-&lt;hash&gt;: (Injected by the webhook)
     Type:                    Projected (a volume that contains injected data from multiple sources)
     TokenExpirationSeconds:  3600
 QoS Class:                   BestEffort
