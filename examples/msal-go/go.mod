@@ -1,6 +1,6 @@
 module github.com/Azure/azure-workload-identity/example/msal-go
 
-go 1.26.4
+go 1.26.5
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.16.0
