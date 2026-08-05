@@ -30,7 +30,7 @@ main() {
     az aks create \
       --resource-group "${CLUSTER_NAME}" \
       --name "${CLUSTER_NAME}" \
-      --node-vm-size Standard_DS3_v2 \
+      --node-vm-size standard_d4s_v5 \
       --enable-managed-identity \
       --network-plugin azure \
       --node-count 3 \
