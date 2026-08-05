@@ -1,6 +1,6 @@
 module github.com/Azure/azure-workload-identity/examples/custom-token-endpoint-msal-go
 
-go 1.26.4
+go 1.26.5
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.19.1
