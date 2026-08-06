@@ -244,7 +244,12 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) (respons
 		logger.Error("failed to marshal pod object", err)
 		return admission.Errored(http.StatusInternalServerError, err)
 	}
-	return admission.PatchResponseFromRaw(req.Object.Raw, marshaledPod)
+	// json.Marshal omits creationTimestamp when it is the zero value, but the
+	// admission request may carry "creationTimestamp":null. Strip it before
+	// computing the JSON patch so no spurious "remove /metadata/creationTimestamp"
+	// operation is emitted.
+	patchedRaw := stripNullCreationTimestamp(req.Object.Raw)
+	return admission.PatchResponseFromRaw(patchedRaw, marshaledPod)
 }
 
 // mutateContainers mutates the containers by injecting the projected
@@ -617,4 +622,30 @@ func buildVolumeName(podName string) string {
 // with "spec.containers[*].volumeMounts[*].mountPath: must be unique".
 func buildVolumeMountPath(podName string) string {
 	return filepath.Join(ProjectedVolumePathPrefix, volumeHash(podName))
+}
+
+// stripNullCreationTimestamp removes "creationTimestamp":null from the metadata
+// of a raw pod JSON object. json.Marshal omits the field when CreationTimestamp
+// is zero, but admission requests may carry it explicitly as null. Stripping it
+// from the original before computing the JSON patch prevents a spurious
+// "remove /metadata/creationTimestamp" patch operation.
+func stripNullCreationTimestamp(raw []byte) []byte {
+	var obj map[string]interface{}
+	if err := json.Unmarshal(raw, &obj); err != nil {
+		return raw
+	}
+	metadata, ok := obj["metadata"].(map[string]interface{})
+	if !ok {
+		return raw
+	}
+	v, exists := metadata["creationTimestamp"]
+	if !exists || v != nil {
+		return raw
+	}
+	delete(metadata, "creationTimestamp")
+	out, err := json.Marshal(obj)
+	if err != nil {
+		return raw
+	}
+	return out
 }
