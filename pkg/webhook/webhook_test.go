@@ -828,7 +828,7 @@ func TestHandle(t *testing.T) {
 		},
 		{
 			name:          "pod has the required label, restart policy in init container",
-			rawPod:        []byte(`{"metadata":{"name":"pod","namespace":"ns1","creationTimestamp":null,"labels":{"azure.workload.identity/use":"true"}},"spec":{"initContainers":[{"name":"init-container","image":"init-container-image","restartPolicy":"Always"}],"containers":[{"name":"container","image":"image","resources":{}}]}}`),
+			rawPod:        []byte(`{"metadata":{"name":"pod","namespace":"ns1","labels":{"azure.workload.identity/use":"true"}},"spec":{"initContainers":[{"name":"init-container","image":"init-container-image","restartPolicy":"Always"}],"containers":[{"name":"container","image":"image","resources":{}}]}}`),
 			clientObjects: serviceAccounts,
 			readerObjects: nil,
 		},
@@ -870,6 +870,55 @@ func TestHandle(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+// TestHandlePreservesPodLevelResources asserts that the mutating webhook does
+// not strip the pod-level spec.resources field (GA in Kubernetes 1.34) from
+// admission responses. Regression coverage for
+// https://github.com/Azure/azure-workload-identity/issues/1751.
+func TestHandlePreservesPodLevelResources(t *testing.T) {
+	serviceAccounts := []client.Object{
+		&corev1.ServiceAccount{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "sa",
+				Namespace: "ns1",
+				Annotations: map[string]string{
+					ClientIDAnnotation:                  "clientID",
+					ServiceAccountTokenExpiryAnnotation: "4800",
+				},
+			},
+		},
+	}
+
+	rawPod := []byte(`{"metadata":{"name":"pod","namespace":"ns1","labels":{"azure.workload.identity/use":"true"}},"spec":{"serviceAccountName":"sa","resources":{"limits":{"cpu":"200m","memory":"200Mi"},"requests":{"cpu":"200m","memory":"200Mi"}},"containers":[{"name":"container","image":"image","resources":{}}]}}`)
+
+	m := &podMutator{
+		client:              fake.NewClientBuilder().WithObjects(serviceAccounts...).Build(),
+		reader:              fake.NewClientBuilder().Build(),
+		config:              &config.Config{TenantID: "tenantID"},
+		decoder:             decoder,
+		audience:            DefaultAudience,
+		azureAuthorityHost:  "https://login.microsoftonline.com/",
+	}
+
+	req := atypes.Request{
+		AdmissionRequest: admissionv1.AdmissionRequest{
+			Kind:      metav1.GroupVersionKind{Group: "", Version: "v1", Kind: "Pod"},
+			Object:    runtime.RawExtension{Raw: rawPod},
+			Namespace: "ns1",
+			Operation: admissionv1.Create,
+		},
+	}
+
+	resp := m.Handle(context.Background(), req)
+	if !resp.Allowed {
+		t.Fatalf("expected to be allowed")
+	}
+	for _, patch := range resp.Patches {
+		if patch.Operation == "remove" && patch.Path == "/spec/resources" {
+			t.Errorf("pod-level spec.resources was stripped by the webhook: %v", patch)
+		}
 	}
 }
 
