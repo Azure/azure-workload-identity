@@ -892,10 +892,8 @@ func TestHandle(t *testing.T) {
 				"add /spec/containers/0/env",
 				"add /spec/containers/0/volumeMounts",
 				"add /spec/initContainers/0/env",
-				"add /spec/initContainers/0/resources",
 				"add /spec/initContainers/0/volumeMounts",
 				"add /spec/volumes",
-				"add /status",
 			},
 		},
 		{
@@ -1015,13 +1013,9 @@ func TestHandle(t *testing.T) {
 			config:        &config.Config{TenantID: "tenantID"},
 			audience:      DefaultAudience,
 			expectedPatches: []string{
-				"add /metadata/creationTimestamp",
 				"add /spec/containers/0/env",
-				"add /spec/containers/0/resources",
 				"add /spec/containers/0/volumeMounts",
 				"add /spec/volumes",
-				"add /status",
-				"remove /spec/resources",
 			},
 		},
 		{
@@ -1031,13 +1025,9 @@ func TestHandle(t *testing.T) {
 			config:        &config.Config{TenantID: "tenantID"},
 			audience:      DefaultAudience,
 			expectedPatches: []string{
-				"add /metadata/creationTimestamp",
 				"add /spec/containers/0/env",
-				"add /spec/containers/0/resources",
 				"add /spec/containers/0/volumeMounts",
 				"add /spec/volumes",
-				"add /status",
-				"remove /panda",
 			},
 		},
 	}

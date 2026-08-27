@@ -18,6 +18,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/apimachinery/pkg/util/strategicpatch"
 	"k8s.io/apimachinery/pkg/util/validation"
 	utilversion "k8s.io/apimachinery/pkg/util/version"
 	"k8s.io/client-go/discovery"
@@ -163,6 +164,7 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) (respons
 	if err != nil {
 		return admission.Errored(http.StatusBadRequest, err)
 	}
+	oldPod := pod.DeepCopy()
 
 	podName := pod.GetName()
 	if podName == "" {
@@ -239,12 +241,33 @@ func (m *podMutator) Handle(ctx context.Context, req admission.Request) (respons
 
 	m.addProjectedVolume(pod, serviceAccountTokenExpiration, volumeName, podUsingCustomTokenEndpoint)
 
-	marshaledPod, err := json.Marshal(pod)
+	return mutatedPodResponse(req.Object.Raw, oldPod, pod, logger)
+}
+
+// mutatedPodResponse preserves fields unknown to our Pod type: controller-runtime's raw-to-typed diff still loses them under version skew.
+// A strategic diff isolates our typed changes so only those changes are applied to the raw object.
+func mutatedPodResponse(raw []byte, old, mutated *corev1.Pod, logger mlog.Logger) admission.Response {
+	oldJSON, err := json.Marshal(old)
 	if err != nil {
-		logger.Error("failed to marshal pod object", err)
+		logger.Error("failed to marshal original pod", err)
 		return admission.Errored(http.StatusInternalServerError, err)
 	}
-	return admission.PatchResponseFromRaw(req.Object.Raw, marshaledPod)
+	newJSON, err := json.Marshal(mutated)
+	if err != nil {
+		logger.Error("failed to marshal mutated pod", err)
+		return admission.Errored(http.StatusInternalServerError, err)
+	}
+	patch, err := strategicpatch.CreateTwoWayMergePatch(oldJSON, newJSON, corev1.Pod{})
+	if err != nil {
+		logger.Error("failed to create strategic merge patch", err)
+		return admission.Errored(http.StatusInternalServerError, err)
+	}
+	patchedPod, err := strategicpatch.StrategicMergePatch(raw, patch, corev1.Pod{})
+	if err != nil {
+		logger.Error("failed to apply strategic merge patch", err)
+		return admission.Errored(http.StatusInternalServerError, err)
+	}
+	return admission.PatchResponseFromRaw(raw, patchedPod)
 }
 
 // mutateContainers mutates the containers by injecting the projected
