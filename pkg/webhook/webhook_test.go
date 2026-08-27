@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 	"testing"
@@ -791,46 +792,253 @@ func TestHandle(t *testing.T) {
 	}
 
 	tests := []struct {
-		name          string
-		rawPod        []byte
-		clientObjects []client.Object
-		readerObjects []client.Object
+		name                string
+		rawPod              []byte
+		clientObjects       []client.Object
+		readerObjects       []client.Object
+		config              *config.Config
+		audience            string
+		azureAuthorityHost  string
+		proxyImage          string
+		proxyInitImage      string
+		useNativeSidecar    bool
+		customTokenEndpoint customTokenEndpointConfig
+		expectedPatches     []string
 	}{
 		{
-			name:          "service account in cache",
-			rawPod:        newPodRaw("pod", "ns1", "sa", nil, nil, false),
+			name:               "service account in cache",
+			rawPod:             newPodRaw("pod", "ns1", "sa", nil, nil, false),
+			clientObjects:      serviceAccounts,
+			config:             &config.Config{TenantID: "tenantID"},
+			audience:           DefaultAudience,
+			azureAuthorityHost: "https://login.microsoftonline.com/",
+			expectedPatches: []string{
+				"add /spec/containers/0/env",
+				"add /spec/containers/0/volumeMounts",
+				"add /spec/initContainers/0/env",
+				"add /spec/initContainers/0/volumeMounts",
+				"add /spec/volumes",
+			},
+		},
+		{
+			name:               "service account not in cache",
+			rawPod:             newPodRaw("pod", "ns1", "sa", nil, nil, false),
+			readerObjects:      serviceAccounts,
+			config:             &config.Config{TenantID: "tenantID"},
+			audience:           DefaultAudience,
+			azureAuthorityHost: "https://login.microsoftonline.com/",
+			expectedPatches: []string{
+				"add /spec/containers/0/env",
+				"add /spec/containers/0/volumeMounts",
+				"add /spec/initContainers/0/env",
+				"add /spec/initContainers/0/volumeMounts",
+				"add /spec/volumes",
+			},
+		},
+		{
+			name:               "default service account in cache",
+			rawPod:             newPodRaw("pod", "ns1", "", nil, nil, false),
+			clientObjects:      serviceAccounts,
+			config:             &config.Config{TenantID: "tenantID"},
+			audience:           DefaultAudience,
+			azureAuthorityHost: "https://login.microsoftonline.com/",
+			expectedPatches: []string{
+				"add /spec/containers/0/env",
+				"add /spec/containers/0/volumeMounts",
+				"add /spec/initContainers/0/env",
+				"add /spec/initContainers/0/volumeMounts",
+				"add /spec/volumes",
+			},
+		},
+		{
+			name:               "default service account not in cache",
+			rawPod:             newPodRaw("pod", "ns1", "", nil, nil, false),
+			readerObjects:      serviceAccounts,
+			config:             &config.Config{TenantID: "tenantID"},
+			audience:           DefaultAudience,
+			azureAuthorityHost: "https://login.microsoftonline.com/",
+			expectedPatches: []string{
+				"add /spec/containers/0/env",
+				"add /spec/containers/0/volumeMounts",
+				"add /spec/initContainers/0/env",
+				"add /spec/initContainers/0/volumeMounts",
+				"add /spec/volumes",
+			},
+		},
+		{
+			name: "skip container and pod token expiration",
+			rawPod: newPodRaw("pod", "ns1", "sa", map[string]string{UseWorkloadIdentityLabel: "true"}, map[string]string{
+				ServiceAccountTokenExpiryAnnotation: "7200",
+				SkipContainersAnnotation:            "init-container",
+			}, false),
+			clientObjects:      serviceAccounts,
+			config:             &config.Config{TenantID: "tenantID"},
+			audience:           DefaultAudience,
+			azureAuthorityHost: "https://login.microsoftonline.com/",
+			expectedPatches: []string{
+				"add /spec/containers/0/env",
+				"add /spec/containers/0/volumeMounts",
+				"add /spec/volumes",
+			},
+		},
+		{
+			name:               "pod has the required label, restart policy in init container",
+			rawPod:             []byte(`{"metadata":{"name":"pod","namespace":"ns1","creationTimestamp":null,"labels":{"azure.workload.identity/use":"true"}},"spec":{"initContainers":[{"name":"init-container","image":"init-container-image","restartPolicy":"Always"}],"containers":[{"name":"container","image":"image","resources":{}}]}}`),
+			clientObjects:      serviceAccounts,
+			config:             &config.Config{TenantID: "tenantID"},
+			audience:           DefaultAudience,
+			azureAuthorityHost: "https://login.microsoftonline.com/",
+			expectedPatches: []string{
+				"add /spec/containers/0/env",
+				"add /spec/containers/0/volumeMounts",
+				"add /spec/initContainers/0/env",
+				"add /spec/initContainers/0/resources",
+				"add /spec/initContainers/0/volumeMounts",
+				"add /spec/volumes",
+				"add /status",
+			},
+		},
+		{
+			name: "proxy init and sidecar",
+			rawPod: newPodRaw("pod", "ns1", "sa", map[string]string{UseWorkloadIdentityLabel: "true"}, map[string]string{
+				InjectProxySidecarAnnotation: "true",
+				ProxySidecarPortAnnotation:   "9000",
+			}, false),
+			clientObjects:      serviceAccounts,
+			config:             &config.Config{TenantID: "tenantID"},
+			audience:           DefaultAudience,
+			azureAuthorityHost: "https://login.microsoftonline.com/",
+			proxyImage:         "proxy:test",
+			proxyInitImage:     "proxy-init:test",
+			expectedPatches: []string{
+				"add /spec/containers/0/args",
+				"add /spec/containers/0/env",
+				"add /spec/containers/0/imagePullPolicy",
+				"add /spec/containers/0/lifecycle",
+				"add /spec/containers/0/ports",
+				"add /spec/containers/0/securityContext",
+				"add /spec/containers/0/volumeMounts",
+				"add /spec/containers/1",
+				"add /spec/initContainers/0/env",
+				"add /spec/initContainers/0/volumeMounts",
+				"add /spec/initContainers/1",
+				"add /spec/volumes",
+				"replace /spec/containers/0/image",
+				"replace /spec/containers/0/name",
+			},
+		},
+		{
+			name: "native proxy sidecar",
+			rawPod: newPodRaw("pod", "ns1", "sa", map[string]string{UseWorkloadIdentityLabel: "true"}, map[string]string{
+				InjectProxySidecarAnnotation: "true",
+			}, false),
+			clientObjects:      serviceAccounts,
+			config:             &config.Config{TenantID: "tenantID"},
+			audience:           DefaultAudience,
+			azureAuthorityHost: "https://login.microsoftonline.com/",
+			proxyImage:         "proxy:test",
+			proxyInitImage:     "proxy-init:test",
+			useNativeSidecar:   true,
+			expectedPatches: []string{
+				"add /spec/containers/0/env",
+				"add /spec/containers/0/volumeMounts",
+				"add /spec/initContainers/0/args",
+				"add /spec/initContainers/0/env",
+				"add /spec/initContainers/0/imagePullPolicy",
+				"add /spec/initContainers/0/lifecycle",
+				"add /spec/initContainers/0/ports",
+				"add /spec/initContainers/0/restartPolicy",
+				"add /spec/initContainers/0/securityContext",
+				"add /spec/initContainers/0/volumeMounts",
+				"add /spec/initContainers/1",
+				"add /spec/initContainers/2",
+				"add /spec/volumes",
+				"replace /spec/initContainers/0/image",
+				"replace /spec/initContainers/0/name",
+			},
+		},
+		{
+			name: "custom token endpoint with CA config map",
+			rawPod: newPodRaw("pod", "ns1", "sa", map[string]string{UseWorkloadIdentityLabel: "true"}, map[string]string{
+				"azure.workload.identity/use-custom": "true",
+			}, false),
 			clientObjects: serviceAccounts,
-			readerObjects: nil,
+			config: &config.Config{
+				TenantID:                       "tenantID",
+				AzureKubernetesTokenProxy:      "https://token.proxy",
+				AzureKubernetesSNIName:         "server.name",
+				AzureKubernetesCAConfigMapName: "ca-config",
+			},
+			audience:           DefaultAudience,
+			azureAuthorityHost: "https://login.microsoftonline.com/",
+			customTokenEndpoint: customTokenEndpointConfig{
+				enabled:    true,
+				annotation: "azure.workload.identity/use-custom",
+				audience:   "custom-audience",
+			},
+			expectedPatches: []string{
+				"add /spec/containers/0/env",
+				"add /spec/containers/0/volumeMounts",
+				"add /spec/initContainers/0/env",
+				"add /spec/initContainers/0/volumeMounts",
+				"add /spec/volumes",
+			},
 		},
 		{
-			name:          "service account not in cache",
-			rawPod:        newPodRaw("pod", "ns1", "sa", nil, nil, false),
-			clientObjects: nil,
-			readerObjects: serviceAccounts,
-		},
-		{
-			name:          "default service account in cache",
-			rawPod:        newPodRaw("pod", "ns1", "", nil, nil, false),
+			name: "custom token endpoint with cluster trust bundle",
+			rawPod: newPodRaw("pod", "ns1", "sa", map[string]string{UseWorkloadIdentityLabel: "true"}, map[string]string{
+				"azure.workload.identity/use-custom": "true",
+			}, false),
 			clientObjects: serviceAccounts,
-			readerObjects: nil,
+			config: &config.Config{
+				TenantID:                       "tenantID",
+				AzureKubernetesCACTBSignerName: "example.com/signer",
+			},
+			audience: DefaultAudience,
+			customTokenEndpoint: customTokenEndpointConfig{
+				enabled:    true,
+				annotation: "azure.workload.identity/use-custom",
+				audience:   "custom-audience",
+			},
+			expectedPatches: []string{
+				"add /spec/containers/0/env",
+				"add /spec/containers/0/volumeMounts",
+				"add /spec/initContainers/0/env",
+				"add /spec/initContainers/0/volumeMounts",
+				"add /spec/volumes",
+			},
 		},
 		{
-			name:          "default service account not in cache",
-			rawPod:        newPodRaw("pod", "ns1", "", nil, nil, false),
-			clientObjects: nil,
-			readerObjects: serviceAccounts,
-		},
-		{
-			name:          "pod has the required label, no warnings",
-			rawPod:        newPodRaw("pod", "ns1", "sa", map[string]string{UseWorkloadIdentityLabel: "true"}, nil, false),
+			name:          "pod-level resources from a newer Kubernetes API",
+			rawPod:        []byte(`{"metadata":{"name":"pod","namespace":"ns1"},"spec":{"serviceAccountName":"sa","resources":{"limits":{"cpu":"200m","memory":"200Mi"},"requests":{"cpu":"200m","memory":"200Mi"}},"containers":[{"name":"container","image":"image"}]}}`),
 			clientObjects: serviceAccounts,
-			readerObjects: nil,
+			config:        &config.Config{TenantID: "tenantID"},
+			audience:      DefaultAudience,
+			expectedPatches: []string{
+				"add /metadata/creationTimestamp",
+				"add /spec/containers/0/env",
+				"add /spec/containers/0/resources",
+				"add /spec/containers/0/volumeMounts",
+				"add /spec/volumes",
+				"add /status",
+				"remove /spec/resources",
+			},
 		},
 		{
-			name:          "pod has the required label, restart policy in init container",
-			rawPod:        []byte(`{"metadata":{"name":"pod","namespace":"ns1","creationTimestamp":null,"labels":{"azure.workload.identity/use":"true"}},"spec":{"initContainers":[{"name":"init-container","image":"init-container-image","restartPolicy":"Always"}],"containers":[{"name":"container","image":"image","resources":{}}]}}`),
+			name:          "unknown field",
+			rawPod:        []byte(`{"metadata":{"name":"pod","namespace":"ns1"},"spec":{"serviceAccountName":"sa","containers":[{"name":"container","image":"image"}]},"panda":"bamboo"}`),
 			clientObjects: serviceAccounts,
-			readerObjects: nil,
+			config:        &config.Config{TenantID: "tenantID"},
+			audience:      DefaultAudience,
+			expectedPatches: []string{
+				"add /metadata/creationTimestamp",
+				"add /spec/containers/0/env",
+				"add /spec/containers/0/resources",
+				"add /spec/containers/0/volumeMounts",
+				"add /spec/volumes",
+				"add /status",
+				"remove /panda",
+			},
 		},
 	}
 
@@ -841,10 +1049,16 @@ func TestHandle(t *testing.T) {
 			}
 
 			m := &podMutator{
-				client:  fake.NewClientBuilder().WithObjects(test.clientObjects...).Build(),
-				reader:  fake.NewClientBuilder().WithObjects(test.readerObjects...).Build(),
-				config:  &config.Config{TenantID: "tenantID"},
-				decoder: decoder,
+				client:              fake.NewClientBuilder().WithObjects(test.clientObjects...).Build(),
+				reader:              fake.NewClientBuilder().WithObjects(test.readerObjects...).Build(),
+				config:              test.config,
+				decoder:             decoder,
+				audience:            test.audience,
+				azureAuthorityHost:  test.azureAuthorityHost,
+				proxyImage:          test.proxyImage,
+				proxyInitImage:      test.proxyInitImage,
+				useNativeSidecar:    test.useNativeSidecar,
+				customTokenEndpoint: test.customTokenEndpoint,
 			}
 
 			req := atypes.Request{
@@ -864,10 +1078,14 @@ func TestHandle(t *testing.T) {
 			if !resp.Allowed {
 				t.Fatalf("expected to be allowed")
 			}
+			gotPatches := make([]string, 0, len(resp.Patches))
 			for _, patch := range resp.Patches {
-				if patch.Operation == "remove" {
-					t.Errorf("expected no remove patches, got: %v", patch)
-				}
+				gotPatches = append(gotPatches, fmt.Sprintf("%s %s", patch.Operation, patch.Path))
+			}
+			sort.Strings(gotPatches)
+			sort.Strings(test.expectedPatches)
+			if !reflect.DeepEqual(gotPatches, test.expectedPatches) {
+				t.Errorf("expected patches:\n%v\ngot:\n%v", test.expectedPatches, gotPatches)
 			}
 		})
 	}
