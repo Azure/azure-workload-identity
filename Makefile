@@ -55,7 +55,7 @@ KUSTOMIZE_VER := v5.6.0
 KUSTOMIZE_BIN := kustomize
 KUSTOMIZE := $(TOOLS_BIN_DIR)/$(KUSTOMIZE_BIN)-$(KUSTOMIZE_VER)
 
-GOLANGCI_LINT_VER := v1.64.8
+GOLANGCI_LINT_VER := v2.13.2
 GOLANGCI_LINT_BIN := golangci-lint
 GOLANGCI_LINT := $(TOOLS_BIN_DIR)/$(GOLANGCI_LINT_BIN)-$(GOLANGCI_LINT_VER)
 
@@ -244,7 +244,7 @@ $(KUBECTL):
 	chmod +x "$(TOOLS_BIN_DIR)/$(KUBECTL_BIN)" "$(KUBECTL)"
 
 $(GOLANGCI_LINT):
-	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/golangci/golangci-lint/cmd/golangci-lint $(GOLANGCI_LINT_BIN) $(GOLANGCI_LINT_VER)
+	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/golangci/golangci-lint/v2/cmd/golangci-lint $(GOLANGCI_LINT_BIN) $(GOLANGCI_LINT_VER)
 
 $(SHELLCHECK): OS := $(shell uname | tr '[:upper:]' '[:lower:]')
 $(SHELLCHECK): ARCH := $(shell uname -m)
@@ -365,7 +365,7 @@ clean:
 
 .PHONY: lint
 lint: $(GOLANGCI_LINT)
-	$(GOLANGCI_LINT) run -v --timeout 5m
+	$(GOLANGCI_LINT) run -v --timeout 5m --fast-only
 
 .PHONY: helm-lint
 helm-lint: $(HELM)
@@ -373,7 +373,7 @@ helm-lint: $(HELM)
 
 .PHONY: lint-full
 lint-full: $(GOLANGCI_LINT) ## Run slower linters to detect possible issues
-	$(GOLANGCI_LINT) run -v --fast=false
+	$(GOLANGCI_LINT) run -v
 
 .PHONY: shellcheck
 shellcheck: $(SHELLCHECK)
