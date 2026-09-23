@@ -15,6 +15,11 @@ readonly KUBECTL="${REPO_ROOT}/hack/tools/bin/kubectl"
 IMAGE_VERSION="$(git describe --tags --always)"
 export IMAGE_VERSION
 
+# Soak tests require preconfigured AKS trust; Kind cannot use identity bindings.
+if [[ "${LOCAL_ONLY:-}" == "true" ]] || [[ "${SOAK_CLUSTER:-}" != "true" ]]; then
+  export GINKGO_SKIP="${GINKGO_SKIP:+${GINKGO_SKIP}|}\\[AKSSoakOnly\\]"
+fi
+
 create_cluster() {
   if [[ "${LOCAL_ONLY:-}" == "true" ]]; then
     # create a kind cluster, then build and load the webhook manager image to the kind cluster
@@ -74,7 +79,7 @@ main() {
 
   # skipping here because don't set the custom token endpoint config when deploying yaml manifests
   # this is tested in the next step with helm chart
-  GINKGO_SKIP=should.mutate.a.deployment.pod.with.an.annotated.service.account.for.custom.token.endpoint\|AKSSoakOnly make test-e2e-run
+  GINKGO_SKIP="${GINKGO_SKIP:+${GINKGO_SKIP}|}should.mutate.a.deployment.pod.with.an.annotated.service.account.for.custom.token.endpoint|AKSSoakOnly" make test-e2e-run
 
   if [[ "${TEST_HELM_CHART:-}" == "true" ]]; then
     make uninstall-deploy
@@ -99,7 +104,7 @@ test_helm_chart() {
     -v=5 \
     --devel
   poll_webhook_readiness
-  GINKGO_SKIP=Proxy\|Webhook\|AKSSoakOnly make test-e2e-run
+  GINKGO_SKIP="${GINKGO_SKIP:+${GINKGO_SKIP}|}Proxy|Webhook|AKSSoakOnly" make test-e2e-run
 
   ${HELM} upgrade --install workload-identity-webhook "${REPO_ROOT}/manifest_staging/charts/workload-identity-webhook" \
     --set image.repository="${REGISTRY:-mcr.microsoft.com/oss/v2/azure/workload-identity}/webhook" \
