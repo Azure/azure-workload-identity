@@ -379,6 +379,35 @@ func validateProxySideCarInMutatedPod(pod *corev1.Pod) {
 	} else {
 		gomega.Expect(proxySidecar.RestartPolicy).To(gomega.BeNil(), "proxy sidecar in pod %s should not have a restart policy", pod.Name)
 	}
+
+	framework.Logf("validating that the proxy sidecar in %s is configured for AKS identity bindings", pod.Name)
+	envVars := map[string]string{}
+	for _, env := range proxySidecar.Env {
+		envVars[env.Name] = env.Value
+	}
+	for _, name := range []string{"AZURE_KUBERNETES_TOKEN_PROXY", "AZURE_KUBERNETES_SNI_NAME", "AZURE_KUBERNETES_CA_FILE"} {
+		gomega.Expect(envVars).To(gomega.HaveKeyWithValue(name, gomega.Not(gomega.BeEmpty())))
+	}
+
+	found := false
+	for _, volume := range pod.Spec.Volumes {
+		if strings.HasPrefix(volume.Name, projectedVolumeNamePrefix) {
+			found = true
+			gomega.Expect(volume.Projected).NotTo(gomega.BeNil())
+			gomega.Expect(volume.Projected.Sources).To(gomega.Equal(getVolumeProjectionSources(pod.Spec.ServiceAccountName, true)))
+			mounted := false
+			for _, mount := range proxySidecar.VolumeMounts {
+				if mount.Name == volume.Name {
+					mounted = true
+					gomega.Expect(mount.ReadOnly).To(gomega.BeTrue())
+					gomega.Expect(envVars["AZURE_FEDERATED_TOKEN_FILE"]).To(gomega.Equal(filepath.Join(mount.MountPath, tokenFilePath)))
+					gomega.Expect(envVars["AZURE_KUBERNETES_CA_FILE"]).To(gomega.Equal(filepath.Join(mount.MountPath, "ca-cert/ca.crt")))
+				}
+			}
+			gomega.Expect(mounted).To(gomega.BeTrue(), "identity binding token and CA volume is not mounted in the proxy sidecar")
+		}
+	}
+	gomega.Expect(found).To(gomega.BeTrue(), "identity binding token and CA volume is not projected to pod %s", pod.Name)
 }
 
 func getProxySidecarContainer(containers []corev1.Container) *corev1.Container {
