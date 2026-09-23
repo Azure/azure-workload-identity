@@ -15,9 +15,9 @@ readonly KUBECTL="${REPO_ROOT}/hack/tools/bin/kubectl"
 IMAGE_VERSION="$(git describe --tags --always)"
 export IMAGE_VERSION
 
-# Soak tests require preconfigured AKS trust; Kind cannot use identity bindings.
+# Identity-binding tests require preconfigured AKS trust; Kind cannot use them.
 if [[ "${LOCAL_ONLY:-}" == "true" ]] || [[ "${SOAK_CLUSTER:-}" != "true" ]]; then
-  export GINKGO_SKIP="${GINKGO_SKIP:+${GINKGO_SKIP}|}\\[AKSSoakOnly\\]"
+  export GINKGO_SKIP="${GINKGO_SKIP:+${GINKGO_SKIP}|}\\[AKSOnly\\]"
 fi
 
 create_cluster() {

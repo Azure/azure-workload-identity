@@ -17,7 +17,7 @@ import (
 
 // AKS identity binding trust must be configured for 'proxy-test-sa' in the
 // default namespace ahead of time.
-var _ = ginkgo.Describe("Proxy identity bindings [LinuxOnly] [AKSSoakOnly]", func() {
+var _ = ginkgo.Describe("Proxy identity bindings [LinuxOnly] [AKSSoakOnly] [AKSOnly]", func() {
 	ginkgo.BeforeEach(func() {
 		if os.Getenv("LOCAL_ONLY") == "true" || os.Getenv("SOAK_CLUSTER") != "true" {
 			ginkgo.Skip("AKS identity bindings require a preconfigured AKS soak cluster, not Kind")
