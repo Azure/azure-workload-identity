@@ -14,12 +14,12 @@ import (
 )
 
 // The proxy implementation is only for Linux.
-// Run this test in nightly jobs only because AKS identity binding trust must be
-// configured for 'proxy-test-sa' in the default namespace ahead of time.
+// Run this test in nightly jobs only because we can't establish federated
+// identity under the Microsoft tenant at runtime at the moment.
 var _ = ginkgo.Describe("Proxy [LinuxOnly] [AKSSoakOnly]", func() {
 	f := framework.NewDefaultFramework("proxy")
 
-	ginkgo.It("should get a valid AAD token via AKS identity bindings after injecting proxy init container and sidecar", func(ctx context.Context) {
+	ginkgo.It("should get a valid AAD token after injecting proxy init container and sidecar", func(ctx context.Context) {
 		clientID, ok := os.LookupEnv("APPLICATION_CLIENT_ID")
 		gomega.Expect(ok).To(gomega.BeTrue(), "APPLICATION_CLIENT_ID must be set")
 		// trust is only set up for 'proxy-test-sa' service account in the default namespace for now
@@ -28,9 +28,8 @@ var _ = ginkgo.Describe("Proxy [LinuxOnly] [AKSSoakOnly]", func() {
 		defer f.ClientSet.CoreV1().ServiceAccounts(namespace).Delete(context.TODO(), serviceAccount, metav1.DeleteOptions{})
 
 		proxyAnnotations := map[string]string{
-			injectProxySidecarAnnotation:                   "true",
-			proxySidecarPortAnnotation:                     "8080",
-			"azure.workload.identity/use-identity-binding": "true",
+			injectProxySidecarAnnotation: "true",
+			proxySidecarPortAnnotation:   "8080",
 		}
 
 		pod := generatePodWithServiceAccount(
@@ -75,7 +74,7 @@ var _ = ginkgo.Describe("Proxy [LinuxOnly] [AKSSoakOnly]", func() {
 	})
 
 	// This test is to validate the proxy sidecar fallback behavior to AZURE_CLIENT_ID when the client_id parameter is not part of the request.
-	ginkgo.It("should get a valid AAD token via AKS identity bindings after injecting proxy init container and sidecar with no client_id in request", func(ctx context.Context) {
+	ginkgo.It("should get a valid AAD token after injecting proxy init container and sidecar with no client_id in request", func(ctx context.Context) {
 		clientID, ok := os.LookupEnv("APPLICATION_CLIENT_ID")
 		gomega.Expect(ok).To(gomega.BeTrue(), "APPLICATION_CLIENT_ID must be set")
 		// trust is only set up for 'proxy-test-sa' service account in the default namespace for now
@@ -84,9 +83,8 @@ var _ = ginkgo.Describe("Proxy [LinuxOnly] [AKSSoakOnly]", func() {
 		defer f.ClientSet.CoreV1().ServiceAccounts(namespace).Delete(context.TODO(), serviceAccount, metav1.DeleteOptions{})
 
 		proxyAnnotations := map[string]string{
-			injectProxySidecarAnnotation:                   "true",
-			proxySidecarPortAnnotation:                     "8080",
-			"azure.workload.identity/use-identity-binding": "true",
+			injectProxySidecarAnnotation: "true",
+			proxySidecarPortAnnotation:   "8080",
 		}
 
 		pod := generatePodWithServiceAccount(
