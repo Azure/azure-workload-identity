@@ -88,16 +88,11 @@ func NewProxy(port int, logger mlog.Logger, credCache *CredCache) (Proxy, error)
 
 // Run runs the proxy server
 func (p *proxy) Run(ctx context.Context) error {
-	rtr := mux.NewRouter()
-	rtr.PathPrefix(tokenPathPrefix).HandlerFunc(p.msiHandler)
-	rtr.PathPrefix(readyzPathPrefix).HandlerFunc(p.readyzHandler)
-	rtr.PathPrefix("/").HandlerFunc(p.defaultPathHandler)
-
 	p.logger.Info("starting the proxy server", "port", p.port, "userAgent", userAgent)
 	server := &http.Server{
 		Addr:              fmt.Sprintf("%s:%d", localhost, p.port),
 		ReadHeaderTimeout: 5 * time.Second,
-		Handler:           rtr,
+		Handler:           buildProxyHandler(p.readyzHandler, p.msiHandler, p.defaultPathHandler),
 	}
 
 	go func() {
@@ -280,4 +275,18 @@ func getScope(resource string) string {
 		resource = resource + "/.default"
 	}
 	return resource
+}
+
+func buildProxyHandler(readyz, msiTokens, imdsProxy http.HandlerFunc) http.Handler {
+	imdsEndpoints := mux.NewRouter()
+	imdsEndpoints.PathPrefix(tokenPathPrefix).HandlerFunc(msiTokens)
+	imdsEndpoints.PathPrefix("/").HandlerFunc(imdsProxy)
+
+	proxyRouter := mux.NewRouter()
+	proxyRouter.PathPrefix(readyzPathPrefix).HandlerFunc(readyz)
+	proxyRouter.PathPrefix("/").Handler(
+		imdsEndpoints,
+	)
+
+	return proxyRouter
 }
