@@ -10,29 +10,10 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/gorilla/mux"
 	"monis.app/mlog"
 
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
 )
-
-var (
-	rtr    *mux.Router
-	server *httptest.Server
-)
-
-func setup() {
-	rtr = mux.NewRouter()
-	server = httptest.NewServer(rtr)
-
-	os.Setenv(webhook.AzureTenantIDEnvVar, "tenant_id")
-}
-
-func teardown() {
-	server.Close()
-
-	os.Unsetenv(webhook.AzureTenantIDEnvVar)
-}
 
 func TestProxy_MSIHandler(t *testing.T) {
 	tests := []struct {
@@ -57,12 +38,11 @@ func TestProxy_MSIHandler(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			setup()
-			defer teardown()
+			os.Setenv(webhook.AzureTenantIDEnvVar, "tenant_id")
+			defer os.Unsetenv(webhook.AzureTenantIDEnvVar)
 
 			p := &proxy{logger: mlog.New()}
-			rtr.PathPrefix(tokenPathPrefix).HandlerFunc(p.msiHandler)
-			rtr.PathPrefix("/").HandlerFunc(p.defaultPathHandler)
+			handler := buildProxyHandler(p.readyzHandler, p.msiHandler, p.defaultPathHandler)
 
 			req, err := http.NewRequest(http.MethodGet, test.path, nil)
 			if err != nil {
@@ -70,7 +50,7 @@ func TestProxy_MSIHandler(t *testing.T) {
 			}
 
 			recorder := httptest.NewRecorder()
-			rtr.ServeHTTP(recorder, req)
+			handler.ServeHTTP(recorder, req)
 
 			if recorder.Code != test.expectedStatusCode {
 				t.Errorf("expected status code %d, got %d", test.expectedStatusCode, recorder.Code)
@@ -132,19 +112,18 @@ func TestRouterPathPrefix(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			setup()
-			defer teardown()
+			os.Setenv(webhook.AzureTenantIDEnvVar, "tenant_id")
+			defer os.Unsetenv(webhook.AzureTenantIDEnvVar)
 
-			rtr.PathPrefix(tokenPathPrefix).HandlerFunc(testTokenHandler)
-			rtr.PathPrefix("/").HandlerFunc(testDefaultHandler)
+			handler := buildProxyHandler(testReadyzHandler, testTokenHandler, testDefaultHandler)
 
-			req, err := http.NewRequest(http.MethodGet, server.URL+test.path, nil)
+			req, err := http.NewRequest(http.MethodGet, test.path, nil)
 			if err != nil {
 				t.Error(err)
 			}
 
 			recorder := httptest.NewRecorder()
-			rtr.ServeHTTP(recorder, req)
+			handler.ServeHTTP(recorder, req)
 			if recorder.Body.String() != test.expectedBody {
 				t.Errorf("Expected body %s, got %s", test.expectedBody, recorder.Body.String())
 			}
@@ -219,6 +198,10 @@ func testDefaultHandler(w http.ResponseWriter, _ *http.Request) {
 	fmt.Fprintf(w, "default_handler")
 }
 
+func testReadyzHandler(w http.ResponseWriter, _ *http.Request) {
+	fmt.Fprintf(w, "readyz_handler")
+}
+
 func TestProxy_ReadyZHandler(t *testing.T) {
 	tests := []struct {
 		name string
@@ -239,19 +222,19 @@ func TestProxy_ReadyZHandler(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			setup()
-			defer teardown()
+			os.Setenv(webhook.AzureTenantIDEnvVar, "tenant_id")
+			defer os.Unsetenv(webhook.AzureTenantIDEnvVar)
 
 			p := &proxy{logger: mlog.New()}
-			rtr.PathPrefix("/readyz").HandlerFunc(p.readyzHandler)
+			handler := buildProxyHandler(p.readyzHandler, testTokenHandler, testDefaultHandler)
 
-			req, err := http.NewRequest(http.MethodGet, server.URL+test.path, nil)
+			req, err := http.NewRequest(http.MethodGet, test.path, nil)
 			if err != nil {
 				t.Error(err)
 			}
 
 			recorder := httptest.NewRecorder()
-			rtr.ServeHTTP(recorder, req)
+			handler.ServeHTTP(recorder, req)
 			if recorder.Code != test.code {
 				t.Errorf("Expected code %d, got %d", test.code, recorder.Code)
 			}
