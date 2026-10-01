@@ -277,6 +277,30 @@ func getScope(resource string) string {
 	return resource
 }
 
+// imdsProtectedHandler implements IMDS endpoint protection for HTTP handlers that
+// are described at https://learn.microsoft.com/en-us/azure/virtual-machines/instance-metadata-service?tabs=linux#security-and-authentication
+func imdsProtectedHandler(imdsEndpoints http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if req.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		if forwardedForHeader := req.Header.Values("X-Forwarded-For"); forwardedForHeader != nil {
+			http.Error(w, `Must not set the "X-Forwarded-For" header`, http.StatusBadRequest)
+			return
+		}
+
+		metadataHeader := req.Header.Values("Metadata")
+		if len(metadataHeader) != 1 || metadataHeader[0] != "true" {
+			http.Error(w, `"Metadata" header must be set to "true"`, http.StatusBadRequest)
+			return
+		}
+
+		imdsEndpoints.ServeHTTP(w, req)
+	})
+}
+
 func buildProxyHandler(readyz, msiTokens, imdsProxy http.HandlerFunc) http.Handler {
 	imdsEndpoints := mux.NewRouter()
 	imdsEndpoints.PathPrefix(tokenPathPrefix).HandlerFunc(msiTokens)
@@ -285,7 +309,7 @@ func buildProxyHandler(readyz, msiTokens, imdsProxy http.HandlerFunc) http.Handl
 	proxyRouter := mux.NewRouter()
 	proxyRouter.PathPrefix(readyzPathPrefix).HandlerFunc(readyz)
 	proxyRouter.PathPrefix("/").Handler(
-		imdsEndpoints,
+		imdsProtectedHandler(imdsEndpoints),
 	)
 
 	return proxyRouter
