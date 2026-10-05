@@ -21,7 +21,7 @@ jobs:
       fail-fast: false
       matrix:
         # TODO(aramase): add windows test env
-        env: [ubuntu-latest, macos-13]
+        env: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.env }}
     steps:
       - name: Harden Runner
@@ -35,7 +35,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
-          go-version: "1.23"
+          go-version: "1.26.8"
           check-latest: true
       - name: Build azwi
         run: |

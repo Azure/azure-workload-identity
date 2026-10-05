@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/oss/go/microsoft/golang:1.23.10-bookworm@sha256:1b9955f4f779e11096819e0a2594c9cf568aa2337fea85a45b220bf632376e58 as builder
+FROM mcr.microsoft.com/oss/go/microsoft/golang:1.26.8-bookworm@sha256:dcdfc27fb8224a64128b5f82026acbf1d63458cfa9a34fa4b60c07574ff52332 as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -14,7 +14,7 @@ COPY token_credential.go token_credential.go
 
 # Build
 ARG TARGETARCH
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} GO111MODULE=on go build -a -o msalgo .
+RUN MS_GO_NOSYSTEMCRYPTO=1 CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} GO111MODULE=on go build -a -o msalgo .
 
 FROM --platform=${TARGETPLATFORM:-linux/amd64} mcr.microsoft.com/cbl-mariner/distroless/minimal:2.0-nonroot
 WORKDIR /
