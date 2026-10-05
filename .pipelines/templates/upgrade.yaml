@@ -22,6 +22,7 @@ jobs:
     strategy:
       matrix: ${{ parameters.matrix }}
     steps:
+      - template: templates/prepare-deps.yaml
       - template: az-login.yaml
         parameters:
           serviceConnection: ${{ parameters.serviceConnection }}
