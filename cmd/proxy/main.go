@@ -54,7 +54,7 @@ func mainErr() error {
 
 	ctx := withShutdownSignal(context.Background())
 
-	p, err := proxy.NewProxy(proxyPort, mlog.New().WithName("proxy"))
+	p, err := proxy.NewProxy(proxyPort, mlog.New().WithName("proxy"), proxy.CreateWICredCache())
 	if err != nil {
 		return fmt.Errorf("setup: failed to create proxy: %w", err)
 	}
