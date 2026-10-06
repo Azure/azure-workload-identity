@@ -36,6 +36,8 @@ jobs:
         value: upstream.azurecr.io/azure-workload-identity
       - name: SOAK_CLUSTER
         value: "true"
+      - name: TEST_HELM_CHART
+        value: "true"
     strategy:
       matrix:
         soak_aks_windows:
