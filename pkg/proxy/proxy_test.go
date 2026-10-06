@@ -10,29 +10,10 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/gorilla/mux"
 	"monis.app/mlog"
 
 	"github.com/Azure/azure-workload-identity/pkg/webhook"
 )
-
-var (
-	rtr    *mux.Router
-	server *httptest.Server
-)
-
-func setup() {
-	rtr = mux.NewRouter()
-	server = httptest.NewServer(rtr)
-
-	os.Setenv(webhook.AzureTenantIDEnvVar, "tenant_id")
-}
-
-func teardown() {
-	server.Close()
-
-	os.Unsetenv(webhook.AzureTenantIDEnvVar)
-}
 
 func TestProxy_MSIHandler(t *testing.T) {
 	tests := []struct {
@@ -57,20 +38,20 @@ func TestProxy_MSIHandler(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			setup()
-			defer teardown()
+			os.Setenv(webhook.AzureTenantIDEnvVar, "tenant_id")
+			defer os.Unsetenv(webhook.AzureTenantIDEnvVar)
 
 			p := &proxy{logger: mlog.New()}
-			rtr.PathPrefix(tokenPathPrefix).HandlerFunc(p.msiHandler)
-			rtr.PathPrefix("/").HandlerFunc(p.defaultPathHandler)
+			handler := buildProxyHandler(p.readyzHandler, p.msiHandler, p.defaultPathHandler)
 
 			req, err := http.NewRequest(http.MethodGet, test.path, nil)
 			if err != nil {
 				t.Error(err)
 			}
+			req.Header.Add("Metadata", "true")
 
 			recorder := httptest.NewRecorder()
-			rtr.ServeHTTP(recorder, req)
+			handler.ServeHTTP(recorder, req)
 
 			if recorder.Code != test.expectedStatusCode {
 				t.Errorf("expected status code %d, got %d", test.expectedStatusCode, recorder.Code)
@@ -132,19 +113,19 @@ func TestRouterPathPrefix(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			setup()
-			defer teardown()
+			os.Setenv(webhook.AzureTenantIDEnvVar, "tenant_id")
+			defer os.Unsetenv(webhook.AzureTenantIDEnvVar)
 
-			rtr.PathPrefix(tokenPathPrefix).HandlerFunc(testTokenHandler)
-			rtr.PathPrefix("/").HandlerFunc(testDefaultHandler)
+			handler := buildProxyHandler(testReadyzHandler, testTokenHandler, testDefaultHandler)
 
-			req, err := http.NewRequest(http.MethodGet, server.URL+test.path, nil)
+			req, err := http.NewRequest(http.MethodGet, test.path, nil)
 			if err != nil {
 				t.Error(err)
 			}
+			req.Header.Add("Metadata", "true")
 
 			recorder := httptest.NewRecorder()
-			rtr.ServeHTTP(recorder, req)
+			handler.ServeHTTP(recorder, req)
 			if recorder.Body.String() != test.expectedBody {
 				t.Errorf("Expected body %s, got %s", test.expectedBody, recorder.Body.String())
 			}
@@ -219,6 +200,10 @@ func testDefaultHandler(w http.ResponseWriter, _ *http.Request) {
 	fmt.Fprintf(w, "default_handler")
 }
 
+func testReadyzHandler(w http.ResponseWriter, _ *http.Request) {
+	fmt.Fprintf(w, "readyz_handler")
+}
+
 func TestProxy_ReadyZHandler(t *testing.T) {
 	tests := []struct {
 		name string
@@ -239,19 +224,19 @@ func TestProxy_ReadyZHandler(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			setup()
-			defer teardown()
+			os.Setenv(webhook.AzureTenantIDEnvVar, "tenant_id")
+			defer os.Unsetenv(webhook.AzureTenantIDEnvVar)
 
 			p := &proxy{logger: mlog.New()}
-			rtr.PathPrefix("/readyz").HandlerFunc(p.readyzHandler)
+			handler := buildProxyHandler(p.readyzHandler, testTokenHandler, testDefaultHandler)
 
-			req, err := http.NewRequest(http.MethodGet, server.URL+test.path, nil)
+			req, err := http.NewRequest(http.MethodGet, test.path, nil)
 			if err != nil {
 				t.Error(err)
 			}
 
 			recorder := httptest.NewRecorder()
-			rtr.ServeHTTP(recorder, req)
+			handler.ServeHTTP(recorder, req)
 			if recorder.Code != test.code {
 				t.Errorf("Expected code %d, got %d", test.code, recorder.Code)
 			}
@@ -383,5 +368,199 @@ func TestGetOrCreateCredSingleFlight(t *testing.T) {
 		} else if first != cred {
 			t.Errorf("expected all goroutines to receive the same credential pointer, got different instances")
 		}
+	}
+}
+
+func Test_imdsProtectedHandler(t *testing.T) {
+	const (
+		tokenBody   = "token_request_handler"
+		defaultBody = "default_handler"
+		readyzBody  = "readyz_handler"
+
+		methodNotAllowedBody = "Method not allowed\n"
+		forwardedForBody     = "Must not set the \"X-Forwarded-For\" header\n"
+		metadataBody         = "\"Metadata\" header must be set to \"true\"\n"
+	)
+
+	const (
+		instancePath = "/metadata/instance"
+		tokenPath    = "/metadata/identity/oauth2/token"
+		readyzPath   = "/readyz"
+	)
+
+	tests := []struct {
+		name         string
+		httpMethod   string
+		path         string
+		requestSetup func(r *http.Request)
+		wantCode     int
+		wantBody     string
+	}{
+		{
+			name:         "valid GET passes through to the imds proxy",
+			httpMethod:   http.MethodGet,
+			path:         instancePath,
+			requestSetup: func(r *http.Request) { r.Header.Add("Metadata", "true") },
+			wantCode:     http.StatusOK,
+			wantBody:     defaultBody,
+		},
+		{
+			name:         "valid GET passes through to the token handler",
+			httpMethod:   http.MethodGet,
+			path:         tokenPath,
+			requestSetup: func(r *http.Request) { r.Header.Add("Metadata", "true") },
+			wantCode:     http.StatusOK,
+			wantBody:     tokenBody,
+		},
+		{
+			name:         "readyz bypasses the protection",
+			httpMethod:   http.MethodGet,
+			path:         readyzPath,
+			requestSetup: func(r *http.Request) {},
+			wantCode:     http.StatusOK,
+			wantBody:     readyzBody,
+		},
+		{
+			name:         "POST is rejected",
+			httpMethod:   http.MethodPost,
+			path:         "/foo",
+			requestSetup: func(r *http.Request) { r.Header.Add("Metadata", "true") },
+			wantCode:     http.StatusMethodNotAllowed,
+			wantBody:     methodNotAllowedBody,
+		},
+		{
+			name:         "PUT is rejected",
+			httpMethod:   http.MethodPut,
+			path:         instancePath,
+			requestSetup: func(r *http.Request) { r.Header.Add("Metadata", "true") },
+			wantCode:     http.StatusMethodNotAllowed,
+			wantBody:     methodNotAllowedBody,
+		},
+		{
+			name:         "DELETE is rejected",
+			httpMethod:   http.MethodDelete,
+			path:         "/bar/baz",
+			requestSetup: func(r *http.Request) { r.Header.Add("Metadata", "true") },
+			wantCode:     http.StatusMethodNotAllowed,
+			wantBody:     methodNotAllowedBody,
+		},
+		{
+			name:         "HEAD is rejected",
+			httpMethod:   http.MethodHead,
+			path:         instancePath,
+			requestSetup: func(r *http.Request) { r.Header.Add("Metadata", "true") },
+			wantCode:     http.StatusMethodNotAllowed,
+			wantBody:     methodNotAllowedBody,
+		},
+		{
+			name:         "method check precedes header checks",
+			httpMethod:   http.MethodPost,
+			path:         instancePath,
+			requestSetup: func(r *http.Request) { r.Header.Add("X-Forwarded-For", "1.2.3.4") },
+			wantCode:     http.StatusMethodNotAllowed,
+			wantBody:     methodNotAllowedBody,
+		},
+		{
+			name:       "X-Forwarded-For is rejected",
+			httpMethod: http.MethodGet,
+			path:       "/anything",
+			requestSetup: func(r *http.Request) {
+				r.Header.Add("Metadata", "true")
+				r.Header.Add("X-Forwarded-For", "1.2.3.4")
+			},
+			wantCode: http.StatusBadRequest,
+			wantBody: forwardedForBody,
+		},
+		{
+			name:       "empty X-Forwarded-For value is still rejected",
+			httpMethod: http.MethodGet,
+			path:       instancePath,
+			requestSetup: func(r *http.Request) {
+				r.Header.Add("Metadata", "true")
+				r.Header.Add("X-Forwarded-For", "")
+			},
+			wantCode: http.StatusBadRequest,
+			wantBody: forwardedForBody,
+		},
+		{
+			name:       "X-Forwarded-For gets rejected with multiple values and first one is empty",
+			httpMethod: http.MethodGet,
+			path:       instancePath,
+			requestSetup: func(r *http.Request) {
+				r.Header.Add("Metadata", "true")
+				r.Header["X-Forwarded-For"] = []string{"", "1.2.3.4"}
+			},
+			wantCode: http.StatusBadRequest,
+			wantBody: forwardedForBody,
+		},
+		{
+			name:         "X-Forwarded-For check precedes Metadata check",
+			httpMethod:   http.MethodGet,
+			path:         instancePath,
+			requestSetup: func(r *http.Request) { r.Header.Add("X-Forwarded-For", "1.2.3.4") },
+			wantCode:     http.StatusBadRequest,
+			wantBody:     forwardedForBody,
+		},
+		{
+			name:         "missing Metadata header is rejected",
+			httpMethod:   http.MethodGet,
+			path:         "/",
+			requestSetup: func(r *http.Request) {},
+			wantCode:     http.StatusBadRequest,
+			wantBody:     metadataBody,
+		},
+		{
+			name:         "Metadata:false is rejected",
+			httpMethod:   http.MethodGet,
+			path:         "/not-metadata",
+			requestSetup: func(r *http.Request) { r.Header.Add("Metadata", "false") },
+			wantCode:     http.StatusBadRequest,
+			wantBody:     metadataBody,
+		},
+		{
+			name:         "Metadata value is case-sensitive",
+			httpMethod:   http.MethodGet,
+			path:         instancePath,
+			requestSetup: func(r *http.Request) { r.Header.Add("Metadata", "True") },
+			wantCode:     http.StatusBadRequest,
+			wantBody:     metadataBody,
+		},
+		{
+			name:         "empty Metadata value is rejected",
+			httpMethod:   http.MethodGet,
+			path:         instancePath,
+			requestSetup: func(r *http.Request) { r.Header.Add("Metadata", "") },
+			wantCode:     http.StatusBadRequest,
+			wantBody:     metadataBody,
+		},
+		{
+			name:       "duplicate Metadata headers are rejected",
+			httpMethod: http.MethodGet,
+			path:       instancePath,
+			requestSetup: func(r *http.Request) {
+				r.Header["Metadata"] = []string{"true", "true"}
+			},
+			wantCode: http.StatusBadRequest,
+			wantBody: metadataBody,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := buildProxyHandler(testReadyzHandler, testTokenHandler, testDefaultHandler)
+
+			req := httptest.NewRequest(tt.httpMethod, tt.path, nil)
+			tt.requestSetup(req)
+
+			recorder := httptest.NewRecorder()
+			handler.ServeHTTP(recorder, req)
+
+			if recorder.Code != tt.wantCode {
+				t.Errorf("status code = %d, want %d", recorder.Code, tt.wantCode)
+			}
+			if recorder.Body.String() != tt.wantBody {
+				t.Errorf("body = %q, want %q", recorder.Body.String(), tt.wantBody)
+			}
+		})
 	}
 }
